@@ -34,13 +34,23 @@ function buildMonth(cursor) {
   return cells
 }
 
-/* 기간 일정: 시작일에 본 표기, 종료일에만 흐린 종료 마커 (기간 중은 표기 없음) */
-function indexByDay(events) {
+/* 기간 일정: 시작일에 본 표기, 종료일에만 흐린 종료 마커 (기간 중은 표기 없음).
+   withMid(와이드 열람 모드): 중간 날짜에도 흐린 연속 표시 — 그 주에 걸린 일정이 보이게 */
+function indexByDay(events, withMid = false) {
   const map = {}
   const push = (iso, e) => ((map[iso] = map[iso] || []).push(e))
   for (const e of events) {
     push(e.date, e)
-    if (e.endDate && e.endDate !== e.date) push(e.endDate, { ...e, isEnd: true })
+    if (e.endDate && e.endDate !== e.date) {
+      if (withMid) {
+        const d = fromISO(e.date)
+        const end = fromISO(e.endDate)
+        for (d.setDate(d.getDate() + 1); d < end; d.setDate(d.getDate() + 1)) {
+          push(toISO(d), { ...e, isMid: true })
+        }
+      }
+      push(e.endDate, { ...e, isEnd: true })
+    }
   }
   return map
 }
@@ -366,10 +376,11 @@ function QuickAdd({ onCreate, campaigns, shoot = false }) {
   )
 }
 
-function MonthGrid({ cursor, events, onSelect, onDayClick }) {
+function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false }) {
   const cells = useMemo(() => buildMonth(cursor), [cursor])
-  const byDay = useMemo(() => indexByDay(events), [events])
+  const byDay = useMemo(() => indexByDay(events, wide), [events, wide])
   const today = todayISO()
+  const MAX = wide ? 8 : 4   // 와이드 열람 모드는 셀당 표시 건수 확대
 
   return (
     <div className={'cal-grid' + (onDayClick ? ' editable' : '')}>
@@ -388,17 +399,19 @@ function MonthGrid({ cursor, events, onSelect, onDayClick }) {
               <div className={'cal-daynum' + (c.dow === 0 || c.dow === 6 || hol ? ' wknd' : '')}>{c.day}</div>
               {hol && <span className="cal-hol">{hol}</span>}
             </div>
-            {list.slice(0, 4).map(e => (
+            {list.slice(0, MAX).map(e => (
               <button
-                key={e.id + c.iso + (e.isEnd ? 'e' : '')} className={'cal-ev' + (e.isEnd ? ' end' : '')}
+                key={e.id + c.iso + (e.isEnd ? 'e' : e.isMid ? 'm' : '')}
+                className={'cal-ev' + (e.isEnd ? ' end' : '') + (e.isMid ? ' mid' : '')}
                 onClick={ev => { ev.stopPropagation(); onSelect(e) }}
                 title={`${channelById(e.channel)?.label || e.channel}${e.sub ? ` (${e.sub})` : ''} — ${e.title} (${fmtRange(e)})`}
               >
                 <ChannelIcon id={e.channel} />
+                {wide && <span className="ev-ch">{channelById(e.channel)?.label || e.channel}</span>}
                 <span className="ev-title">{e.title}{e.isEnd && ' · 종료'}</span>
               </button>
             ))}
-            {list.length > 4 && <div className="cal-more">+{list.length - 4}</div>}
+            {list.length > MAX && <div className="cal-more">+{list.length - MAX}</div>}
           </div>
         )
       })}
@@ -778,7 +791,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
   const searching = search.trim().length > 0
 
   return (
-    <div className="wrap cal-wrap">
+    <div className={'wrap cal-wrap' + (readOnly ? ' wide' : '')}>
       <header>
         <div className="eyebrow">Media Content Team · {shoot ? 'Shooting' : 'Schedule'}{readOnly && ' · Read Only'}</div>
         <h1>{shoot ? '촬영 일정 캘린더' : '매체 일정 캘린더'}</h1>
@@ -852,7 +865,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
       ) : view === '월간' ? (
         <MonthGrid
           cursor={cursor} events={filtered} onSelect={setSelected}
-          onDayClick={readOnly ? null : setDayDraft}
+          onDayClick={readOnly ? null : setDayDraft} wide={readOnly}
         />
       ) : (
         <CampaignView events={filtered} onSelect={setSelected} onRename={readOnly ? null : onRename} />
