@@ -470,7 +470,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                 {perf.map(p => (
                   <a key={p.url} className="md-perf-row" href={p.url} target="_blank" rel="noopener noreferrer">
                     <span className="pf-title">{p.title}</span>
-                    <span className="pf-meta">{p.meta}</span>
+                    <span className="pf-meta">{p.meta} <span className="pf-open">↗</span></span>
                   </a>
                 ))}
               </div>

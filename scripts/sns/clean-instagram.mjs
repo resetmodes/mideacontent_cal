@@ -36,7 +36,11 @@ const WINDOW_MONTHS = 1   // 집계용 윈도우. scrape-instagram.mjs의 원본
 const CUTOFF_TS = (() => { const d = new Date(); d.setMonth(d.getMonth() - WINDOW_MONTHS); return d.getTime() })()
 const CUTOFF_DATE = new Date(CUTOFF_TS).toISOString().slice(0, 10)
 
-/* withPosts: 자사 계정만 게시물 단위 목록(IG.posts)도 축적 — 캘린더 일정 ↔ 실적 매칭용 ('26.7) */
+/* 게시물 단위(IG.posts) 내보내기 대상 — 캘린더 실적 매칭용 ('26.7 확정: 이 2개 계정만)
+   본계정(the_hyundai)·도시메뉴얼(dosi.manual) 외 계정·경쟁사는 요약만 유지 */
+const PERF_HANDLES = new Set(['the_hyundai', 'dosi.manual'])
+
+/* postRows: 실적 매칭용 게시물 목록 축적 (PERF_HANDLES 계정만) */
 async function processList(list, postRows = null) {
   const summaries = []
   for (const acc of list) {
@@ -81,7 +85,7 @@ async function processList(list, postRows = null) {
       return !isNaN(t) && t >= CUTOFF_TS
     })
 
-    if (postRows) {
+    if (postRows && PERF_HANDLES.has(acc.handle)) {
       for (const p of windowed) {
         if (!p.url) continue
         postRows.push({
