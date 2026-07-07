@@ -1,4 +1,4 @@
-import { KEYWORDS, TITLE_ALIASES } from '../data/channels.js'
+import { KEYWORDS, TITLE_ALIASES, TITLE_STRIP } from '../data/channels.js'
 
 /* 제목 표기 통일 — 긴 표현부터 치환하고, 치환된 결과는 뒤의 규칙이 다시 건드리지 못하게 보호.
    (예: '아파트 LCD'→'APT LCD' 후 'LCD'→'APT LCD' 규칙이 그 안의 LCD를 또 바꾸는 사고 방지) */
@@ -19,6 +19,21 @@ function normalizeTitle(title) {
   }
   return parts.map(p => (typeof p === 'string' ? p : p.t)).join('')
     .replace(/\s+/g, ' ').trim()
+}
+
+/* 채널 인식 후 칩과 중복되는 범용 채널 지칭을 제목에서 제거 ('26.7)
+   — "인스타 여름테마" + 인스타 칩 → 제목은 "여름테마"만.
+   독립 토큰(공백 경계)만 제거, 전부 지워지면 원제목 유지 (빈 제목 방지) */
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+function stripChannelTokens(title, chList) {
+  let out = title
+  for (const { channel } of chList) {
+    for (const tok of TITLE_STRIP[channel] || []) {
+      out = out.replace(new RegExp(`(^|\\s)${escRe(tok)}(?=\\s|$)`, 'g'), '$1')
+    }
+  }
+  out = out.replace(/\s+/g, ' ').trim()
+  return out || title
 }
 
 const pad = n => String(n).padStart(2, '0')
@@ -150,5 +165,8 @@ export function parseQuick(input, today = new Date()) {
     }
   }
 
-  return { title: normalizeTitle(text), date, endDate, shootDate, channel, sub, campaign, channels }
+  const chList = channels || (channel ? [{ channel }] : [])
+  const title = stripChannelTokens(normalizeTitle(text), chList)
+
+  return { title, date, endDate, shootDate, channel, sub, campaign, channels }
 }
