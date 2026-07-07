@@ -25,8 +25,9 @@
   `.github/workflows/sns-collect.yml` — 매주 월 09:00 KST 자동 + 수동(Run workflow),
   결과를 src/data/sns에 커밋 → Vercel 자동 재배포. APIFY_TOKEN은 GitHub Secret + 로컬 .env
   (.env는 gitignore — 절대 커밋 금지). raw는 data/sns-raw(미추적)
-- 계정 그룹 ('26.7 변경): 본사(본계정·도시메뉴얼·에딧뎁트·와지트) / 사업소(점포 전체+신춘자) /
-  콘텐츠·IP / 해외 (+경쟁사 별도 섹션). 계정 추가·이동 = scripts/sns/accounts.mjs 수정
+- 계정 그룹 ('26.7 변경): 본사(본계정·도시메뉴얼·에딧뎁트·와지트) / 사업소(점포+신춘자, 아울렛 제외) /
+  아울렛(5개점 별도 분리) / 콘텐츠·IP / 해외 (+경쟁사 별도 섹션). 계정 추가·이동 =
+  scripts/sns/accounts.mjs 수정 (IG_GROUP_ORDER와 MonitorPage.jsx의 동일 상수 함께 갱신)
 - 에딧뎁트(edit.dept)·와지트(wazit_wine)는 첫 수집 전까지 화면에 없음 (raw 없어 스킵)
 - 표기 원칙: 좋아요 비공개 계정은 "비공개", 계정 간 비교는 참여/1k(팔로워 1천 명당 반응) 기준,
   휴면(60일+ 미게시) 계정은 회색 + 휴면 플래그

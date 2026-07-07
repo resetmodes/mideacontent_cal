@@ -1,8 +1,8 @@
 /* SNS 모니터링 대상 계정 — 단일 소스 (수집·정제·화면 그룹이 모두 이 파일 기준)
-   그룹 체계 ('26.7 변경): 본사 / 사업소 / 콘텐츠·IP / 해외 (+경쟁사 별도)
+   그룹 체계 ('26.7 변경): 본사 / 사업소 / 아울렛 / 콘텐츠·IP / 해외 (+경쟁사 별도)
    계정 추가·이동 = 이 파일 수정 → 다음 수집부터 반영 */
 
-export const IG_GROUP_ORDER = ['본사', '사업소', '콘텐츠·IP', '해외']
+export const IG_GROUP_ORDER = ['본사', '사업소', '아울렛', '콘텐츠·IP', '해외']
 
 export const IG_ACCOUNTS = [
   /* ── 본사 ─────────────────────────────── */
@@ -27,11 +27,13 @@ export const IG_ACCOUNTS = [
   { handle: 'sinchoonja',               file: 'sinchoonja',               name: '신춘자 (신촌점)',       group: '사업소', isMain: false },
   { handle: 'connect_hyundai_busan',    file: 'connect_hyundai_busan',    name: '커넥트현대 부산',       group: '사업소', isMain: false },
   { handle: 'connect_hyundai_cheongju', file: 'connect_hyundai_cheongju', name: '커넥트현대 청주',       group: '사업소', isMain: false },
-  { handle: 'hyundaioutlets',           file: 'hyundaioutlets',           name: '현대아울렛 공식',       group: '사업소', isMain: false },
-  { handle: 'hyundaioutlets_space1',    file: 'hyundaioutlets_space1',    name: '현대아울렛 스페이스원', group: '사업소', isMain: false },
-  { handle: 'hyundaioutlets_gimpo',     file: 'hyundaioutlets_gimpo',     name: '현대아울렛 김포',       group: '사업소', isMain: false },
-  { handle: 'hyundaioutlets_daejeon',   file: 'hyundaioutlets_daejeon',   name: '현대아울렛 대전',       group: '사업소', isMain: false },
-  { handle: 'hyundaioutlets_songdo',    file: 'hyundaioutlets_songdo',    name: '현대아울렛 송도',       group: '사업소', isMain: false },
+
+  /* ── 아울렛 ───────────────────────────── */
+  { handle: 'hyundaioutlets',           file: 'hyundaioutlets',           name: '현대아울렛 공식',       group: '아울렛', isMain: false },
+  { handle: 'hyundaioutlets_space1',    file: 'hyundaioutlets_space1',    name: '현대아울렛 스페이스원', group: '아울렛', isMain: false },
+  { handle: 'hyundaioutlets_gimpo',     file: 'hyundaioutlets_gimpo',     name: '현대아울렛 김포',       group: '아울렛', isMain: false },
+  { handle: 'hyundaioutlets_daejeon',   file: 'hyundaioutlets_daejeon',   name: '현대아울렛 대전',       group: '아울렛', isMain: false },
+  { handle: 'hyundaioutlets_songdo',    file: 'hyundaioutlets_songdo',    name: '현대아울렛 송도',       group: '아울렛', isMain: false },
 
   /* ── 콘텐츠·IP ────────────────────────── */
   { handle: 'thehyundaiculture',        file: 'thehyundaiculture',        name: '더현대컬처',            group: '콘텐츠·IP', isMain: false },

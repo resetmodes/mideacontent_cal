@@ -35,7 +35,7 @@ function Hero({ stats }) {
   )
 }
 
-const IG_GROUP_ORDER = ['본사', '사업소', '콘텐츠·IP', '해외']
+const IG_GROUP_ORDER = ['본사', '사업소', '아울렛', '콘텐츠·IP', '해외']
 
 function InstagramView() {
   const main = IG.accounts.find(a => a.isMain)

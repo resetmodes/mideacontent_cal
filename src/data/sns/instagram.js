@@ -2,7 +2,7 @@
 export const IG = {
  "source": "apify/instagram-scraper",
  "platform": "instagram",
- "generatedAt": "2026-07-07T04:43:28.887Z",
+ "generatedAt": "2026-07-07T04:52:02.873Z",
  "windowMonths": 3,
  "windowSince": "2026-04-07",
  "note": "모든 지표는 최근 3개월(2026-04-07 이후) 게시물 기준. likes=null 은 비공개(좋아요 평균은 공개분만).",
@@ -401,7 +401,7 @@ export const IG = {
   {
    "handle": "hyundaioutlets",
    "name": "현대아울렛 공식",
-   "group": "사업소",
+   "group": "아울렛",
    "profileUrl": "https://www.instagram.com/hyundaioutlets/",
    "isMain": false,
    "followers": 280031,
@@ -424,7 +424,7 @@ export const IG = {
   {
    "handle": "hyundaioutlets_space1",
    "name": "현대아울렛 스페이스원",
-   "group": "사업소",
+   "group": "아울렛",
    "profileUrl": "https://www.instagram.com/hyundaioutlets_space1/",
    "isMain": false,
    "followers": 103912,
@@ -447,7 +447,7 @@ export const IG = {
   {
    "handle": "hyundaioutlets_gimpo",
    "name": "현대아울렛 김포",
-   "group": "사업소",
+   "group": "아울렛",
    "profileUrl": "https://www.instagram.com/hyundaioutlets_gimpo/",
    "isMain": false,
    "followers": 70837,
@@ -470,7 +470,7 @@ export const IG = {
   {
    "handle": "hyundaioutlets_daejeon",
    "name": "현대아울렛 대전",
-   "group": "사업소",
+   "group": "아울렛",
    "profileUrl": "https://www.instagram.com/hyundaioutlets_daejeon/",
    "isMain": false,
    "followers": 24422,
@@ -493,7 +493,7 @@ export const IG = {
   {
    "handle": "hyundaioutlets_songdo",
    "name": "현대아울렛 송도",
-   "group": "사업소",
+   "group": "아울렛",
    "profileUrl": "https://www.instagram.com/hyundaioutlets_songdo/",
    "isMain": false,
    "followers": 125121,
