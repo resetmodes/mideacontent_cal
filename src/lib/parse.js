@@ -1,11 +1,24 @@
 import { KEYWORDS, TITLE_ALIASES } from '../data/channels.js'
 
-/* 제목 표기 통일 — 긴 표현부터 치환해 부분 매칭 오류 방지 */
+/* 제목 표기 통일 — 긴 표현부터 치환하고, 치환된 결과는 뒤의 규칙이 다시 건드리지 못하게 보호.
+   (예: '아파트 LCD'→'APT LCD' 후 'LCD'→'APT LCD' 규칙이 그 안의 LCD를 또 바꾸는 사고 방지) */
 const ALIASES_SORTED = [...TITLE_ALIASES].sort((a, b) => b[0].length - a[0].length)
 function normalizeTitle(title) {
-  let t = title
-  for (const [from, to] of ALIASES_SORTED) t = t.split(from).join(to)
-  return t.replace(/\s+/g, ' ').trim()
+  let parts = [title]   // 문자열 = 아직 치환 가능, {t} = 확정(보호)된 조각
+  for (const [from, to] of ALIASES_SORTED) {
+    const next = []
+    for (const seg of parts) {
+      if (typeof seg !== 'string') { next.push(seg); continue }
+      const pieces = seg.split(from)
+      pieces.forEach((p, i) => {
+        next.push(p)
+        if (i < pieces.length - 1) next.push({ t: to })
+      })
+    }
+    parts = next
+  }
+  return parts.map(p => (typeof p === 'string' ? p : p.t)).join('')
+    .replace(/\s+/g, ' ').trim()
 }
 
 const pad = n => String(n).padStart(2, '0')
