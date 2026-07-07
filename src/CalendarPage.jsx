@@ -280,6 +280,50 @@ function MonthGrid({ cursor, events, onSelect, onDayClick }) {
   )
 }
 
+/* 캠페인 블록 — CampaignView 밖에 정의 (렌더마다 컴포넌트가 재생성되면
+   이름 변경 입력이 한 글자마다 재마운트되어 커서가 튀는 문제 방지) */
+function CampBlock({ g, renaming, renameVal, setRenameVal, onConfirmRename, onStartRename, onCancelRename, canRename, onSelect }) {
+  return (
+    <div className="camp-block">
+      <div className="camp-head">
+        {renaming === g.name ? (
+          <span className="camp-rename-form">
+            <input
+              autoFocus value={renameVal}
+              onChange={e => setRenameVal(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing) onConfirmRename()
+                if (e.key === 'Escape') onCancelRename()
+              }}
+              placeholder="새 이름 (기존 캠페인명 입력 시 통합)"
+            />
+            <button className="btn-solid sm" onClick={onConfirmRename}>확인</button>
+            <button className="btn-ghost sm" onClick={onCancelRename}>취소</button>
+          </span>
+        ) : (
+          <>
+            <span className="camp-name">#{g.name}</span>
+            {canRename && (
+              <button className="camp-rename" onClick={() => onStartRename(g.name)}>이름 변경·통합</button>
+            )}
+          </>
+        )}
+        <span className="camp-range">{fmtDot(g.first)} ~ {fmtDot(g.lastEnd)} · {g.list.length}건</span>
+      </div>
+      {g.list.map(e => (
+        <button key={e.id} className="camp-ev" onClick={() => onSelect(e)}>
+          <span className="ce-date">{fmtRange(e)}</span>
+          <span className="ce-ch" title={channelById(e.channel)?.label || e.channel}>
+            <ChannelIcon id={e.channel} />
+            {e.sub || channelById(e.channel)?.label || e.channel}
+          </span>
+          <span className="ce-title">{e.title}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
 /* 캠페인 뷰 — 진행·예정 캠페인은 펼침, 종료 캠페인은 자동 보관(접힘) */
 function CampaignView({ events, onSelect, onRename }) {
   const today = todayISO()
@@ -311,56 +355,25 @@ function CampaignView({ events, onSelect, onRename }) {
     setRenaming(null)
   }
 
-  const Block = ({ g }) => (
-    <div className="camp-block">
-      <div className="camp-head">
-        {renaming === g.name ? (
-          <span className="camp-rename-form">
-            <input
-              autoFocus value={renameVal}
-              onChange={e => setRenameVal(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.nativeEvent.isComposing) confirmRename()
-                if (e.key === 'Escape') setRenaming(null)
-              }}
-              placeholder="새 이름 (기존 캠페인명 입력 시 통합)"
-            />
-            <button className="btn-solid sm" onClick={confirmRename}>확인</button>
-            <button className="btn-ghost sm" onClick={() => setRenaming(null)}>취소</button>
-          </span>
-        ) : (
-          <>
-            <span className="camp-name">#{g.name}</span>
-            {onRename && (
-              <button className="camp-rename" onClick={() => startRename(g.name)}>이름 변경·통합</button>
-            )}
-          </>
-        )}
-        <span className="camp-range">{fmtDot(g.first)} ~ {fmtDot(g.lastEnd)} · {g.list.length}건</span>
-      </div>
-      {g.list.map(e => (
-        <button key={e.id} className="camp-ev" onClick={() => onSelect(e)}>
-          <span className="ce-date">{fmtRange(e)}</span>
-          <span className="ce-ch" title={channelById(e.channel)?.label || e.channel}>
-            <ChannelIcon id={e.channel} />
-            {e.sub || channelById(e.channel)?.label || e.channel}
-          </span>
-          <span className="ce-title">{e.title}</span>
-        </button>
-      ))}
-    </div>
-  )
+  const blockProps = {
+    renaming, renameVal, setRenameVal,
+    onConfirmRename: confirmRename,
+    onStartRename: startRename,
+    onCancelRename: () => setRenaming(null),
+    canRename: !!onRename,
+    onSelect,
+  }
 
   return (
     <div className="camp-view">
       {groups.active.length === 0 && groups.past.length === 0 && (
         <div className="empty">캠페인 태그가 붙은 일정이 없음 — 빠른 입력에 #캠페인명 을 붙이면 여기에 묶임</div>
       )}
-      {groups.active.map(g => <Block key={g.name} g={g} />)}
+      {groups.active.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
       {groups.past.length > 0 && (
         <details className="camp-past">
           <summary>지난 캠페인 {groups.past.length}건 — 자동 보관됨</summary>
-          {groups.past.map(g => <Block key={g.name} g={g} />)}
+          {groups.past.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
         </details>
       )}
       {noCampaign > 0 && (
