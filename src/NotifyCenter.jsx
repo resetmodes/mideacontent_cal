@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { listChangesSince, storageMode } from './lib/store.js'
 import { authorName } from './data/team.js'
+import { displayTitle } from './lib/parse.js'
 import { fmtTs, ACTION_KO, histDiff } from './CalendarPage.jsx'
 
 /* 알림센터 — "지난 확인 이후 남이 바꾼 일정 N건" (설계: docs/notify-center-design.md)
@@ -73,7 +74,7 @@ export default function NotifyCenter({ session }) {
                     <span className="mh-act">{ACTION_KO[r.action] || r.action}</span>
                     <span className="mh-diff">
                       {r.data?.kind === '촬영' && '[촬영] '}
-                      {r.data?.date} {r.data?.title}
+                      {r.data?.date} {displayTitle(r.data?.title, r.data?.channel)}
                       {r.data?.channel ? ` (${r.data.channel})` : ''}
                       {diffs.length > 0 && ` — ${diffs.join(' · ')}`}
                     </span>

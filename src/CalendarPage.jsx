@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { CHANNELS, channelById } from './data/channels.js'
-import { parseQuick, toISO, fromISO } from './lib/parse.js'
+import { parseQuick, toISO, fromISO, displayTitle } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, listHistory, listDeleted, storageMode } from './lib/store.js'
 import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
@@ -103,7 +103,7 @@ function SearchResults({ events, query, onSelect }) {
             {e.sub || channelById(e.channel)?.label || e.channel}
           </span>
           <span className="ce-title">
-            {hlText(e.title, query)}
+            {hlText(displayTitle(e.title, e.channel), query)}
             {e.campaign && <em>#{e.campaign}</em>}
           </span>
         </button>
@@ -195,7 +195,7 @@ function DeletedLog({ shoot }) {
           <span className="mh-when">{fmtTs(r.changed_at)}</span>
           <span className="mh-who">{r.actor ? authorName(r.actor) : '—'}</span>
           <span className="mh-act">삭제</span>
-          <span className="mh-diff">{r.data?.date} {r.data?.title}{r.data?.channel ? ` (${r.data.channel})` : ''}</span>
+          <span className="mh-diff">{r.data?.date} {displayTitle(r.data?.title, r.data?.channel)}{r.data?.channel ? ` (${r.data.channel})` : ''}</span>
         </div>
       ))}
     </details>
@@ -404,11 +404,11 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false }) {
                 key={e.id + c.iso + (e.isEnd ? 'e' : e.isMid ? 'm' : '')}
                 className={'cal-ev' + (e.isEnd ? ' end' : '') + (e.isMid ? ' mid' : '')}
                 onClick={ev => { ev.stopPropagation(); onSelect(e) }}
-                title={`${channelById(e.channel)?.label || e.channel}${e.sub ? ` (${e.sub})` : ''} — ${e.title} (${fmtRange(e)})`}
+                title={`${channelById(e.channel)?.label || e.channel}${e.sub ? ` (${e.sub})` : ''} — ${displayTitle(e.title, e.channel)} (${fmtRange(e)})`}
               >
                 <ChannelIcon id={e.channel} />
                 {wide && <span className="ev-ch">{channelById(e.channel)?.label || e.channel}</span>}
-                <span className="ev-title">{e.title}{e.isEnd && ' · 종료'}</span>
+                <span className="ev-title">{displayTitle(e.title, e.channel)}{e.isEnd && ' · 종료'}</span>
               </button>
             ))}
             {list.length > MAX && <div className="cal-more">+{list.length - MAX}</div>}
@@ -456,7 +456,7 @@ function CampBlock({ g, renaming, renameVal, setRenameVal, onConfirmRename, onSt
             <ChannelIcon id={e.channel} />
             {e.sub || channelById(e.channel)?.label || e.channel}
           </span>
-          <span className="ce-title">{e.title}</span>
+          <span className="ce-title">{displayTitle(e.title, e.channel)}</span>
         </button>
       ))}
     </div>
@@ -594,7 +594,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
         {!editing ? (
           <>
             <div className="md-ch"><ChannelIcon id={event.channel} /> {channelById(event.channel)?.label || event.channel}{event.sub ? ` · ${event.sub}` : ''}{isShoot ? ' · 촬영' : ''}</div>
-            <div className="md-title">{event.title}</div>
+            <div className="md-title">{displayTitle(event.title, event.channel)}</div>
             <dl className="md-grid">
               <dt>일자</dt><dd>{fmtRange(event)}</dd>
               {event.campaign && <><dt>캠페인</dt><dd>#{event.campaign}</dd></>}

@@ -25,7 +25,7 @@ function normalizeTitle(title) {
    — "인스타 여름테마" + 인스타 칩 → 제목은 "여름테마"만.
    독립 토큰(공백 경계)만 제거, 전부 지워지면 원제목 유지 (빈 제목 방지) */
 const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-function stripChannelTokens(title, chList) {
+export function stripChannelTokens(title, chList) {
   let out = title
   for (const { channel } of chList) {
     for (const tok of TITLE_STRIP[channel] || []) {
@@ -35,6 +35,12 @@ function stripChannelTokens(title, chList) {
   out = out.replace(/\s+/g, ' ').trim()
   return out || title
 }
+
+/* 표시용 제목 ('26.7) — 렌더링 시점에 그 일정의 채널과 중복되는 지칭 제거.
+   기존 등록분(제목에 채널명이 저장된 데이터)도 화면에서는 정리돼 보임 — 원본은 불변.
+   수정 폼에서는 이 함수를 쓰지 말 것 (실제 저장값을 보여줘야 함) */
+export const displayTitle = (title, channel) =>
+  stripChannelTokens(title || '', channel ? [{ channel }] : [])
 
 const pad = n => String(n).padStart(2, '0')
 export const toISO = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
