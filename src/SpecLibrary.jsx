@@ -143,11 +143,6 @@ export default function SpecLibrary({ isExternal }) {
         <div className="eyebrow">Media Content Team · Spec Index{isExternal && ' · External Share'}</div>
         <h1>매체 스펙 라이브러리</h1>
         <div className="masthead-sub">미디어콘텐츠팀 운영 매체 소재 규격 · 납기 · 진행 프로세스 · 심의 기준</div>
-        <div className="draft-note">
-          타겟형 매체 10종은 <b>'26.2 타겟형 매체 운영 가이드라인 확정값</b>,
-          자사 매체 12종은 <b>'25.1 THE HYUNDAI Media Kit 기준</b>.
-          운영 매체 5종은 <b>검증 전 가안</b> — 파트별 확인 후 교체 예정.
-        </div>
         {!isExternal && (
           <div className="session-bar">
             지점·대행사 전달용 (담당자·내부 지표 자동 숨김)

@@ -14,12 +14,10 @@ const ROOT = join(__dirname, '..', '..')
 const RAW_DIR = process.env.SNS_RAW_DIR || join(ROOT, 'data', 'sns-raw', 'instagram')
 
 const ACTOR = 'apify~instagram-scraper'
-// Apify instagram-scraper는 결과 1건당 과금(1,000건당 $2.70~) — 매주 수집인데
-// 매번 3개월치를 다시 긁을 이유가 없어 비용 절감차 축소 ('26.7).
-// 2개월로 설정한 이유: clean-instagram.mjs의 휴면 판정 기준(60일 미게시)과 맞춰야
-// "60일+ 미게시"를 정확히 잡아냄 — 1개월로 더 줄이면 31~89일 휴면 계정의 마지막
-// 게시일 자체가 원본에서 빠져 휴면 표시가 깨짐. 그래도 3개월 대비 약 30% 절감
-const WINDOW = '2 months'
+// Apify instagram-scraper는 결과 1건당 과금(1,000건당 $2.70~).
+// '26.7 기준 확정: 수집·지표·휴면 모두 "최근 1개월" — 지난 1개월 게시물만 수집하고,
+// 1개월간 미게시면 휴면. 빈 결과(휴면 계정)는 clean에서 휴면으로 표시 처리
+const WINDOW = '1 month'
 const RESULTS_LIMIT = 100      // 안전 상한 — 실제 반환량은 게시 빈도가 결정, 거의 도달 안 함
 const API = 'https://api.apify.com/v2'
 

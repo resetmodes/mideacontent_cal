@@ -6,9 +6,9 @@
 
    규칙
    - likes=-1(비공개) → null, 평균 좋아요는 공개분만 집계
-   - 모든 지표(평균 좋아요·릴스 비중 등)는 최근 1개월 윈도우 기준 ('26.7 — 비용 절감차 축소).
-     단, 휴면(60일+ 미게시) 판정은 이 윈도우와 무관하게 원본(raw) 전체의 마지막 게시일로 계산 —
-     그래서 scrape-instagram.mjs의 원본 수집 범위(2개월)가 이 값보다 넓어야 함
+   - 모든 지표(평균 좋아요·릴스 비중 등)는 최근 1개월 윈도우 기준
+   - 휴면 = 최근 1개월(30일) 미게시. 원본 수집 범위도 1개월이라, 빈 결과(게시 0건)인 계정은
+     지표 없이 "휴면"으로만 표시 (계정이 대시보드에서 사라지지 않게 유지)
    - 휴면 = 60일+ 미게시 */
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
@@ -46,8 +46,21 @@ async function processList(list) {
       console.warn(`⚠ ${acc.file}.json 없음 — 건너뜀 (다음 수집부터 포함)`)
       continue
     }
-    if (!raw.length || raw[0]?.error) {
-      console.warn(`⚠ ${acc.handle}: 수집 실패 (${raw[0]?.error || '빈 데이터'}) — 건너뜀`)
+    if (raw[0]?.error) {
+      console.warn(`⚠ ${acc.handle}: 수집 실패 (${raw[0].error}) — 건너뜀`)
+      continue
+    }
+    /* 최근 1개월 게시물 0건 = 휴면 — 지표 없이 계정만 유지 (대시보드에서 사라지지 않게) */
+    if (!raw.length) {
+      console.warn(`· ${acc.handle}: 최근 1개월 게시 없음 → 휴면 표시`)
+      summaries.push({
+        handle: acc.handle, name: acc.name, group: acc.group,
+        profileUrl: `https://www.instagram.com/${acc.handle}/`, isMain: acc.isMain,
+        followers: null, postCount: 0, likesVisible: 0, avgLikes: null, avgComments: 0,
+        reelsCount: 0, reelsShare: 0, avgReelViews: 0, avgEngagement: null,
+        lastPostDate: null, daysSinceLastPost: null, spanDays: 0, postsLast30: 0,
+        dormant: true, commentsPer1k: null, engagementPer1k: null,
+      })
       continue
     }
 
@@ -98,7 +111,7 @@ async function processList(list) {
       daysSinceLastPost,
       spanDays: wTimes.length >= 2 ? Math.round((wTimes[wTimes.length - 1] - wTimes[0]) / DAY) : 0,
       postsLast30: allTimes.filter(t => now - t <= 30 * DAY).length,
-      dormant: daysSinceLastPost != null && daysSinceLastPost > 60,
+      dormant: daysSinceLastPost == null || daysSinceLastPost > 30,   // 1개월(30일)+ 미게시 = 휴면
       commentsPer1k: followers ? +(avgComments / followers * 1000).toFixed(2) : null,
       engagementPer1k: followers && avgEngagement !== null ? +(avgEngagement / followers * 1000).toFixed(2) : null,
     })

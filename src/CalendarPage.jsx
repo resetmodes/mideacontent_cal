@@ -316,12 +316,30 @@ function CampaignView({ events, onSelect, onRename }) {
   )
 }
 
-/* isNew: 날짜 셀 클릭으로 열리는 신규 등록 모드 — 편집 폼으로 바로 시작, 저장 시 onCreate */
+/* isNew: 날짜 셀 클릭으로 열리는 신규 등록 모드 — 편집 폼으로 바로 시작, 저장 시 onCreate.
+   상단 "한 줄 자동 작성" 입력에 치면 파싱해서 아래 폼을 자동으로 채움 */
 function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, readOnly = false, isNew = false }) {
   const [editing, setEditing] = useState(isNew)
   const [confirmDel, setConfirmDel] = useState(false)
+  const [quick, setQuick] = useState('')
   const [f, setF] = useState({ ...event, sub: event.sub || '', campaign: event.campaign || '', owner: event.owner || '', memo: event.memo || '', endDate: event.endDate || '' })
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
+
+  /* 한 줄 입력 → 폼 자동 채움. 날짜를 안 쓰면 클릭한 날짜 유지 */
+  const applyQuick = v => {
+    setQuick(v)
+    const d = parseQuick(v)
+    if (!d) return
+    setF(prev => ({
+      ...prev,
+      title: d.title || prev.title,
+      channel: d.channel || prev.channel,
+      sub: d.sub || (d.channel ? '' : prev.sub),
+      campaign: d.campaign ?? prev.campaign,
+      date: d.date || prev.date,
+      endDate: d.endDate || prev.endDate,
+    }))
+  }
   const subs = channelById(f.channel)?.subs || []
   const campSuggest = campaigns.filter(c =>
     c !== f.campaign && f.campaign && (c.includes(f.campaign) || f.campaign.includes(c))
@@ -372,7 +390,15 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
           </>
         ) : (
           <>
-            <div className="md-ch">{isNew ? `일정 등록 — ${fmtDot(event.date)}` : '일정 수정'}</div>
+            <div className="md-ch">{isNew ? `일정 등록 — ${fmtDot(f.date || event.date)}` : '일정 수정'}</div>
+            {isNew && (
+              <input
+                className="qa-input md-quick" type="text" autoComplete="off" autoFocus
+                placeholder="한 줄 자동 작성 — 예: 본사 인스타 릴스 촬영 #여름 (아래 폼이 자동으로 채워짐)"
+                value={quick}
+                onChange={e => applyQuick(e.target.value)}
+              />
+            )}
             <div className="md-form">
               <label>제목
                 <input value={f.title} onChange={e => set('title', e.target.value)} />
