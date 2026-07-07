@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { MEDIA, TARGET_COMMON, GROUP_NOTES } from './data/media.js'
+import ShareButton from './ShareButton.jsx'
 
 /* 검색어 하이라이트 — 프로토타입과 동일 동작 */
 function hl(text, query) {
@@ -147,6 +148,12 @@ export default function SpecLibrary({ isExternal }) {
           자사 매체 12종은 <b>'25.1 THE HYUNDAI Media Kit 기준</b>.
           운영 매체 5종은 <b>검증 전 가안</b> — 파트별 확인 후 교체 예정.
         </div>
+        {!isExternal && (
+          <div className="session-bar">
+            지점·대행사 전달용 (담당자·내부 지표 자동 숨김)
+            <ShareButton query="?view=external" label="외부 공유 링크 복사" />
+          </div>
+        )}
       </header>
 
       <div className="controls">

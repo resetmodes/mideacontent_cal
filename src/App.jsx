@@ -1,31 +1,39 @@
 import React, { useState } from 'react'
 import SpecLibrary from './SpecLibrary.jsx'
 import CalendarPage from './CalendarPage.jsx'
+import { MONITOR_URL } from './config.js'
 
-/* 상단 탭 셸 — 외부 공유 뷰(?view=external)에서는 캘린더(내부 일정) 숨김 */
+/* 상단 탭 셸 — 기본 탭은 매체 캘린더
+   ?view=external : 대행사·지점 공유용 스펙 라이브러리 (캘린더 완전 숨김, 지표·담당자 비공개)
+   ?view=mirror   : 타 팀 공유용 읽기 전용 캘린더 (로그인·수정·등록 없음)
+   #spec          : 스펙 탭 딥링크 */
 export default function App() {
-  const isExternal = new URLSearchParams(window.location.search).get('view') === 'external'
+  const view = new URLSearchParams(window.location.search).get('view')
+  const isExternal = view === 'external'
+  const isMirror = view === 'mirror'
   const [tab, setTab] = useState(() =>
-    window.location.hash === '#calendar' && !isExternal ? 'calendar' : 'spec'
+    isExternal || window.location.hash === '#spec' ? 'spec' : 'calendar'
   )
   const go = t => {
     setTab(t)
-    window.history.replaceState(null, '', t === 'calendar' ? '#calendar' : window.location.pathname + window.location.search)
+    window.history.replaceState(null, '', t === 'spec' ? '#spec' : window.location.pathname + window.location.search)
   }
+
+  if (isMirror) return <CalendarPage readOnly />
+  if (isExternal) return <SpecLibrary isExternal />
 
   return (
     <>
-      {!isExternal && (
-        <nav className="tabs">
-          <div className="tabs-inner">
-            <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
-            <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
-          </div>
-        </nav>
-      )}
-      {tab === 'calendar' && !isExternal
-        ? <CalendarPage />
-        : <SpecLibrary isExternal={isExternal} />}
+      <nav className="tabs">
+        <div className="tabs-inner">
+          <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
+          <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
+          {MONITOR_URL && (
+            <a className="tab-link" href={MONITOR_URL} target="_blank" rel="noreferrer">SNS 모니터링 ↗</a>
+          )}
+        </div>
+      </nav>
+      {tab === 'calendar' ? <CalendarPage /> : <SpecLibrary isExternal={false} />}
     </>
   )
 }

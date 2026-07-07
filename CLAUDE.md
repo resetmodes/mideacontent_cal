@@ -8,7 +8,11 @@
    ("12/20 크리스마스 인스타 릴스 #크리스마스"), 클릭해서 수정·삭제, 캠페인(#태그)별 묶어 보기.
 
 ## 캘린더 구조 ('26.7)
-- `src/App.jsx` 탭 셸 → `SpecLibrary.jsx` / `CalendarPage.jsx`
+- `src/App.jsx` 탭 셸 → `CalendarPage.jsx`(기본 탭) / `SpecLibrary.jsx`. 뷰 3종:
+  기본(팀용, 로그인) · `?view=mirror`(타 팀 공유 읽기 전용, 로그인 없음, 탭 숨김) ·
+  `?view=external`(대행사·지점용 스펙만, 캘린더 완전 숨김). `#spec` = 스펙 탭 딥링크.
+  각 탭에 공유 링크 복사 버튼(`src/ShareButton.jsx`). `config.js`의 MONITOR_URL을 채우면
+  SNS 모니터링 대시보드 외부 링크가 탭 바에 노출
 - `src/data/channels.js` — 매체 8종(타겟APP·인스타·유튜브·버스광고·백화점APP·카카오톡·아파트LCD·기타)
   + 세부 + 빠른 입력 키워드 맵. 타겟APP 세부 10종은 '26.2 가이드라인 기준
 - `src/lib/parse.js` — 빠른 입력 파서 (날짜/기간·매체 키워드·#캠페인·제목). 연도 자동 추정(6개월 룩백)

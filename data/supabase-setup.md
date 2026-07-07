@@ -66,15 +66,28 @@ export const SUPABASE_ANON_KEY = 'eyJhbGci...(복사한 anon 키)'
 3단계까지만 하면 anon 키만 알면 누구나 읽고 쓸 수 있는 퍼블릭 상태. 팀 계정 로그인을
 켜려면 아래 진행. 소요 시간 약 5분.
 
-### 4-1. 접근 정책을 "로그인한 사용자만"으로 변경
+### 4-1. 접근 정책 변경 — 읽기는 공개, 쓰기는 로그인 필수
 
-**SQL Editor**에서 새 쿼리 열고 아래 실행:
+읽기를 공개로 두는 이유: 타 팀 공유용 읽기 전용 미러 페이지(`?view=mirror`)가
+로그인 없이 일정을 조회할 수 있어야 함. 등록·수정·삭제는 팀 계정 로그인 필수.
+
+**SQL Editor**에서 새 쿼리 열고 아래 전체 실행 (이전에 어떤 정책을 만들었든 안전):
 
 ```sql
-drop policy "team full access" on media_events;
+drop policy if exists "team full access" on media_events;
+drop policy if exists "authenticated team access" on media_events;
 
-create policy "authenticated team access" on media_events
-  for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "read for all" on media_events
+  for select using (true);
+
+create policy "insert for team" on media_events
+  for insert with check (auth.uid() is not null);
+
+create policy "update for team" on media_events
+  for update using (auth.uid() is not null) with check (auth.uid() is not null);
+
+create policy "delete for team" on media_events
+  for delete using (auth.uid() is not null);
 ```
 
 ### 4-2. 팀원 계정 만들기 (직접 발급 — 자율 가입 아님)
@@ -94,6 +107,8 @@ create policy "authenticated team access" on media_events
 - 사이트 캘린더 탭 접속 시 로그인 화면이 뜸
 - 4-2에서 만든 이메일·비밀번호로 로그인 → 정상 진입
 - 상단에 "OO@OO.com 로 로그인됨 · 로그아웃" 표시
+- 로그인은 브라우저에 유지됨(자동 갱신) — 로그아웃 버튼을 누르기 전까지 재로그인 불필요
+- `?view=mirror` 링크는 로그인 없이 열리고 조회만 가능한지 확인 (등록·수정·삭제 버튼 없음)
 
 ## 참고
 

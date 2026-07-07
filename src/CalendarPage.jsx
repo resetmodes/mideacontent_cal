@@ -4,6 +4,7 @@ import { parseQuick, toISO, fromISO } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, storageMode } from './lib/store.js'
 import { getSession, onAuthChange, signIn, signOut } from './lib/auth.js'
 import ChannelIcon from './ChannelIcon.jsx'
+import ShareButton from './ShareButton.jsx'
 
 const DOW = ['일', '월', '화', '수', '목', '금', '토']
 const todayISO = () => toISO(new Date())
@@ -271,7 +272,9 @@ function CampaignView({ events, onSelect, onRename }) {
         ) : (
           <>
             <span className="camp-name">#{g.name}</span>
-            <button className="camp-rename" onClick={() => startRename(g.name)}>이름 변경·통합</button>
+            {onRename && (
+              <button className="camp-rename" onClick={() => startRename(g.name)}>이름 변경·통합</button>
+            )}
           </>
         )}
         <span className="camp-range">{fmtDot(g.first)} ~ {fmtDot(g.lastEnd)} · {g.list.length}건</span>
@@ -308,7 +311,7 @@ function CampaignView({ events, onSelect, onRename }) {
   )
 }
 
-function EventModal({ event, campaigns, onClose, onSave, onDelete }) {
+function EventModal({ event, campaigns, onClose, onSave, onDelete, readOnly = false }) {
   const [editing, setEditing] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
   const [f, setF] = useState({ ...event, sub: event.sub || '', campaign: event.campaign || '', owner: event.owner || '', memo: event.memo || '', endDate: event.endDate || '' })
@@ -349,12 +352,14 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete }) {
               {event.memo && <><dt>메모</dt><dd>{event.memo}</dd></>}
             </dl>
             <div className="md-actions">
-              <button className={'btn-ghost danger' + (confirmDel ? ' arm' : '')} onClick={del}>
-                {confirmDel ? '한 번 더 클릭하면 삭제' : '삭제'}
-              </button>
+              {!readOnly && (
+                <button className={'btn-ghost danger' + (confirmDel ? ' arm' : '')} onClick={del}>
+                  {confirmDel ? '한 번 더 클릭하면 삭제' : '삭제'}
+                </button>
+              )}
               <div className="md-spacer" />
               <button className="btn-ghost" onClick={onClose}>닫기</button>
-              <button className="btn-solid" onClick={() => setEditing(true)}>수정</button>
+              {!readOnly && <button className="btn-solid" onClick={() => setEditing(true)}>수정</button>}
             </div>
           </>
         ) : (
@@ -455,7 +460,7 @@ function LoginForm() {
   )
 }
 
-function CalendarApp({ session }) {
+function CalendarApp({ session, readOnly = false }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -515,25 +520,32 @@ function CalendarApp({ session }) {
   return (
     <div className="wrap cal-wrap">
       <header>
-        <div className="eyebrow">Media Content Team · Schedule</div>
+        <div className="eyebrow">Media Content Team · Schedule{readOnly && ' · Read Only'}</div>
         <h1>매체 일정 캘린더</h1>
-        <div className="masthead-sub">팀 운영 매체 집행 일정 — 빠른 입력 한 줄로 등록, 클릭해서 수정·삭제</div>
-        {session && (
+        <div className="masthead-sub">
+          {readOnly
+            ? '미디어콘텐츠팀 매체 집행 일정 — 읽기 전용 공유 뷰 (등록·수정은 팀 내부에서만)'
+            : '팀 운영 매체 집행 일정 — 빠른 입력 한 줄로 등록, 클릭해서 수정·삭제'}
+        </div>
+        {session && !readOnly && (
           <div className="session-bar">
             {session.email} 로 로그인됨
             <button onClick={signOut}>로그아웃</button>
+            <ShareButton query="?view=mirror" label="읽기전용 공유 링크 복사" />
           </div>
         )}
       </header>
 
-      {storageMode === 'local' && (
+      {!readOnly && storageMode === 'local' && (
         <div className="store-note">
           현재 <b>이 브라우저에만</b> 저장 중 — 팀 공유를 켜려면 Supabase 연동 (data/supabase-setup.md)
         </div>
       )}
       {error && <div className="store-err">{error}</div>}
 
-      <QuickAdd onCreate={onCreate} owner={owner} setOwner={setOwner} campaigns={campaigns} />
+      {!readOnly && (
+        <QuickAdd onCreate={onCreate} owner={owner} setOwner={setOwner} campaigns={campaigns} />
+      )}
 
       <div className="cal-controls">
         <div className="seg">
@@ -565,12 +577,12 @@ function CalendarApp({ session }) {
       ) : view === '월간' ? (
         <MonthGrid cursor={cursor} events={filtered} onSelect={setSelected} />
       ) : (
-        <CampaignView events={filtered} onSelect={setSelected} onRename={onRename} />
+        <CampaignView events={filtered} onSelect={setSelected} onRename={readOnly ? null : onRename} />
       )}
 
       {selected && (
         <EventModal
-          event={selected} campaigns={campaigns}
+          event={selected} campaigns={campaigns} readOnly={readOnly}
           onClose={() => setSelected(null)} onSave={onSave} onDelete={onDelete}
         />
       )}
@@ -579,11 +591,13 @@ function CalendarApp({ session }) {
   )
 }
 
-/* REMOTE(Supabase) 모드에서만 로그인 요구 — 로컬 테스트 모드는 그대로 오픈 */
-export default function CalendarPage() {
+/* REMOTE(Supabase) 모드에서만 로그인 요구 — 로컬 테스트 모드는 그대로 오픈.
+   readOnly(?view=mirror)는 로그인 없이 조회만 — RLS가 읽기 공개여야 함 (setup.md 4장) */
+export default function CalendarPage({ readOnly = false }) {
   const [session, setSession] = useState(getSession())
   useEffect(() => onAuthChange(setSession), [])
 
+  if (readOnly) return <CalendarApp readOnly session={null} />
   if (storageMode === 'supabase' && !session) return <LoginForm />
   return <CalendarApp session={session} />
 }
