@@ -130,7 +130,8 @@ function MediaItem({ m, query, isExternal, focus, focusSeq }) {
   )
 }
 
-export default function SpecLibrary({ isExternal, focusMedia, focusSeq }) {
+/* mirror: 미러 전용 사이트 — 내부 스펙 그대로 보이되 공유 링크 버튼 등 운영 UI 숨김 */
+export default function SpecLibrary({ isExternal, mirror = false, focusMedia, focusSeq }) {
   const [activeCat, setActiveCat] = useState('전체')
   const [query, setQuery] = useState('')
 
@@ -156,7 +157,7 @@ export default function SpecLibrary({ isExternal, focusMedia, focusSeq }) {
         <div className="eyebrow">Media Content Team · Spec Index{isExternal && ' · External Share'}</div>
         <h1>매체 스펙 라이브러리</h1>
         <div className="masthead-sub">미디어콘텐츠팀 운영 매체 소재 규격 · 납기 · 진행 프로세스 · 심의 기준</div>
-        {!isExternal && (
+        {!isExternal && !mirror && (
           <div className="session-bar">
             지점·대행사 전달용 (담당자·내부 지표 자동 숨김)
             <ShareButton query="?view=external" label="외부 공유 링크 복사" />
