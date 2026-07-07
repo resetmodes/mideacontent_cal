@@ -2,7 +2,7 @@
    파일 간 참조가 어긋나면 (매체명 변경, 계정 추가 등) 조용히 깨지는 지점들을 검사.
    실행: npm run test 에 포함 */
 
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../src/config.js'
+import { SUPABASE_URL, SUPABASE_ANON_KEY, MIRROR_URL } from '../src/config.js'
 import { MEDIA } from '../src/data/media.js'
 import { CHANNELS, KEYWORDS, TITLE_ALIASES } from '../src/data/channels.js'
 import { SPEC_LINK_MAP } from '../src/lib/specLink.js'
@@ -20,6 +20,8 @@ if (!/^https:\/\/[a-z]+\.supabase\.co$/.test(SUPABASE_URL))
   bad(`config.js SUPABASE_URL이 실제 값이 아님: "${SUPABASE_URL}" — 테스트용 빈 키를 복원하지 않은 것 아닌지 확인`)
 if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.length < 40)
   bad('config.js SUPABASE_ANON_KEY가 비어 있거나 비정상 — 복원 필요')
+if (MIRROR_URL && !/^https:\/\/[a-z0-9.-]+$/.test(MIRROR_URL))
+  bad(`config.js MIRROR_URL 형식 오류: "${MIRROR_URL}" — 외부 공유 링크에 그대로 들어감 (끝에 / 금지)`)
 
 /* 2. 스펙 딥링크 매핑 → media.js 이름과 일치해야 링크가 뜸 */
 const mediaNames = new Set(MEDIA.map(m => m.name))
