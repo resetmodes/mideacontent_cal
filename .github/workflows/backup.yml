@@ -1,0 +1,57 @@
+name: 캘린더 데이터 백업
+
+# 주 1회 자동 (월요일 05:43 KST) + 수동 실행.
+# 일정 데이터를 JSON으로 받아 리포에 커밋 — git 이력이 시점별 복원점이 됨.
+# 인증: SUPABASE_SERVICE_KEY 시크릿(권장, 이력까지 백업) 또는
+#       anon 키(미러 읽기 정책 적용 후 일정만). 0건이면 저장 없이 실패 처리.
+on:
+  schedule:
+    - cron: '43 20 * * 0'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backup-events
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node 설치
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 일정 데이터 백업
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: node scripts/backup-events.mjs
+
+      - name: 변경분 커밋 & 푸시
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/backup
+          if git diff --staged --quiet; then
+            echo "변경 사항 없음 — 커밋 생략"
+            exit 0
+          fi
+          git commit -m "chore(backup): 캘린더 일정 정기 백업"
+          for i in 1 2 3; do
+            if git push; then
+              echo "push 성공"
+              exit 0
+            fi
+            echo "push 거부됨 — main 최신화 후 재시도 ($i/3)"
+            git fetch origin main
+            git rebase origin/main
+          done
+          echo "push 3회 실패"
+          exit 1

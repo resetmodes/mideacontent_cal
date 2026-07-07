@@ -7,8 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "sns:collect": "node scripts/sns/scrape-instagram.mjs && node scripts/sns/clean-instagram.mjs && node scripts/sns/scrape-youtube.mjs && node scripts/sns/clean-youtube.mjs",
-    "sns:clean": "node scripts/sns/clean-instagram.mjs && node scripts/sns/clean-youtube.mjs"
+    "sns:collect": "node scripts/sns/scrape-instagram.mjs && node scripts/sns/clean-instagram.mjs && node scripts/sns/scrape-youtube.mjs && node scripts/sns/clean-youtube.mjs && node scripts/sns/append-trend.mjs",
+    "sns:clean": "node scripts/sns/clean-instagram.mjs && node scripts/sns/clean-youtube.mjs && node scripts/sns/append-trend.mjs",
+    "backup": "node scripts/backup-events.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

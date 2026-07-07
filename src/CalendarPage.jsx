@@ -6,6 +6,7 @@ import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
 import { findPerformance } from './lib/perf.js'
 import { authorName } from './data/team.js'
+import { HOLIDAYS } from './data/holidays.js'
 import ChannelIcon from './ChannelIcon.jsx'
 import ShareButton from './ShareButton.jsx'
 
@@ -374,6 +375,7 @@ function MonthGrid({ cursor, events, onSelect, onDayClick }) {
       {DOW.map(d => <div key={d} className="cal-dow">{d}</div>)}
       {cells.map(c => {
         const list = byDay[c.iso] || []
+        const hol = HOLIDAYS[c.iso]
         return (
           <div
             key={c.iso}
@@ -381,7 +383,10 @@ function MonthGrid({ cursor, events, onSelect, onDayClick }) {
             onClick={onDayClick ? () => onDayClick(c.iso) : undefined}
             title={onDayClick ? '클릭해서 일정 등록' : undefined}
           >
-            <div className={'cal-daynum' + (c.dow === 0 || c.dow === 6 ? ' wknd' : '')}>{c.day}</div>
+            <div className="cal-dayrow">
+              <div className={'cal-daynum' + (c.dow === 0 || c.dow === 6 || hol ? ' wknd' : '')}>{c.day}</div>
+              {hol && <span className="cal-hol">{hol}</span>}
+            </div>
             {list.slice(0, 4).map(e => (
               <button
                 key={e.id + c.iso + (e.isEnd ? 'e' : '')} className={'cal-ev' + (e.isEnd ? ' end' : '')}

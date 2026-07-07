@@ -1,6 +1,23 @@
 import React, { useState, useMemo } from 'react'
 import { IG } from './data/sns/instagram.js'
 import { YT } from './data/sns/youtube.js'
+import { TREND } from './data/sns/trend.js'
+
+/* 직전 수집 스냅샷 (현재 수집일보다 앞선 것 중 최신) — 없으면 증감 미표시 */
+const prevSnapshot = cur => {
+  const older = TREND.filter(t => t.date < cur)
+  return older.length ? older[older.length - 1] : null
+}
+
+/* 전기 대비 증감 — ▲ 현대그린 / ▼ 그레이 (빨강은 경고 전용 원칙) */
+function Delta({ d }) {
+  if (d == null || d === 0) return null
+  return (
+    <small className={'delta ' + (d > 0 ? 'up' : 'down')}>
+      {d > 0 ? '▲' : '▼'}{Math.abs(d).toLocaleString('ko-KR')}
+    </small>
+  )
+}
 
 const num = n => (n == null ? '—' : n.toLocaleString('ko-KR'))
 const compact = n => {
@@ -39,6 +56,7 @@ const IG_GROUP_ORDER = ['본사', '사업소', '아울렛', '콘텐츠·IP', '�
 
 function InstagramView() {
   const main = IG.accounts.find(a => a.isMain)
+  const prev = prevSnapshot((IG.generatedAt || '').slice(0, 10))?.ig || null
   const groups = useMemo(() => {
     const inData = [...new Set(IG.accounts.map(a => a.group))]
     const order = [...IG_GROUP_ORDER.filter(g => inData.includes(g)), ...inData.filter(g => !IG_GROUP_ORDER.includes(g))]
@@ -63,14 +81,14 @@ function InstagramView() {
       {groups.map(g => (
         <div key={g.name}>
           <div className="group-label">{g.name}</div>
-          <AccountTable list={g.list} />
+          <AccountTable list={g.list} prev={prev} />
         </div>
       ))}
 
       {competitors.length > 0 && (
         <div>
           <div className="group-label">경쟁사 (참고)</div>
-          <AccountTable list={[...competitors].sort((a, b) => b.followers - a.followers)} />
+          <AccountTable list={[...competitors].sort((a, b) => b.followers - a.followers)} prev={prev} />
         </div>
       )}
 
@@ -81,7 +99,7 @@ function InstagramView() {
   )
 }
 
-function AccountTable({ list }) {
+function AccountTable({ list, prev = null }) {
   return (
     <div className="mon-scroll">
       <table className="mon-table">
@@ -99,7 +117,10 @@ function AccountTable({ list }) {
                 <a href={a.profileUrl} target="_blank" rel="noreferrer">@{a.handle}</a>
                 {a.dormant && <span className="mon-flag">휴면</span>}
               </td>
-              <td className="strong">{num(a.followers)}</td>
+              <td className="strong">
+                {num(a.followers)}
+                {prev?.[a.handle]?.f != null && a.followers != null && <Delta d={a.followers - prev[a.handle].f} />}
+              </td>
               <td>{num(a.postsLast30)}</td>
               <td>{a.likesVisible === 0 ? <span className="mute">비공개</span> : num(a.avgLikes)}</td>
               <td>{num(a.avgComments)}</td>
@@ -117,6 +138,7 @@ function AccountTable({ list }) {
 function YoutubeView() {
   const [chFilter, setChFilter] = useState('전체')
   const main = YT.channels.find(c => c.isMain)
+  const prev = prevSnapshot((YT.generatedAt || '').slice(0, 10))?.yt || null
   const chName = key => YT.channels.find(c => c.key === key)?.name || key
 
   const videos = useMemo(() => {
@@ -149,7 +171,10 @@ function YoutubeView() {
                   <b>{c.name}</b>
                   <a href={c.url} target="_blank" rel="noreferrer">{c.channelName}</a>
                 </td>
-                <td className="strong">{num(c.subscribers)}</td>
+                <td className="strong">
+                  {num(c.subscribers)}
+                  {prev?.[c.key]?.s != null && c.subscribers != null && <Delta d={c.subscribers - prev[c.key].s} />}
+                </td>
                 <td>{num(c.totalVideos)}</td>
                 <td>{num(c.avgViews)}</td>
                 <td>{num(c.avgViewsVideo)}</td>
