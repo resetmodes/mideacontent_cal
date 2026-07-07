@@ -29,7 +29,7 @@ try {
 
 const entry = { date, ig: {}, yt: {} }
 for (const a of [...(IG.accounts || []), ...(IG.competitors || [])]) {
-  if (a.followers != null) entry.ig[a.handle] = { f: a.followers, e: a.engagementPer1k, p: a.postsLast30 }
+  if (a.followers != null) entry.ig[a.handle] = { f: a.followers, e: a.engagementPer1k, p: a.postsLast30, d: !!a.dormant }
 }
 for (const c of YT.channels || []) {
   entry.yt[c.key] = { s: c.subscribers, v: c.avgViews }

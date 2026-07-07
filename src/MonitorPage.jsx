@@ -19,6 +19,74 @@ function Delta({ d }) {
   )
 }
 
+/* ── 하이라이트 자동 요약 ('26.7) — 규칙 기반, AI·비용 없음 ─────────
+   ① 팔로워 급증·급감 (직전 수집 대비 1% 또는 50명 이상) ② 새로 휴면 진입
+   ③ 유튜브 조회 급등 (최근 3주 내 게시 & 채널 평균 3배 이상)
+   직전 스냅샷이 없으면 ①②는 생략 — 표시할 게 없으면 섹션 자체를 숨김 */
+function buildHighlights() {
+  const items = []
+
+  const prevIG = prevSnapshot((IG.generatedAt || '').slice(0, 10))?.ig
+  if (prevIG) {
+    for (const a of IG.accounts || []) {
+      const p = prevIG[a.handle]
+      if (!p) continue
+      if (p.f != null && a.followers != null) {
+        const d = a.followers - p.f
+        if (Math.abs(d) >= Math.max(50, Math.round(p.f * 0.01))) {
+          items.push({
+            up: d > 0, mark: d > 0 ? '▲' : '▼',
+            text: `${a.name} 팔로워 ${d > 0 ? '+' : ''}${d.toLocaleString('ko-KR')} → ${num(a.followers)}`,
+            weight: Math.abs(d),
+          })
+        }
+      }
+      if (p.d === false && a.dormant) {
+        items.push({ mark: '·', text: `${a.name} — 새로 휴면 진입 (30일+ 미게시)`, weight: 40 })
+      }
+    }
+  }
+
+  /* 유튜브 조회 급등 — 상대 게시시점("N days/weeks ago")이 3주 이내인 것만 */
+  const chAvg = Object.fromEntries((YT.channels || []).map(c => [c.key, c.avgViews || 0]))
+  const chName = Object.fromEntries((YT.channels || []).map(c => [c.key, c.name]))
+  for (const v of YT.videos || []) {
+    const m = (v.date || '').match(/(\d+)\s*(day|week)s?\s+ago/)
+    if (!m) continue
+    const days = +m[1] * (m[2] === 'week' ? 7 : 1)
+    if (days > 21) continue
+    const avg = chAvg[v.channel]
+    if (avg > 0 && v.views >= avg * 3) {
+      const t = v.title.length > 42 ? v.title.slice(0, 42) + '…' : v.title
+      items.push({
+        up: true, mark: '▲', url: v.url,
+        text: `${chName[v.channel] || v.channel} 조회 급등 — ${t} (${compact(v.views)}, 평균의 ${Math.round(v.views / avg)}배)`,
+        weight: v.views / avg * 100,
+      })
+    }
+  }
+
+  return items.sort((a, b) => b.weight - a.weight).slice(0, 6)
+}
+
+function Highlights() {
+  const items = useMemo(buildHighlights, [])
+  if (items.length === 0) return null
+  return (
+    <div className="mon-hl">
+      <div className="group-label">하이라이트</div>
+      {items.map((it, i) => (
+        <div key={i} className="mon-hl-row">
+          <span className={'hl-mark' + (it.up ? ' up' : '')}>{it.mark}</span>
+          {it.url
+            ? <a href={it.url} target="_blank" rel="noreferrer">{it.text} ↗</a>
+            : <span>{it.text}</span>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 const num = n => (n == null ? '—' : n.toLocaleString('ko-KR'))
 const compact = n => {
   if (n == null) return '—'
@@ -233,6 +301,8 @@ export default function MonitorPage() {
           {' · '}격주 월 09:00 자동 수집 (수동: GitHub Actions → Run workflow, 로컬: <code>npm run sns:collect</code>)
         </div>
       </header>
+
+      <Highlights />
 
       <div className="cal-controls">
         <div className="seg">

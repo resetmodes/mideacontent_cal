@@ -518,6 +518,19 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
   const isShoot = event.kind === '촬영'
   /* 촬영 일정은 게시 시점이 아니라 실적 매칭 제외 */
   const perf = useMemo(() => (isNew || isShoot ? [] : findPerformance(event)), [event, isNew, isShoot])
+  /* 실적 확정 — 담당자가 후보 중 하나를 선택하면 그것만 남음 (perfUrl 필드) */
+  const pinned = event.perfUrl
+    ? perf.find(p => p.url === event.perfUrl)
+      || { url: event.perfUrl, title: event.perfUrl.replace(/^https?:\/\//, ''), meta: '확정된 게시물' }
+    : null
+  const setPerf = async url => {
+    await onSave(event.id, {
+      title: event.title, date: event.date, endDate: event.endDate || null,
+      channel: event.channel, sub: event.sub || null, campaign: event.campaign || null,
+      owner: event.owner || null, memo: event.memo || null, kind: event.kind || null,
+      perfUrl: url,   // null이면 확정 해제 → 후보 다시 표시
+    })
+  }
   const [f, setF] = useState({ ...event, sub: event.sub || '', campaign: event.campaign || '', owner: event.owner || '', memo: event.memo || '', endDate: event.endDate || '' })
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
 
@@ -574,14 +587,36 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
               {event.owner && <><dt>작성자</dt><dd>{event.owner}</dd></>}
               {event.memo && <><dt>메모</dt><dd className="md-memo"><Memo text={event.memo} /></dd></>}
             </dl>
-            {perf.length > 0 && (
+            {pinned ? (
               <div className="md-perf">
-                <div className="md-perf-title">집행 실적 후보 <small>SNS 수집분 · 게시시점 근사 매칭</small></div>
-                {perf.map(p => (
-                  <a key={p.url} className="md-perf-row" href={p.url} target="_blank" rel="noopener noreferrer">
-                    <span className="pf-title">{p.title}</span>
-                    <span className="pf-meta">{p.meta} <span className="pf-open">↗</span></span>
+                <div className="md-perf-title">
+                  집행 실적 <small>담당자 확정</small>
+                  {!readOnly && (
+                    <button className="pf-unpin" onClick={() => setPerf(null)}>선택 해제</button>
+                  )}
+                </div>
+                <div className="md-perf-item">
+                  <a className="md-perf-row" href={pinned.url} target="_blank" rel="noopener noreferrer">
+                    <span className="pf-title">{pinned.title}</span>
+                    <span className="pf-meta">{pinned.meta} <span className="pf-open">↗</span></span>
                   </a>
+                </div>
+              </div>
+            ) : perf.length > 0 && (
+              <div className="md-perf">
+                <div className="md-perf-title">
+                  집행 실적 후보 <small>{readOnly ? 'SNS 수집분 근사 매칭' : '실제 콘텐츠를 선택하면 그것만 확정으로 남음'}</small>
+                </div>
+                {perf.map(p => (
+                  <div key={p.url} className="md-perf-item">
+                    <a className="md-perf-row" href={p.url} target="_blank" rel="noopener noreferrer">
+                      <span className="pf-title">{p.title}</span>
+                      <span className="pf-meta">{p.meta} <span className="pf-open">↗</span></span>
+                    </a>
+                    {!readOnly && (
+                      <button className="pf-pin" onClick={() => setPerf(p.url)}>선택</button>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
@@ -714,6 +749,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
     try {
       const ev = await updateEvent(id, patch)
       setEvents(prev => prev.map(x => (x.id === id ? ev : x)))
+      setSelected(sel => (sel?.id === id ? ev : sel))   // 열린 모달도 즉시 갱신 (실적 확정 등)
     } catch (err) { setError(err.message) }
   }
   const onDelete = async id => {
