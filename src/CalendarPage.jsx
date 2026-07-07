@@ -4,6 +4,7 @@ import { parseQuick, toISO, fromISO } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, storageMode } from './lib/store.js'
 import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
+import { authorName } from './data/team.js'
 import ChannelIcon from './ChannelIcon.jsx'
 import ShareButton from './ShareButton.jsx'
 
@@ -163,7 +164,7 @@ function ConfirmSheet({ draft, sim, onConfirm, onCancel }) {
   )
 }
 
-function QuickAdd({ onCreate, owner, setOwner, campaigns }) {
+function QuickAdd({ onCreate, campaigns }) {
   const [text, setText] = useState('')
   const [err, setErr] = useState(null)
   const [pending, setPending] = useState(null)
@@ -181,7 +182,7 @@ function QuickAdd({ onCreate, owner, setOwner, campaigns }) {
   }
 
   const doCreate = async d => {
-    await onCreate({ ...d, owner: owner || null })
+    await onCreate({ ...d })   // 작성자는 CalendarApp에서 로그인 계정으로 자동 기록
     setText('')
     setPending(null)
   }
@@ -207,11 +208,6 @@ function QuickAdd({ onCreate, owner, setOwner, campaigns }) {
           onKeyDown={e => {
             if (e.key === 'Enter' && !e.nativeEvent.isComposing) submit()
           }}
-        />
-        <input
-          className="qa-owner" type="text" autoComplete="off" placeholder="작성자"
-          value={owner}
-          onChange={e => setOwner(e.target.value)}
         />
         <button className="qa-btn" onClick={submit}>등록</button>
       </div>
@@ -534,8 +530,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec }) {
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
   const [dayDraft, setDayDraft] = useState(null)   // 날짜 셀 클릭 → 신규 등록 모달
-  const [owner, setOwnerState] = useState(() => localStorage.getItem('media-cal-owner') || '')
-  const setOwner = v => { setOwnerState(v); localStorage.setItem('media-cal-owner', v) }
+  const me = authorName(session?.email)            // 작성자 = 로그인 계정 (자동)
 
   const refresh = useCallback(async () => {
     try {
@@ -556,7 +551,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec }) {
 
   const onCreate = async e => {
     try {
-      const ev = await createEvent(e)
+      const ev = await createEvent({ ...e, owner: e.owner || me || null })
       setEvents(prev => [...prev, ev].sort((a, b) => a.date.localeCompare(b.date)))
     } catch (err) { setError(err.message) }
   }
@@ -609,7 +604,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec }) {
       {error && <div className="store-err">{error}</div>}
 
       {!readOnly && (
-        <QuickAdd onCreate={onCreate} owner={owner} setOwner={setOwner} campaigns={campaigns} />
+        <QuickAdd onCreate={onCreate} campaigns={campaigns} />
       )}
 
       <div className="cal-search-row">
@@ -673,7 +668,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec }) {
       {dayDraft && !readOnly && (
         <EventModal
           isNew
-          event={{ title: '', date: dayDraft, endDate: '', channel: '기타', sub: '', campaign: '', owner, memo: '' }}
+          event={{ title: '', date: dayDraft, endDate: '', channel: '기타', sub: '', campaign: '', owner: me, memo: '' }}
           campaigns={campaigns}
           onClose={() => setDayDraft(null)} onCreate={onCreate}
         />
