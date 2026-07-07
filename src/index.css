@@ -322,6 +322,17 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 
 .md-quick{width:100%;margin-top:12px;font-size:14px;}
 
+/* 집행 실적 후보 — 일정 ↔ SNS 수집분 매칭 (가로선만, 타이포 위계) */
+.md-perf{margin-top:14px;border-top:1px solid var(--ink);}
+.md-perf-title{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--green);padding:9px 0 4px;}
+.md-perf-title small{font-weight:500;color:var(--g400);letter-spacing:0;margin-left:6px;}
+.md-perf-row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+  padding:7px 0;border-bottom:1px solid var(--g100);text-decoration:none;}
+.pf-title{font-size:13px;color:var(--ink);font-weight:500;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.md-perf-row:hover .pf-title{box-shadow:inset 0 -7px 0 var(--hl);}
+.pf-meta{font-size:12px;color:var(--g600);font-variant-numeric:tabular-nums;white-space:nowrap;}
+
 /* 매체 스펙 딥링크 — 삭제/닫기/수정과 분리된 2차 텍스트 링크 (미스클릭 방지) */
 .md-spec-link{display:inline-flex;align-items:center;gap:4px;margin-top:14px;
   font-family:inherit;font-size:12.5px;font-weight:700;color:var(--green);

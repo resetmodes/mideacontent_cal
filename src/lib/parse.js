@@ -38,13 +38,35 @@ function resolveDate(mm, dd, today) {
   return d
 }
 
+/* 다중 매체: "인스타+유튜브+카톡"처럼 +로 이은 그룹 → 매체 배열 ('26.7)
+   모든 조각이 매체로 인식될 때만 다중 처리 (1+1 행사 같은 표현은 그대로 제목 유지).
+   담당자가 매체별로 달라도 등록은 한 줄 — 등록 건은 매체 수만큼 생성됨 */
+function extractChannels(text) {
+  for (const g of text.matchAll(/\S+(?:\s*\+\s*\S+)+/g)) {
+    const parts = g[0].split('+').map(s => s.trim()).filter(Boolean)
+    if (parts.length < 2) continue
+    const resolved = parts.map(part => {
+      for (const [kw, ch, s] of KEYWORDS)
+        if (part.toLowerCase().includes(kw.toLowerCase())) return { channel: ch, sub: s }
+      return null
+    })
+    if (!resolved.every(Boolean)) continue
+    const uniq = []
+    for (const r of resolved)
+      if (!uniq.some(u => u.channel === r.channel && u.sub === r.sub)) uniq.push(r)
+    if (uniq.length < 2) continue
+    return { channels: uniq, text: text.slice(0, g.index) + text.slice(g.index + g[0].length) }
+  }
+  return null
+}
+
 /* 빠른 입력 한 줄 → 일정 필드
    예: "12/20 크리스마스 인스타 릴스 현장 스케치 #크리스마스"
    → { date:"2026-12-20", endDate:null, title:"크리스마스 인스타 릴스 현장 스케치",
        channel:"인스타", sub:"공식", campaign:"크리스마스" }
    날짜 지원: 12/20 · 12.20 · 7월 10일 · 범위(12/20~25, 7월 10일~15일, 7월 10일~8월 2일)
              · 오늘/내일/모레
-   그 외: 캠페인 #태그 · 매체 키워드 자동 인식 */
+   그 외: 캠페인 #태그 · 매체 키워드 자동 인식 · 다중 매체(인스타+유튜브 → channels 배열) */
 export function parseQuick(input, today = new Date()) {
   const raw = input.trim()
   if (!raw) return null
@@ -80,10 +102,19 @@ export function parseQuick(input, today = new Date()) {
     cut(rm)
   }
 
+  /* 다중 매체 그룹(인스타+유튜브 …) — 그룹은 제목에서 제거, channels 배열로 반환 */
+  let channels = null
+  const multi = extractChannels(text)
+  if (multi) { channels = multi.channels; text = multi.text }
+
   let channel = null, sub = null
-  for (const [kw, ch, s] of KEYWORDS) {
-    if (raw.toLowerCase().includes(kw.toLowerCase())) { channel = ch; sub = s; break }
+  if (channels) {
+    channel = channels[0].channel; sub = channels[0].sub
+  } else {
+    for (const [kw, ch, s] of KEYWORDS) {
+      if (raw.toLowerCase().includes(kw.toLowerCase())) { channel = ch; sub = s; break }
+    }
   }
 
-  return { title: normalizeTitle(text), date, endDate, channel, sub, campaign }
+  return { title: normalizeTitle(text), date, endDate, channel, sub, campaign, channels }
 }

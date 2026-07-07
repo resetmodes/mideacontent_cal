@@ -4,6 +4,7 @@ import { parseQuick, toISO, fromISO } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, storageMode } from './lib/store.js'
 import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
+import { findPerformance } from './lib/perf.js'
 import { authorName } from './data/team.js'
 import ChannelIcon from './ChannelIcon.jsx'
 import ShareButton from './ShareButton.jsx'
@@ -181,8 +182,14 @@ function QuickAdd({ onCreate, campaigns }) {
     setText(t => (/#\s*$/.test(t) ? t.replace(/#\s*$/, '#' + name) : t.replace(/#[^\s#]+/, '#' + name)))
   }
 
+  /* 다중 매체(인스타+유튜브 …)면 매체 수만큼 등록 — 작성자는 CalendarApp에서 자동 기록 */
   const doCreate = async d => {
-    await onCreate({ ...d })   // 작성자는 CalendarApp에서 로그인 계정으로 자동 기록
+    const { channels, ...base } = d
+    if (channels?.length > 1) {
+      for (const c of channels) await onCreate({ ...base, channel: c.channel, sub: c.sub })
+    } else {
+      await onCreate(base)
+    }
     setText('')
     setPending(null)
   }
@@ -202,7 +209,7 @@ function QuickAdd({ onCreate, campaigns }) {
       <div className="qa-row">
         <input
           className="qa-input" type="text" autoComplete="off"
-          placeholder="일정 빠른 입력 — 예: 12/20 크리스마스 인스타 릴스 현장 스케치 #크리스마스"
+          placeholder="일정 빠른 입력 — 예: 12/20 크리스마스 인스타 릴스 #크리스마스 (인스타+유튜브 = 동시 등록)"
           value={text}
           onChange={e => { setText(e.target.value); setErr(null) }}
           onKeyDown={e => {
@@ -216,11 +223,22 @@ function QuickAdd({ onCreate, campaigns }) {
           <span className={'st ' + (draft.date ? 'got' : 'miss')}>
             {draft.date ? fmtRange(draft) : '날짜 미인식 — 12/20 형식으로'}
           </span>
-          <span className={'st ' + (draft.channel ? 'got' : 'miss')}>
-            {draft.channel
-              ? <><ChannelIcon id={draft.channel} /> {channelById(draft.channel)?.label}{draft.sub ? ` · ${draft.sub}` : ''}</>
-              : '매체 미인식 — 등록 시 선택 팝업'}
-          </span>
+          {draft.channels?.length > 1 ? (
+            <>
+              {draft.channels.map((c, i) => (
+                <span key={i} className="st got">
+                  <ChannelIcon id={c.channel} /> {channelById(c.channel)?.label}{c.sub ? ` · ${c.sub}` : ''}
+                </span>
+              ))}
+              <span className="st camp">{draft.channels.length}건 동시 등록</span>
+            </>
+          ) : (
+            <span className={'st ' + (draft.channel ? 'got' : 'miss')}>
+              {draft.channel
+                ? <><ChannelIcon id={draft.channel} /> {channelById(draft.channel)?.label}{draft.sub ? ` · ${draft.sub}` : ''}</>
+                : '매체 미인식 — 등록 시 선택 팝업'}
+            </span>
+          )}
           {draft.campaign && <span className="st camp">#{draft.campaign}</span>}
           {draft.title && <span className="st ttl">{draft.title}</span>}
         </div>
@@ -390,6 +408,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
   const [confirmDel, setConfirmDel] = useState(false)
   const [quick, setQuick] = useState('')
   const specName = resolveSpecMedia(event.channel, event.sub)
+  const perf = useMemo(() => (isNew ? [] : findPerformance(event)), [event, isNew])
   const [f, setF] = useState({ ...event, sub: event.sub || '', campaign: event.campaign || '', owner: event.owner || '', memo: event.memo || '', endDate: event.endDate || '' })
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
 
@@ -445,6 +464,17 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
               {event.owner && <><dt>작성자</dt><dd>{event.owner}</dd></>}
               {event.memo && <><dt>메모</dt><dd className="md-memo"><Memo text={event.memo} /></dd></>}
             </dl>
+            {perf.length > 0 && (
+              <div className="md-perf">
+                <div className="md-perf-title">집행 실적 후보 <small>SNS 수집분 · 게시시점 근사 매칭</small></div>
+                {perf.map(p => (
+                  <a key={p.url} className="md-perf-row" href={p.url} target="_blank" rel="noopener noreferrer">
+                    <span className="pf-title">{p.title}</span>
+                    <span className="pf-meta">{p.meta}</span>
+                  </a>
+                ))}
+              </div>
+            )}
             {specName && onOpenSpec && (
               <button className="md-spec-link" onClick={() => { onOpenSpec(specName); onClose() }}>
                 이 매체 규격·납기 보기 →

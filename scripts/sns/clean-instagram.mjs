@@ -36,7 +36,8 @@ const WINDOW_MONTHS = 1   // 집계용 윈도우. scrape-instagram.mjs의 원본
 const CUTOFF_TS = (() => { const d = new Date(); d.setMonth(d.getMonth() - WINDOW_MONTHS); return d.getTime() })()
 const CUTOFF_DATE = new Date(CUTOFF_TS).toISOString().slice(0, 10)
 
-async function processList(list) {
+/* withPosts: 자사 계정만 게시물 단위 목록(IG.posts)도 축적 — 캘린더 일정 ↔ 실적 매칭용 ('26.7) */
+async function processList(list, postRows = null) {
   const summaries = []
   for (const acc of list) {
     let raw
@@ -72,11 +73,23 @@ async function processList(list) {
       likes: p.likesCount === -1 ? null : (p.likesCount ?? null),
       comments: p.commentsCount ?? 0,
       views: p.videoPlayCount ?? 0,
+      url: p.url || (p.shortCode ? `https://www.instagram.com/p/${p.shortCode}/` : null),
+      caption: (p.caption || '').replace(/\s+/g, ' ').trim().slice(0, 80),
     }))
     const windowed = posts.filter(p => {
       const t = new Date(p.ts).getTime()
       return !isNaN(t) && t >= CUTOFF_TS
     })
+
+    if (postRows) {
+      for (const p of windowed) {
+        if (!p.url) continue
+        postRows.push({
+          handle: acc.handle, ts: p.ts, url: p.url, caption: p.caption,
+          format: p.format, likes: p.likes, comments: p.comments, views: p.views,
+        })
+      }
+    }
 
     const reels = windowed.filter(p => p.format === 'Reels')
     const likeVisible = windowed.filter(p => p.likes !== null)
@@ -120,8 +133,10 @@ async function processList(list) {
 }
 
 async function main() {
-  const accounts = await processList(IG_ACCOUNTS)
+  const postRows = []   // 자사 계정 게시물 단위 — 캘린더 실적 매칭용 (경쟁사 제외)
+  const accounts = await processList(IG_ACCOUNTS, postRows)
   const competitors = await processList(IG_COMPETITORS)
+  postRows.sort((a, b) => (a.ts < b.ts ? 1 : -1))
 
   const output = {
     source: 'apify/instagram-scraper',
@@ -132,11 +147,12 @@ async function main() {
     note: `모든 지표는 최근 ${WINDOW_MONTHS}개월(${CUTOFF_DATE} 이후) 게시물 기준. likes=null 은 비공개(좋아요 평균은 공개분만).`,
     accounts,
     competitors,
+    posts: postRows,
   }
 
   await mkdir(OUT_DIR, { recursive: true })
   await writeFile(OUT, '/* 자동 생성 — scripts/sns/clean-instagram.mjs 로 갱신. 직접 수정 금지 */\nexport const IG = ' + JSON.stringify(output, null, 1) + '\n', 'utf8')
-  console.log(`✅ src/data/sns/instagram.js — 자사 ${accounts.length} + 경쟁사 ${competitors.length}`)
+  console.log(`✅ src/data/sns/instagram.js — 자사 ${accounts.length} + 경쟁사 ${competitors.length} · 게시물 ${postRows.length}건 (실적 매칭용)`)
 }
 
 main()
