@@ -10,15 +10,18 @@ const API = `${SUPABASE_URL}/rest/v1/${TABLE}`
 
 export const storageMode = REMOTE ? 'supabase' : 'local'
 
+/* kind('촬영' 등)는 값이 있을 때만 전송 — kind 컬럼이 아직 없는 DB에서도
+   일반 일정 등록·수정은 깨지지 않게 (촬영일정만 setup.md 5장 SQL 필요) */
 const toDb = e => ({
   title: e.title, date: e.date, end_date: e.endDate || null,
   channel: e.channel, sub: e.sub || null, campaign: e.campaign || null,
   owner: e.owner || null, memo: e.memo || null,
+  ...(e.kind ? { kind: e.kind } : {}),
 })
 const fromDb = r => ({
   id: r.id, title: r.title, date: r.date, endDate: r.end_date,
   channel: r.channel, sub: r.sub, campaign: r.campaign,
-  owner: r.owner, memo: r.memo, createdAt: r.created_at,
+  owner: r.owner, memo: r.memo, kind: r.kind || null, createdAt: r.created_at,
 })
 
 const KEY = 'media-cal-events'

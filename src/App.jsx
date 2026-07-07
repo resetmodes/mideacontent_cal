@@ -21,11 +21,12 @@ export default function App() {
   const [tab, setTab] = useState(() => {
     if (isExternal || window.location.hash === '#spec') return 'spec'
     if (window.location.hash === '#monitor') return 'monitor'
+    if (window.location.hash === '#shoot') return 'shoot'
     return 'calendar'
   })
   const go = t => {
     setTab(t)
-    const hash = t === 'spec' ? '#spec' : t === 'monitor' ? '#monitor' : ''
+    const hash = t === 'spec' ? '#spec' : t === 'monitor' ? '#monitor' : t === 'shoot' ? '#shoot' : ''
     window.history.replaceState(null, '', hash || window.location.pathname + window.location.search)
   }
 
@@ -46,6 +47,7 @@ export default function App() {
       <nav className="tabs">
         <div className="tabs-inner">
           <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
+          <button className={tab === 'shoot' ? 'on' : ''} onClick={() => go('shoot')}>촬영일정</button>
           <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
           <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>SNS 모니터링</button>
           {session && (
@@ -57,6 +59,7 @@ export default function App() {
         </div>
       </nav>
       {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} />}
+      {tab === 'shoot' && <CalendarPage shoot onOpenSpec={openSpec} />}
       {tab === 'spec' && <SpecLibrary isExternal={false} focusMedia={specFocus.name} focusSeq={specFocus.seq} />}
       {tab === 'monitor' && <MonitorPage />}
     </>

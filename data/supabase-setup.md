@@ -151,3 +151,14 @@ on conflict do nothing;
 - 로그인 세션은 브라우저에 저장되고 자동 갱신됨 — 매번 재로그인할 필요 없음
 - 팀원 추가·삭제, 비밀번호 재설정은 모두 **Authentication → Users**에서 관리
 - localStorage에 쌓아둔 일정은 자동 이전되지 않음 — 연동 전 테스트 데이터는 다시 입력
+
+## 5장. 촬영일정 컬럼 추가 — '26.7 기능 업데이트 (필수 1줄)
+
+촬영일정 탭('26.7 추가)은 일정을 `kind` 필드로 구분합니다. SQL Editor에서 한 줄 실행:
+
+```sql
+alter table media_events add column if not exists kind text;
+```
+
+- 이 SQL을 실행하기 전까지: **촬영일정 등록만** 서버 오류로 실패 (기존 일반 일정 기능은 영향 없음)
+- 실행 후: 촬영일정 탭에서 등록 정상 동작. 기존 일정은 전부 일반(kind 없음)으로 유지
