@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { CHANNELS, channelById } from './data/channels.js'
 import { parseQuick, toISO, fromISO } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, storageMode } from './lib/store.js'
+import { getSession, onAuthChange, signIn, signOut } from './lib/auth.js'
 import ChannelIcon from './ChannelIcon.jsx'
 
 const DOW = ['일', '월', '화', '수', '목', '금', '토']
@@ -419,7 +420,42 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete }) {
   )
 }
 
-export default function CalendarPage() {
+function LoginForm() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [err, setErr] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const submit = async e => {
+    e.preventDefault()
+    setLoading(true); setErr(null)
+    try { await signIn(email.trim(), password) }
+    catch (e2) { setErr(e2.message) }
+    finally { setLoading(false) }
+  }
+
+  return (
+    <div className="wrap cal-wrap">
+      <header>
+        <div className="eyebrow">Media Content Team · Schedule</div>
+        <h1>매체 일정 캘린더</h1>
+        <div className="masthead-sub">팀 계정으로 로그인 — 계정 발급은 담당자에게 문의</div>
+      </header>
+      <form className="login-card" onSubmit={submit}>
+        <label>이메일
+          <input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} required />
+        </label>
+        <label>비밀번호
+          <input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
+        </label>
+        {err && <div className="qa-err">{err}</div>}
+        <button className="btn-solid" type="submit" disabled={loading}>{loading ? '확인 중…' : '로그인'}</button>
+      </form>
+    </div>
+  )
+}
+
+function CalendarApp({ session }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -482,6 +518,12 @@ export default function CalendarPage() {
         <div className="eyebrow">Media Content Team · Schedule</div>
         <h1>매체 일정 캘린더</h1>
         <div className="masthead-sub">팀 운영 매체 집행 일정 — 빠른 입력 한 줄로 등록, 클릭해서 수정·삭제</div>
+        {session && (
+          <div className="session-bar">
+            {session.email} 로 로그인됨
+            <button onClick={signOut}>로그아웃</button>
+          </div>
+        )}
       </header>
 
       {storageMode === 'local' && (
@@ -535,4 +577,13 @@ export default function CalendarPage() {
 
     </div>
   )
+}
+
+/* REMOTE(Supabase) 모드에서만 로그인 요구 — 로컬 테스트 모드는 그대로 오픈 */
+export default function CalendarPage() {
+  const [session, setSession] = useState(getSession())
+  useEffect(() => onAuthChange(setSession), [])
+
+  if (storageMode === 'supabase' && !session) return <LoginForm />
+  return <CalendarApp session={session} />
 }

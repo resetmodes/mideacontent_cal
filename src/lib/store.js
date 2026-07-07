@@ -1,15 +1,12 @@
 /* 일정 저장 어댑터 — Supabase 키가 있으면 팀 공유 DB, 없으면 localStorage
-   테이블 스키마는 data/supabase-setup.md 참고 */
+   테이블 스키마·RLS 정책은 data/supabase-setup.md 참고.
+   REMOTE 모드에서는 로그인한 사용자의 토큰으로만 접근 가능 (RLS: auth.uid() is not null) */
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config.js'
+import { getAccessToken } from './auth.js'
 
 const REMOTE = !!(SUPABASE_URL && SUPABASE_ANON_KEY)
 const TABLE = 'media_events'
 const API = `${SUPABASE_URL}/rest/v1/${TABLE}`
-const HEADERS = {
-  apikey: SUPABASE_ANON_KEY,
-  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-  'Content-Type': 'application/json',
-}
 
 export const storageMode = REMOTE ? 'supabase' : 'local'
 
@@ -29,7 +26,15 @@ const load = () => JSON.parse(localStorage.getItem(KEY) || '[]')
 const save = a => localStorage.setItem(KEY, JSON.stringify(a))
 
 async function req(url, options = {}) {
-  const res = await fetch(url, { ...options, headers: { ...HEADERS, ...options.headers } })
+  const token = await getAccessToken()
+  const headers = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${token || SUPABASE_ANON_KEY}`,
+    'Content-Type': 'application/json',
+    ...options.headers,
+  }
+  const res = await fetch(url, { ...options, headers })
+  if (res.status === 401 || res.status === 403) throw new Error('로그인이 필요하거나 세션이 만료됨 — 다시 로그인해 주세요')
   if (!res.ok) throw new Error(`서버 응답 ${res.status} — Supabase 설정 확인 필요`)
   return res
 }
