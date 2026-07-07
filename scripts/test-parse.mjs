@@ -1,0 +1,56 @@
+/* 빠른 입력 파서 회귀 테스트 ('26.7 하네스)
+   실행: npm run test — 파서·키워드·표기 통일 수정 후 반드시 통과 확인.
+   새 파싱 기능을 추가하면 여기에 케이스도 추가할 것 (깨지기 가장 쉬운 모듈) */
+
+import { parseQuick } from '../src/lib/parse.js'
+
+const TODAY = new Date(2026, 6, 7)   // 2026-07-07 고정 — 연도 추정 테스트 안정화
+let pass = 0, fail = 0
+
+function t(input, expected, label) {
+  const r = parseQuick(input, TODAY)
+  const errs = []
+  for (const [k, v] of Object.entries(expected)) {
+    const got = k === 'channels' ? (r.channels ? r.channels.map(c => c.channel + '/' + (c.sub || '')).join(',') : null) : r[k]
+    if (got !== v) errs.push(`${k}: 기대 ${JSON.stringify(v)} ≠ 실제 ${JSON.stringify(got)}`)
+  }
+  if (errs.length) { fail++; console.error(`✗ ${label || input}\n    ${errs.join('\n    ')}`) }
+  else { pass++ }
+}
+
+/* ── 날짜 ── */
+t('12/20 크리스마스 인스타 릴스 #크리스마스',
+  { date: '2026-12-20', endDate: null, channel: '인스타', sub: '공식', campaign: '크리스마스', title: '크리스마스 인스타 릴스' })
+t('12/20~25 연말 팝업 카톡', { date: '2026-12-20', endDate: '2026-12-25', channel: '카카오톡' })
+t('7월 10일~8월 2일 여름 행사', { date: '2026-07-10', endDate: '2026-08-02' })
+t('1/5 신년 행사', { date: '2027-01-05' }, '6개월 룩백 — 지난 날짜는 내년으로')
+t('오늘 인스타 스토리', { date: '2026-07-07' })
+t('모레 유튜브 쇼츠', { date: '2026-07-09', channel: '유튜브' })
+
+/* ── 매체 키워드 ── */
+t('7/10 도시 신규 콘텐츠', { channel: '인스타', sub: '도시' })
+t('7/10 도메 릴스', { channel: '인스타', sub: '도시', title: '도시 릴스' }, '도메 → 도시 표기 통일')
+t('7/10 인스타 본계정 릴스', { channel: '인스타', sub: '공식' })
+t('7/10 유튜브 릴즈 크로스 업로드', { channel: '유튜브' }, '채널 직접 지칭 > 포맷 유추')
+t('7/10 와지트 신규 영상', { channel: '유튜브', sub: '와지트' })
+t('7/10 아파트 LCD 소재 교체', { channel: '아파트LCD', title: 'APT LCD 소재 교체' })
+t('7/10 앱푸쉬 발송', { channel: '백화점APP', sub: '푸쉬', title: 'APP푸쉬 발송' })
+t('7/10 아파트앱 팝업', { channel: '타겟APP', title: '아파트앱 팝업' }, '아파트앱 identity 보호')
+
+/* ── 다중 매체 ── */
+t('7/10 성탄 티저 인스타+유튜브+카톡 #크리스마스',
+  { channels: '인스타/공식,유튜브/공식,카카오톡/', title: '성탄 티저' })
+t('7/12 1+1 사은행사 인스타', { channels: null, channel: '인스타' }, '1+1은 다중 매체 아님')
+
+/* ── 촬영/업로드 병기 ── */
+t('7/10 촬영 7/15 업로드 여름 룩북 인스타 #여름',
+  { shootDate: '2026-07-10', date: '2026-07-15', channel: '인스타', campaign: '여름' })
+t('촬영 7/10 업로드 7월 15일 여름 룩북 유튜브',
+  { shootDate: '2026-07-10', date: '2026-07-15', channel: '유튜브' }, '라벨 위치 자유')
+t('7/10 촬영 여름 룩북 스케치 인스타', { shootDate: '2026-07-10', date: null }, '촬영 단독')
+t('7/10 촬영 7/15 업로드 인스타+유튜브 룩북',
+  { shootDate: '2026-07-10', date: '2026-07-15', channels: '인스타/공식,유튜브/공식' }, '병기 × 다중 매체')
+
+/* ── 결과 ── */
+console.log(`\n파서 테스트: ${pass} 통과 / ${fail} 실패`)
+if (fail > 0) process.exit(1)

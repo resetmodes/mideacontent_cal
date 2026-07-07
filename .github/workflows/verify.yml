@@ -1,0 +1,24 @@
+name: 검증 (테스트 + 빌드)
+
+# main·작업 브랜치에 push될 때마다 자동 검증 — AI든 사람이든 깨진 코드가
+# 배포되기 전에 잡는 안전망. 로컬 동일 명령: npm run verify
+on:
+  push:
+    branches: ['main', 'claude/**']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: 의존성 설치
+        run: npm ci
+      - name: 파서·가드 테스트 + 프로덕션 빌드
+        run: npm run verify
