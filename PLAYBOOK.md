@@ -46,6 +46,8 @@
 | `src/lib/auth.js` | 로그인 (Supabase Auth REST) | 거의 안 함 |
 | `src/lib/perf.js` | 일정↔SNS 실적 매칭 (인스타 2계정·유튜브만) | 매칭 규칙 |
 | `src/lib/specLink.js` | 캘린더 채널→스펙 매체 매핑 | 매체 개편 시 |
+| `src/lib/report.js` | 월간 리포트 집계 (계약: docs/report-data-contract.md). UI는 양식 대기 | 리포트 규칙 |
+| `api/assistant.js` | AI 어시스턴트 스캐폴드 — **비활성** (설계: docs/ai-assistant-design.md, Opus 예약) | Opus 세션만 |
 | `scripts/sns/*` | 수집(scrape)·정제(clean)·추이(append-trend). accounts.mjs = 계정 단일 소스 | 계정 변경 |
 | `scripts/backup-events.mjs` | 일정 백업 | 거의 안 함 |
 | `scripts/test-*.mjs` | 하네스 테스트 | 기능 추가 시 케이스 추가 |
@@ -117,3 +119,23 @@ Claude Code가 자동 인식. 해당 유형 작업이면 반드시 스킬 절차
 - **공휴일 추가**: holidays.js 한 줄
 - **새 일정 필드**: store.js toDb/fromDb + EventModal 폼 + setup.md에 ALTER SQL 장 추가
   (kind 패턴 참고 — 값 있을 때만 전송해 구 스키마 호환 유지)
+
+## 8. 모델 선택 가이드 — 작업을 받으면 먼저 자기 급을 판단할 것
+
+**저가 모델로 충분 (하네스+스킬이 지켜줌)**
+- 키워드·표기 추가, 매체 스펙 갱신, 팀원·공휴일 추가, SNS 계정 추가·이동
+- 기존 패턴을 따르는 소규모 UI 수정 (문구, 필드 하나, 목록 컬럼)
+- 테스트 케이스 추가, 문서 갱신, 데이터 백업 확인
+
+**고가 모델(Opus 이상) 필요 — 저가 모델은 이 작업을 받으면 착수 전에
+"이 작업은 고가 모델 세션을 권장합니다"라고 사용자에게 알리고 진행 여부를 확인할 것**
+- 원인 불명 사고·데이터 소실 복구 (fix-incident 스킬의 병합 복구 수준)
+- 하네스·가드·테스트·스킬·이 문서 자체의 수정
+- 새 파싱 문법, 새 매칭 로직 등 "애매함을 다루는 로직" 신설
+- 보안·공개 범위 판단 (RLS, 미러 노출, 키 관리)
+- CalendarPage 분해 등 구조 리팩토링, vite 메이저 업그레이드 (§6 부채)
+- AI 어시스턴트 구현 (docs/ai-assistant-design.md 설계 기준 — Opus 예약)
+- 월간 리포트 UI (규빈 양식 해석·매핑 — 데이터 계층은 src/lib/report.js에 준비됨)
+
+판단 기준 한 줄: **"테스트가 실패를 잡아줄 수 있는 작업인가?"** 잡아준다 → 저가 OK.
+못 잡는다(판단·설계·보안) → 고가.
