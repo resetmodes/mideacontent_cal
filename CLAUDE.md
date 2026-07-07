@@ -18,12 +18,19 @@
 ## SNS 모니터링 탭 ('26.7)
 - `src/MonitorPage.jsx` — 인스타그램/유튜브 세그먼트 전환. 캘린더와 동일 톤
   (히어로 타이포 지표 + 가로선 테이블 + 그룹 라벨)
-- 데이터: `src/data/sns/instagram.js`(계정 30개 요약) · `youtube.js`(채널 4 + 영상 151) —
+- 데이터: `src/data/sns/instagram.js`(자사 계정 요약 + 경쟁사) · `youtube.js`(채널 + 영상) —
   자동 생성 파일, 직접 수정 금지
-- 갱신 절차: hyundai-monitor(별도 리포)에서 수집 → 이 리포에서 `node scripts/sync-sns.mjs`
-  → git push. 수집 파이프라인(Apify·GitHub Actions)은 hyundai-monitor에 그대로 둠
+- **수집 파이프라인 내장 ('26.7 이전 완료)**: `scripts/sns/` — accounts.mjs(계정 메타 단일 소스),
+  scrape/clean × 인스타·유튜브. `npm run sns:collect` = 수집+정제 전체.
+  `.github/workflows/sns-collect.yml` — 매주 월 09:00 KST 자동 + 수동(Run workflow),
+  결과를 src/data/sns에 커밋 → Vercel 자동 재배포. APIFY_TOKEN은 GitHub Secret + 로컬 .env
+  (.env는 gitignore — 절대 커밋 금지). raw는 data/sns-raw(미추적)
+- 계정 그룹 ('26.7 변경): 본사(본계정·도시메뉴얼·에딧뎁트·와지트) / 사업소(점포 전체+신춘자) /
+  콘텐츠·IP / 해외 (+경쟁사 별도 섹션). 계정 추가·이동 = scripts/sns/accounts.mjs 수정
+- 에딧뎁트(edit.dept)·와지트(wazit_wine)는 첫 수집 전까지 화면에 없음 (raw 없어 스킵)
 - 표기 원칙: 좋아요 비공개 계정은 "비공개", 계정 간 비교는 참여/1k(팔로워 1천 명당 반응) 기준,
-  휴면(30일+ 미게시) 계정은 회색 + 휴면 플래그
+  휴면(60일+ 미게시) 계정은 회색 + 휴면 플래그
+- hyundai-monitor(구 리포)는 이제 수집 불필요 — 파이프라인이 이 리포로 이전됨
 - `src/data/channels.js` — 매체 8종(타겟APP·인스타·유튜브·버스광고·백화점APP·카카오톡·아파트LCD·기타)
   + 세부 + 빠른 입력 키워드 맵. 타겟APP 세부 10종은 '26.2 가이드라인 기준
 - `src/lib/parse.js` — 빠른 입력 파서 (날짜/기간·매체 키워드·#캠페인·제목). 연도 자동 추정(6개월 룩백)

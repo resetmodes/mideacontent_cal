@@ -35,15 +35,19 @@ function Hero({ stats }) {
   )
 }
 
+const IG_GROUP_ORDER = ['본사', '사업소', '콘텐츠·IP', '해외']
+
 function InstagramView() {
   const main = IG.accounts.find(a => a.isMain)
   const groups = useMemo(() => {
-    const order = [...new Set(IG.accounts.map(a => a.group))]
+    const inData = [...new Set(IG.accounts.map(a => a.group))]
+    const order = [...IG_GROUP_ORDER.filter(g => inData.includes(g)), ...inData.filter(g => !IG_GROUP_ORDER.includes(g))]
     return order.map(g => ({
       name: g,
       list: IG.accounts.filter(a => a.group === g).sort((a, b) => b.followers - a.followers),
     }))
   }, [])
+  const competitors = IG.competitors || []
   const dormantCount = IG.accounts.filter(a => a.dormant).length
   const posts30 = IG.accounts.reduce((s, a) => s + (a.postsLast30 || 0), 0)
 
@@ -59,40 +63,54 @@ function InstagramView() {
       {groups.map(g => (
         <div key={g.name}>
           <div className="group-label">{g.name}</div>
-          <div className="mon-scroll">
-            <table className="mon-table">
-              <thead>
-                <tr>
-                  <th>계정</th><th>팔로워</th><th>30일 게시</th><th>평균 좋아요</th>
-                  <th>평균 댓글</th><th>참여/1k</th><th>릴스 비중</th><th>최근 게시</th>
-                </tr>
-              </thead>
-              <tbody>
-                {g.list.map(a => (
-                  <tr key={a.handle} className={a.dormant ? 'dormant' : ''}>
-                    <td className="mon-acc">
-                      <b>{a.name}</b>
-                      <a href={a.profileUrl} target="_blank" rel="noreferrer">@{a.handle}</a>
-                      {a.dormant && <span className="mon-flag">휴면</span>}
-                    </td>
-                    <td className="strong">{num(a.followers)}</td>
-                    <td>{num(a.postsLast30)}</td>
-                    <td>{a.likesVisible === 0 ? <span className="mute">비공개</span> : num(a.avgLikes)}</td>
-                    <td>{num(a.avgComments)}</td>
-                    <td>{a.engagementPer1k ?? '—'}</td>
-                    <td>{a.reelsShare != null ? a.reelsShare + '%' : '—'}</td>
-                    <td className="mute">{a.daysSinceLastPost != null ? `${a.daysSinceLastPost}일 전` : '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AccountTable list={g.list} />
         </div>
       ))}
+
+      {competitors.length > 0 && (
+        <div>
+          <div className="group-label">경쟁사 (참고)</div>
+          <AccountTable list={[...competitors].sort((a, b) => b.followers - a.followers)} />
+        </div>
+      )}
+
       <div className="mon-note">
         참여/1k = 팔로워 1,000명당 평균 반응(좋아요+댓글) — 규모가 다른 계정 간 비교 기준 · {IG.note}
       </div>
     </>
+  )
+}
+
+function AccountTable({ list }) {
+  return (
+    <div className="mon-scroll">
+      <table className="mon-table">
+        <thead>
+          <tr>
+            <th>계정</th><th>팔로워</th><th>30일 게시</th><th>평균 좋아요</th>
+            <th>평균 댓글</th><th>참여/1k</th><th>릴스 비중</th><th>최근 게시</th>
+          </tr>
+        </thead>
+        <tbody>
+          {list.map(a => (
+            <tr key={a.handle} className={a.dormant ? 'dormant' : ''}>
+              <td className="mon-acc">
+                <b>{a.name}</b>
+                <a href={a.profileUrl} target="_blank" rel="noreferrer">@{a.handle}</a>
+                {a.dormant && <span className="mon-flag">휴면</span>}
+              </td>
+              <td className="strong">{num(a.followers)}</td>
+              <td>{num(a.postsLast30)}</td>
+              <td>{a.likesVisible === 0 ? <span className="mute">비공개</span> : num(a.avgLikes)}</td>
+              <td>{num(a.avgComments)}</td>
+              <td>{a.engagementPer1k ?? '—'}</td>
+              <td>{a.reelsShare != null ? a.reelsShare + '%' : '—'}</td>
+              <td className="mute">{a.daysSinceLastPost != null ? `${a.daysSinceLastPost}일 전` : '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 
@@ -187,7 +205,7 @@ export default function MonitorPage() {
         <h1>SNS 모니터링</h1>
         <div className="masthead-sub">
           자사 인스타그램·유튜브 계정 성과 지표 — 데이터 기준 {fmtDate(generatedAt)}
-          {' · '}갱신: hyundai-monitor 수집 후 <code>node scripts/sync-sns.mjs</code>
+          {' · '}매주 월 09:00 자동 수집 (수동: GitHub Actions → Run workflow, 로컬: <code>npm run sns:collect</code>)
         </div>
       </header>
 
