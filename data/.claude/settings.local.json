@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/resetmode/Downloads/spec-library-handoff 2/**)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(unzip -o -q \"/Users/resetmode/Downloads/spec-library-handoff.zip\" -d \"/private/tmp/claude-501/-Users-resetmode-Downloads-spec-library-handoff-2-data/99edb7cf-7221-4b5f-b52f-025ce269cb04/scratchpad/handoff\")",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "Bash(python3 -c \"import pypdf\")",
+      "Bash(python3 -m venv pdfenv)",
+      "Bash(./pdfenv/bin/pip -q install pypdf)",
+      "Bash(./pdfenv/bin/python -c ' *)",
+      "Bash(python3 -)",
+      "Bash(python3 -c ' *)"
+    ]
+  }
+}

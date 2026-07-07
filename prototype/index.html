@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>매체 스펙 라이브러리 — 미디어콘텐츠팀</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root{
+    --ink:#111111; --paper:#ffffff; --green:#0B4336;
+    --grey:#8a8a8a; --hairline:#d9d9d9; --red:#C4372C; --hl:#EDFF5B;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;
+    background:var(--paper);color:var(--ink);font-size:15px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px 120px;}
+
+  header{padding:44px 0 0;}
+  .eyebrow{font-size:11px;font-weight:600;letter-spacing:.14em;color:var(--green);text-transform:uppercase;}
+  h1{font-size:clamp(30px,6vw,44px);font-weight:800;letter-spacing:-0.02em;line-height:1.1;margin:6px 0 4px;}
+  .masthead-sub{font-size:13px;color:var(--grey);}
+  .draft-note{margin-top:18px;font-size:12.5px;line-height:1.55;
+    border-top:2px solid var(--ink);border-bottom:1px solid var(--hairline);padding:10px 0;}
+  .draft-note b{background:var(--hl);font-weight:700;padding:0 3px;}
+
+  .controls{position:sticky;top:0;background:var(--paper);z-index:10;padding:14px 0 0;border-bottom:1px solid var(--ink);}
+  .search{width:100%;border:none;border-bottom:1px solid var(--hairline);font-family:inherit;
+    font-size:17px;font-weight:500;padding:8px 0;outline:none;background:transparent;color:var(--ink);}
+  .search::placeholder{color:#bbb;font-weight:400;}
+  .search:focus{border-bottom-color:var(--green);}
+  .filters{display:flex;gap:18px;overflow-x:auto;padding:12px 0;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .filters::-webkit-scrollbar{display:none;}
+  .filters button{background:none;border:none;font-family:inherit;cursor:pointer;font-size:13.5px;
+    font-weight:500;color:var(--grey);white-space:nowrap;padding:2px 0;letter-spacing:-0.01em;}
+  .filters button.on{color:var(--ink);font-weight:800;box-shadow:inset 0 -8px 0 var(--hl);}
+  .count{font-size:11.5px;color:var(--grey);padding:0 0 10px;}
+
+  .group-label{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--green);
+    padding:34px 0 6px;border-bottom:2px solid var(--ink);}
+  .group-note{font-size:12.5px;color:var(--grey);line-height:1.6;padding:8px 0 2px;}
+  .group-note b{color:var(--ink);font-weight:700;}
+  .group-note .ban-inline{color:var(--red);font-weight:600;}
+
+  .media{border-bottom:1px solid var(--hairline);}
+  .media-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:20px 0;cursor:pointer;user-select:none;}
+  .media-head:active{opacity:.6;}
+  .m-id{flex:1;min-width:0;}
+  .m-cat{font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--green);}
+  .m-cat .reg{color:var(--ink);}
+  .m-name{font-size:20px;font-weight:800;letter-spacing:-0.02em;line-height:1.25;}
+  .m-preview{text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;}
+  .m-size{font-size:14px;font-weight:700;letter-spacing:-0.01em;}
+  .m-due{font-size:11.5px;color:var(--grey);margin-top:2px;}
+  .m-due b{color:var(--ink);font-weight:700;}
+
+  .media-body{display:none;padding:0 0 30px;}
+  .media.open .media-body{display:block;}
+  .media.open{border-bottom:2px solid var(--ink);}
+  .m-target{font-size:13.5px;line-height:1.6;padding:2px 0 14px;color:#444;}
+
+  .slot{border-top:1px solid var(--ink);padding:14px 0 18px;}
+  .slot-name{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--green);}
+  .slot-hero{font-size:clamp(28px,6.5vw,42px);font-weight:800;letter-spacing:-0.03em;line-height:1.05;
+    font-variant-numeric:tabular-nums;padding:4px 0 6px;}
+  .slot-hero small{font-size:.4em;font-weight:600;color:var(--grey);letter-spacing:0;margin-left:6px;}
+  .slot-meta{font-size:13.5px;font-variant-numeric:tabular-nums;color:#333;}
+  .slot-meta b{font-weight:700;}
+  .slot-note{font-size:12px;color:var(--grey);margin-top:3px;}
+
+  .spec-grid{display:grid;grid-template-columns:88px 1fr;margin-top:6px;border-top:1px solid var(--ink);}
+  .spec-grid dt{font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--green);padding:11px 0;border-bottom:1px solid var(--hairline);}
+  .spec-grid dd{font-size:14px;padding:10px 0;border-bottom:1px solid var(--hairline);font-variant-numeric:tabular-nums;letter-spacing:-0.01em;}
+  dt.ban{color:var(--red);}
+  dd.ban{color:var(--red);font-weight:500;}
+  mark{background:var(--hl);color:inherit;}
+  .src{font-size:11.5px;color:var(--grey);margin-top:10px;}
+  .src.draft b{background:var(--hl);padding:0 3px;color:var(--ink);}
+
+  .empty{padding:60px 0;text-align:center;color:var(--grey);font-size:14px;}
+  footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var(--ink);padding-top:12px;}
+  @media (max-width:560px){
+    .m-preview{display:none;}
+    .spec-grid{grid-template-columns:80px 1fr;}
+  }
+  @media print{.controls{position:static;} .media-body{display:block;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Media Content Team · Spec Index</div>
+  <h1>매체 스펙 라이브러리</h1>
+  <div class="masthead-sub">미디어콘텐츠팀 운영 매체 소재 규격 · 납기 · 심의 기준</div>
+  <div class="draft-note">
+    타겟형 매체 10종은 <b>'26.2 타겟형 매체 운영 가이드라인 확정값</b>.
+    그 외 매체는 <b>검증 전 가안</b> — 파트별 확인 후 교체 예정.
+  </div>
+</header>
+
+<div class="controls">
+  <input class="search" id="q" type="search" placeholder="매체·지면·키워드 검색 (예: 스플래시, 키즈, 앱종료)" autocomplete="off">
+  <div class="filters" id="filters"></div>
+</div>
+<div class="count" id="count"></div>
+
+<div id="list"></div>
+<div class="empty" id="empty" style="display:none">조건에 맞는 매체가 없음</div>
+
+<footer>문의: 규빈 책임 (미디어콘텐츠팀) · 타겟형 매체 운영: 김자영 책임 · 데이터 기준일 2026.07</footer>
+</div>
+
+<script>
+const TARGET_COMMON = {
+  "요청 경로":"팀즈 채널 > 미디어·바이럴 지원 라운지 > 바이럴 요청 — 희망 매체를 아파트앱·키즈앱 등으로 구체 기재, 지역 희망 시 시/군/구 기재",
+  "운영 조건":"연간 제휴 — 정상 단가 대비 약 30~60% 할인. 별도 정산 없음(매월 백화점/아울렛 배분), 주요 캠페인에 한해 집행 권장",
+  "집행 제한":"사업소별 월 1회 · 집행 2~3주 전 요청 필수 (급건 별도 협의) · 본사 제작 우선, 필요 시 사업소 자체 제작",
+  "결과 공유":"계획 전달 → 게재지면 공유 → 종료 후 결과(노출·클릭·반응율) 부분 공유",
+  "담당":"김자영 책임 (미디어콘텐츠팀)"
+};
+
+const MEDIA = [
+  /* ── 타겟형 매체 (확정) ───────────────── */
+  {group:"타겟형 매체", cat:"아파트앱", reg:"정기", name:"아파트너", lead:"D-7 (영업일)", verified:true,
+   target:"4,300개 단지·360만 세대. 거주지 인증 입주민 데이터 — 35~54세 안정 소비층 80%. 세대수 TOP 22 아파트 중 70% 점유, 단지 커뮤니티 통한 2·3차 확산 기대.",
+   slots:[
+     {name:"스플래시", size:"1080 × 720", cap:"1MB", fmt:"PNG(투명)"},
+     {name:"메인 팝업", size:"1080 × 1020", cap:"1MB", fmt:"JPG/PNG"},
+     {name:"서브 띠배너", size:"240 × 240", cap:"1MB", fmt:"JPG/PNG"}]},
+  {group:"타겟형 매체", cat:"아파트앱", reg:"정기", name:"바이비", lead:"D-7 (영업일)", verified:true,
+   target:"올림픽파크포레온·나인원한남 등 랜드마크 단지 확보 — 브랜드 이미지 제고형. 노출량은 적으나 클릭율 2~3%로 높음.",
+   slots:[
+     {name:"스플래시", size:"888 × 690", cap:"1MB", fmt:"JPG(흰배경)"},
+     {name:"메인 팝업", size:"1080 × 1020", cap:"1MB", fmt:"JPG/PNG"}]},
+  {group:"타겟형 매체", cat:"키즈앱", reg:"정기", name:"키즈노트", lead:"D-7 (영업일)", verified:true,
+   target:"어린이집·유치원 3만 개 가입 1위 플랫폼. 25~44세 학부모 82%, 고착도 65%. 아이 성별·연령·지역 기반 정교 타겟팅.",
+   slots:[
+     {name:"메인배너", size:"1029 × 258", cap:"300KB", fmt:"PNG(투명)", note:"배경 색상값 전달 (6자리 HEX)"},
+     {name:"리스트배너", size:"1029 × 258", cap:"300KB", fmt:"PNG(투명)"},
+     {name:"빅배너", size:"1200 × 600", cap:"3MB", fmt:"PNG"},
+     {name:"포토디테일", size:"규격 별도 확인", cap:"—", fmt:"—", note:"가이드라인 내 규격 미기재 — 요청 시 확인"}]},
+  {group:"타겟형 매체", cat:"직장인앱", reg:"정기", name:"리멤버", lead:"D-10 (영업일)", verified:true,
+   target:"400만 비즈니스맨. 명함·프로필 기반 직무·직급·산업군·회사 규모·근무 지역 타겟팅. B2B·B2C 모두 최적.",
+   slots:[
+     {name:"메인배너", size:"968 × 258", cap:"400KB", fmt:"PNG"},
+     {name:"메인 팝업", size:"990 × 990", cap:"500KB", fmt:"JPG/PNG"},
+     {name:"앱종료배너", size:"1200 × 2325", cap:"700KB", fmt:"JPG/PNG"}]},
+  {group:"타겟형 매체", cat:"아파트앱", reg:"비정기", name:"아파트아이", lead:"D-10 (영업일)", verified:true,
+   target:"관리비 결제 기반 전국 85%·3만 단지 (실사용 MAU 약 2백만). 결제·거주 형태 특화 타겟팅. 관리비 결제일(25일) 전후 반응 상승.",
+   slots:[
+     {name:"메인 팝업", size:"1008 × 696", cap:"600KB", fmt:"JPG/PNG"},
+     {name:"홈 상단배너", size:"960 × 504", cap:"600KB", fmt:"JPG/PNG", note:"텍스트 제외"}]},
+  {group:"타겟형 매체", cat:"키즈앱", reg:"비정기", name:"하이클래스", lead:"D-10 (영업일)", verified:true,
+   target:"알림장 4년 연속 1위, 전국 초등학교 가입률 99% — 학부모 매일 접속. 학생 대상 별도 노출 가능. 지역 타겟팅 불가 → 전국 단위 키즈·브랜딩 캠페인에 적합.",
+   slots:[
+     {name:"홈 띠배너", size:"1440 × 360", cap:"1MB", fmt:"PNG"},
+     {name:"홈 빅배너", size:"1440 × 900", cap:"2MB", fmt:"PNG"}]},
+  {group:"타겟형 매체", cat:"대학생앱", reg:"비정기", name:"에브리타임", lead:"D-10 (영업일)", verified:true,
+   target:"MAU 290만 국내 최대 대학생 플랫폼. 학교·학과·학번 인증 유저, 20대 77.4%·잘파 85.3%. 게시글형 노출 상품은 거부감 없이 정보 전달.",
+   slots:[
+     {name:"커뮤니티 보드", size:"1029 × 258", cap:"300KB", fmt:"PNG"},
+     {name:"홈 카드", size:"720 × 480", cap:"300KB", fmt:"JPG/PNG"}]},
+  {group:"타겟형 매체", cat:"글로벌앱", reg:"비정기", name:"위버스", lead:"D-20 (영업일)", verified:true,
+   target:"245개국 글로벌 팬덤 플랫폼 — 고관여 유저, 주목도·체류시간 높음. 미국·중국·일본 국가 타겟팅 가능, 1020 트래픽 85%.",
+   slots:[
+     {name:"홈 띠배너", size:"720 × 144", cap:"300KB", fmt:"PNG"},
+     {name:"알림 상단배너", size:"720 × 144", cap:"300KB", fmt:"PNG"}]},
+  {group:"타겟형 매체", cat:"취미앱", reg:"비정기", name:"데일리샷", lead:"D-10 (영업일)", verified:true,
+   target:"국내 1위 주류 플랫폼 — MAU 40만, 구매력 있는 20~40대 85%. 픽업 파트너 1만 개, 광고 외 제휴 협업 가능. ※ 주류 매체 — brand-guard 기준 표현 검수 필수.",
+   slots:[
+     {name:"스플래시", size:"1170 × 1640", cap:"1MB", fmt:"PNG/GIF"},
+     {name:"메인 팝업", size:"1125 × 816", cap:"1MB", fmt:"PNG/GIF"},
+     {name:"앱종료배너", size:"984 × 1143", cap:"1MB", fmt:"PNG"}]},
+  {group:"타겟형 매체", cat:"취미앱", reg:"비정기", name:"카카오골프", lead:"D-15 (영업일)", verified:true,
+   target:"30~50대 프리미엄 타겟 80% 이상. 스크린(프렌즈 스크린)부터 필드 예약까지 골퍼 동선 전체 커버, 오프라인 광고 결합 가능.",
+   slots:[
+     {name:"메인 팝업", size:"1242 × 1326", cap:"400KB", fmt:"JPG/PNG"},
+     {name:"메인 탑배너", size:"1242 × 420", cap:"250KB", fmt:"JPG/PNG"},
+     {name:"앱종료배너", size:"1018 × 942", cap:"500KB", fmt:"JPG/PNG"}]},
+
+  /* ── 기존 매체 (가안) ───────────────── */
+  {group:"운영 매체", cat:"옥외·LCD", name:"더현대서울 외벽 LED", lead:"D-7", verified:false,
+   slots:[{name:"기본", size:"7680 × 2160", cap:"500MB · 20초", fmt:"MP4 (H.264) · 무음"}],
+   extra:{"심의":"옥외광고 사전 심의 필수","금지사항":"점멸 효과 초당 3회 초과 금지 · 타사 상표 노출 금지","담당":"미디어전략 파트","비고":"야간 송출분 밝기 보정본 별도"}},
+  {group:"운영 매체", cat:"옥외·LCD", name:"APT LCD", lead:"D-5", verified:false,
+   target:"※ APT LCD와 아파트앱(타겟형)은 다른 매체 — 요청 시 구분 필수.",
+   slots:[{name:"기본", size:"1080 × 1920", cap:"100MB · 15초", fmt:"MP4 · JPG"}],
+   extra:{"심의":"매체사 자체 심의","금지사항":"세대 내 수신 매체 — 공포·혐오 소구 금지","담당":"콘텐츠제작 파트","비고":"단지별 해상도 편차 — 세이프존 중앙 90%"}},
+  {group:"운영 매체", cat:"옥외·LCD", name:"서울버스TV", lead:"D-10", verified:false,
+   slots:[{name:"기본", size:"1920 × 1080", cap:"200MB · 15초 고정", fmt:"MP4 (H.264)"}],
+   extra:{"심의":"교통광고 심의 필수 (D-7 별도)","금지사항":"무음 매체 — 자막 필수","담당":"미디어전략 파트","비고":"자막 최소 48pt, 하단 1/5 자막 금지 영역"}},
+  {group:"운영 매체", cat:"APP", name:"앱 메인 배너", lead:"D-3", verified:false,
+   slots:[{name:"기본", size:"1125 × 750", cap:"1MB", fmt:"JPG · PNG"}],
+   extra:{"심의":"내부 검수 (Prism 등록)","금지사항":"텍스트 면적 30% 초과 지양","담당":"APP 운영 파트"}},
+  {group:"운영 매체", cat:"APP", name:"앱 스플래시", lead:"D-3", verified:false,
+   slots:[{name:"기본", size:"1290 × 2796", cap:"3MB", fmt:"PNG"}],
+   extra:{"심의":"내부 검수","금지사항":"기기별 크롭 — 세이프존 밖 핵심 카피 금지","담당":"APP 운영 파트"}},
+  {group:"운영 매체", cat:"WEB·H.Point", name:"H.Point 메인 배너", lead:"D-3", verified:false,
+   slots:[{name:"기본", size:"720 × 360", cap:"500KB", fmt:"JPG"}],
+   extra:{"심의":"내부 검수 (HUB 등록)","금지사항":"경품 고지 문구 누락 금지","담당":"H.Point 운영 파트"}},
+  {group:"운영 매체", cat:"카카오톡", name:"카카오톡 채널 메시지", lead:"D-2", verified:false,
+   slots:[{name:"기본", size:"800 × 800", cap:"2MB", fmt:"JPG · PNG"}],
+   extra:{"심의":"카카오 소재 검수 (영업일 1일)","금지사항":"수신거부 고지 필수 · 오후 9시 이후 발송 금지","담당":"카톡·유튜브 파트"}},
+  {group:"운영 매체", cat:"카카오톡", name:"친구톡 와이드", lead:"D-2", verified:false,
+   slots:[{name:"기본", size:"800 × 600", cap:"2MB", fmt:"JPG · PNG"}],
+   extra:{"심의":"카카오 소재 검수","금지사항":"과장 표현(최저가 등) 검수 반려 사유","담당":"카톡·유튜브 파트"}},
+  {group:"운영 매체", cat:"SNS", name:"인스타그램 릴스", lead:"D-2", verified:false,
+   slots:[{name:"기본", size:"1080 × 1920", cap:"90초 이내", fmt:"MP4 · MOV"}],
+   extra:{"심의":"내부 검수 (brand-guard 기준)","금지사항":"주류 주 소재 금지 · 협찬 시 유료광고 라벨 필수","담당":"SNS 운영 파트","비고":"커버 1080×1350 별도"}},
+  {group:"운영 매체", cat:"SNS", name:"인스타그램 피드", lead:"D-2", verified:false,
+   slots:[{name:"기본", size:"1080 × 1350", cap:"캐러셀 최대 20장", fmt:"JPG · PNG"}],
+   extra:{"심의":"내부 검수","금지사항":"지점 사고 사례 언급 시 익명화","담당":"SNS 운영 파트"}},
+  {group:"운영 매체", cat:"유튜브", name:"유튜브 (와짓 외)", lead:"D-5", verified:false,
+   slots:[{name:"기본", size:"1920 × 1080", cap:"제한 없음", fmt:"MP4 · 4K 권장"}],
+   extra:{"심의":"내부 검수","금지사항":"음원 저작권 라이선스 확인 필수","담당":"유튜브 운영 파트","비고":"썸네일 1280×720 · 2MB 이하"}},
+  {group:"운영 매체", cat:"인쇄·고지물", name:"신문 15단 광고", lead:"D-4", verified:false,
+   slots:[{name:"기본", size:"370 × 510 mm", cap:"—", fmt:"PDF/X-1a (CMYK)"}],
+   extra:{"심의":"매체사 심의","금지사항":"신문광고 자율심의 규정 준수","담당":"매거진·유튜브 파트","비고":"재단 여백 3mm · 별색 불가"}},
+  {group:"운영 매체", cat:"인쇄·고지물", name:"고지물 (PMS)", lead:"D-7", verified:false,
+   slots:[{name:"기본", size:"210 × 297 mm", cap:"—", fmt:"PDF (CMYK)"}],
+   extra:{"심의":"내부 검수","금지사항":"경품·사은 법정 문구 필수","담당":"매거진·유튜브 파트","비고":"보이스가이드 병행 — 원고 별도"}}
+];
+
+const cats = ["전체","타겟형 매체",...new Set(MEDIA.filter(m=>m.group!=="타겟형 매체").map(m=>m.cat))];
+let activeCat="전체", query="";
+
+const $f=document.getElementById('filters');
+cats.forEach(c=>{
+  const b=document.createElement('button');
+  b.textContent=c;
+  if(c===activeCat)b.classList.add('on');
+  b.onclick=()=>{activeCat=c;[...$f.children].forEach(x=>x.classList.toggle('on',x.textContent===c));render();};
+  $f.appendChild(b);
+});
+document.getElementById('q').addEventListener('input',e=>{query=e.target.value.trim();render();});
+
+function hl(t){
+  if(!query||!t)return t||'';
+  const i=t.toLowerCase().indexOf(query.toLowerCase());
+  if(i<0)return t;
+  return t.slice(0,i)+'<mark>'+t.slice(i,i+query.length)+'</mark>'+t.slice(i+query.length);
+}
+function haystack(m){
+  return [m.name,m.cat,m.group,m.reg||'',m.target||'',
+    ...m.slots.map(s=>[s.name,s.size,s.fmt,s.note||''].join(' ')),
+    ...(m.extra?Object.values(m.extra):[])].join(' ').toLowerCase();
+}
+
+function render(){
+  const list=document.getElementById('list');
+  list.innerHTML='';
+  const items=MEDIA.filter(m=>
+    (activeCat==="전체"||m.cat===activeCat||(activeCat==="타겟형 매체"&&m.group==="타겟형 매체"))&&
+    (!query||haystack(m).includes(query.toLowerCase()))
+  );
+  document.getElementById('count').textContent=`${items.length}개 매체`;
+  document.getElementById('empty').style.display=items.length?'none':'block';
+
+  let lastGroup=null;
+  items.forEach(m=>{
+    if(m.group!==lastGroup){
+      lastGroup=m.group;
+      const g=document.createElement('div');
+      g.className='group-label';
+      g.textContent=m.group.toUpperCase();
+      list.appendChild(g);
+      if(m.group==="타겟형 매체"){
+        const n=document.createElement('div');
+        n.className='group-note';
+        n.innerHTML=`연간 제휴 매체 — 정상 단가 대비 <b>30~60% 할인</b> · 별도 정산 없음(매월 배분) · <b>사업소별 월 1회</b> · 집행 <b>2~3주 전</b> 요청 · 요청: 팀즈 &gt; 미디어·바이럴 지원 라운지 · 담당 <b>김자영 책임</b><br><span class="ban-inline">APT LCD와 아파트앱은 다른 매체 — 희망 매체 구체 기재 필수</span>`;
+        list.appendChild(n);
+      }
+    }
+    const el=document.createElement('div');
+    el.className='media';
+    const first=m.slots[0];
+    let slotsHtml=m.slots.map(s=>`
+      <div class="slot">
+        <div class="slot-name">${hl(s.name)}</div>
+        <div class="slot-hero">${hl(s.size)}${/mm/.test(s.size)?'':(/[0-9]/.test(s.size)?'<small>px</small>':'')}</div>
+        <div class="slot-meta"><b>${s.cap}</b> · ${hl(s.fmt)}</div>
+        ${s.note?`<div class="slot-note">${hl(s.note)}</div>`:''}
+      </div>`).join('');
+    let extraHtml='';
+    const extras = m.group==="타겟형 매체" ? {...(m.extra||{}), ...TARGET_COMMON} : (m.extra||{});
+    if(Object.keys(extras).length){
+      let dl='';
+      for(const [k,v] of Object.entries(extras)){
+        const ban=k==='금지사항'?' class="ban"':'';
+        dl+=`<dt${ban}>${k}</dt><dd${ban}>${hl(v)}</dd>`;
+      }
+      extraHtml=`<dl class="spec-grid">${dl}</dl>`;
+    }
+    el.innerHTML=`
+      <div class="media-head">
+        <div class="m-id">
+          <div class="m-cat">${m.cat}${m.reg?` · <span class="reg">${m.reg}</span>`:''}</div>
+          <div class="m-name">${hl(m.name)}</div>
+        </div>
+        <div class="m-preview">
+          <div class="m-size">${m.slots.length>1?m.slots.length+'개 지면':first.size}</div>
+          <div class="m-due">요청 <b>${m.lead}</b></div>
+        </div>
+      </div>
+      <div class="media-body">
+        ${m.target?`<div class="m-target">${hl(m.target)}</div>`:''}
+        ${slotsHtml}
+        ${extraHtml}
+        <div class="src${m.verified?'':' draft'}">${m.verified?"출처: '26.2 타겟형 매체 운영 가이드라인 (영업전략실 미디어콘텐츠팀)":"<b>검증 전 가안</b> — 담당 파트 확인 필요"}</div>
+      </div>`;
+    el.querySelector('.media-head').onclick=()=>el.classList.toggle('open');
+    list.appendChild(el);
+  });
+}
+render();
+</script>
+</body>
+</html>

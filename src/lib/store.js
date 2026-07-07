@@ -1,0 +1,89 @@
+/* 일정 저장 어댑터 — Supabase 키가 있으면 팀 공유 DB, 없으면 localStorage
+   테이블 스키마는 data/supabase-setup.md 참고 */
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config.js'
+
+const REMOTE = !!(SUPABASE_URL && SUPABASE_ANON_KEY)
+const TABLE = 'media_events'
+const API = `${SUPABASE_URL}/rest/v1/${TABLE}`
+const HEADERS = {
+  apikey: SUPABASE_ANON_KEY,
+  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+  'Content-Type': 'application/json',
+}
+
+export const storageMode = REMOTE ? 'supabase' : 'local'
+
+const toDb = e => ({
+  title: e.title, date: e.date, end_date: e.endDate || null,
+  channel: e.channel, sub: e.sub || null, campaign: e.campaign || null,
+  owner: e.owner || null, memo: e.memo || null,
+})
+const fromDb = r => ({
+  id: r.id, title: r.title, date: r.date, endDate: r.end_date,
+  channel: r.channel, sub: r.sub, campaign: r.campaign,
+  owner: r.owner, memo: r.memo, createdAt: r.created_at,
+})
+
+const KEY = 'media-cal-events'
+const load = () => JSON.parse(localStorage.getItem(KEY) || '[]')
+const save = a => localStorage.setItem(KEY, JSON.stringify(a))
+
+async function req(url, options = {}) {
+  const res = await fetch(url, { ...options, headers: { ...HEADERS, ...options.headers } })
+  if (!res.ok) throw new Error(`서버 응답 ${res.status} — Supabase 설정 확인 필요`)
+  return res
+}
+
+export async function listEvents() {
+  if (REMOTE) {
+    const res = await req(`${API}?select=*&order=date.asc`)
+    return (await res.json()).map(fromDb)
+  }
+  return load()
+}
+
+export async function createEvent(e) {
+  if (REMOTE) {
+    const res = await req(API, {
+      method: 'POST', headers: { Prefer: 'return=representation' },
+      body: JSON.stringify(toDb(e)),
+    })
+    return fromDb((await res.json())[0])
+  }
+  const ev = { ...e, id: crypto.randomUUID(), createdAt: new Date().toISOString() }
+  save([...load(), ev])
+  return ev
+}
+
+export async function updateEvent(id, patch) {
+  if (REMOTE) {
+    const res = await req(`${API}?id=eq.${id}`, {
+      method: 'PATCH', headers: { Prefer: 'return=representation' },
+      body: JSON.stringify(toDb(patch)),
+    })
+    return fromDb((await res.json())[0])
+  }
+  const next = load().map(e => (e.id === id ? { ...e, ...patch } : e))
+  save(next)
+  return next.find(e => e.id === id)
+}
+
+export async function deleteEvent(id) {
+  if (REMOTE) {
+    await req(`${API}?id=eq.${id}`, { method: 'DELETE' })
+    return
+  }
+  save(load().filter(e => e.id !== id))
+}
+
+/* 캠페인 이름 변경 — to가 기존 캠페인명이면 자연스럽게 통합됨 */
+export async function renameCampaign(from, to) {
+  if (REMOTE) {
+    await req(`${API}?campaign=eq.${encodeURIComponent(from)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ campaign: to }),
+    })
+    return
+  }
+  save(load().map(e => (e.campaign === from ? { ...e, campaign: to } : e)))
+}

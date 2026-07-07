@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "media-spec-library",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", ".."],
+      "port": 5173
+    },
+    {
+      "name": "content-calendar",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/resetmode/Downloads/content-calendar", "run", "dev"],
+      "port": 3000
+    }
+  ]
+}
