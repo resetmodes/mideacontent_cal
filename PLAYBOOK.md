@@ -53,12 +53,21 @@
 
 ## 3. 검증 도구
 
-- `npm run test` — 파서 20+ 케이스 + 빈 데이터 가드 (네트워크·브라우저 불필요, 수 초)
+- `npm run test` — 파서 20+ 케이스 + **데이터 정합성**(config 실키·매핑·키워드·계정 교차 검사)
+  + 빈 데이터/carry-forward 가드 (네트워크·브라우저 불필요, 수 초)
 - `npm run verify` — test + 프로덕션 빌드
+- `npm run smoke` — **브라우저 자동 스모크** (UI 변경 시 실행): config 백업→로컬 모드
+  빌드→핵심 플로우 확인→**config 원복·재빌드까지 전자동**. playwright 없는 환경은 자동 생략
 - CI: `.github/workflows/verify.yml` — main·claude/** push마다 자동
-- 브라우저 확인이 필요한 변경(UI 동작)은 로컬 모드로: ① `src/config.js` 백업 →
-  키 2개를 빈 문자열로 → build & preview → 확인 → **② 반드시 config.js 원복 후 커밋**
-  (원복 확인: `grep -c moyxlzylnasqdwwahydc src/config.js` → 1)
+
+## 3-1. 스킬 (.claude/skills/) — 작업 유형별 사고 절차
+
+Claude Code가 자동 인식. 해당 유형 작업이면 반드시 스킬 절차대로:
+- **add-feature** — 기능 추가: 설계 3질문·확립된 설계 원칙(비침습/숨김/하위호환/3뷰/가드)·
+  구현 순서·검증·보고 형식
+- **fix-incident** — 사고 대응: 층 분류(데이터/코드/배포/외부/설정)·복구 절차·
+  과금 철칙·재발 방지 3종 세트(가드+테스트+기록)
+- **edit-data** — 데이터 파일 수정: 파일별 레시피와 연쇄 수정 지점·함정
 
 ## 4. Supabase 현황 (스키마·정책은 data/supabase-setup.md가 원본)
 
@@ -69,6 +78,13 @@
 - **적용 대기 SQL** (사용자 실행 필요, 미적용 시 해당 기능만 비활성·기존 기능 무영향):
   ① kind 컬럼 (setup.md 5장) ② 이력 테이블+트리거 (setup.md 6장)
   ③ 미러 anon 읽기 (mirror-setup.md 2장) — 적용되면 이 목록에서 지울 것
+
+## 4-1. 캘린더 데이터 복원 절차
+
+`data/backup/media-events.json` (주 1회 자동 커밋)의 git 이력이 시점별 스냅샷.
+복원: 원하는 시점의 파일을 `git show <sha>:data/backup/media-events.json` 으로 꺼내
+`events` 배열을 Supabase SQL Editor에서 insert (id 충돌 시 해당 행 제외).
+전체 복원 전에 반드시 현재 상태도 백업(Actions 수동 실행)해 둘 것.
 
 ## 5. 배포 지형
 

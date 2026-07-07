@@ -5,8 +5,9 @@ import { MEDIA } from '../data/media.js'
 
 const NAMES = new Set(MEDIA.map(m => m.name))
 
-/* 키 형식: `${channel}|${sub}` (세부 없으면 `${channel}|`) */
-const MAP = {
+/* 키 형식: `${channel}|${sub}` (세부 없으면 `${channel}|`)
+   export는 정합성 테스트(scripts/test-data.mjs)용 — 값이 MEDIA 이름과 어긋나면 테스트가 잡음 */
+export const SPEC_LINK_MAP = {
   '인스타|': '인스타그램 대표계정 (the_hyundai)',
   '유튜브|': '유튜브 (현대백화점 THE HYUNDAI)',
   '유튜브|와지트': '와지트',
@@ -28,9 +29,9 @@ export function resolveSpecMedia(channel, sub) {
   if (!channel) return null
   // 타겟APP은 세부명이 곧 매체명 (아파트너·바이비·키즈노트 …)
   if (channel === '타겟APP' && sub && NAMES.has(sub)) return sub
-  const withSub = MAP[`${channel}|${sub || ''}`]
+  const withSub = SPEC_LINK_MAP[`${channel}|${sub || ''}`]
   if (withSub && NAMES.has(withSub)) return withSub
-  const base = MAP[`${channel}|`]
+  const base = SPEC_LINK_MAP[`${channel}|`]
   if (base && NAMES.has(base)) return base
   return null
 }

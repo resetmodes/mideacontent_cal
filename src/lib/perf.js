@@ -14,8 +14,8 @@ const DAY = 86400000
 /* 캘린더 세부 → 수집 데이터 계정 키.
    매칭 대상은 인스타·유튜브뿐 ('26.7 확정) — 아파트 LCD·카톡 등 다른 매체는 매칭하지 않음.
    인스타는 본계정(the_hyundai)·도시메뉴얼(dosi.manual) 2개만 */
-const YT_KEY = { '공식': 'the_hyundai', '와지트': 'wazitwine', '이야호': 'yiyaho_studio', '룸넘버': 'roomnumber' }
-const IG_HANDLE = { '공식': 'the_hyundai', '도시': 'dosi.manual' }
+export const YT_KEY = { '공식': 'the_hyundai', '와지트': 'wazitwine', '이야호': 'yiyaho_studio', '룸넘버': 'roomnumber' }
+export const IG_HANDLE = { '공식': 'the_hyundai', '도시': 'dosi.manual' }
 
 const compact = n => {
   if (n == null) return '—'
