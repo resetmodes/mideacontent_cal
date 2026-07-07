@@ -8,11 +8,22 @@
    ("12/20 크리스마스 인스타 릴스 #크리스마스"), 클릭해서 수정·삭제, 캠페인(#태그)별 묶어 보기.
 
 ## 캘린더 구조 ('26.7)
-- `src/App.jsx` 탭 셸 → `CalendarPage.jsx`(기본 탭) / `SpecLibrary.jsx`. 뷰 3종:
-  기본(팀용, 로그인) · `?view=mirror`(타 팀 공유 읽기 전용, 로그인 없음, 탭 숨김) ·
-  `?view=external`(대행사·지점용 스펙만, 캘린더 완전 숨김). `#spec` = 스펙 탭 딥링크.
-  각 탭에 공유 링크 복사 버튼(`src/ShareButton.jsx`). `config.js`의 MONITOR_URL을 채우면
-  SNS 모니터링 대시보드 외부 링크가 탭 바에 노출
+- `src/App.jsx` 탭 셸 → `CalendarPage.jsx`(기본 탭) / `SpecLibrary.jsx` / `MonitorPage.jsx`. 뷰:
+  기본(팀용, 로그인) · `?view=mirror`(타 팀 공유 읽기 전용) · `?view=external`(대행사·지점용
+  스펙만, 캘린더·모니터링 완전 숨김). `#spec` / `#monitor` = 탭 딥링크.
+  각 탭에 공유 링크 복사 버튼(`src/ShareButton.jsx`)
+- 미러링 개편 예정: 뷰어 계정 로그인 없이 캘린더·스펙이 각각 별도 사이트처럼 미러되는 구조를
+  원함 — 다음 세션에서 별도 설계 (보안 모델과 충돌하므로 스냅샷 발행 or 읽기 전용 프록시 검토)
+
+## SNS 모니터링 탭 ('26.7)
+- `src/MonitorPage.jsx` — 인스타그램/유튜브 세그먼트 전환. 캘린더와 동일 톤
+  (히어로 타이포 지표 + 가로선 테이블 + 그룹 라벨)
+- 데이터: `src/data/sns/instagram.js`(계정 30개 요약) · `youtube.js`(채널 4 + 영상 151) —
+  자동 생성 파일, 직접 수정 금지
+- 갱신 절차: hyundai-monitor(별도 리포)에서 수집 → 이 리포에서 `node scripts/sync-sns.mjs`
+  → git push. 수집 파이프라인(Apify·GitHub Actions)은 hyundai-monitor에 그대로 둠
+- 표기 원칙: 좋아요 비공개 계정은 "비공개", 계정 간 비교는 참여/1k(팔로워 1천 명당 반응) 기준,
+  휴면(30일+ 미게시) 계정은 회색 + 휴면 플래그
 - `src/data/channels.js` — 매체 8종(타겟APP·인스타·유튜브·버스광고·백화점APP·카카오톡·아파트LCD·기타)
   + 세부 + 빠른 입력 키워드 맵. 타겟APP 세부 10종은 '26.2 가이드라인 기준
 - `src/lib/parse.js` — 빠른 입력 파서 (날짜/기간·매체 키워드·#캠페인·제목). 연도 자동 추정(6개월 룩백)
