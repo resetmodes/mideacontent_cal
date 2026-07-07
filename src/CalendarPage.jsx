@@ -814,6 +814,9 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
         {session && !readOnly && (
           <div className="session-bar">
             <ShareButton query="?view=mirror" label="읽기전용 공유 링크 복사" />
+            <a className="share-btn" href="?view=mirror" target="_blank" rel="noreferrer">
+              크게 보기 (새 탭)
+            </a>
           </div>
         )}
       </header>
