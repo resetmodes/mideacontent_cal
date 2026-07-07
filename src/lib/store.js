@@ -85,6 +85,23 @@ export async function deleteEvent(id) {
   save(load().filter(e => e.id !== id))
 }
 
+/* 변경 이력 ('26.7) — DB 트리거가 등록·수정·삭제를 자동 기록 (setup.md 6장).
+   REMOTE 모드 전용: 로컬 모드는 빈 배열 (이력 UI 자동 숨김) */
+const HIST_API = `${SUPABASE_URL}/rest/v1/media_events_history`
+
+export async function listHistory(eventId) {
+  if (!REMOTE) return []
+  const res = await req(`${HIST_API}?event_id=eq.${eventId}&order=changed_at.desc&limit=50`)
+  return res.json()
+}
+
+export async function listDeleted(days = 30) {
+  if (!REMOTE) return []
+  const since = new Date(Date.now() - days * 86400000).toISOString()
+  const res = await req(`${HIST_API}?action=eq.DELETE&changed_at=gte.${since}&order=changed_at.desc&limit=100`)
+  return res.json()
+}
+
 /* 캠페인 이름 변경 — to가 기존 캠페인명이면 자연스럽게 통합됨 */
 export async function renameCampaign(from, to) {
   if (REMOTE) {

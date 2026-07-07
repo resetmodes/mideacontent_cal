@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { CHANNELS, channelById } from './data/channels.js'
 import { parseQuick, toISO, fromISO } from './lib/parse.js'
-import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, storageMode } from './lib/store.js'
+import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, listHistory, listDeleted, storageMode } from './lib/store.js'
 import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
 import { findPerformance } from './lib/perf.js'
@@ -109,6 +109,86 @@ const campSimilar = (campaigns, c) =>
 
 /* 촬영일정 허용 매체 — 유튜브·인스타만 ('26.7 확정) */
 const SHOOT_CHANNELS = new Set(['인스타', '유튜브'])
+
+/* ── 변경 이력 ('26.7) — DB 트리거 기록 조회 ───────────── */
+const fmtTs = iso => {
+  const d = new Date(iso)
+  return `${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+const ACTION_KO = { INSERT: '등록', UPDATE: '수정', DELETE: '삭제' }
+const HIST_FIELDS = [
+  ['title', '제목'], ['date', '시작일'], ['end_date', '종료일'], ['channel', '매체'],
+  ['sub', '세부'], ['campaign', '캠페인'], ['owner', '작성자'], ['memo', '메모'], ['kind', '구분'],
+]
+
+/* 연속 스냅샷 비교 — 바뀐 필드만 "제목: A → B" 형태로 */
+function histDiff(cur, prev) {
+  if (!prev) return []
+  const out = []
+  for (const [k, label] of HIST_FIELDS) {
+    const a = prev[k] ?? '', b = cur[k] ?? ''
+    if (a !== b) out.push(`${label}: ${a || '—'} → ${b || '—'}`)
+  }
+  return out
+}
+
+function HistoryView({ eventId }) {
+  const [state, setState] = useState('closed')   // closed | loading | error | rows[]
+  const open = async () => {
+    setState('loading')
+    try { setState(await listHistory(eventId)) }
+    catch { setState('error') }
+  }
+  if (state === 'closed')
+    return <button className="md-hist-link" onClick={open}>변경 이력</button>
+  if (state === 'loading') return <div className="md-hist-note">이력 불러오는 중…</div>
+  if (state === 'error')
+    return <div className="md-hist-note">이력 조회 실패 — 이력 테이블 미설정일 수 있음 (supabase-setup.md 6장)</div>
+  if (state.length === 0) return <div className="md-hist-note">기록된 이력 없음 (이력 기능 활성화 이후 변경분부터 기록)</div>
+  return (
+    <div className="md-hist">
+      {state.map((h, i) => {
+        const diffs = h.action === 'UPDATE' ? histDiff(h.data || {}, state[i + 1]?.data) : []
+        return (
+          <div key={h.id} className="md-hist-row">
+            <span className="mh-when">{fmtTs(h.changed_at)}</span>
+            <span className="mh-who">{h.actor ? authorName(h.actor) : '—'}</span>
+            <span className="mh-act">{ACTION_KO[h.action] || h.action}</span>
+            {diffs.length > 0 && <span className="mh-diff">{diffs.join(' · ')}</span>}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* 최근 30일 삭제 기록 — 캘린더 하단 접힘 목록 ("누가 지웠어?" 대비) */
+function DeletedLog({ shoot }) {
+  const [rows, setRows] = useState(null)   // null=미조회
+  const [failed, setFailed] = useState(false)
+  const load = async e => {
+    if (!e.target.open || rows) return
+    try {
+      const all = await listDeleted(30)
+      setRows(all.filter(r => (shoot ? r.data?.kind === '촬영' : r.data?.kind !== '촬영')))
+    } catch { setFailed(true) }
+  }
+  return (
+    <details className="del-log" onToggle={load}>
+      <summary>최근 30일 삭제 기록</summary>
+      {failed && <div className="md-hist-note">조회 실패 — 이력 테이블 미설정일 수 있음 (supabase-setup.md 6장)</div>}
+      {rows && rows.length === 0 && <div className="md-hist-note">최근 30일 내 삭제된 일정 없음</div>}
+      {rows && rows.map(r => (
+        <div key={r.id} className="md-hist-row">
+          <span className="mh-when">{fmtTs(r.changed_at)}</span>
+          <span className="mh-who">{r.actor ? authorName(r.actor) : '—'}</span>
+          <span className="mh-act">삭제</span>
+          <span className="mh-diff">{r.data?.date} {r.data?.title}{r.data?.channel ? ` (${r.data.channel})` : ''}</span>
+        </div>
+      ))}
+    </details>
+  )
+}
 
 function ChannelPickGrid({ value, onPick, shootOnly = false }) {
   const list = shootOnly ? CHANNELS.filter(c => SHOOT_CHANNELS.has(c.id)) : CHANNELS
@@ -505,6 +585,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                 이 매체 규격·납기 보기 →
               </button>
             )}
+            {storageMode === 'supabase' && <HistoryView eventId={event.id} />}
             <div className="md-actions">
               {!readOnly && (
                 <button className={'btn-ghost danger' + (confirmDel ? ' arm' : '')} onClick={del}>
@@ -733,6 +814,10 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
         />
       ) : (
         <CampaignView events={filtered} onSelect={setSelected} onRename={readOnly ? null : onRename} />
+      )}
+
+      {!loading && !searching && !readOnly && storageMode === 'supabase' && (
+        <DeletedLog shoot={shoot} />
       )}
 
       {selected && (

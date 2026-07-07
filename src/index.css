@@ -334,6 +334,23 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .pf-meta{font-size:12px;color:var(--g600);font-variant-numeric:tabular-nums;white-space:nowrap;}
 .pf-open{color:var(--green);font-weight:700;}
 
+/* 변경 이력 — 모달 내 접힘 목록 + 캘린더 하단 삭제 기록 */
+.md-hist-link{display:block;margin-top:10px;font-family:inherit;font-size:12px;font-weight:600;
+  color:var(--g400);background:none;border:none;padding:2px 0;cursor:pointer;text-align:left;}
+.md-hist-link:hover{color:var(--g600);}
+.md-hist{margin-top:10px;border-top:1px solid var(--g100);max-height:180px;overflow-y:auto;}
+.md-hist-row{display:flex;gap:10px;align-items:baseline;padding:6px 0;
+  border-bottom:1px solid var(--g100);font-size:12px;flex-wrap:wrap;}
+.mh-when{color:var(--g400);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.mh-who{font-weight:600;color:var(--ink);white-space:nowrap;}
+.mh-act{font-weight:700;color:var(--green);white-space:nowrap;}
+.mh-diff{color:var(--g600);flex:1;min-width:160px;}
+.md-hist-note{margin-top:10px;font-size:12px;color:var(--g400);}
+.del-log{margin-top:26px;}
+.del-log summary{font-size:12px;font-weight:600;color:var(--g400);cursor:pointer;
+  padding:8px 0;border-top:1px solid var(--g200);}
+.del-log summary:hover{color:var(--g600);}
+
 /* 매체 스펙 딥링크 — 삭제/닫기/수정과 분리된 2차 텍스트 링크 (미스클릭 방지) */
 .md-spec-link{display:inline-flex;align-items:center;gap:4px;margin-top:14px;
   font-family:inherit;font-size:12.5px;font-weight:700;color:var(--green);

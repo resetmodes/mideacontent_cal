@@ -162,3 +162,48 @@ alter table media_events add column if not exists kind text;
 
 - 이 SQL을 실행하기 전까지: **촬영일정 등록만** 서버 오류로 실패 (기존 일반 일정 기능은 영향 없음)
 - 실행 후: 촬영일정 탭에서 등록 정상 동작. 기존 일정은 전부 일반(kind 없음)으로 유지
+
+## 6장. 변경 이력 — '26.7 기능 업데이트
+
+일정 등록·수정·삭제를 DB가 자동 기록합니다 (누가·언제·무엇을).
+일정 모달의 "변경 이력"과 캘린더 하단 "최근 30일 삭제 기록"이 이 데이터를 읽습니다.
+
+SQL Editor에서 아래 전체를 한 번에 실행:
+
+```sql
+create table media_events_history (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid,
+  action text not null,              -- INSERT / UPDATE / DELETE
+  actor text,                        -- 로그인 이메일 (자동)
+  changed_at timestamptz default now(),
+  data jsonb                         -- 변경 후 스냅샷 (삭제 시엔 삭제 직전 값)
+);
+
+alter table media_events_history enable row level security;
+
+create policy "history_read" on media_events_history
+  for select to authenticated using (true);
+
+create or replace function log_media_event_change()
+returns trigger language plpgsql security definer as $$
+begin
+  if tg_op = 'DELETE' then
+    insert into media_events_history (event_id, action, actor, data)
+    values (old.id, tg_op, auth.jwt()->>'email', to_jsonb(old));
+    return old;
+  end if;
+  insert into media_events_history (event_id, action, actor, data)
+  values (new.id, tg_op, auth.jwt()->>'email', to_jsonb(new));
+  return new;
+end $$;
+
+create trigger media_events_audit
+after insert or update or delete on media_events
+for each row execute function log_media_event_change();
+```
+
+- 실행 전까지: 이력 버튼 클릭 시 "이력 테이블 미설정" 안내만 뜸 (다른 기능 무영향)
+- 이력은 활성화 **이후** 변경분부터 기록됨 (소급 불가)
+- 트리거가 서버에서 기록하므로 클라이언트에서 조작 불가 — 감사 기록으로 신뢰 가능
+- 읽기는 로그인 계정만 가능 (미러 사이트의 비로그인 조회로는 이력 접근 불가)
