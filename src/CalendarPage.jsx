@@ -111,19 +111,20 @@ const campSimilar = (campaigns, c) =>
 /* 촬영일정 허용 매체 — 유튜브·인스타만 ('26.7 확정) */
 const SHOOT_CHANNELS = new Set(['인스타', '유튜브'])
 
-/* ── 변경 이력 ('26.7) — DB 트리거 기록 조회 ───────────── */
-const fmtTs = iso => {
+/* ── 변경 이력 ('26.7) — DB 트리거 기록 조회.
+   fmtTs·ACTION_KO·histDiff는 알림센터(NotifyCenter.jsx)도 사용 — export */
+export const fmtTs = iso => {
   const d = new Date(iso)
   return `${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
-const ACTION_KO = { INSERT: '등록', UPDATE: '수정', DELETE: '삭제' }
+export const ACTION_KO = { INSERT: '등록', UPDATE: '수정', DELETE: '삭제' }
 const HIST_FIELDS = [
   ['title', '제목'], ['date', '시작일'], ['end_date', '종료일'], ['channel', '매체'],
   ['sub', '세부'], ['campaign', '캠페인'], ['owner', '작성자'], ['memo', '메모'], ['kind', '구분'],
 ]
 
 /* 연속 스냅샷 비교 — 바뀐 필드만 "제목: A → B" 형태로 */
-function histDiff(cur, prev) {
+export function histDiff(cur, prev) {
   if (!prev) return []
   const out = []
   for (const [k, label] of HIST_FIELDS) {

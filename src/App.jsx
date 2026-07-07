@@ -3,6 +3,7 @@ import SpecLibrary from './SpecLibrary.jsx'
 import CalendarPage from './CalendarPage.jsx'
 import MonitorPage from './MonitorPage.jsx'
 import LoginScreen from './LoginScreen.jsx'
+import NotifyCenter from './NotifyCenter.jsx'
 import { getSession, onAuthChange, signOut } from './lib/auth.js'
 import { storageMode } from './lib/store.js'
 
@@ -55,6 +56,7 @@ export default function App() {
           <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>SNS 모니터링</button>
           {session && (
             <span className="tabs-session">
+              <NotifyCenter session={session} />
               {session.email}
               <button onClick={signOut}>로그아웃</button>
             </span>
