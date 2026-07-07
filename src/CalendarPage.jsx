@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { CHANNELS, channelById } from './data/channels.js'
 import { parseQuick, toISO, fromISO } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, storageMode } from './lib/store.js'
-import { getSession, onAuthChange, signIn, signOut } from './lib/auth.js'
+import { getSession, onAuthChange } from './lib/auth.js'
 import ChannelIcon from './ChannelIcon.jsx'
 import ShareButton from './ShareButton.jsx'
 
@@ -433,45 +433,6 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
   )
 }
 
-function LoginForm({ viewer = false }) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [err, setErr] = useState(null)
-  const [loading, setLoading] = useState(false)
-
-  const submit = async e => {
-    e.preventDefault()
-    setLoading(true); setErr(null)
-    try { await signIn(email.trim(), password) }
-    catch (e2) { setErr(e2.message) }
-    finally { setLoading(false) }
-  }
-
-  return (
-    <div className="wrap cal-wrap">
-      <header>
-        <div className="eyebrow">Media Content Team · Schedule{viewer && ' · Read Only'}</div>
-        <h1>매체 일정 캘린더</h1>
-        <div className="masthead-sub">
-          {viewer
-            ? '읽기 전용 공유 뷰 — 전달받은 뷰어 계정으로 로그인 (계정 문의: 미디어콘텐츠팀)'
-            : '팀 계정으로 로그인 — 계정 발급은 담당자에게 문의'}
-        </div>
-      </header>
-      <form className="login-card" onSubmit={submit}>
-        <label>이메일
-          <input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} required />
-        </label>
-        <label>비밀번호
-          <input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
-        </label>
-        {err && <div className="qa-err">{err}</div>}
-        <button className="btn-solid" type="submit" disabled={loading}>{loading ? '확인 중…' : '로그인'}</button>
-      </form>
-    </div>
-  )
-}
-
 function CalendarApp({ session, readOnly = false }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -540,11 +501,9 @@ function CalendarApp({ session, readOnly = false }) {
             ? '미디어콘텐츠팀 매체 집행 일정 — 읽기 전용 공유 뷰 (등록·수정은 팀 내부에서만)'
             : '팀 운영 매체 집행 일정 — 빠른 입력 한 줄로 등록, 클릭해서 수정·삭제'}
         </div>
-        {session && (
+        {session && !readOnly && (
           <div className="session-bar">
-            {session.email} 로 로그인됨
-            <button onClick={signOut}>로그아웃</button>
-            {!readOnly && <ShareButton query="?view=mirror" label="읽기전용 공유 링크 복사" />}
+            <ShareButton query="?view=mirror" label="읽기전용 공유 링크 복사" />
           </div>
         )}
       </header>
@@ -616,13 +575,12 @@ function CalendarApp({ session, readOnly = false }) {
   )
 }
 
-/* REMOTE(Supabase) 모드는 읽기·쓰기 모두 로그인 필수 (URL 조작으로 내부 일정 접근 불가).
+/* 로그인 게이트는 App.jsx(사이트 전체 락)에서 처리 — 여기 도달했다면 이미 인증된 상태.
    readOnly(?view=mirror)는 뷰어 계정용 UI — 쓰기 권한은 RLS의 team_writers 등록 여부가 결정
-   (setup.md 4장). 로컬 테스트 모드는 로그인 없이 오픈 */
+   (setup.md 4장) */
 export default function CalendarPage({ readOnly = false }) {
   const [session, setSession] = useState(getSession())
   useEffect(() => onAuthChange(setSession), [])
 
-  if (storageMode === 'supabase' && !session) return <LoginForm viewer={readOnly} />
   return <CalendarApp session={session} readOnly={readOnly} />
 }

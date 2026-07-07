@@ -1,13 +1,20 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import SpecLibrary from './SpecLibrary.jsx'
 import CalendarPage from './CalendarPage.jsx'
 import MonitorPage from './MonitorPage.jsx'
+import LoginScreen from './LoginScreen.jsx'
+import { getSession, onAuthChange, signOut } from './lib/auth.js'
+import { storageMode } from './lib/store.js'
 
-/* 상단 탭 셸 — 기본 탭은 매체 캘린더
-   ?view=external : 대행사·지점 공유용 스펙 라이브러리 (캘린더·모니터링 완전 숨김, 지표·담당자 비공개)
-   ?view=mirror   : 타 팀 공유용 읽기 전용 캘린더 (등록·수정 없음)
+/* 사이트 전체 로그인 게이트 + 상단 탭 셸.
+   기본 탭은 매체 캘린더. 로그인 전에는 어떤 경로(탭·뷰 파라미터)로 들어와도 LoginScreen만 보임.
+   ?view=mirror   : 로그인(뷰어 계정) 후 읽기 전용 캘린더만 — 탭 바 없음
+   ?view=external : 로그인 후 스펙만(내부 지표·담당자 숨김) — 탭 바 없음
    #spec / #monitor : 탭 딥링크 */
 export default function App() {
+  const [session, setSession] = useState(getSession())
+  useEffect(() => onAuthChange(setSession), [])
+
   const view = new URLSearchParams(window.location.search).get('view')
   const isExternal = view === 'external'
   const isMirror = view === 'mirror'
@@ -22,6 +29,8 @@ export default function App() {
     window.history.replaceState(null, '', hash || window.location.pathname + window.location.search)
   }
 
+  if (storageMode === 'supabase' && !session) return <LoginScreen viewer={isMirror || isExternal} />
+
   if (isMirror) return <CalendarPage readOnly />
   if (isExternal) return <SpecLibrary isExternal />
 
@@ -32,6 +41,12 @@ export default function App() {
           <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
           <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
           <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>SNS 모니터링</button>
+          {session && (
+            <span className="tabs-session">
+              {session.email}
+              <button onClick={signOut}>로그아웃</button>
+            </span>
+          )}
         </div>
       </nav>
       {tab === 'calendar' && <CalendarPage />}
