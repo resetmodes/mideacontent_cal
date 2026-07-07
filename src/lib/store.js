@@ -105,6 +105,16 @@ export async function listDeleted(days = 30) {
   return res.json()
 }
 
+/* 알림센터용 ('26.7 설계: docs/notify-center-design.md — UI 구현 전, 데이터 계층 선행)
+   excludeEmail: 본인 변경 제외 — PostgREST neq는 대소문자 구분이라 클라이언트에서 비교 */
+export async function listChangesSince(iso, excludeEmail) {
+  if (!REMOTE || !iso) return []
+  const res = await req(`${HIST_API}?changed_at=gt.${encodeURIComponent(iso)}&order=changed_at.desc&limit=50`)
+  const rows = await res.json()
+  const me = (excludeEmail || '').toLowerCase()
+  return me ? rows.filter(r => (r.actor || '').toLowerCase() !== me) : rows
+}
+
 /* 캠페인 이름 변경 — to가 기존 캠페인명이면 자연스럽게 통합됨 */
 export async function renameCampaign(from, to) {
   if (REMOTE) {
