@@ -79,7 +79,7 @@ Claude Code가 자동 인식. 해당 유형 작업이면 반드시 스킬 절차
   ① kind 컬럼 (setup.md 5장) ② 이력 테이블+트리거 (setup.md 6장)
   ③ 미러 anon 읽기 (mirror-setup.md 2장) — 적용되면 이 목록에서 지울 것
 
-## 4-1. 캘린더 데이터 복원 절차
+## 4-2. 캘린더 데이터 복원 절차
 
 `data/backup/media-events.json` (주 1회 자동 커밋)의 git 이력이 시점별 스냅샷.
 복원: 원하는 시점의 파일을 `git show <sha>:data/backup/media-events.json` 으로 꺼내
@@ -93,7 +93,20 @@ Claude Code가 자동 인식. 해당 유형 작업이면 반드시 스킬 절차
 - 워크플로우 3개: `sns-collect.yml`(격주 월 09:00 KST, **과금 주의**) ·
   `backup.yml`(주 1회 일정 백업) · `verify.yml`(push마다 테스트+빌드)
 
-## 6. 자주 하는 작업 레시피
+## 6. 알려진 부채 ('26.7 정기 감사 1회차 — 건드릴 때 참고)
+
+- **vite 5 esbuild 취약점** (moderate, 개발 서버 한정 — 프로덕션 정적 빌드 무관):
+  해결 = vite 8 파괴적 업그레이드. 일상 작업에서 `npm audit fix --force` 금지,
+  별도 세션에서 계획적으로 (고가 모델 작업)
+- **CalendarPage.jsx ~950줄 비대**: 기능이 몰려 있음. 소규모 수정은 가능하나
+  구조 분리 리팩토링은 고가 모델 세션으로 예약. 저가 모델은 이 파일에서
+  큰 블록 이동·재구성 금지
+- **SNS 데이터가 메인 번들 포함** (gzip ~92KB): 모니터링 데이터를 lazy import로
+  분리하면 초기 로딩 개선 — 코드 스플리팅 후보
+- 경미(수용됨): 미러(비로그인)에서 변경 이력 클릭 시 "기록 없음" 표시(RLS가 빈 배열
+  반환 — 정보 노출은 없음) · 메모 URL 끝 문장부호가 링크에 포함될 수 있음
+
+## 7. 자주 하는 작업 레시피
 
 - **입력 키워드 추가**: channels.js `KEYWORDS`(인식) + `TITLE_ALIASES`(표기 통일) 한 줄씩
   → test-parse.mjs 케이스 추가 → verify
