@@ -38,6 +38,8 @@ jobs:
 
       # schedule/수동 트리거라 데이터 커밋이 워크플로를 재트리거하지 않음.
       # push 되면 Vercel이 자동 재배포.
+      # 수집(최대 40분) 중 main에 다른 커밋이 먼저 들어오면 일반 push는 거부됨(non-fast-forward) —
+      # 그 경우 최신 main 위로 재배치(rebase) 후 재시도 (최대 3회)
       - name: 변경된 데이터 커밋 & 푸시
         run: |
           git config user.name  "github-actions[bot]"
@@ -45,7 +47,17 @@ jobs:
           git add src/data/sns/instagram.js src/data/sns/youtube.js
           if git diff --staged --quiet; then
             echo "변경 사항 없음 — 커밋 생략"
-          else
-            git commit -m "chore(data): 주간 SNS 데이터 자동 갱신"
-            git push
+            exit 0
           fi
+          git commit -m "chore(data): 주간 SNS 데이터 자동 갱신"
+          for i in 1 2 3; do
+            if git push; then
+              echo "push 성공"
+              exit 0
+            fi
+            echo "push 거부됨 — main 최신화 후 재시도 ($i/3)"
+            git fetch origin main
+            git rebase origin/main
+          done
+          echo "push 3회 실패 — 다음 실행(스케줄/수동)에서 재수집 필요"
+          exit 1
