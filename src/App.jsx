@@ -40,7 +40,10 @@ export default function App() {
   if (storageMode === 'supabase' && !session) return <LoginScreen viewer={isMirror || isExternal} />
 
   if (isMirror) return <CalendarPage readOnly />
-  if (isExternal) return <SpecLibrary isExternal />
+  if (isExternal) {
+    const mediaParam = new URLSearchParams(window.location.search).get('media')
+    return <SpecLibrary isExternal focusMedia={mediaParam} focusSeq={1} />
+  }
 
   return (
     <>
