@@ -753,6 +753,15 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
     return () => window.removeEventListener('focus', refresh)
   }, [refresh])
 
+  /* 읽기 전용(미러) 전용 자동 새로고침 — 스탠바이미처럼 상시 켜둔 화면은 focus
+     이벤트가 없어 갱신이 안 되므로 10분 주기 폴링. 탭이 숨겨져 있으면 건너뜀.
+     팀용 화면은 폴링 없음 (기존 focus 갱신 유지) */
+  useEffect(() => {
+    if (!readOnly) return
+    const t = setInterval(() => { if (!document.hidden) refresh() }, 10 * 60 * 1000)
+    return () => clearInterval(t)
+  }, [readOnly, refresh])
+
   const onCreate = async e => {
     try {
       const ev = await createEvent({ ...e, owner: e.owner || me || null })
