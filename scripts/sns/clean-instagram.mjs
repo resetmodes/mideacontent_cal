@@ -6,7 +6,9 @@
 
    규칙
    - likes=-1(비공개) → null, 평균 좋아요는 공개분만 집계
-   - 모든 지표는 최근 3개월 윈도우 기준
+   - 모든 지표(평균 좋아요·릴스 비중 등)는 최근 1개월 윈도우 기준 ('26.7 — 비용 절감차 축소).
+     단, 휴면(60일+ 미게시) 판정은 이 윈도우와 무관하게 원본(raw) 전체의 마지막 게시일로 계산 —
+     그래서 scrape-instagram.mjs의 원본 수집 범위(2개월)가 이 값보다 넓어야 함
    - 휴면 = 60일+ 미게시 */
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
@@ -30,7 +32,7 @@ function classify(p) {
   return 'Other'
 }
 
-const WINDOW_MONTHS = 3
+const WINDOW_MONTHS = 1   // 집계용 윈도우. scrape-instagram.mjs의 원본 수집 범위(2개월)보다 좁아도 됨
 const CUTOFF_TS = (() => { const d = new Date(); d.setMonth(d.getMonth() - WINDOW_MONTHS); return d.getTime() })()
 const CUTOFF_DATE = new Date(CUTOFF_TS).toISOString().slice(0, 10)
 
