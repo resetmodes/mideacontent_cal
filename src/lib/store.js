@@ -34,7 +34,8 @@ async function req(url, options = {}) {
     ...options.headers,
   }
   const res = await fetch(url, { ...options, headers })
-  if (res.status === 401 || res.status === 403) throw new Error('로그인이 필요하거나 세션이 만료됨 — 다시 로그인해 주세요')
+  if (res.status === 401) throw new Error('로그인이 필요하거나 세션이 만료됨 — 다시 로그인해 주세요')
+  if (res.status === 403) throw new Error('이 계정은 읽기 전용 — 등록·수정 권한이 없습니다 (권한 문의: 미디어콘텐츠팀)')
   if (!res.ok) throw new Error(`서버 응답 ${res.status} — Supabase 설정 확인 필요`)
   return res
 }

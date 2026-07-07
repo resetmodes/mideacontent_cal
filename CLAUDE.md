@@ -30,11 +30,12 @@
 - 주의: Supabase 연동 전에는 localStorage(브라우저별 분리) — 서로 다른 브라우저에서는 일정·캠페인이
   안 보이는 게 정상. 기능 미동작으로 오인하기 쉬움
 - 로그인 게이트 ('26.7): `src/lib/auth.js` — Supabase Auth REST 직접 호출(email/password),
-  세션은 localStorage + 자동 갱신(만료 1분 전 refresh_token 사용). `CalendarPage.jsx`는
-  storageMode가 'supabase'일 때만 로그인 요구 — 로컬 테스트 모드·매체 스펙 탭은 로그인 불필요
-  (스펙 탭은 지점·대행사 링크 공유가 목적이라 항상 오픈 유지). RLS 정책도 `auth.uid() is not null`로
-  전환 필요 — 절차는 supabase-setup.md 4장. 계정은 자율 가입 금지, Authentication → Users에서
-  직접 발급
+  세션은 localStorage + 자동 갱신(만료 1분 전 refresh_token 사용). REMOTE 모드에서는
+  미러(?view=mirror) 포함 캘린더 전체가 로그인 필수 (URL 조작으로 내부 일정 접근 불가).
+  쓰기 권한은 RLS + `team_writers` 테이블(이메일 등록제, security definer 함수 `is_team_writer()`)로
+  분리 — 뷰어 계정(미등록)은 자동 읽기 전용. 절차는 supabase-setup.md 4장. 계정은 자율 가입 금지,
+  Authentication → Users에서 직접 발급. 매체 스펙 탭·로컬 테스트 모드는 로그인 불필요
+- 날짜 셀 클릭 → 신규 등록 모달 (EventModal isNew 모드, 시작일 프리필). 읽기 전용 뷰에서는 비활성
 - 외부 공유 뷰(`?view=external`)에서는 캘린더 탭·내용 완전 숨김 (내부 일정 비공개)
 - 캘린더 디자인: Wanted DS 참고 — 뉴트럴 그레이 스케일(--g50~--g900), 정돈된 컴포넌트.
   포인트 컬러는 현대그린 유지 (Wanted 블루 미사용)

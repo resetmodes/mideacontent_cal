@@ -66,35 +66,66 @@ export const SUPABASE_ANON_KEY = 'eyJhbGci...(복사한 anon 키)'
 3단계까지만 하면 anon 키만 알면 누구나 읽고 쓸 수 있는 퍼블릭 상태. 팀 계정 로그인을
 켜려면 아래 진행. 소요 시간 약 5분.
 
-### 4-1. 접근 정책 변경 — 읽기는 공개, 쓰기는 로그인 필수
+### 4-1. 접근 정책 — 읽기는 로그인 필수, 쓰기는 등록된 팀원만
 
-읽기를 공개로 두는 이유: 타 팀 공유용 읽기 전용 미러 페이지(`?view=mirror`)가
-로그인 없이 일정을 조회할 수 있어야 함. 등록·수정·삭제는 팀 계정 로그인 필수.
+구조: 모든 조회는 로그인 필수 (URL을 알아도 로그인 없이는 아무것도 못 봄).
+등록·수정·삭제는 `team_writers` 테이블에 이메일이 등록된 팀원 계정만 가능.
+타 팀 공유는 **뷰어 계정**(team_writers 미등록 계정) 하나를 만들어 전달 —
+그 계정으로는 `?view=mirror` 페이지에서 조회만 됨.
 
 **SQL Editor**에서 새 쿼리 열고 아래 전체 실행 (이전에 어떤 정책을 만들었든 안전):
 
 ```sql
 drop policy if exists "team full access" on media_events;
 drop policy if exists "authenticated team access" on media_events;
+drop policy if exists "read for all" on media_events;
+drop policy if exists "insert for team" on media_events;
+drop policy if exists "update for team" on media_events;
+drop policy if exists "delete for team" on media_events;
 
-create policy "read for all" on media_events
-  for select using (true);
+create table if not exists team_writers (email text primary key);
+alter table team_writers enable row level security;
 
-create policy "insert for team" on media_events
-  for insert with check (auth.uid() is not null);
+create or replace function is_team_writer()
+returns boolean language sql security definer stable as $$
+  select exists (select 1 from team_writers where email = auth.jwt()->>'email');
+$$;
 
-create policy "update for team" on media_events
-  for update using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "read for signed-in" on media_events
+  for select using (auth.uid() is not null);
 
-create policy "delete for team" on media_events
-  for delete using (auth.uid() is not null);
+create policy "insert for writers" on media_events
+  for insert with check (is_team_writer());
+
+create policy "update for writers" on media_events
+  for update using (is_team_writer()) with check (is_team_writer());
+
+create policy "delete for writers" on media_events
+  for delete using (is_team_writer());
 ```
 
-### 4-2. 팀원 계정 만들기 (직접 발급 — 자율 가입 아님)
+### 4-1-b. 쓰기 권한 팀원 등록
+
+우리 팀원(등록·수정 가능해야 하는 사람)의 이메일을 등록. **SQL Editor**에서:
+
+```sql
+insert into team_writers (email) values
+  ('kyuvin@thehyundai.com'),
+  ('팀원2@thehyundai.com'),
+  ('팀원3@thehyundai.com')
+on conflict do nothing;
+```
+
+- 뷰어 계정(타 팀 공유용)은 여기에 **넣지 않으면** 자동으로 읽기 전용이 됨
+- 팀원 추가 시 위 SQL에 이메일 한 줄 추가해 재실행
+
+### 4-2. 계정 만들기 (직접 발급 — 자율 가입 아님)
 
 1. 왼쪽 메뉴 **Authentication** → **Users** → 우상단 **Add user** → **Create new user**
 2. Email·Password 입력, **Auto Confirm User** 체크 (이메일 인증 절차 생략) → **Create user**
 3. 팀원 수만큼 반복. 비밀번호는 개인별로 다르게 설정해 직접 전달
+4. **뷰어 계정도 여기서 하나 생성** (예: viewer@thehyundai.com) — 4-1-b에 등록하지 않으면
+   자동으로 읽기 전용. 이 계정과 `?view=mirror` 링크를 타 팀에 전달
 
 ### 4-3. 자율 가입 막기 (필수 — 안 하면 아무나 계정 생성 가능)
 
@@ -108,7 +139,8 @@ create policy "delete for team" on media_events
 - 4-2에서 만든 이메일·비밀번호로 로그인 → 정상 진입
 - 상단에 "OO@OO.com 로 로그인됨 · 로그아웃" 표시
 - 로그인은 브라우저에 유지됨(자동 갱신) — 로그아웃 버튼을 누르기 전까지 재로그인 불필요
-- `?view=mirror` 링크는 로그인 없이 열리고 조회만 가능한지 확인 (등록·수정·삭제 버튼 없음)
+- `?view=mirror` 링크: 뷰어 계정 로그인 후 조회만 가능한지 확인 (등록·수정·삭제 버튼 없음)
+- 뷰어 계정으로 일반 캘린더 주소에 들어가도 등록 시도 시 "읽기 전용 계정" 에러로 차단됨 (RLS)
 
 ## 참고
 

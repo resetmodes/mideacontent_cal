@@ -190,23 +190,28 @@ function QuickAdd({ onCreate, owner, setOwner, campaigns }) {
   )
 }
 
-function MonthGrid({ cursor, events, onSelect }) {
+function MonthGrid({ cursor, events, onSelect, onDayClick }) {
   const cells = useMemo(() => buildMonth(cursor), [cursor])
   const byDay = useMemo(() => indexByDay(events), [events])
   const today = todayISO()
 
   return (
-    <div className="cal-grid">
+    <div className={'cal-grid' + (onDayClick ? ' editable' : '')}>
       {DOW.map(d => <div key={d} className="cal-dow">{d}</div>)}
       {cells.map(c => {
         const list = byDay[c.iso] || []
         return (
-          <div key={c.iso} className={'cal-cell' + (c.inMonth ? '' : ' dim') + (c.iso === today ? ' today' : '')}>
+          <div
+            key={c.iso}
+            className={'cal-cell' + (c.inMonth ? '' : ' dim') + (c.iso === today ? ' today' : '')}
+            onClick={onDayClick ? () => onDayClick(c.iso) : undefined}
+            title={onDayClick ? '클릭해서 일정 등록' : undefined}
+          >
             <div className={'cal-daynum' + (c.dow === 0 || c.dow === 6 ? ' wknd' : '')}>{c.day}</div>
             {list.slice(0, 4).map(e => (
               <button
                 key={e.id + c.iso + (e.isEnd ? 'e' : '')} className={'cal-ev' + (e.isEnd ? ' end' : '')}
-                onClick={() => onSelect(e)}
+                onClick={ev => { ev.stopPropagation(); onSelect(e) }}
                 title={`${channelById(e.channel)?.label || e.channel}${e.sub ? ` (${e.sub})` : ''} — ${e.title} (${fmtRange(e)})`}
               >
                 <ChannelIcon id={e.channel} />
@@ -311,8 +316,9 @@ function CampaignView({ events, onSelect, onRename }) {
   )
 }
 
-function EventModal({ event, campaigns, onClose, onSave, onDelete, readOnly = false }) {
-  const [editing, setEditing] = useState(false)
+/* isNew: 날짜 셀 클릭으로 열리는 신규 등록 모드 — 편집 폼으로 바로 시작, 저장 시 onCreate */
+function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, readOnly = false, isNew = false }) {
+  const [editing, setEditing] = useState(isNew)
   const [confirmDel, setConfirmDel] = useState(false)
   const [f, setF] = useState({ ...event, sub: event.sub || '', campaign: event.campaign || '', owner: event.owner || '', memo: event.memo || '', endDate: event.endDate || '' })
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
@@ -323,11 +329,13 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, readOnly = fa
 
   const save = async () => {
     if (!f.title.trim() || !f.date) return
-    await onSave(event.id, {
+    const fields = {
       title: f.title.trim(), date: f.date, endDate: f.endDate || null,
       channel: f.channel, sub: f.sub || null, campaign: f.campaign.trim() || null,
       owner: f.owner.trim() || null, memo: f.memo.trim() || null,
-    })
+    }
+    if (isNew) await onCreate(fields)
+    else await onSave(event.id, fields)
     onClose()
   }
 
@@ -364,7 +372,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, readOnly = fa
           </>
         ) : (
           <>
-            <div className="md-ch">일정 수정</div>
+            <div className="md-ch">{isNew ? `일정 등록 — ${fmtDot(event.date)}` : '일정 수정'}</div>
             <div className="md-form">
               <label>제목
                 <input value={f.title} onChange={e => set('title', e.target.value)} />
@@ -415,8 +423,8 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, readOnly = fa
             </div>
             <div className="md-actions">
               <div className="md-spacer" />
-              <button className="btn-ghost" onClick={() => setEditing(false)}>취소</button>
-              <button className="btn-solid" onClick={save}>저장</button>
+              <button className="btn-ghost" onClick={() => (isNew ? onClose() : setEditing(false))}>취소</button>
+              <button className="btn-solid" onClick={save}>{isNew ? '등록' : '저장'}</button>
             </div>
           </>
         )}
@@ -425,7 +433,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, readOnly = fa
   )
 }
 
-function LoginForm() {
+function LoginForm({ viewer = false }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [err, setErr] = useState(null)
@@ -442,9 +450,13 @@ function LoginForm() {
   return (
     <div className="wrap cal-wrap">
       <header>
-        <div className="eyebrow">Media Content Team · Schedule</div>
+        <div className="eyebrow">Media Content Team · Schedule{viewer && ' · Read Only'}</div>
         <h1>매체 일정 캘린더</h1>
-        <div className="masthead-sub">팀 계정으로 로그인 — 계정 발급은 담당자에게 문의</div>
+        <div className="masthead-sub">
+          {viewer
+            ? '읽기 전용 공유 뷰 — 전달받은 뷰어 계정으로 로그인 (계정 문의: 미디어콘텐츠팀)'
+            : '팀 계정으로 로그인 — 계정 발급은 담당자에게 문의'}
+        </div>
       </header>
       <form className="login-card" onSubmit={submit}>
         <label>이메일
@@ -468,6 +480,7 @@ function CalendarApp({ session, readOnly = false }) {
   const [filter, setFilter] = useState('전체')
   const [view, setView] = useState('월간')
   const [selected, setSelected] = useState(null)
+  const [dayDraft, setDayDraft] = useState(null)   // 날짜 셀 클릭 → 신규 등록 모달
   const [owner, setOwnerState] = useState(() => localStorage.getItem('media-cal-owner') || '')
   const setOwner = v => { setOwnerState(v); localStorage.setItem('media-cal-owner', v) }
 
@@ -527,11 +540,11 @@ function CalendarApp({ session, readOnly = false }) {
             ? '미디어콘텐츠팀 매체 집행 일정 — 읽기 전용 공유 뷰 (등록·수정은 팀 내부에서만)'
             : '팀 운영 매체 집행 일정 — 빠른 입력 한 줄로 등록, 클릭해서 수정·삭제'}
         </div>
-        {session && !readOnly && (
+        {session && (
           <div className="session-bar">
             {session.email} 로 로그인됨
             <button onClick={signOut}>로그아웃</button>
-            <ShareButton query="?view=mirror" label="읽기전용 공유 링크 복사" />
+            {!readOnly && <ShareButton query="?view=mirror" label="읽기전용 공유 링크 복사" />}
           </div>
         )}
       </header>
@@ -575,7 +588,10 @@ function CalendarApp({ session, readOnly = false }) {
       {loading ? (
         <div className="empty">불러오는 중…</div>
       ) : view === '월간' ? (
-        <MonthGrid cursor={cursor} events={filtered} onSelect={setSelected} />
+        <MonthGrid
+          cursor={cursor} events={filtered} onSelect={setSelected}
+          onDayClick={readOnly ? null : setDayDraft}
+        />
       ) : (
         <CampaignView events={filtered} onSelect={setSelected} onRename={readOnly ? null : onRename} />
       )}
@@ -587,17 +603,26 @@ function CalendarApp({ session, readOnly = false }) {
         />
       )}
 
+      {dayDraft && !readOnly && (
+        <EventModal
+          isNew
+          event={{ title: '', date: dayDraft, endDate: '', channel: '기타', sub: '', campaign: '', owner, memo: '' }}
+          campaigns={campaigns}
+          onClose={() => setDayDraft(null)} onCreate={onCreate}
+        />
+      )}
+
     </div>
   )
 }
 
-/* REMOTE(Supabase) 모드에서만 로그인 요구 — 로컬 테스트 모드는 그대로 오픈.
-   readOnly(?view=mirror)는 로그인 없이 조회만 — RLS가 읽기 공개여야 함 (setup.md 4장) */
+/* REMOTE(Supabase) 모드는 읽기·쓰기 모두 로그인 필수 (URL 조작으로 내부 일정 접근 불가).
+   readOnly(?view=mirror)는 뷰어 계정용 UI — 쓰기 권한은 RLS의 team_writers 등록 여부가 결정
+   (setup.md 4장). 로컬 테스트 모드는 로그인 없이 오픈 */
 export default function CalendarPage({ readOnly = false }) {
   const [session, setSession] = useState(getSession())
   useEffect(() => onAuthChange(setSession), [])
 
-  if (readOnly) return <CalendarApp readOnly session={null} />
-  if (storageMode === 'supabase' && !session) return <LoginForm />
-  return <CalendarApp session={session} />
+  if (storageMode === 'supabase' && !session) return <LoginForm viewer={readOnly} />
+  return <CalendarApp session={session} readOnly={readOnly} />
 }
