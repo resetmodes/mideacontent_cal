@@ -19,7 +19,8 @@
 - **자동 생성 파일 직접 수정 금지**: `src/data/sns/instagram.js` · `youtube.js` · `trend.js`
   (스크립트가 갱신 — 손대면 다음 수집 때 소실)
 - `src/config.js`의 Supabase 실제 키를 지운 채 커밋 금지 (지우면 팀 DB 연결 끊김)
-- clean-*.mjs의 **빈 결과 가드 제거 금지** ('26.7.7 데이터 소실 사고의 재발 방지 장치.
+- clean-*.mjs의 **빈 결과 가드·carry-forward 제거 금지** ('26.7.7 데이터 소실 사고 2건의
+  재발 방지 장치: 전면 실패 = 저장 스킵, 부분 실패 = 실패 계정 이전 값 유지.
   `scripts/test-guards.mjs`가 감시)
 - SNS 수집 워크플로우 임의 재실행 금지 — **실행마다 Apify 과금(~$1.7)**, 월 무료 한도 $5.
   실패 시 Actions 로그로 원인(한도/토큰/push)부터 확인

@@ -19,8 +19,18 @@ import { IG_ACCOUNTS, IG_COMPETITORS } from './accounts.mjs'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..', '..')
 const RAW_DIR = process.env.SNS_RAW_DIR || join(ROOT, 'data', 'sns-raw', 'instagram')
-const OUT_DIR = join(ROOT, 'src', 'data', 'sns')
+const OUT_DIR = process.env.SNS_OUT_DIR || join(ROOT, 'src', 'data', 'sns')
 const OUT = join(OUT_DIR, 'instagram.js')
+
+/* 직전 출력 로드 — 수집 실패 계정의 "이전 값 유지"(carry-forward)용.
+   '26.7.7 사고 2: Apify 크레딧이 수집 도중 소진되면 뒷순서 계정들의 raw가 아예 없어
+   대시보드에서 계정째 사라짐 → 실패 계정은 직전 수집값을 그대로 유지한다 */
+let PREV = { accounts: [], competitors: [], posts: [] }
+try {
+  const txt = await readFile(OUT, 'utf8')
+  PREV = JSON.parse(txt.slice(txt.indexOf('{')))
+} catch { /* 최초 실행 */ }
+const prevByHandle = new Map([...(PREV.accounts || []), ...(PREV.competitors || [])].map(a => [a.handle, a]))
 
 const round = n => Math.round(n)
 
@@ -40,21 +50,36 @@ const CUTOFF_DATE = new Date(CUTOFF_TS).toISOString().slice(0, 10)
    본계정(the_hyundai)·도시메뉴얼(dosi.manual) 외 계정·경쟁사는 요약만 유지 */
 const PERF_HANDLES = new Set(['the_hyundai', 'dosi.manual'])
 
-/* postRows: 실적 매칭용 게시물 목록 축적 (PERF_HANDLES 계정만) */
+/* postRows: 실적 매칭용 게시물 목록 축적 (PERF_HANDLES 계정만)
+   반환: { summaries, fresh } — fresh는 이번에 실제 수집된 계정 수 (carry-forward 제외) */
 async function processList(list, postRows = null) {
   const summaries = []
+  let fresh = 0
+  const carry = (acc, why) => {
+    const prev = prevByHandle.get(acc.handle)
+    if (prev) {
+      console.warn(`⚠ ${acc.handle}: ${why} — 이전 수집값 유지 (계정 소실 방지)`)
+      summaries.push(prev)
+      if (postRows && PERF_HANDLES.has(acc.handle)) {
+        postRows.push(...(PREV.posts || []).filter(p => p.handle === acc.handle))
+      }
+    } else {
+      console.warn(`⚠ ${acc.handle}: ${why} — 이전 값도 없어 건너뜀 (다음 수집부터 포함)`)
+    }
+  }
   for (const acc of list) {
     let raw
     try {
       raw = JSON.parse(await readFile(join(RAW_DIR, `${acc.file}.json`), 'utf8'))
     } catch {
-      console.warn(`⚠ ${acc.file}.json 없음 — 건너뜀 (다음 수집부터 포함)`)
+      carry(acc, `${acc.file}.json 없음`)
       continue
     }
     if (raw[0]?.error) {
-      console.warn(`⚠ ${acc.handle}: 수집 실패 (${raw[0].error}) — 건너뜀`)
+      carry(acc, `수집 실패 (${raw[0].error})`)
       continue
     }
+    fresh++
     /* 최근 1개월 게시물 0건 = 휴면 — 지표 없이 계정만 유지 (대시보드에서 사라지지 않게) */
     if (!raw.length) {
       console.warn(`· ${acc.handle}: 최근 1개월 게시 없음 → 휴면 표시`)
@@ -133,18 +158,19 @@ async function processList(list, postRows = null) {
       engagementPer1k: followers && avgEngagement !== null ? +(avgEngagement / followers * 1000).toFixed(2) : null,
     })
   }
-  return summaries
+  return { summaries, fresh }
 }
 
 async function main() {
   const postRows = []   // 자사 계정 게시물 단위 — 캘린더 실적 매칭용 (경쟁사 제외)
-  const accounts = await processList(IG_ACCOUNTS, postRows)
-  const competitors = await processList(IG_COMPETITORS)
+  const { summaries: accounts, fresh: freshA } = await processList(IG_ACCOUNTS, postRows)
+  const { summaries: competitors, fresh: freshC } = await processList(IG_COMPETITORS)
   postRows.sort((a, b) => (a.ts < b.ts ? 1 : -1))
 
-  /* 빈 결과 가드 — 수집 전면 실패 시 기존 데이터를 빈 값으로 덮어쓰지 않음 (youtube와 동일) */
-  if (accounts.length === 0) {
-    console.error('❌ 수집 결과 0건 — 기존 instagram.js를 보존하고 저장을 건너뜀 (Apify 한도·토큰 확인)')
+  /* 빈 결과 가드 — 이번 회차 실수집이 0이면(전면 실패) 기존 파일 보존, 저장 스킵.
+     일부만 실패한 경우는 위 carry-forward가 이전 값을 유지한 채 저장됨 */
+  if (freshA + freshC === 0) {
+    console.error('❌ 실수집 0건 — 기존 instagram.js를 보존하고 저장을 건너뜀 (Apify 한도·토큰 확인)')
     return
   }
 
