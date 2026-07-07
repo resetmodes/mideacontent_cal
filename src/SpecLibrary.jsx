@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { MEDIA, TARGET_COMMON, GROUP_NOTES } from './data/media.js'
 import ShareButton from './ShareButton.jsx'
 
@@ -77,14 +77,22 @@ function Timeline({ process, query }) {
   )
 }
 
-function MediaItem({ m, query, isExternal }) {
+function MediaItem({ m, query, isExternal, focus, focusSeq }) {
   const [open, setOpen] = useState(false)
+  const ref = useRef(null)
   const first = m.slots[0]
   const rawExtras = m.group === '타겟형 매체' ? { ...(m.extra || {}), ...TARGET_COMMON } : (m.extra || {})
   const extras = sanitizeExtras(rawExtras, isExternal)
 
+  /* 캘린더에서 딥링크로 넘어오면 해당 매체를 펼치고 화면 중앙으로 스크롤 */
+  useEffect(() => {
+    if (!focus) return
+    setOpen(true)
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [focus, focusSeq])
+
   return (
-    <div className={'media' + (open ? ' open' : '')}>
+    <div ref={ref} className={'media' + (open ? ' open' : '') + (focus ? ' focus' : '')}>
       <div className="media-head" onClick={() => setOpen(o => !o)}>
         <div className="m-id">
           <div className="m-cat">
@@ -122,9 +130,14 @@ function MediaItem({ m, query, isExternal }) {
   )
 }
 
-export default function SpecLibrary({ isExternal }) {
+export default function SpecLibrary({ isExternal, focusMedia, focusSeq }) {
   const [activeCat, setActiveCat] = useState('전체')
   const [query, setQuery] = useState('')
+
+  /* 딥링크 진입 시 필터·검색을 초기화해 대상 매체가 목록에 반드시 보이게 함 */
+  useEffect(() => {
+    if (focusMedia) { setActiveCat('전체'); setQuery('') }
+  }, [focusMedia, focusSeq])
 
   const cats = useMemo(() =>
     ['전체', '타겟형 매체', ...new Set(MEDIA.filter(m => m.group !== '타겟형 매체').map(m => m.cat))],
@@ -179,7 +192,8 @@ export default function SpecLibrary({ isExternal }) {
                   )}
                 </>
               )}
-              <MediaItem m={m} query={query} isExternal={isExternal} />
+              <MediaItem m={m} query={query} isExternal={isExternal}
+                focus={!!focusMedia && focusMedia === m.name} focusSeq={focusSeq} />
             </React.Fragment>
           )
         })}

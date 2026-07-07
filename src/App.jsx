@@ -29,6 +29,13 @@ export default function App() {
     window.history.replaceState(null, '', hash || window.location.pathname + window.location.search)
   }
 
+  /* 캘린더 일정 모달 → 매체 스펙 딥링크. seq는 같은 매체를 다시 눌러도 재포커스되도록 */
+  const [specFocus, setSpecFocus] = useState({ name: null, seq: 0 })
+  const openSpec = name => {
+    setSpecFocus(f => ({ name, seq: f.seq + 1 }))
+    go('spec')
+  }
+
   if (storageMode === 'supabase' && !session) return <LoginScreen viewer={isMirror || isExternal} />
 
   if (isMirror) return <CalendarPage readOnly />
@@ -49,8 +56,8 @@ export default function App() {
           )}
         </div>
       </nav>
-      {tab === 'calendar' && <CalendarPage />}
-      {tab === 'spec' && <SpecLibrary isExternal={false} />}
+      {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} />}
+      {tab === 'spec' && <SpecLibrary isExternal={false} focusMedia={specFocus.name} focusSeq={specFocus.seq} />}
       {tab === 'monitor' && <MonitorPage />}
     </>
   )

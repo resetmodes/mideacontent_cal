@@ -38,6 +38,9 @@ h1{font-size:clamp(30px,6vw,44px);font-weight:800;letter-spacing:-0.02em;line-he
 .group-note .ban-inline{color:var(--red);font-weight:600;}
 
 .media{border-bottom:1px solid var(--hairline);}
+/* 캘린더에서 딥링크로 진입한 매체 — 잠깐 배경 강조 후 사라짐 */
+.media.focus{animation:focusFlash 1.6s ease-out;}
+@keyframes focusFlash{0%,30%{background:var(--hl);}100%{background:transparent;}}
 .media-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:20px 0;cursor:pointer;user-select:none;}
 .media-head:active{opacity:.6;}
 .m-id{flex:1;min-width:0;}
@@ -177,6 +180,23 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
   background:var(--hl);border:1.5px solid var(--ink);border-radius:8px;padding:6px 14px;}
 .qa-suggest.big button:hover{background:var(--ink);color:#fff;}
 
+/* 전체 일정 검색 */
+.cal-search-row{margin-top:18px;display:flex;gap:8px;align-items:center;}
+.cal-search{flex:1;font-family:inherit;font-size:15px;font-weight:500;color:var(--ink);
+  border:1px solid var(--g200);border-radius:10px;padding:11px 14px;outline:none;background:var(--paper);}
+.cal-search::placeholder{color:var(--g400);font-weight:400;}
+.cal-search:focus{border-color:var(--green);}
+.cal-search-clear{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--g600);
+  background:none;border:1px solid var(--g200);border-radius:9px;padding:9px 14px;cursor:pointer;white-space:nowrap;}
+.cal-search-clear:hover{border-color:var(--g400);color:var(--ink);}
+.srch-view{margin-top:16px;}
+.srch-count{font-size:11.5px;color:var(--g400);padding-bottom:6px;}
+.srch-ev{display:grid;grid-template-columns:150px 120px 1fr;gap:10px;width:100%;
+  text-align:left;background:none;border:none;border-bottom:1px solid var(--g100);
+  font-family:inherit;cursor:pointer;padding:11px 0;align-items:center;}
+.srch-ev:hover .ce-title{box-shadow:inset 0 -7px 0 var(--hl);}
+.srch-ev .ce-title em{font-style:normal;color:var(--g400);font-weight:600;margin-left:8px;font-size:12px;}
+
 /* 등록 전 확인 팝업 */
 .md-title.sm{font-size:17px;}
 .cs-section{margin-top:16px;}
@@ -302,6 +322,15 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 
 .md-quick{width:100%;margin-top:12px;font-size:14px;}
 
+/* 매체 스펙 딥링크 — 삭제/닫기/수정과 분리된 2차 텍스트 링크 (미스클릭 방지) */
+.md-spec-link{display:inline-flex;align-items:center;gap:4px;margin-top:14px;
+  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--green);
+  background:none;border:none;padding:3px 0;cursor:pointer;letter-spacing:-0.01em;}
+.md-spec-link:hover{box-shadow:inset 0 -7px 0 var(--hl);}
+/* 메모 속 링크 */
+.md-memo a{color:var(--green);text-decoration:underline;word-break:break-all;}
+.md-memo a:hover{background:var(--hl);}
+
 /* 모달 편집 폼 */
 .md-form{display:flex;flex-direction:column;gap:12px;margin-top:12px;}
 .md-form label{font-size:11.5px;font-weight:600;color:var(--g400);
@@ -355,6 +384,8 @@ tr.dormant .mon-acc b{color:var(--g400);}
   .ev-title{font-size:10.5px;}
   .share-btn{white-space:nowrap;}
   .camp-ev{grid-template-columns:1fr;gap:2px;}
+  .srch-ev{grid-template-columns:1fr;gap:2px;}
+  .srch-ev .ce-title em{margin-left:0;}
   .camp-range{margin-left:0;width:100%;}
   .qa-owner{display:none;}
   .md-cols{flex-direction:column;}

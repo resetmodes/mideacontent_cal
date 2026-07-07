@@ -3,6 +3,7 @@ import { CHANNELS, channelById } from './data/channels.js'
 import { parseQuick, toISO, fromISO } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, storageMode } from './lib/store.js'
 import { getSession, onAuthChange } from './lib/auth.js'
+import { resolveSpecMedia } from './lib/specLink.js'
 import ChannelIcon from './ChannelIcon.jsx'
 import ShareButton from './ShareButton.jsx'
 
@@ -39,6 +40,63 @@ function indexByDay(events) {
     if (e.endDate && e.endDate !== e.date) push(e.endDate, { ...e, isEnd: true })
   }
   return map
+}
+
+/* 메모 렌더 — http/https 링크는 클릭 가능하게 (그 외 텍스트는 그대로, 줄바꿈 유지) */
+function Memo({ text }) {
+  const parts = String(text).split(/(https?:\/\/[^\s]+)/g)
+  return (
+    <>
+      {parts.map((p, i) =>
+        /^https?:\/\//.test(p)
+          ? <a key={i} href={p} target="_blank" rel="noopener noreferrer">{p}</a>
+          : <React.Fragment key={i}>{p}</React.Fragment>
+      )}
+    </>
+  )
+}
+
+/* 검색어 하이라이트 */
+function hlText(text, q) {
+  const s = (q || '').trim()
+  if (!s || !text) return text || ''
+  const i = text.toLowerCase().indexOf(s.toLowerCase())
+  if (i < 0) return text
+  return <>{text.slice(0, i)}<mark>{text.slice(i, i + s.length)}</mark>{text.slice(i + s.length)}</>
+}
+
+/* 전체 일정 검색 대상 — 제목·캠페인·메모·작성자·매체 */
+const evHaystack = e => [
+  e.title, e.campaign || '', e.memo || '', e.owner || '',
+  channelById(e.channel)?.label || e.channel, e.sub || '',
+].join(' ').toLowerCase()
+
+function SearchResults({ events, query, onSelect }) {
+  const q = query.trim().toLowerCase()
+  const results = useMemo(
+    () => events.filter(e => evHaystack(e).includes(q)).sort((a, b) => b.date.localeCompare(a.date)),
+    [events, q]
+  )
+  if (results.length === 0)
+    return <div className="empty">‘{query}’에 해당하는 일정이 없음</div>
+  return (
+    <div className="srch-view">
+      <div className="srch-count">{results.length}건</div>
+      {results.map(e => (
+        <button key={e.id} className="srch-ev" onClick={() => onSelect(e)}>
+          <span className="ce-date">{fmtRange(e)}</span>
+          <span className="ce-ch" title={channelById(e.channel)?.label || e.channel}>
+            <ChannelIcon id={e.channel} />
+            {e.sub || channelById(e.channel)?.label || e.channel}
+          </span>
+          <span className="ce-title">
+            {hlText(e.title, query)}
+            {e.campaign && <em>#{e.campaign}</em>}
+          </span>
+        </button>
+      ))}
+    </div>
+  )
 }
 
 /* 유사 캠페인명 탐지 — 포함 관계 또는 앞 2글자 일치 */
@@ -318,10 +376,11 @@ function CampaignView({ events, onSelect, onRename }) {
 
 /* isNew: 날짜 셀 클릭으로 열리는 신규 등록 모드 — 편집 폼으로 바로 시작, 저장 시 onCreate.
    상단 "한 줄 자동 작성" 입력에 치면 파싱해서 아래 폼을 자동으로 채움 */
-function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, readOnly = false, isNew = false }) {
+function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, readOnly = false, isNew = false, onOpenSpec }) {
   const [editing, setEditing] = useState(isNew)
   const [confirmDel, setConfirmDel] = useState(false)
   const [quick, setQuick] = useState('')
+  const specName = resolveSpecMedia(event.channel, event.sub)
   const [f, setF] = useState({ ...event, sub: event.sub || '', campaign: event.campaign || '', owner: event.owner || '', memo: event.memo || '', endDate: event.endDate || '' })
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
 
@@ -375,8 +434,13 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
               <dt>일자</dt><dd>{fmtRange(event)}</dd>
               {event.campaign && <><dt>캠페인</dt><dd>#{event.campaign}</dd></>}
               {event.owner && <><dt>작성자</dt><dd>{event.owner}</dd></>}
-              {event.memo && <><dt>메모</dt><dd>{event.memo}</dd></>}
+              {event.memo && <><dt>메모</dt><dd className="md-memo"><Memo text={event.memo} /></dd></>}
             </dl>
+            {specName && onOpenSpec && (
+              <button className="md-spec-link" onClick={() => { onOpenSpec(specName); onClose() }}>
+                이 매체 규격·납기 보기 →
+              </button>
+            )}
             <div className="md-actions">
               {!readOnly && (
                 <button className={'btn-ghost danger' + (confirmDel ? ' arm' : '')} onClick={del}>
@@ -443,8 +507,9 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                   <input value={f.owner} onChange={e => set('owner', e.target.value)} />
                 </label>
               </div>
-              <label>메모
-                <textarea rows={3} value={f.memo} onChange={e => set('memo', e.target.value)} />
+              <label>메모 · 참고 링크
+                <textarea rows={3} value={f.memo} onChange={e => set('memo', e.target.value)}
+                  placeholder="추가로 알아야 할 설명이나 참고 링크(http…) — 링크는 상세에서 클릭 가능" />
               </label>
             </div>
             <div className="md-actions">
@@ -459,13 +524,14 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
   )
 }
 
-function CalendarApp({ session, readOnly = false }) {
+function CalendarApp({ session, readOnly = false, onOpenSpec }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [cursor, setCursor] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
   const [filter, setFilter] = useState('전체')
   const [view, setView] = useState('월간')
+  const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
   const [dayDraft, setDayDraft] = useState(null)   // 날짜 셀 클릭 → 신규 등록 모달
   const [owner, setOwnerState] = useState(() => localStorage.getItem('media-cal-owner') || '')
@@ -516,6 +582,7 @@ function CalendarApp({ session, readOnly = false }) {
   const filtered = filter === '전체' ? events : events.filter(e => e.channel === filter)
   const campaigns = useMemo(() => [...new Set(events.map(e => e.campaign).filter(Boolean))], [events])
   const monthLabel = `${cursor.getFullYear()}.${String(cursor.getMonth() + 1).padStart(2, '0')}`
+  const searching = search.trim().length > 0
 
   return (
     <div className="wrap cal-wrap">
@@ -545,33 +612,48 @@ function CalendarApp({ session, readOnly = false }) {
         <QuickAdd onCreate={onCreate} owner={owner} setOwner={setOwner} campaigns={campaigns} />
       )}
 
-      <div className="cal-controls">
-        <div className="seg">
-          {['월간', '캠페인'].map(v => (
-            <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>
-          ))}
-        </div>
-        {view === '월간' && (
-          <div className="cal-nav">
-            <button onClick={() => setCursor(c => new Date(c.getFullYear(), c.getMonth() - 1, 1))}>◀</button>
-            <span className="cal-month">{monthLabel}</span>
-            <button onClick={() => setCursor(c => new Date(c.getFullYear(), c.getMonth() + 1, 1))}>▶</button>
-            <button className="cal-today" onClick={() => { const d = new Date(); setCursor(new Date(d.getFullYear(), d.getMonth(), 1)) }}>오늘</button>
-          </div>
-        )}
+      <div className="cal-search-row">
+        <input
+          className="cal-search" type="search" autoComplete="off"
+          placeholder="전체 일정 검색 — 제목·캠페인·메모·작성자·매체"
+          value={search} onChange={e => setSearch(e.target.value)}
+        />
+        {searching && <button className="cal-search-clear" onClick={() => setSearch('')}>지우기</button>}
       </div>
 
-      <div className="filters cal-filters">
-        {['전체', ...CHANNELS.map(c => c.id)].map(id => (
-          <button key={id} className={id === filter ? 'on' : ''} onClick={() => setFilter(id)}>
-            {id !== '전체' && <ChannelIcon id={id} />}
-            {id === '전체' ? '전체' : channelById(id).label}
-          </button>
-        ))}
-      </div>
+      {!searching && (
+        <div className="cal-controls">
+          <div className="seg">
+            {['월간', '캠페인'].map(v => (
+              <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>
+            ))}
+          </div>
+          {view === '월간' && (
+            <div className="cal-nav">
+              <button onClick={() => setCursor(c => new Date(c.getFullYear(), c.getMonth() - 1, 1))}>◀</button>
+              <span className="cal-month">{monthLabel}</span>
+              <button onClick={() => setCursor(c => new Date(c.getFullYear(), c.getMonth() + 1, 1))}>▶</button>
+              <button className="cal-today" onClick={() => { const d = new Date(); setCursor(new Date(d.getFullYear(), d.getMonth(), 1)) }}>오늘</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!searching && (
+        <div className="filters cal-filters">
+          {['전체', ...CHANNELS.map(c => c.id)].map(id => (
+            <button key={id} className={id === filter ? 'on' : ''} onClick={() => setFilter(id)}>
+              {id !== '전체' && <ChannelIcon id={id} />}
+              {id === '전체' ? '전체' : channelById(id).label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div className="empty">불러오는 중…</div>
+      ) : searching ? (
+        <SearchResults events={events} query={search} onSelect={setSelected} />
       ) : view === '월간' ? (
         <MonthGrid
           cursor={cursor} events={filtered} onSelect={setSelected}
@@ -583,7 +665,7 @@ function CalendarApp({ session, readOnly = false }) {
 
       {selected && (
         <EventModal
-          event={selected} campaigns={campaigns} readOnly={readOnly}
+          event={selected} campaigns={campaigns} readOnly={readOnly} onOpenSpec={onOpenSpec}
           onClose={() => setSelected(null)} onSave={onSave} onDelete={onDelete}
         />
       )}
@@ -604,9 +686,9 @@ function CalendarApp({ session, readOnly = false }) {
 /* 로그인 게이트는 App.jsx(사이트 전체 락)에서 처리 — 여기 도달했다면 이미 인증된 상태.
    readOnly(?view=mirror)는 뷰어 계정용 UI — 쓰기 권한은 RLS의 team_writers 등록 여부가 결정
    (setup.md 4장) */
-export default function CalendarPage({ readOnly = false }) {
+export default function CalendarPage({ readOnly = false, onOpenSpec }) {
   const [session, setSession] = useState(getSession())
   useEffect(() => onAuthChange(setSession), [])
 
-  return <CalendarApp session={session} readOnly={readOnly} />
+  return <CalendarApp session={session} readOnly={readOnly} onOpenSpec={onOpenSpec} />
 }
