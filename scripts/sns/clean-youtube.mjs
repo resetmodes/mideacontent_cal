@@ -77,6 +77,13 @@ async function main() {
     })
   }
 
+  /* 빈 결과 가드 — 수집 전면 실패(Apify 한도 초과 등) 시 기존 좋은 데이터를 빈 값으로
+     덮어쓰는 사고 방지 ('26.7 실제 발생: 월 한도 초과 403으로 채널 0건 → 데이터 소실) */
+  if (channelSummaries.length === 0) {
+    console.error('❌ 수집 결과 0건 — 기존 youtube.js를 보존하고 저장을 건너뜀 (Apify 한도·토큰 확인)')
+    return
+  }
+
   const output = {
     source: 'streamers/youtube-channel-scraper',
     platform: 'youtube',

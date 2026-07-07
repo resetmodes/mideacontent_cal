@@ -142,6 +142,12 @@ async function main() {
   const competitors = await processList(IG_COMPETITORS)
   postRows.sort((a, b) => (a.ts < b.ts ? 1 : -1))
 
+  /* 빈 결과 가드 — 수집 전면 실패 시 기존 데이터를 빈 값으로 덮어쓰지 않음 (youtube와 동일) */
+  if (accounts.length === 0) {
+    console.error('❌ 수집 결과 0건 — 기존 instagram.js를 보존하고 저장을 건너뜀 (Apify 한도·토큰 확인)')
+    return
+  }
+
   const output = {
     source: 'apify/instagram-scraper',
     platform: 'instagram',
