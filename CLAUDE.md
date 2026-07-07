@@ -15,8 +15,10 @@
 - `src/lib/store.js` — 저장 어댑터: `src/config.js`에 Supabase 키 입력 시 팀 공유 DB,
   비어 있으면 localStorage 폴백. 설정 절차는 `data/supabase-setup.md`
 - 캠페인 뷰: 종료된 캠페인은 삭제 대신 "지난 캠페인" 자동 보관(접힘) — 보고용 이력 보존
-- 매체 아이콘: `src/ChannelIcon.jsx` — 매체별 뮤트 컬러 칩(channels.js color 필드) + 흰색 라인 글리프
-  (이모지 금지 원칙). 월간 셀·캠페인 행·필터 칩·모달에 사용
+- 매체 아이콘: `src/ChannelIcon.jsx` — 실제 브랜드 컬러 칩(인스타 #E1306C, 유튜브 #FF0000,
+  카카오 #FEE500+검정 글리프 등, channels.js color/fg 필드) + 라인 글리프 (이모지 금지 원칙)
+- 등록 전 확인 팝업(ConfirmSheet): 매체 미인식 시 8종 선택 그리드 강제, 유사 캠페인 존재 시
+  기존/신규 선택. 빠른 입력 아래 상태 칩 — 인식(실선)·미인식(빨간 점선) 구분
 - 캠페인 이름 분산 방지: ① 입력 시 유사 캠페인명 제안 칩(클릭으로 통일), "#"만 치면 기존 캠페인
   전체 노출 ② 캠페인 뷰 "이름 변경·통합" — 인라인 입력 폼 (기존 이름 입력 시 병합,
   store.renameCampaign). 네이티브 prompt/confirm 미사용 (환경별 차단 이슈) — 삭제도 2단계 버튼 확인
@@ -96,7 +98,7 @@
 5. ~~외부 공유용 뷰: `?view=external` 쿼리 분기~~ — **완료 ('26.7)**
    - "참고 지표"(팔로워·MAU 등)는 항목째 숨김, "담당"의 개인명은 "미디어콘텐츠팀"으로 치환
      (App.jsx `sanitizeExtras`/`sanitizeGroupNote`), 헤더·푸터도 외부용 문구로 전환
-6. Vercel 배포: git init → GitHub 리포 연결 → Vercel import (미진행)
+6. Vercel 배포: ~~git init + 최초 커밋~~ 완료 ('26.7) → GitHub 리포 연결 → Vercel import (남음)
 7. ~~매체 일정 캘린더~~ — **완료 ('26.7)**. 위 "캘린더 구조" 참조
 8. Supabase 연동: `data/supabase-setup.md` 절차대로 키 발급 → `src/config.js` 입력 (미진행 —
    연동 전까지 캘린더는 브라우저별 저장)
