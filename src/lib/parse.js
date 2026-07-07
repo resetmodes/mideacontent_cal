@@ -1,4 +1,12 @@
-import { KEYWORDS } from '../data/channels.js'
+import { KEYWORDS, TITLE_ALIASES } from '../data/channels.js'
+
+/* 제목 표기 통일 — 긴 표현부터 치환해 부분 매칭 오류 방지 */
+const ALIASES_SORTED = [...TITLE_ALIASES].sort((a, b) => b[0].length - a[0].length)
+function normalizeTitle(title) {
+  let t = title
+  for (const [from, to] of ALIASES_SORTED) t = t.split(from).join(to)
+  return t.replace(/\s+/g, ' ').trim()
+}
 
 const pad = n => String(n).padStart(2, '0')
 export const toISO = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -64,5 +72,5 @@ export function parseQuick(input, today = new Date()) {
     if (raw.toLowerCase().includes(kw.toLowerCase())) { channel = ch; sub = s; break }
   }
 
-  return { title: text.replace(/\s+/g, ' ').trim(), date, endDate, channel, sub, campaign }
+  return { title: normalizeTitle(text), date, endDate, channel, sub, campaign }
 }
