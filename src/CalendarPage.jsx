@@ -7,6 +7,7 @@ import { resolveSpecMedia } from './lib/specLink.js'
 import { findPerformance } from './lib/perf.js'
 import { authorName } from './data/team.js'
 import { HOLIDAYS } from './data/holidays.js'
+import { MIRROR_URL } from './config.js'
 import ChannelIcon from './ChannelIcon.jsx'
 import ShareButton from './ShareButton.jsx'
 
@@ -813,8 +814,8 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
         </div>
         {session && !readOnly && (
           <div className="session-bar">
-            <ShareButton query="?view=mirror" label="읽기전용 공유 링크 복사" />
-            <a className="share-btn" href="?view=mirror" target="_blank" rel="noreferrer">
+            <ShareButton query="?view=mirror" url={MIRROR_URL || undefined} label="읽기전용 공유 링크 복사" />
+            <a className="share-btn" href={MIRROR_URL || '?view=mirror'} target="_blank" rel="noreferrer">
               크게 보기 (새 탭)
             </a>
           </div>
