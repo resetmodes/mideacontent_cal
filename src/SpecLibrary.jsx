@@ -191,7 +191,7 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
         {!isExternal && !mirror && (
           <div className="session-bar">
             지점·대행사 전달용 (담당자·내부 지표 자동 숨김)
-            <ShareButton query="?view=external" label="외부 공유 링크 복사" />
+            <ShareButton query="?view=external" url={MIRROR_URL ? `${MIRROR_URL}/?view=external` : undefined} label="외부 공유 링크 복사" />
           </div>
         )}
       </header>
