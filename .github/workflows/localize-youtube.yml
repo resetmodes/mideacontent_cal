@@ -1,0 +1,43 @@
+name: 유튜브 제목 한글화 (백필)
+
+# Apify 재수집 없이 기존 youtube.js의 영문 제목만 oEmbed로 한글화 — 비용 0.
+# Actions 러너는 인터넷이 열려 있어 youtube.com/oembed 접근 가능 (로컬 샌드박스는 차단).
+# 수동 실행 전용 (일회성 보정). 정기 수집은 sns-collect.yml의 clean-youtube가 이미 보정함.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: localize-youtube
+  cancel-in-progress: false
+
+jobs:
+  localize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 제목 한글화 (oEmbed)
+        run: node scripts/sns/localize-youtube.mjs
+
+      - name: 변경분 커밋 & 푸시
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/data/sns/youtube.js
+          if git diff --staged --quiet; then
+            echo "변경 없음 — oEmbed 보정 0건이거나 이미 한글 (커밋 생략)"
+            exit 0
+          fi
+          git commit -m "chore(data): 유튜브 제목 한글화 (기존 수집분 oEmbed 백필)"
+          for i in 1 2 3; do
+            if git push; then echo "push 성공"; exit 0; fi
+            echo "push 거부 — 재시도 ($i/3)"; git fetch origin main; git rebase origin/main
+          done
+          exit 1
