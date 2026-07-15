@@ -5,10 +5,12 @@ import { HOLIDAYS } from './data/holidays.js'
 import { toISO, fromISO, displayTitle } from './lib/parse.js'
 import { YT } from './data/sns/youtube.js'
 import { IG } from './data/sns/instagram.js'
+import { buildHighlights } from './MonitorPage.jsx'
 import ChannelIcon from './ChannelIcon.jsx'
 
-/* 홈 ('26.7) — 접속 첫 화면. 중요도순: ① 오늘·내일 팀원 근태 ② 주요 콘텐츠 D-day(캠페인)
-   ③ 이번 주 하이라이트(수집 콘텐츠 중 반응 상위, 유튜브 썸네일).
+/* 홈 ('26.7) — 접속 첫 화면. 중요도순: ⓪ 이번 주 요약 히어로(큰 숫자) ① 오늘·내일 팀원 근태
+   ② 주요 콘텐츠 D-day(캠페인) ③ 이번 주 촬영 ④ 채널 시그널(모니터링 하이라이트 재사용)
+   ⑤ 이번 주 하이라이트(수집 콘텐츠 중 반응 상위, 유튜브 썸네일).
    섹션은 데이터 없으면 숨김(근태만 "부재 없음" 상태 문구 유지 — 상태 자체가 정보).
    ※ 추후 섹션 추가 자리: 아래 SECTIONS 순서에 컴포넌트만 끼우면 됨 */
 
@@ -20,6 +22,48 @@ const compact = n => {
   if (n >= 100000000) return (n / 100000000).toFixed(1) + '억'
   if (n >= 10000) return (n / 10000).toFixed(1) + '만'
   return n.toLocaleString('ko-KR')
+}
+
+/* ── ⓪ 이번 주 요약 히어로 — 큰 숫자 4개 (모니터링 탭 Hero와 동일 톤) ── */
+function WeekHero({ events, today }) {
+  const s = useMemo(() => {
+    const end7 = addDays(today, 7)
+    const inWeek = e => e.date <= end7 && (e.endDate || e.date) >= today
+    const media = events.filter(e => !e.kind)
+    const posts = media.filter(e => e.date >= today && e.date <= end7).length
+    const campaigns = new Set(
+      media.filter(e => e.campaign && (e.endDate || e.date) >= today && e.date <= addDays(today, 21))
+        .map(e => e.campaign)
+    ).size
+    const shoots = events.filter(e => e.kind === '촬영' && e.date >= today && e.date <= end7).length
+    const away = events.filter(e => e.kind === '팀' && e.channel !== '기념일' && inWeek(e)).length
+    return { posts, campaigns, shoots, away }
+  }, [events, today])
+
+  return (
+    <div className="mon-hero home-hero">
+      <div className="mon-stat">
+        <div className="mon-label">이번 주 게시 예정</div>
+        <div className="mon-value">{s.posts}<small>건</small></div>
+        <div className="mon-sub">오늘부터 7일</div>
+      </div>
+      <div className="mon-stat">
+        <div className="mon-label">진행·예정 캠페인</div>
+        <div className="mon-value">{s.campaigns}<small>개</small></div>
+        <div className="mon-sub">3주 내 기준</div>
+      </div>
+      <div className="mon-stat">
+        <div className="mon-label">이번 주 촬영</div>
+        <div className="mon-value">{s.shoots}<small>건</small></div>
+        <div className="mon-sub">유튜브·인스타</div>
+      </div>
+      <div className="mon-stat">
+        <div className="mon-label">이번 주 팀원 부재</div>
+        <div className="mon-value">{s.away}<small>건</small></div>
+        <div className="mon-sub">연차·외근·출장·교육</div>
+      </div>
+    </div>
+  )
 }
 
 /* ── ① 오늘·내일 팀원 근태 ─────────────────────────────────── */
@@ -108,7 +152,59 @@ function CampaignDday({ events, today, onGo }) {
   )
 }
 
-/* ── ③ 이번 주 하이라이트 — 수집 콘텐츠 중 반응 상위 ─────────── */
+/* ── ③ 이번 주 촬영 — 촬영일정 탭 미리보기 (놓치기 쉬운 분리 탭 보완) ── */
+function ShootWeek({ events, today, onGo }) {
+  const list = useMemo(() => {
+    const end7 = addDays(today, 7)
+    return events
+      .filter(e => e.kind === '촬영' && e.date >= today && e.date <= end7)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 5)
+  }, [events, today])
+
+  if (list.length === 0) return null
+  return (
+    <section>
+      <div className="group-label home-gl">
+        이번 주 촬영
+        <button className="home-more" onClick={() => onGo('shoot')}>촬영일정 전체 →</button>
+      </div>
+      {list.map(e => (
+        <div key={e.id} className="home-trow">
+          <span className="home-dday">{e.date === today ? '오늘' : fmtK(e.date)}</span>
+          <span className="home-ttl">
+            <ChannelIcon id={e.channel} /> {displayTitle(e.title, e.channel)}
+          </span>
+          {e.sub && <span className="home-sub">{e.sub}</span>}
+        </div>
+      ))}
+    </section>
+  )
+}
+
+/* ── ④ 채널 시그널 — 모니터링 하이라이트 재사용 (팔로워 급변·휴면·조회 급등) ── */
+function ChannelSignals({ onGo }) {
+  /* 유튜브 조회 급등(url 있는 항목)은 아래 "이번 주 하이라이트"와 중복이라 제외 —
+     여기서는 계정 단위 신호(팔로워 급증·급감, 새 휴면)만 최대 3건 */
+  const items = useMemo(() => buildHighlights().filter(it => !it.url).slice(0, 3), [])
+  if (items.length === 0) return null
+  return (
+    <section>
+      <div className="group-label home-gl">
+        채널 시그널
+        <button className="home-more" onClick={() => onGo('monitor')}>SNS 모니터링 →</button>
+      </div>
+      {items.map((it, i) => (
+        <div key={i} className="home-trow">
+          <span className={'hl-mark' + (it.up ? ' up' : '')}>{it.mark}</span>
+          <span className="home-ttl">{it.text}</span>
+        </div>
+      ))}
+    </section>
+  )
+}
+
+/* ── ⑤ 이번 주 하이라이트 — 수집 콘텐츠 중 반응 상위 ─────────── */
 const relDays = s => {
   const m = (s || '').match(/(\d+)\s*(second|minute|hour|day|week)s?\s+ago/)
   if (!m) return null
@@ -191,8 +287,11 @@ export default function HomePage({ onGo }) {
         </div>
       </header>
 
+      <WeekHero events={events} today={today} />
       <TeamStatus events={events} today={today} onGo={onGo} />
       <CampaignDday events={events} today={today} onGo={onGo} />
+      <ShootWeek events={events} today={today} onGo={onGo} />
+      <ChannelSignals onGo={onGo} />
       <Highlight onGo={onGo} />
 
       {/* ── 추후 섹션 자리 ── 여기 아래로 컴포넌트를 추가하면 됨

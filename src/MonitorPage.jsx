@@ -23,8 +23,9 @@ function Delta({ d }) {
 /* ── 하이라이트 자동 요약 ('26.7) — 규칙 기반, AI·비용 없음 ─────────
    ① 팔로워 급증·급감 (직전 수집 대비 1% 또는 50명 이상) ② 새로 휴면 진입
    ③ 유튜브 조회 급등 (최근 3주 내 게시 & 채널 평균 3배 이상)
-   직전 스냅샷이 없으면 ①②는 생략 — 표시할 게 없으면 섹션 자체를 숨김 */
-function buildHighlights() {
+   직전 스냅샷이 없으면 ①②는 생략 — 표시할 게 없으면 섹션 자체를 숨김.
+   export: 홈 화면 "채널 시그널" 섹션도 같은 로직 재사용 (HomePage.jsx) */
+export function buildHighlights() {
   const items = []
 
   const prevIG = prevSnapshot((IG.generatedAt || '').slice(0, 10))?.ig
