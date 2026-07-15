@@ -34,6 +34,54 @@ function durToSec(d) {
   return parts.reduce((acc, v) => acc * 60 + v, 0)
 }
 
+/* URL에서 영상 ID 추출 — watch?v=ID / youtu.be/ID / shorts/ID */
+function videoId(url) {
+  if (!url) return null
+  const m = url.match(/[?&]v=([\w-]{11})/) || url.match(/(?:youtu\.be\/|\/shorts\/|\/embed\/)([\w-]{11})/)
+  return m ? m[1] : null
+}
+const thumbOf = id => (id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null)
+
+/* 한글 원본 제목 — YouTube oEmbed는 크리에이터 설정 제목을 로케일 무관하게 반환
+   (채널 스크레이퍼는 러너 IP 기준 자동번역 영문 제목을 줌). 실패 시 null → 기존 제목 유지.
+   비용 0(무료 공개 엔드포인트), 소규모 동시성. 네트워크 차단 환경에선 조용히 스킵됨 */
+async function fetchOriginalTitle(id) {
+  if (!id) return null
+  try {
+    const ctrl = new AbortController()
+    const to = setTimeout(() => ctrl.abort(), 8000)
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`,
+      { signal: ctrl.signal, headers: { 'Accept-Language': 'ko-KR' } }
+    )
+    clearTimeout(to)
+    if (!res.ok) return null
+    const t = (await res.json()).title
+    return t && t.trim() ? t.trim() : null
+  } catch { return null }
+}
+
+/* 동시성 제한 병렬 처리 */
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length)
+  let i = 0
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (i < items.length) { const idx = i++; out[idx] = await fn(items[idx], idx) }
+  }))
+  return out
+}
+
+/* 전체 영상 제목을 원본(한글)으로 보정 — 실패분은 기존 제목 그대로 (never worse) */
+async function localizeTitles(videos) {
+  const targets = videos.filter(v => v.videoId)
+  let fixed = 0
+  const titles = await mapLimit(targets, 6, v => fetchOriginalTitle(v.videoId))
+  targets.forEach((v, i) => {
+    if (titles[i] && titles[i] !== v.title) { v.title = titles[i]; fixed++ }
+  })
+  console.log(`  · 제목 한글화: ${fixed}/${targets.length}건 보정 (나머지는 기존 제목 유지)`)
+}
+
 async function main() {
   const allVideos = []
   const channelSummaries = []
@@ -57,16 +105,21 @@ async function main() {
     fresh++
     const meta = raw[0] || {}
 
-    const videos = raw.map(v => ({
-      channel: ch.key,
-      title: v.title || '(제목 없음)',
-      type: v.type === 'shorts' ? 'Shorts' : 'Video',
-      url: v.url || null,
-      views: v.viewCount ?? 0,
-      duration: v.duration || '',
-      durationSec: durToSec(v.duration),
-      date: v.date || '',
-    }))
+    const videos = raw.map(v => {
+      const id = videoId(v.url)
+      return {
+        channel: ch.key,
+        title: v.title || '(제목 없음)',
+        type: v.type === 'shorts' ? 'Shorts' : 'Video',
+        url: v.url || null,
+        videoId: id,
+        thumb: thumbOf(id),
+        views: v.viewCount ?? 0,
+        duration: v.duration || '',
+        durationSec: durToSec(v.duration),
+        date: v.date || '',
+      }
+    })
     allVideos.push(...videos)
 
     const shorts = videos.filter(v => v.type === 'Shorts')
@@ -101,11 +154,14 @@ async function main() {
     return
   }
 
+  /* 제목 한글화 — videoId 있는 영상 전부 (carry-forward 구 데이터는 videoId 없어 자연 스킵) */
+  await localizeTitles(allVideos)
+
   const output = {
     source: 'streamers/youtube-channel-scraper',
     platform: 'youtube',
     generatedAt: new Date().toISOString(),
-    note: '영상별 좋아요·댓글은 미제공(조회수만). 날짜는 상대 표기. 수집은 최신 일반영상+쇼츠.',
+    note: '영상별 좋아요·댓글은 미제공(조회수만). 날짜는 상대 표기. 제목은 oEmbed 원본(한글) 기준.',
     channels: channelSummaries,
     videos: allVideos,
   }

@@ -75,12 +75,14 @@ try {
   await page.waitForSelector('.cal-wrap', { timeout: 8000 })
   ok('캘린더 렌더')
 
-  // 2. 탭 4개
+  // 2. 탭 5개
   const tabs = await page.$$eval('.tabs button', els => els.map(e => e.textContent.trim()))
-  ;['매체 캘린더', '촬영일정', '매체 스펙', 'SNS 모니터링'].every(t => tabs.includes(t))
-    ? ok('탭 4종: ' + tabs.slice(0, 4).join('/')) : bad('탭 구성 이상: ' + JSON.stringify(tabs))
+  ;['팀 일정', '매체 캘린더', '촬영일정', '매체 스펙', 'SNS 모니터링'].every(t => tabs.includes(t))
+    ? ok('탭 5종: ' + tabs.slice(0, 5).join('/')) : bad('탭 구성 이상: ' + JSON.stringify(tabs))
 
-  // 3. 빠른 입력 → 등록 → 검색 → 모달
+  // 3. 빠른 입력 → 등록 → 검색 → 모달 (기본 탭이 팀 일정이므로 매체 캘린더로 이동)
+  await page.click('.tabs button:has-text("매체 캘린더")')
+  await page.waitForTimeout(200)
   await page.fill('.qa-input', '12/20 스모크 테스트 인스타 #스모크')
   await page.click('.qa-btn')
   await page.waitForTimeout(400)

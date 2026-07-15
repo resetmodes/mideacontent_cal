@@ -22,15 +22,17 @@ export const CHANNELS = [
 
 /* ── 팀 일정 유형 ('26.7) — 팀 일정 탭(연차·외근·교육·기념일) 전용 분류.
    매체가 아니라 kind='팀' 일정의 channel 필드에 저장되는 유형 id.
-   컬러는 디자인 규칙(흑백+현대그린) 준수 — 그레이 스케일 + 그린만 사용.
+   컬러('26.7 사용자 지정): 근태 유형은 한눈에 구분되게 원색 사용 — 연차=빨강 / 반차=주황 /
+   외근=파랑 / 출장=청록 / 교육=보라 / 기념일=무지개(rainbow 플래그, ChannelIcon 특수 처리).
+   * 매체 캘린더의 "빨강=경고" 원칙과 별개 영역(팀 근태) — 사용자 명시 요청.
    '기타'는 매체 기타와 id 충돌을 피해 '팀기타' */
 export const TEAM_TYPES = [
-  { id: '연차',   label: '연차',   color: '#0B4336', subs: [] },
-  { id: '반차',   label: '반차',   color: '#0B4336', subs: ['오전', '오후'] },
-  { id: '외근',   label: '외근',   color: '#52555E', subs: [] },
-  { id: '출장',   label: '출장',   color: '#34363D', subs: [] },
-  { id: '교육',   label: '교육',   color: '#6E7180', subs: [] },
-  { id: '기념일', label: '기념일', color: '#0B4336', subs: ['생일', '결혼기념일', '결혼식'] },
+  { id: '연차',   label: '연차',   color: '#C4372C', subs: [] },
+  { id: '반차',   label: '반차',   color: '#E8730C', subs: ['오전', '오후'] },
+  { id: '외근',   label: '외근',   color: '#2563EB', subs: [] },
+  { id: '출장',   label: '출장',   color: '#0D9488', subs: [] },
+  { id: '교육',   label: '교육',   color: '#7C3AED', subs: [] },
+  { id: '기념일', label: '기념일', color: '#DB2777', rainbow: true, subs: ['생일', '결혼기념일', '결혼식'] },
   { id: '팀기타', label: '기타',   color: '#878A93', subs: [] },
 ]
 

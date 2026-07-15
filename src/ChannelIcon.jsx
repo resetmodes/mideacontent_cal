@@ -95,12 +95,16 @@ const ICONS = {
   ),
 }
 
+/* 기념일 무지개 칩 ('26.7) — 특별한 날 강조. 단색 배경 대신 무지개 그라데이션 특수 처리 */
+const RAINBOW = 'linear-gradient(135deg,#E23C3C 0%,#E8730C 20%,#F4C020 40%,#2FA84F 58%,#2563EB 76%,#7C3AED 100%)'
+
 export default function ChannelIcon({ id, className = '' }) {
   const ch = channelById(id)
+  const bg = ch?.rainbow ? RAINBOW : (ch?.color || '#878A93')
   return (
     <span
       className={'ch-chip ' + className}
-      style={{ background: ch?.color || '#878A93', color: ch?.fg || '#fff' }}
+      style={{ background: bg, color: ch?.fg || '#fff' }}
       aria-hidden="true"
     >
       <svg viewBox="0 0 16 16">

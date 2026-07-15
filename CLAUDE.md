@@ -11,7 +11,7 @@
    ("12/20 크리스마스 인스타 릴스 #크리스마스"), 클릭해서 수정·삭제, 캠페인(#태그)별 묶어 보기.
 
 ## 캘린더 구조 ('26.7)
-- `src/App.jsx` 탭 셸 → `CalendarPage.jsx`(기본 탭) / `SpecLibrary.jsx` / `MonitorPage.jsx`. 뷰:
+- `src/App.jsx` 탭 셸 → 기본(1페이지) 탭 = **팀 일정**('26.7, 해시 없음) / `CalendarPage.jsx`(매체 캘린더 `#calendar`) / `SpecLibrary.jsx` / `MonitorPage.jsx`. 뷰:
   기본(팀용) · `?view=mirror`(타 팀 공유 읽기 전용) · `?view=external`(대행사·지점용
   스펙만, 캘린더·모니터링 완전 숨김). `#spec` / `#monitor` = 탭 딥링크.
   각 탭에 공유 링크 복사 버튼(`src/ShareButton.jsx`)
@@ -75,6 +75,11 @@
 - 표기 원칙: 좋아요 비공개 계정은 "비공개", 계정 간 비교는 참여/1k(팔로워 1천 명당 반응) 기준,
   휴면(60일+ 미게시) 계정은 회색 + 휴면 플래그
 - hyundai-monitor(구 리포)는 이제 수집 불필요 — 파이프라인이 이 리포로 이전됨
+- **유튜브 제목 한글화 ('26.7)**: 채널 스크레이퍼는 러너 IP(미국) 기준 자동번역 영문 제목을
+  줌 → clean-youtube.mjs가 oEmbed(원본 크리에이터 제목, 로케일 무관)로 보정. 비용 0(무료
+  공개 엔드포인트), 실패 시 기존 제목 유지(파이프라인 안전), 동시성 6. videoId·thumb(썸네일
+  URL: i.ytimg.com/vi/{id}/hqdefault.jpg) 필드도 함께 저장(홈 화면 대비). carry-forward 구
+  데이터는 videoId 없어 다음 수집 때 보정됨
 - `src/data/channels.js` — 매체 8종(타겟APP·인스타·유튜브·버스광고·백화점APP·카카오톡·아파트LCD·기타)
   + 세부 + 빠른 입력 키워드 맵. 타겟APP 세부 10종은 '26.2 가이드라인 기준
 - `src/lib/parse.js` — 빠른 입력 파서 (날짜/기간·매체 키워드·#캠페인·제목). 연도 자동 추정(6개월 룩백).
