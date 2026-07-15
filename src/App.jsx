@@ -70,7 +70,7 @@ export default function App() {
           )}
         </div>
       </nav>
-      <Celebration />
+      {tab === 'home' && <Celebration />}
       {tab === 'home' && <HomePage onGo={go} />}
       {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} />}
       {tab === 'shoot' && <CalendarPage shoot onOpenSpec={openSpec} />}

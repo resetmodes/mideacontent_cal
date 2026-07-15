@@ -24,8 +24,9 @@ const compact = n => {
   return n.toLocaleString('ko-KR')
 }
 
-/* ── ⓪ 이번 주 요약 히어로 — 큰 숫자 4개 (모니터링 탭 Hero와 동일 톤) ── */
-function WeekHero({ events, today }) {
+/* ── ⓪ 이번 주 요약 히어로 — 큰 숫자 4개 (모니터링 탭 Hero와 동일 톤).
+   각 지표 클릭 시 해당 탭으로 이동 (게시 예정·캠페인→매체 캘린더, 촬영→촬영 캘린더, 부재→팀 일정) */
+function WeekHero({ events, today, onGo }) {
   const s = useMemo(() => {
     const end7 = addDays(today, 7)
     const inWeek = e => e.date <= end7 && (e.endDate || e.date) >= today
@@ -40,28 +41,22 @@ function WeekHero({ events, today }) {
     return { posts, campaigns, shoots, away }
   }, [events, today])
 
+  const stats = [
+    { label: '이번 주 게시 예정', value: s.posts, unit: '건', sub: '오늘부터 7일', to: 'calendar' },
+    { label: '진행·예정 캠페인', value: s.campaigns, unit: '개', sub: '3주 내 기준', to: 'calendar' },
+    { label: '이번 주 촬영', value: s.shoots, unit: '건', sub: '유튜브·인스타', to: 'shoot' },
+    { label: '이번 주 팀원 부재', value: s.away, unit: '건', sub: '연차·외근·출장·교육', to: 'team' },
+  ]
+
   return (
     <div className="mon-hero home-hero">
-      <div className="mon-stat">
-        <div className="mon-label">이번 주 게시 예정</div>
-        <div className="mon-value">{s.posts}<small>건</small></div>
-        <div className="mon-sub">오늘부터 7일</div>
-      </div>
-      <div className="mon-stat">
-        <div className="mon-label">진행·예정 캠페인</div>
-        <div className="mon-value">{s.campaigns}<small>개</small></div>
-        <div className="mon-sub">3주 내 기준</div>
-      </div>
-      <div className="mon-stat">
-        <div className="mon-label">이번 주 촬영</div>
-        <div className="mon-value">{s.shoots}<small>건</small></div>
-        <div className="mon-sub">유튜브·인스타</div>
-      </div>
-      <div className="mon-stat">
-        <div className="mon-label">이번 주 팀원 부재</div>
-        <div className="mon-value">{s.away}<small>건</small></div>
-        <div className="mon-sub">연차·외근·출장·교육</div>
-      </div>
+      {stats.map(st => (
+        <button key={st.label} className="mon-stat home-stat" onClick={() => onGo(st.to)}>
+          <div className="mon-label">{st.label}</div>
+          <div className="mon-value">{st.value}<small>{st.unit}</small></div>
+          <div className="mon-sub">{st.sub} <span className="home-stat-go">→</span></div>
+        </button>
+      ))}
     </div>
   )
 }
@@ -287,7 +282,7 @@ export default function HomePage({ onGo }) {
         </div>
       </header>
 
-      <WeekHero events={events} today={today} />
+      <WeekHero events={events} today={today} onGo={onGo} />
       <TeamStatus events={events} today={today} onGo={onGo} />
       <CampaignDday events={events} today={today} onGo={onGo} />
       <ShootWeek events={events} today={today} onGo={onGo} />
