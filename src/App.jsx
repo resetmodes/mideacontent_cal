@@ -24,12 +24,13 @@ export default function App() {
     if (isExternal || window.location.hash === '#spec') return 'spec'
     if (window.location.hash === '#monitor') return 'monitor'
     if (window.location.hash === '#shoot') return 'shoot'
-    if (window.location.hash === '#team') return 'team'
-    return 'calendar'
+    if (window.location.hash === '#calendar') return 'calendar'
+    return 'team'   // '26.7: 팀 일정을 기본(1페이지) 탭으로
   })
   const go = t => {
     setTab(t)
-    const hash = t === 'spec' ? '#spec' : t === 'monitor' ? '#monitor' : t === 'shoot' ? '#shoot' : t === 'team' ? '#team' : ''
+    /* team = 기본 탭(해시 없음). 나머지는 딥링크 해시 */
+    const hash = t === 'spec' ? '#spec' : t === 'monitor' ? '#monitor' : t === 'shoot' ? '#shoot' : t === 'calendar' ? '#calendar' : ''
     window.history.replaceState(null, '', hash || window.location.pathname + window.location.search)
   }
 
@@ -52,9 +53,9 @@ export default function App() {
     <>
       <nav className="tabs">
         <div className="tabs-inner">
+          <button className={tab === 'team' ? 'on' : ''} onClick={() => go('team')}>팀 일정</button>
           <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
           <button className={tab === 'shoot' ? 'on' : ''} onClick={() => go('shoot')}>촬영일정</button>
-          <button className={tab === 'team' ? 'on' : ''} onClick={() => go('team')}>팀 일정</button>
           <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
           <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>SNS 모니터링</button>
           {session && (
