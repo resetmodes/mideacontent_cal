@@ -294,12 +294,50 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .cal-ev.end{opacity:.45;}
 .cal-ev.end .ev-title{font-weight:400;}
 
-/* 오늘의 팀 일정 팝업 ('26.7) */
-.tn-list{margin:14px 0 4px;}
-.tn-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--g100);}
-.tn-type{font-size:12px;font-weight:700;color:var(--green);white-space:nowrap;}
-.tn-title{font-size:14px;font-weight:600;color:var(--ink);flex:1;}
-.tn-range{font-size:12px;color:var(--g400);font-variant-numeric:tabular-nums;}
+/* ── 홈 ('26.7) — 접속 첫 화면 ─────────────────────────────── */
+.home-wrap section{margin-bottom:6px;}
+.home-gl{display:flex;align-items:baseline;justify-content:space-between;}
+.home-more{background:none;border:none;font-family:inherit;font-size:11.5px;font-weight:600;
+  color:var(--g400);cursor:pointer;letter-spacing:0;padding:0;}
+.home-more:hover{color:var(--green);}
+.home-allin{padding:16px 0 6px;font-size:13.5px;color:var(--g400);}
+.home-day{display:flex;gap:16px;padding:12px 0 2px;align-items:flex-start;}
+.home-daylabel{font-size:13px;font-weight:800;color:var(--ink);white-space:nowrap;min-width:86px;padding-top:9px;}
+.home-daylabel small{font-weight:600;color:var(--g400);font-variant-numeric:tabular-nums;}
+.home-dayrows{flex:1;min-width:0;}
+.home-trow{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--g100);
+  min-width:0;text-decoration:none;}
+.home-trow.link:hover .home-ttl{box-shadow:inset 0 -7px 0 var(--hl);}
+.home-ttl{font-size:13.5px;font-weight:600;color:var(--ink);flex:1;min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;}
+.home-sub{font-size:12px;color:var(--g400);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.home-dday{font-size:12px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;
+  min-width:52px;white-space:nowrap;}
+.home-dday.run{color:var(--green);}
+.home-camp{font-size:12.5px;font-weight:700;color:var(--green);white-space:nowrap;}
+.home-vids{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;padding:12px 0 4px;}
+.home-vid{display:block;text-decoration:none;min-width:0;}
+.home-vid img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--g100);}
+.home-vid-noimg{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:16/9;
+  background:var(--g100);}
+.home-vid-body{display:block;padding-top:7px;}
+.home-vid-body b{display:block;font-size:13px;font-weight:700;color:var(--ink);line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.home-vid-body small{display:block;font-size:11.5px;color:var(--g400);margin-top:3px;}
+.home-vid:hover b{box-shadow:inset 0 -8px 0 var(--hl);}
+
+/* ── 기념일 축하 팝업 ('26.7) — 원색 카드+검정 실루엣, 사용자 지정 예외 디자인 */
+.modal-overlay.cele-overlay{background:rgba(10,10,10,.78);}   /* .modal-overlay보다 뒤 정의가 아니라 특이도로 우선 */
+.cele-stack{display:flex;flex-direction:column;align-items:center;gap:14px;max-height:88vh;overflow-y:auto;padding:10px;}
+.cele-card{width:320px;max-width:86vw;border-radius:20px;padding:26px 26px 20px;color:#0E0E0E;}
+.cele-head{font-size:31px;font-weight:900;letter-spacing:-0.01em;line-height:1.02;text-transform:uppercase;}
+.cele-art{display:block;width:132px;height:132px;margin:16px auto 6px;}
+.cele-title{font-size:19px;font-weight:800;letter-spacing:-0.02em;}
+.cele-date{font-size:12.5px;font-weight:700;opacity:.72;margin-top:4px;}
+.cele-brand{margin-top:16px;font-size:10px;font-weight:800;letter-spacing:.18em;opacity:.85;}
+.cele-btn{background:#fff;color:var(--ink);border:none;border-radius:999px;font-family:inherit;
+  font-size:13.5px;font-weight:800;padding:11px 26px;cursor:pointer;}
+.cele-btn:hover{background:var(--hl);}
 
 /* 캠페인 뷰 */
 .camp-view{margin-top:10px;}

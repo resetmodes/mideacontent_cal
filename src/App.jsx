@@ -4,7 +4,8 @@ import CalendarPage from './CalendarPage.jsx'
 import MonitorPage from './MonitorPage.jsx'
 import LoginScreen from './LoginScreen.jsx'
 import NotifyCenter from './NotifyCenter.jsx'
-import TeamNotice from './TeamNotice.jsx'
+import HomePage from './HomePage.jsx'
+import Celebration from './Celebration.jsx'
 import { getSession, onAuthChange, signOut } from './lib/auth.js'
 import { storageMode } from './lib/store.js'
 
@@ -25,13 +26,14 @@ export default function App() {
     if (window.location.hash === '#monitor') return 'monitor'
     if (window.location.hash === '#shoot') return 'shoot'
     if (window.location.hash === '#calendar') return 'calendar'
-    return 'team'   // '26.7: 팀 일정을 기본(1페이지) 탭으로
+    if (window.location.hash === '#team') return 'team'
+    return 'home'   // '26.7: 홈이 접속 첫 화면
   })
   const go = t => {
     setTab(t)
-    /* team = 기본 탭(해시 없음). 나머지는 딥링크 해시 */
-    const hash = t === 'spec' ? '#spec' : t === 'monitor' ? '#monitor' : t === 'shoot' ? '#shoot' : t === 'calendar' ? '#calendar' : ''
-    window.history.replaceState(null, '', hash || window.location.pathname + window.location.search)
+    /* home = 기본 탭(해시 없음). 나머지는 딥링크 해시 */
+    const HASH = { spec: '#spec', monitor: '#monitor', shoot: '#shoot', calendar: '#calendar', team: '#team' }
+    window.history.replaceState(null, '', HASH[t] || window.location.pathname + window.location.search)
   }
 
   /* 캘린더 일정 모달 → 매체 스펙 딥링크. seq는 같은 매체를 다시 눌러도 재포커스되도록 */
@@ -53,6 +55,7 @@ export default function App() {
     <>
       <nav className="tabs">
         <div className="tabs-inner">
+          <button className={tab === 'home' ? 'on' : ''} onClick={() => go('home')}>홈</button>
           <button className={tab === 'team' ? 'on' : ''} onClick={() => go('team')}>팀 일정</button>
           <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
           <button className={tab === 'shoot' ? 'on' : ''} onClick={() => go('shoot')}>촬영일정</button>
@@ -67,7 +70,8 @@ export default function App() {
           )}
         </div>
       </nav>
-      <TeamNotice />
+      <Celebration />
+      {tab === 'home' && <HomePage onGo={go} />}
       {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} />}
       {tab === 'shoot' && <CalendarPage shoot onOpenSpec={openSpec} />}
       {tab === 'team' && <CalendarPage team />}
