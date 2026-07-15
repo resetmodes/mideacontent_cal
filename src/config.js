@@ -9,4 +9,4 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 /* 미러 사이트 주소 — 외부 공유용 개별 스펙 링크 생성에 사용.
    Vercel 두 번째 프로젝트 생성 후 실제 도메인이 다르면 여기만 수정 (data/mirror-setup.md) */
-export const MIRROR_URL = 'https://mediacontent-cal-mirror.vercel.app'
+export const MIRROR_URL = 'https://ediacontent-cal-mirror.vercel.app'
