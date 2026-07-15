@@ -43,16 +43,21 @@ export default function TeamNotice() {
         <div className="md-ch">오늘의 팀 일정</div>
         <div className="md-title sm">{fmtMD(toISO(new Date()))} — {items.length}건</div>
         <div className="tn-list">
-          {items.map(e => (
-            <div key={e.id} className="tn-row">
-              <ChannelIcon id={e.channel} />
-              <span className="tn-type">{e.sub || channelById(e.channel)?.label || e.channel}</span>
-              <span className="tn-title">{displayTitle(e.title, e.channel)}</span>
-              {e.endDate && e.endDate !== e.date && (
-                <span className="tn-range">{fmtMD(e.date)}~{fmtMD(e.endDate)}</span>
-              )}
-            </div>
-          ))}
+          {items.map(e => {
+            /* 제목은 쓴 그대로("김상수, 정소미 목동 외근") — 유형 단어가 이미 없을 때만 라벨 병기 */
+            const label = e.sub || channelById(e.channel)?.label || e.channel
+            const title = displayTitle(e.title, e.channel)
+            return (
+              <div key={e.id} className="tn-row">
+                <ChannelIcon id={e.channel} />
+                <span className="tn-title">{title}</span>
+                {!title.includes(label) && <span className="tn-type">{label}</span>}
+                {e.endDate && e.endDate !== e.date && (
+                  <span className="tn-range">{fmtMD(e.date)}~{fmtMD(e.endDate)}</span>
+                )}
+              </div>
+            )
+          })}
         </div>
         <div className="md-actions">
           <div className="md-spacer" />
