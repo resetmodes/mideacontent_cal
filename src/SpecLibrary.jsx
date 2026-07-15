@@ -232,11 +232,7 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
       </div>
       {items.length === 0 && <div className="empty">조건에 맞는 매체가 없음</div>}
 
-      <footer>
-        {isExternal
-          ? '문의: 미디어콘텐츠팀 · 데이터 기준일 2026.07'
-          : '문의: 규빈 책임 (미디어콘텐츠팀) · 타겟형 매체 운영: 김자영 책임 · 데이터 기준일 2026.07'}
-      </footer>
+      <footer>문의: 미디어콘텐츠팀</footer>
     </div>
   )
 }

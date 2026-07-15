@@ -9,7 +9,7 @@ import { buildHighlights } from './MonitorPage.jsx'
 import ChannelIcon from './ChannelIcon.jsx'
 
 /* 홈 ('26.7) — 접속 첫 화면. 중요도순: ⓪ 이번 주 요약 히어로(큰 숫자) ① 오늘·내일 팀원 근태
-   ② 주요 콘텐츠 D-day(캠페인) ③ 이번 주 촬영 ④ 채널 시그널(모니터링 하이라이트 재사용)
+   ② 주요 콘텐츠 D-day(캠페인) ③ 이번 주 촬영 ④ 채널 이슈(모니터링 하이라이트 재사용)
    ⑤ 이번 주 하이라이트(수집 콘텐츠 중 반응 상위, 유튜브 썸네일).
    섹션은 데이터 없으면 숨김(근태만 "부재 없음" 상태 문구 유지 — 상태 자체가 정보).
    ※ 추후 섹션 추가 자리: 아래 SECTIONS 순서에 컴포넌트만 끼우면 됨 */
@@ -177,7 +177,7 @@ function ShootWeek({ events, today, onGo }) {
   )
 }
 
-/* ── ④ 채널 시그널 — 모니터링 하이라이트 재사용 (팔로워 급변·휴면·조회 급등) ── */
+/* ── ④ 채널 이슈 — 모니터링 하이라이트 재사용 (팔로워 급변·휴면·조회 급등) ── */
 function ChannelSignals({ onGo }) {
   /* 유튜브 조회 급등(url 있는 항목)은 아래 "이번 주 하이라이트"와 중복이라 제외 —
      여기서는 계정 단위 신호(팔로워 급증·급감, 새 휴면)만 최대 3건 */
@@ -186,7 +186,7 @@ function ChannelSignals({ onGo }) {
   return (
     <section>
       <div className="group-label home-gl">
-        채널 시그널
+        채널 이슈
         <button className="home-more" onClick={() => onGo('monitor')}>SNS 모니터링 →</button>
       </div>
       {items.map((it, i) => (
