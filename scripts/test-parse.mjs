@@ -59,6 +59,24 @@ t('7/10 촬영 여름 룩북 스케치 인스타', { shootDate: '2026-07-10', da
 t('7/10 촬영 7/15 업로드 인스타+유튜브 룩북',
   { shootDate: '2026-07-10', date: '2026-07-15', channels: '인스타/공식,유튜브/공식' }, '병기 × 다중 매체')
 
+/* ── 팀 일정 키워드 ('26.7) — TEAM_KEYWORDS + normalize:false 모드 ── */
+import { TEAM_KEYWORDS } from '../src/data/channels.js'
+function tm(input, expected, label) {
+  const r = parseQuick(input, TODAY, { keywords: TEAM_KEYWORDS, normalize: false })
+  const errs = []
+  for (const [k, v] of Object.entries(expected)) {
+    if (r[k] !== v) errs.push(`${k}: 기대 ${JSON.stringify(v)} ≠ 실제 ${JSON.stringify(r[k])}`)
+  }
+  if (errs.length) { fail++; console.error(`✗ [팀] ${label || input}\n    ${errs.join('\n    ')}`) }
+  else { pass++ }
+}
+tm('7/20 김희진 연차', { date: '2026-07-20', channel: '연차', title: '김희진' }, '유형 인식 + 지칭 제거')
+tm('8/1~3 김상수 부산 출장', { date: '2026-08-01', endDate: '2026-08-03', channel: '출장', title: '김상수 부산' })
+tm('7/25 이수정 생일', { channel: '기념일', sub: '생일', title: '이수정' })
+tm('내일 오전 반차 노규빈', { date: '2026-07-08', channel: '반차', sub: '오전', title: '노규빈' })
+tm('7/22 하지훈 워크샵', { channel: '교육', title: '하지훈' }, '워크샵 → 교육')
+tm('7/20 인스타 버스 교육', { channel: '교육', title: '인스타 버스' }, '팀 모드는 매체 키워드·표기 통일 미적용')
+
 /* ── 결과 ── */
 console.log(`\n파서 테스트: ${pass} 통과 / ${fail} 실패`)
 if (fail > 0) process.exit(1)

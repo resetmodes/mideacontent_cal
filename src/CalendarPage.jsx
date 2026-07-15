@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { CHANNELS, channelById } from './data/channels.js'
+import { CHANNELS, TEAM_TYPES, TEAM_KEYWORDS, channelById } from './data/channels.js'
 import { parseQuick, toISO, fromISO, displayTitle } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, listHistory, listDeleted, storageMode } from './lib/store.js'
 import { getSession, onAuthChange } from './lib/auth.js'
@@ -176,14 +176,17 @@ function HistoryView({ eventId }) {
 }
 
 /* 최근 30일 삭제 기록 — 캘린더 하단 접힘 목록 ("누가 지웠어?" 대비) */
-function DeletedLog({ shoot }) {
+function DeletedLog({ shoot, team = false }) {
   const [rows, setRows] = useState(null)   // null=미조회
   const [failed, setFailed] = useState(false)
   const load = async e => {
     if (!e.target.open || rows) return
     try {
       const all = await listDeleted(30)
-      setRows(all.filter(r => (shoot ? r.data?.kind === '촬영' : r.data?.kind !== '촬영')))
+      setRows(all.filter(r => {
+        const k = r.data?.kind
+        return team ? k === '팀' : shoot ? k === '촬영' : (k !== '촬영' && k !== '팀')
+      }))
     } catch { setFailed(true) }
   }
   return (
@@ -203,8 +206,8 @@ function DeletedLog({ shoot }) {
   )
 }
 
-function ChannelPickGrid({ value, onPick, shootOnly = false }) {
-  const list = shootOnly ? CHANNELS.filter(c => SHOOT_CHANNELS.has(c.id)) : CHANNELS
+function ChannelPickGrid({ value, onPick, shootOnly = false, team = false }) {
+  const list = team ? TEAM_TYPES : shootOnly ? CHANNELS.filter(c => SHOOT_CHANNELS.has(c.id)) : CHANNELS
   return (
     <div className="ch-pick">
       {list.map(c => (
@@ -218,7 +221,7 @@ function ChannelPickGrid({ value, onPick, shootOnly = false }) {
 }
 
 /* 등록 전 확인 팝업 — 매체 미인식 시 직접 선택, 유사 캠페인은 통일/신규 선택 */
-function ConfirmSheet({ draft, sim, onConfirm, onCancel, shootOnly = false }) {
+function ConfirmSheet({ draft, sim, onConfirm, onCancel, shootOnly = false, team = false }) {
   const [channel, setChannel] = useState(draft.channel)
   const [campaign, setCampaign] = useState(draft.campaign)
   const needChannel = !draft.channel
@@ -231,9 +234,11 @@ function ConfirmSheet({ draft, sim, onConfirm, onCancel, shootOnly = false }) {
         {needChannel && (
           <div className="cs-section">
             <div className="cs-q">
-              매체가 인식되지 않았습니다 — 어떤 매체인가요?{shootOnly && ' (촬영일정은 인스타·유튜브만)'}
+              {team
+                ? '유형이 인식되지 않았습니다 — 어떤 일정인가요?'
+                : `매체가 인식되지 않았습니다 — 어떤 매체인가요?${shootOnly ? ' (촬영일정은 인스타·유튜브만)' : ''}`}
             </div>
-            <ChannelPickGrid value={channel} onPick={setChannel} shootOnly={shootOnly} />
+            <ChannelPickGrid value={channel} onPick={setChannel} shootOnly={shootOnly} team={team} />
           </div>
         )}
         {sim.length > 0 && (
@@ -256,7 +261,7 @@ function ConfirmSheet({ draft, sim, onConfirm, onCancel, shootOnly = false }) {
           <button className="btn-ghost" onClick={onCancel}>취소</button>
           <button
             className="btn-solid" disabled={needChannel && !channel}
-            onClick={() => onConfirm({ ...draft, channel: channel || '기타', campaign })}
+            onClick={() => onConfirm({ ...draft, channel: channel || (team ? '팀기타' : '기타'), campaign })}
           >등록</button>
         </div>
       </div>
@@ -264,17 +269,21 @@ function ConfirmSheet({ draft, sim, onConfirm, onCancel, shootOnly = false }) {
   )
 }
 
-function QuickAdd({ onCreate, campaigns, shoot = false }) {
+function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
   const [text, setText] = useState('')
   const [err, setErr] = useState(null)
   const [pending, setPending] = useState(null)
-  const draft = useMemo(() => parseQuick(text), [text])
+  /* 팀 일정 탭: 매체 대신 유형 키워드(연차·외근·생일 …), 매체 표기 통일은 건너뜀 */
+  const draft = useMemo(
+    () => parseQuick(text, new Date(), team ? { keywords: TEAM_KEYWORDS, normalize: false } : {}),
+    [text, team]
+  )
 
-  /* "#"만 치면 기존 캠페인 전체를 선택지로 노출 */
-  const bareHash = /#\s*$/.test(text)
+  /* "#"만 치면 기존 캠페인 전체를 선택지로 노출 (팀 일정은 캠페인 없음) */
+  const bareHash = !team && /#\s*$/.test(text)
   const similar = useMemo(
-    () => (bareHash ? campaigns.slice(0, 8) : campSimilar(campaigns, draft?.campaign)),
-    [draft, campaigns, bareHash]
+    () => (team ? [] : bareHash ? campaigns.slice(0, 8) : campSimilar(campaigns, draft?.campaign)),
+    [draft, campaigns, bareHash, team]
   )
 
   const useCampaign = name => {
@@ -282,9 +291,16 @@ function QuickAdd({ onCreate, campaigns, shoot = false }) {
   }
 
   /* 다중 매체(인스타+유튜브 …)면 매체 수만큼, 촬영/업로드 병기면 건별 2개 등록.
-     촬영 탭에서의 단일 날짜 입력 = 촬영일. 작성자는 CalendarApp에서 자동 기록 */
+     촬영 탭에서의 단일 날짜 입력 = 촬영일. 팀 탭은 kind='팀'·캠페인 없음.
+     작성자는 CalendarApp에서 자동 기록 */
   const doCreate = async d => {
     const { channels, shootDate, ...base } = d
+    if (team) {
+      await onCreate({ ...base, campaign: null, kind: '팀' })
+      setText('')
+      setPending(null)
+      return
+    }
     const chans = channels?.length ? channels : [{ channel: base.channel, sub: base.sub }]
     for (const c of chans) {
       const ev = { ...base, channel: c.channel, sub: c.sub }
@@ -297,16 +313,16 @@ function QuickAdd({ onCreate, campaigns, shoot = false }) {
 
   const submit = () => {
     if (!draft) return
-    if (!draft.date && !draft.shootDate) { setErr('날짜를 인식하지 못함 — 12/20 형식, 촬영·업로드 병기는 "7/10 촬영 7/15 업로드"'); return }
-    if (!draft.title) { setErr('제목이 비어 있음 — 날짜 뒤에 내용을 입력'); return }
-    /* 촬영 건 포함 시 매체 제한 — 유튜브·인스타만 */
-    const hasShoot = shoot || !!draft.shootDate
+    if (!draft.date && !draft.shootDate) { setErr(team ? '날짜를 인식하지 못함 — 7/20 또는 8/1~3 형식으로' : '날짜를 인식하지 못함 — 12/20 형식, 촬영·업로드 병기는 "7/10 촬영 7/15 업로드"'); return }
+    if (!draft.title) { setErr(team ? '내용이 비어 있음 — 날짜 뒤에 이름·내용을 입력 (예: 7/20 김희진 연차)' : '제목이 비어 있음 — 날짜 뒤에 내용을 입력'); return }
+    /* 촬영 건 포함 시 매체 제한 — 유튜브·인스타만 (팀 탭은 해당 없음) */
+    const hasShoot = !team && (shoot || !!draft.shootDate)
     const chans = draft.channels?.length ? draft.channels : (draft.channel ? [{ channel: draft.channel }] : [])
     if (hasShoot && chans.length > 0 && chans.some(c => !SHOOT_CHANNELS.has(c.channel))) {
       setErr('촬영일정은 인스타·유튜브만 등록 가능'); return
     }
     setErr(null)
-    const sim = campSimilar(campaigns, draft.campaign)
+    const sim = team ? [] : campSimilar(campaigns, draft.campaign)
     if (!draft.channel || sim.length > 0) { setPending({ draft, sim }); return }
     doCreate(draft)
   }
@@ -316,9 +332,11 @@ function QuickAdd({ onCreate, campaigns, shoot = false }) {
       <div className="qa-row">
         <input
           className="qa-input" type="text" autoComplete="off"
-          placeholder={shoot
-            ? '촬영일정 빠른 입력 — 예: 7/10 촬영 7/15 업로드 여름 룩북 인스타 (업로드 건은 매체 캘린더로)'
-            : '일정 빠른 입력 — 예: 12/20 크리스마스 인스타 릴스 #크리스마스 (인스타+유튜브 = 동시 등록)'}
+          placeholder={team
+            ? '팀 일정 빠른 입력 — 예: 7/20 김희진 연차 · 8/1~3 김상수 부산 출장 · 7/25 이수정 생일'
+            : shoot
+              ? '촬영일정 빠른 입력 — 예: 7/10 촬영 7/15 업로드 여름 룩북 인스타 (업로드 건은 매체 캘린더로)'
+              : '일정 빠른 입력 — 예: 12/20 크리스마스 인스타 릴스 #크리스마스 (인스타+유튜브 = 동시 등록)'}
           value={text}
           onChange={e => { setText(e.target.value); setErr(null) }}
           onKeyDown={e => {
@@ -350,10 +368,10 @@ function QuickAdd({ onCreate, campaigns, shoot = false }) {
             <span className={'st ' + (draft.channel ? 'got' : 'miss')}>
               {draft.channel
                 ? <><ChannelIcon id={draft.channel} /> {channelById(draft.channel)?.label}{draft.sub ? ` · ${draft.sub}` : ''}</>
-                : '매체 미인식 — 등록 시 선택 팝업'}
+                : (team ? '유형 미인식 — 등록 시 선택 팝업' : '매체 미인식 — 등록 시 선택 팝업')}
             </span>
           )}
-          {draft.campaign && <span className="st camp">#{draft.campaign}</span>}
+          {!team && draft.campaign && <span className="st camp">#{draft.campaign}</span>}
           {draft.title && <span className="st ttl">{draft.title}</span>}
         </div>
       )}
@@ -369,7 +387,7 @@ function QuickAdd({ onCreate, campaigns, shoot = false }) {
       {pending && (
         <ConfirmSheet
           draft={pending.draft} sim={pending.sim}
-          shootOnly={shoot || !!pending.draft.shootDate}
+          shootOnly={!team && (shoot || !!pending.draft.shootDate)} team={team}
           onConfirm={doCreate} onCancel={() => setPending(null)}
         />
       )}
@@ -536,10 +554,11 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
   const [editing, setEditing] = useState(isNew)
   const [confirmDel, setConfirmDel] = useState(false)
   const [quick, setQuick] = useState('')
-  const specName = resolveSpecMedia(event.channel, event.sub)
   const isShoot = event.kind === '촬영'
-  /* 촬영 일정은 게시 시점이 아니라 실적 매칭 제외 */
-  const perf = useMemo(() => (isNew || isShoot ? [] : findPerformance(event)), [event, isNew, isShoot])
+  const isTeam = event.kind === '팀'
+  const specName = isTeam ? null : resolveSpecMedia(event.channel, event.sub)
+  /* 촬영·팀 일정은 게시물이 아니라 실적 매칭 제외 */
+  const perf = useMemo(() => (isNew || isShoot || isTeam ? [] : findPerformance(event)), [event, isNew, isShoot, isTeam])
   /* 실적 확정 — 담당자가 후보 중 하나를 선택하면 그것만 남음 (perfUrl 필드) */
   const pinned = event.perfUrl
     ? perf.find(p => p.url === event.perfUrl)
@@ -559,7 +578,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
   /* 한 줄 입력 → 폼 자동 채움. 날짜를 안 쓰면 클릭한 날짜 유지 */
   const applyQuick = v => {
     setQuick(v)
-    const d = parseQuick(v)
+    const d = parseQuick(v, new Date(), isTeam ? { keywords: TEAM_KEYWORDS, normalize: false } : {})
     if (!d) return
     setF(prev => ({
       ...prev,
@@ -601,7 +620,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
       <div className="modal" onClick={e => e.stopPropagation()}>
         {!editing ? (
           <>
-            <div className="md-ch"><ChannelIcon id={event.channel} /> {channelById(event.channel)?.label || event.channel}{event.sub ? ` · ${event.sub}` : ''}{isShoot ? ' · 촬영' : ''}</div>
+            <div className="md-ch"><ChannelIcon id={event.channel} /> {channelById(event.channel)?.label || event.channel}{event.sub ? ` · ${event.sub}` : ''}{isShoot ? ' · 촬영' : ''}{isTeam ? ' · 팀 일정' : ''}</div>
             <div className="md-title">{displayTitle(event.title, event.channel)}</div>
             <dl className="md-grid">
               <dt>일자</dt><dd>{fmtRange(event)}</dd>
@@ -661,11 +680,13 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
           </>
         ) : (
           <>
-            <div className="md-ch">{isNew ? `${isShoot ? '촬영 ' : ''}일정 등록 — ${fmtDot(f.date || event.date)}` : `${isShoot ? '촬영 ' : ''}일정 수정`}</div>
+            <div className="md-ch">{isNew ? `${isTeam ? '팀 ' : isShoot ? '촬영 ' : ''}일정 등록 — ${fmtDot(f.date || event.date)}` : `${isTeam ? '팀 ' : isShoot ? '촬영 ' : ''}일정 수정`}</div>
             {isNew && (
               <input
                 className="qa-input md-quick" type="text" autoComplete="off" autoFocus
-                placeholder="한 줄 자동 작성 — 예: 본사 인스타 릴스 촬영 #여름 (아래 폼이 자동으로 채워짐)"
+                placeholder={isTeam
+                  ? '한 줄 자동 작성 — 예: 김희진 연차 (아래 폼이 자동으로 채워짐)'
+                  : '한 줄 자동 작성 — 예: 본사 인스타 릴스 촬영 #여름 (아래 폼이 자동으로 채워짐)'}
                 value={quick}
                 onChange={e => applyQuick(e.target.value)}
               />
@@ -683,9 +704,9 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                 </label>
               </div>
               <div className="md-cols">
-                <label>매체
+                <label>{isTeam ? '유형' : '매체'}
                   <select value={f.channel} onChange={e => { set('channel', e.target.value); set('sub', '') }}>
-                    {(isShoot ? CHANNELS.filter(c => SHOOT_CHANNELS.has(c.id)) : CHANNELS)
+                    {(isTeam ? TEAM_TYPES : isShoot ? CHANNELS.filter(c => SHOOT_CHANNELS.has(c.id)) : CHANNELS)
                       .map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
                 </label>
@@ -697,20 +718,22 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                 </label>
               </div>
               <div className="md-cols">
-                <label>캠페인
-                  <input list="campaign-list" value={f.campaign} onChange={e => set('campaign', e.target.value)} placeholder="예: 크리스마스" />
-                  <datalist id="campaign-list">
-                    {campaigns.map(c => <option key={c} value={c} />)}
-                  </datalist>
-                  {campSuggest.length > 0 && (
-                    <span className="qa-suggest">
-                      기존:
-                      {campSuggest.map(c => (
-                        <button key={c} type="button" onClick={() => set('campaign', c)}>#{c}</button>
-                      ))}
-                    </span>
-                  )}
-                </label>
+                {!isTeam && (
+                  <label>캠페인
+                    <input list="campaign-list" value={f.campaign} onChange={e => set('campaign', e.target.value)} placeholder="예: 크리스마스" />
+                    <datalist id="campaign-list">
+                      {campaigns.map(c => <option key={c} value={c} />)}
+                    </datalist>
+                    {campSuggest.length > 0 && (
+                      <span className="qa-suggest">
+                        기존:
+                        {campSuggest.map(c => (
+                          <button key={c} type="button" onClick={() => set('campaign', c)}>#{c}</button>
+                        ))}
+                      </span>
+                    )}
+                  </label>
+                )}
                 <label>작성자
                   <input value={f.owner} onChange={e => set('owner', e.target.value)} />
                 </label>
@@ -732,7 +755,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
   )
 }
 
-function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
+function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, team = false }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -796,13 +819,29 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
     } catch (err) { setError(err.message) }
   }
 
-  /* 탭별 대상: 촬영일정 탭 = kind '촬영'만, 매체 캘린더 = 그 외 전부 */
+  /* 탭별 대상: 촬영 탭 = kind '촬영' / 팀 탭 = kind '팀' / 매체 캘린더 = 그 외 전부 */
   const kindEvents = useMemo(
-    () => events.filter(e => (shoot ? e.kind === '촬영' : e.kind !== '촬영')),
-    [events, shoot]
+    () => events.filter(e =>
+      team ? e.kind === '팀' : shoot ? e.kind === '촬영' : (e.kind !== '촬영' && e.kind !== '팀')),
+    [events, shoot, team]
   )
-  const chipChannels = shoot ? CHANNELS.filter(c => SHOOT_CHANNELS.has(c.id)) : CHANNELS
+  const chipChannels = team ? TEAM_TYPES : shoot ? CHANNELS.filter(c => SHOOT_CHANNELS.has(c.id)) : CHANNELS
   const filtered = filter === '전체' ? kindEvents : kindEvents.filter(e => e.channel === filter)
+
+  /* 기념일 매년 반복 ('26.7) — 표시 시점에 앞뒤 연도로 투영 (원본 1건 불변, 수정은 원본에).
+     2/29 등록분은 평년에 해당 셀이 없어 그 해엔 자연히 표시 안 됨 */
+  const monthEvents = useMemo(() => {
+    if (!team) return filtered
+    const out = []
+    const y = cursor.getFullYear()
+    for (const e of filtered) {
+      if (e.channel === '기념일') {
+        const mmdd = e.date.slice(5)
+        for (const yy of [y - 1, y, y + 1]) out.push({ ...e, date: `${yy}-${mmdd}`, endDate: null, orig: e })
+      } else out.push(e)
+    }
+    return out
+  }, [filtered, team, cursor])
   const campaigns = useMemo(() => [...new Set(events.map(e => e.campaign).filter(Boolean))], [events])
   const monthLabel = `${cursor.getFullYear()}.${String(cursor.getMonth() + 1).padStart(2, '0')}`
   const searching = search.trim().length > 0
@@ -810,16 +849,18 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
   return (
     <div className={'wrap cal-wrap' + (readOnly ? ' wide' : '')}>
       <header>
-        <div className="eyebrow">Media Content Team · {shoot ? 'Shooting' : 'Schedule'}{readOnly && ' · Read Only'}</div>
-        <h1>{shoot ? '촬영 일정 캘린더' : '매체 일정 캘린더'}</h1>
+        <div className="eyebrow">Media Content Team · {team ? 'Team' : shoot ? 'Shooting' : 'Schedule'}{readOnly && ' · Read Only'}</div>
+        <h1>{team ? '팀 일정' : shoot ? '촬영 일정 캘린더' : '매체 일정 캘린더'}</h1>
         <div className="masthead-sub">
-          {shoot
-            ? '유튜브·인스타 촬영 스케줄 — "7/10 촬영 7/15 업로드"로 병기하면 업로드 건은 매체 캘린더에 자동 등록'
-            : readOnly
-              ? '미디어콘텐츠팀 매체 집행 일정 — 읽기 전용 공유 뷰 (등록·수정은 팀 내부에서만)'
-              : '팀 운영 매체 집행 일정 — 빠른 입력 한 줄로 등록, 클릭해서 수정·삭제'}
+          {team
+            ? '연차·외근·교육·기념일 — 빠른 입력 한 줄로 등록, 기념일(생일 등)은 매년 자동 반복'
+            : shoot
+              ? '유튜브·인스타 촬영 스케줄 — "7/10 촬영 7/15 업로드"로 병기하면 업로드 건은 매체 캘린더에 자동 등록'
+              : readOnly
+                ? '미디어콘텐츠팀 매체 집행 일정 — 읽기 전용 공유 뷰 (등록·수정은 팀 내부에서만)'
+                : '팀 운영 매체 집행 일정 — 빠른 입력 한 줄로 등록, 클릭해서 수정·삭제'}
         </div>
-        {session && !readOnly && (
+        {session && !readOnly && !team && (
           <div className="session-bar">
             <ShareButton query="?view=mirror" url={MIRROR_URL || undefined} label="읽기전용 공유 링크 복사" />
             <a className="share-btn" href={MIRROR_URL || '?view=mirror'} target="_blank" rel="noreferrer">
@@ -837,7 +878,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
       {error && <div className="store-err">{error}</div>}
 
       {!readOnly && (
-        <QuickAdd onCreate={onCreate} campaigns={campaigns} shoot={shoot} />
+        <QuickAdd onCreate={onCreate} campaigns={campaigns} shoot={shoot} team={team} />
       )}
 
       <div className="cal-search-row">
@@ -851,11 +892,13 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
 
       {!searching && (
         <div className="cal-controls">
-          <div className="seg">
-            {['월간', '캠페인'].map(v => (
-              <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>
-            ))}
-          </div>
+          {!team && (
+            <div className="seg">
+              {['월간', '캠페인'].map(v => (
+                <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>
+              ))}
+            </div>
+          )}
           {view === '월간' && (
             <div className="cal-nav">
               <button onClick={() => setCursor(c => new Date(c.getFullYear(), c.getMonth() - 1, 1))}>◀</button>
@@ -882,9 +925,9 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
         <div className="empty">불러오는 중…</div>
       ) : searching ? (
         <SearchResults events={kindEvents} query={search} onSelect={setSelected} />
-      ) : view === '월간' ? (
+      ) : view === '월간' || team ? (
         <MonthGrid
-          cursor={cursor} events={filtered} onSelect={setSelected}
+          cursor={cursor} events={monthEvents} onSelect={e => setSelected(e.orig || e)}
           onDayClick={readOnly ? null : setDayDraft} wide={readOnly}
         />
       ) : (
@@ -892,7 +935,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
       )}
 
       {!loading && !searching && !readOnly && storageMode === 'supabase' && (
-        <DeletedLog shoot={shoot} />
+        <DeletedLog shoot={shoot} team={team} />
       )}
 
       {selected && (
@@ -905,7 +948,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
       {dayDraft && !readOnly && (
         <EventModal
           isNew
-          event={{ title: '', date: dayDraft, endDate: '', channel: shoot ? '인스타' : '기타', sub: '', campaign: '', owner: me, memo: '', kind: shoot ? '촬영' : null }}
+          event={{ title: '', date: dayDraft, endDate: '', channel: team ? '연차' : shoot ? '인스타' : '기타', sub: '', campaign: '', owner: me, memo: '', kind: team ? '팀' : shoot ? '촬영' : null }}
           campaigns={campaigns}
           onClose={() => setDayDraft(null)} onCreate={onCreate}
         />
@@ -918,9 +961,9 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false }) {
 /* 로그인 게이트는 App.jsx(사이트 전체 락)에서 처리 — 여기 도달했다면 이미 인증된 상태.
    readOnly(?view=mirror)는 뷰어 계정용 UI — 쓰기 권한은 RLS의 team_writers 등록 여부가 결정
    (setup.md 4장) */
-export default function CalendarPage({ readOnly = false, onOpenSpec, shoot = false }) {
+export default function CalendarPage({ readOnly = false, onOpenSpec, shoot = false, team = false }) {
   const [session, setSession] = useState(getSession())
   useEffect(() => onAuthChange(setSession), [])
 
-  return <CalendarApp session={session} readOnly={readOnly} onOpenSpec={onOpenSpec} shoot={shoot} />
+  return <CalendarApp session={session} readOnly={readOnly} onOpenSpec={onOpenSpec} shoot={shoot} team={team} />
 }

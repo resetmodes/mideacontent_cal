@@ -62,12 +62,12 @@ function resolveDate(mm, dd, today) {
 /* 다중 매체: "인스타+유튜브+카톡"처럼 +로 이은 그룹 → 매체 배열 ('26.7)
    모든 조각이 매체로 인식될 때만 다중 처리 (1+1 행사 같은 표현은 그대로 제목 유지).
    담당자가 매체별로 달라도 등록은 한 줄 — 등록 건은 매체 수만큼 생성됨 */
-function extractChannels(text) {
+function extractChannels(text, keywords = KEYWORDS) {
   for (const g of text.matchAll(/\S+(?:\s*\+\s*\S+)+/g)) {
     const parts = g[0].split('+').map(s => s.trim()).filter(Boolean)
     if (parts.length < 2) continue
     const resolved = parts.map(part => {
-      for (const [kw, ch, s] of KEYWORDS)
+      for (const [kw, ch, s] of keywords)
         if (part.toLowerCase().includes(kw.toLowerCase())) return { channel: ch, sub: s }
       return null
     })
@@ -111,8 +111,11 @@ function extractLabeledDates(text, today) {
    날짜 지원: 12/20 · 12.20 · 7월 10일 · 범위(12/20~25, 7월 10일~15일, 7월 10일~8월 2일)
              · 오늘/내일/모레
    그 외: 캠페인 #태그 · 매체 키워드 자동 인식 · 다중 매체(인스타+유튜브 → channels 배열)
-        · 촬영/업로드 병기("7/10 촬영 7/15 업로드" → shootDate + date) */
-export function parseQuick(input, today = new Date()) {
+        · 촬영/업로드 병기("7/10 촬영 7/15 업로드" → shootDate + date)
+   opts ('26.7 팀 일정): { keywords, normalize } — 팀 일정 탭은 매체 대신 유형 키워드
+   (TEAM_KEYWORDS)로 인식하고, 매체 표기 통일(normalizeTitle)은 건너뜀 */
+export function parseQuick(input, today = new Date(), opts = {}) {
+  const { keywords = KEYWORDS, normalize = true } = opts
   const raw = input.trim()
   if (!raw) return null
 
@@ -159,20 +162,21 @@ export function parseQuick(input, today = new Date()) {
 
   /* 다중 매체 그룹(인스타+유튜브 …) — 그룹은 제목에서 제거, channels 배열로 반환 */
   let channels = null
-  const multi = extractChannels(text)
+  const multi = extractChannels(text, keywords)
   if (multi) { channels = multi.channels; text = multi.text }
 
   let channel = null, sub = null
   if (channels) {
     channel = channels[0].channel; sub = channels[0].sub
   } else {
-    for (const [kw, ch, s] of KEYWORDS) {
+    for (const [kw, ch, s] of keywords) {
       if (raw.toLowerCase().includes(kw.toLowerCase())) { channel = ch; sub = s; break }
     }
   }
 
   const chList = channels || (channel ? [{ channel }] : [])
-  const title = stripChannelTokens(normalizeTitle(text), chList)
+  const base = normalize ? normalizeTitle(text) : text.replace(/\s+/g, ' ').trim()
+  const title = stripChannelTokens(base, chList)
 
   return { title, date, endDate, shootDate, channel, sub, campaign, channels }
 }

@@ -294,6 +294,13 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .cal-ev.end{opacity:.45;}
 .cal-ev.end .ev-title{font-weight:400;}
 
+/* 오늘의 팀 일정 팝업 ('26.7) */
+.tn-list{margin:14px 0 4px;}
+.tn-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--g100);}
+.tn-type{font-size:12px;font-weight:700;color:var(--green);white-space:nowrap;}
+.tn-title{font-size:14px;font-weight:600;color:var(--ink);flex:1;}
+.tn-range{font-size:12px;color:var(--g400);font-variant-numeric:tabular-nums;}
+
 /* 캠페인 뷰 */
 .camp-view{margin-top:10px;}
 .camp-sec{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--green);margin-top:26px;}

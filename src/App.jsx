@@ -4,6 +4,7 @@ import CalendarPage from './CalendarPage.jsx'
 import MonitorPage from './MonitorPage.jsx'
 import LoginScreen from './LoginScreen.jsx'
 import NotifyCenter from './NotifyCenter.jsx'
+import TeamNotice from './TeamNotice.jsx'
 import { getSession, onAuthChange, signOut } from './lib/auth.js'
 import { storageMode } from './lib/store.js'
 
@@ -23,11 +24,12 @@ export default function App() {
     if (isExternal || window.location.hash === '#spec') return 'spec'
     if (window.location.hash === '#monitor') return 'monitor'
     if (window.location.hash === '#shoot') return 'shoot'
+    if (window.location.hash === '#team') return 'team'
     return 'calendar'
   })
   const go = t => {
     setTab(t)
-    const hash = t === 'spec' ? '#spec' : t === 'monitor' ? '#monitor' : t === 'shoot' ? '#shoot' : ''
+    const hash = t === 'spec' ? '#spec' : t === 'monitor' ? '#monitor' : t === 'shoot' ? '#shoot' : t === 'team' ? '#team' : ''
     window.history.replaceState(null, '', hash || window.location.pathname + window.location.search)
   }
 
@@ -52,6 +54,7 @@ export default function App() {
         <div className="tabs-inner">
           <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
           <button className={tab === 'shoot' ? 'on' : ''} onClick={() => go('shoot')}>촬영일정</button>
+          <button className={tab === 'team' ? 'on' : ''} onClick={() => go('team')}>팀 일정</button>
           <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
           <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>SNS 모니터링</button>
           {session && (
@@ -63,8 +66,10 @@ export default function App() {
           )}
         </div>
       </nav>
+      <TeamNotice />
       {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} />}
       {tab === 'shoot' && <CalendarPage shoot onOpenSpec={openSpec} />}
+      {tab === 'team' && <CalendarPage team />}
       {tab === 'spec' && <SpecLibrary isExternal={false} focusMedia={specFocus.name} focusSeq={specFocus.seq} />}
       {tab === 'monitor' && <MonitorPage />}
     </>
