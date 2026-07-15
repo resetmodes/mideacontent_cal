@@ -75,8 +75,11 @@ function Highlights() {
   const items = useMemo(buildHighlights, [])
   if (items.length === 0) return null
   return (
-    <div className="mon-hl">
-      <div className="group-label">하이라이트</div>
+    <div className="mon-hl mon-hl-feature">
+      <div className="mon-hl-head">
+        <span className="mon-hl-title">이번 주 하이라이트</span>
+        <span className="mon-hl-count">{items.length}건</span>
+      </div>
       {items.map((it, i) => (
         <div key={i} className="mon-hl-row">
           <span className={'hl-mark' + (it.up ? ' up' : '')}>{it.mark}</span>
@@ -412,7 +415,6 @@ export default function MonitorPage() {
         <h1>SNS 모니터링</h1>
         <div className="masthead-sub">
           자사 인스타그램·유튜브 계정 성과 지표 — 데이터 기준 {fmtDate(generatedAt)}
-          {' · '}매주 월 09:00 자동 수집 (수동: GitHub Actions → Run workflow, 로컬: <code>npm run sns:collect</code>)
         </div>
       </header>
 
