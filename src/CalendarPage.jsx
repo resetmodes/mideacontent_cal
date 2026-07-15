@@ -464,12 +464,18 @@ function CampBlock({ g, renaming, renameVal, setRenameVal, onConfirmRename, onSt
   )
 }
 
-/* 캠페인 뷰 — 진행·예정 캠페인은 펼침, 종료 캠페인은 자동 보관(접힘) */
+/* 캠페인 뷰 — 최근 캠페인 / 지난 캠페인 ('26.7 기준 변경)
+   최근 = 마지막 게시(종료일 포함)가 최근 1개월 이내이거나 진행·예정 → 항상 펼침.
+   지난 = 마지막 게시 후 1개월 경과 → 자동 보관(접힘).
+   이전 기준(종료일 지나면 즉시 보관)은 막 끝난 캠페인이 바로 묻히는 문제가 있었음 */
 function CampaignView({ events, onSelect, onRename }) {
   const today = todayISO()
   const [renaming, setRenaming] = useState(null)   // 이름 변경 중인 캠페인
   const [renameVal, setRenameVal] = useState('')
   const groups = useMemo(() => {
+    const c = fromISO(today)
+    c.setDate(c.getDate() - 30)
+    const cutoff = toISO(c)   // 이 날짜 이전이 마지막 게시면 "지난 캠페인"
     const map = {}
     for (const e of events) {
       if (!e.campaign) continue
@@ -478,10 +484,10 @@ function CampaignView({ events, onSelect, onRename }) {
     const entries = Object.entries(map).map(([name, list]) => {
       list.sort((a, b) => a.date.localeCompare(b.date))
       const lastEnd = list.reduce((m, e) => ((e.endDate || e.date) > m ? (e.endDate || e.date) : m), '')
-      return { name, list, first: list[0].date, lastEnd, past: lastEnd < today }
+      return { name, list, first: list[0].date, lastEnd, past: lastEnd < cutoff }
     })
     return {
-      active: entries.filter(g => !g.past).sort((a, b) => a.first.localeCompare(b.first)),
+      recent: entries.filter(g => !g.past).sort((a, b) => a.first.localeCompare(b.first)),
       past: entries.filter(g => g.past).sort((a, b) => b.lastEnd.localeCompare(a.lastEnd)),
     }
   }, [events, today])
@@ -506,13 +512,14 @@ function CampaignView({ events, onSelect, onRename }) {
 
   return (
     <div className="camp-view">
-      {groups.active.length === 0 && groups.past.length === 0 && (
+      {groups.recent.length === 0 && groups.past.length === 0 && (
         <div className="empty">캠페인 태그가 붙은 일정이 없음 — 빠른 입력에 #캠페인명 을 붙이면 여기에 묶임</div>
       )}
-      {groups.active.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
+      {groups.recent.length > 0 && <div className="camp-sec">최근 캠페인</div>}
+      {groups.recent.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
       {groups.past.length > 0 && (
         <details className="camp-past">
-          <summary>지난 캠페인 {groups.past.length}건 — 자동 보관됨</summary>
+          <summary>지난 캠페인 {groups.past.length}건 — 최근 1개월 게시 없음, 자동 보관</summary>
           {groups.past.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
         </details>
       )}
