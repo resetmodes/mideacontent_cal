@@ -12,9 +12,11 @@
     "smoke": "node scripts/smoke.mjs",
     "sns:collect": "node scripts/sns/scrape-instagram.mjs && node scripts/sns/clean-instagram.mjs && node scripts/sns/scrape-youtube.mjs && node scripts/sns/clean-youtube.mjs && node scripts/sns/append-trend.mjs",
     "sns:clean": "node scripts/sns/clean-instagram.mjs && node scripts/sns/clean-youtube.mjs && node scripts/sns/append-trend.mjs",
+    "ugc:collect": "node scripts/sns/scrape-ugc.mjs && node scripts/sns/clean-ugc.mjs",
     "backup": "node scripts/backup-events.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

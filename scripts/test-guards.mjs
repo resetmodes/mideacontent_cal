@@ -19,6 +19,7 @@ let fail = 0
 for (const [script, dataFile] of [
   ['scripts/sns/clean-youtube.mjs', 'src/data/sns/youtube.js'],
   ['scripts/sns/clean-instagram.mjs', 'src/data/sns/instagram.js'],
+  ['scripts/sns/clean-ugc.mjs', 'src/data/sns/ugc.js'],
 ]) {
   const target = join(ROOT, dataFile)
   const before = await hash(target)

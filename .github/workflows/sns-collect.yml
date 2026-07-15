@@ -1,17 +1,17 @@
 name: SNS 데이터 수집
 
-# 격주 자동 + 수동 실행 가능
-# 격주인 이유: 1회 수집 ≈ $1.7 (Apify 결과당 과금) — 주 1회면 월 ~$7.4로
-# 무료 크레딧($5/월) 초과, 격주(월 ~$3.7)면 무료 한도 내 (CLAUDE.md 비용 항목 참조)
+# 매주 자동 + 수동 실행 가능
+# '26.7 매주 전환: Apify 유료 플랜($29/월) 결제 전제 — 계정 수집 ~$1.7 +
+# UGC 해시태그 ~$0.8 ≈ 회당 ~$2.5, 월 ~$11 (CLAUDE.md 비용 항목 참조).
+# 무료 플랜($5/월)으로 돌아가면 격주 게이트를 복원할 것 (git 이력 '26.7 참조).
 #
 # ⚠ cron에 날짜+요일을 함께 쓰면 안 됨: '0 0 1-7,15-21 * 1' 같은 표현은
-# 표준 cron OR 규칙 때문에 "1~7·15~21일 매일 + 모든 월요일"(월 ~16회 ≈ $27)로
-# 동작한다 — '26.7 최종 검토에서 발견·수정. 격주 판정은 아래 gate 스텝이 담당
+# 표준 cron OR 규칙 때문에 "해당 날짜 매일 + 모든 월요일"로 동작 ('26.7 사고 3)
 on:
   schedule:
-    # 매주 월요일 00:00 UTC = 09:00 KST — 격주 여부는 잡 안의 gate가 판정
+    # 매주 월요일 00:00 UTC = 09:00 KST
     - cron: '0 0 * * 1'
-  workflow_dispatch: {}   # Actions 탭 'Run workflow' 버튼으로 수동 실행 (gate 무시하고 항상 실행)
+  workflow_dispatch: {}   # Actions 탭 'Run workflow' 버튼으로 수동 실행
 
 permissions:
   contents: write
@@ -23,33 +23,22 @@ concurrency:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 50
     steps:
-      - name: 격주 판정 (매월 1~7일·15~21일의 월요일만 자동 진행)
-        id: gate
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"; echo "수동 실행 — 게이트 통과"; exit 0
-          fi
-          d=$((10#$(date -u +%d)))
-          if [ $d -le 7 ] || { [ $d -ge 15 ] && [ $d -le 21 ]; }; then
-            echo "run=true" >> "$GITHUB_OUTPUT"; echo "격주 수집 주 (${d}일) — 진행"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"; echo "격주 휴지 주 (${d}일) — 수집·과금 없이 종료"
-          fi
-
       - name: 저장소 체크아웃
-        if: steps.gate.outputs.run == 'true'
         uses: actions/checkout@v4
 
       - name: Node 설치
-        if: steps.gate.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
 
-      - name: 수집 + 정제 (인스타 + 유튜브)
-        if: steps.gate.outputs.run == 'true'
+      # UGC 감정·주제 분석(@anthropic-ai/sdk)용 — 계정 수집 스크립트는 의존성 없음
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 계정 수집 + 정제 (인스타 + 유튜브)
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
         run: |
@@ -59,16 +48,26 @@ jobs:
           node scripts/sns/clean-youtube.mjs
           node scripts/sns/append-trend.mjs
 
+      # UGC는 계정 수집과 분리 — 여기가 실패해도 계정 데이터 커밋은 진행.
+      # ANTHROPIC_API_KEY 미설정 시 감정·주제·요약 없이 정량 지표만 저장됨 (동작엔 문제 없음)
+      - name: UGC 수집 + 분석 (해시태그)
+        continue-on-error: true
+        env:
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          node scripts/sns/scrape-ugc.mjs
+          node scripts/sns/clean-ugc.mjs
+
       # schedule/수동 트리거라 데이터 커밋이 워크플로를 재트리거하지 않음.
       # push 되면 Vercel이 자동 재배포.
-      # 수집(최대 40분) 중 main에 다른 커밋이 먼저 들어오면 일반 push는 거부됨(non-fast-forward) —
+      # 수집(최대 50분) 중 main에 다른 커밋이 먼저 들어오면 일반 push는 거부됨(non-fast-forward) —
       # 그 경우 최신 main 위로 재배치(rebase) 후 재시도 (최대 3회)
       - name: 변경된 데이터 커밋 & 푸시
-        if: steps.gate.outputs.run == 'true'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add src/data/sns/instagram.js src/data/sns/youtube.js src/data/sns/trend.js
+          git add src/data/sns/instagram.js src/data/sns/youtube.js src/data/sns/trend.js src/data/sns/ugc.js
           if git diff --staged --quiet; then
             echo "변경 사항 없음 — 커밋 생략"
             exit 0

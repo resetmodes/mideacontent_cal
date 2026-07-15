@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { IG } from './data/sns/instagram.js'
 import { YT } from './data/sns/youtube.js'
+import { UGC } from './data/sns/ugc.js'
 import { TREND } from './data/sns/trend.js'
 
 /* 직전 수집 스냅샷 (현재 수집일보다 앞선 것 중 최신) — 없으면 증감 미표시 */
@@ -287,9 +288,121 @@ function YoutubeView() {
   )
 }
 
+/* ── UGC — 고객·인플루언서 게시물 동향 ('26.7) ──────────────────
+   데이터: src/data/sns/ugc.js (해시태그 수집 + Claude 감정·주제 분석)
+   첫 수집 전(UGC=null)에는 세그먼트 자체가 숨겨짐. 감정·요약은 분석이
+   있을 때만 노출 (ANTHROPIC_API_KEY 미설정 시 정량 지표만) */
+function UgcView() {
+  const positiveShare = UGC.sentiment
+    ? Math.round(UGC.sentiment['긍정'] / Math.max(1, UGC.sentiment['긍정'] + UGC.sentiment['중립'] + UGC.sentiment['부정']) * 100)
+    : null
+
+  return (
+    <>
+      <Hero stats={[
+        { label: '한 달 게시물', value: num(UGC.totalPosts), unit: '건', sub: UGC.tags.map(t => '#' + t).join(' ') },
+        { label: '반응 합계', value: compact(UGC.totalEngagement), sub: '좋아요+댓글' },
+        positiveShare != null
+          ? { label: '긍정 비율', value: positiveShare, unit: '%', sub: `부정 ${UGC.sentiment['부정']}건` }
+          : { label: '광고·협찬', value: num(UGC.adPosts), unit: '건' },
+        { label: '인플루언서 게시물', value: num(UGC.influencerPosts), unit: '건', sub: '팔로워 1만+' },
+      ]} />
+
+      {UGC.summary?.length > 0 && (
+        <div className="mon-hl">
+          <div className="group-label">동향 요약</div>
+          {UGC.summary.map((s, i) => (
+            <div key={i} className="mon-hl-row"><span className="hl-mark">·</span><span>{s}</span></div>
+          ))}
+        </div>
+      )}
+
+      {(UGC.sentiment || UGC.topics?.length > 0) && (
+        <>
+          <div className="group-label">감정 · 주제 분포</div>
+          <div className="mon-scroll">
+            <table className="mon-table">
+              <thead><tr><th>구분</th><th>건수</th><th>비중</th></tr></thead>
+              <tbody>
+                {UGC.sentiment && ['긍정', '중립', '부정'].map(k => {
+                  const total = UGC.sentiment['긍정'] + UGC.sentiment['중립'] + UGC.sentiment['부정']
+                  return (
+                    <tr key={k}>
+                      <td className="mon-acc"><b>{k}</b></td>
+                      <td className="strong">{num(UGC.sentiment[k])}</td>
+                      <td className="mute">{total ? Math.round(UGC.sentiment[k] / total * 100) + '%' : '—'}</td>
+                    </tr>
+                  )
+                })}
+                {(UGC.topics || []).map(t => (
+                  <tr key={t.name}>
+                    <td className="mon-acc mute">{t.name}</td>
+                    <td>{num(t.count)}</td>
+                    <td className="mute">{UGC.totalPosts ? Math.round(t.count / UGC.totalPosts * 100) + '%' : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      <div className="group-label">반응 상위 게시물</div>
+      <div className="mon-scroll">
+        <table className="mon-table">
+          <thead>
+            <tr><th>게시물</th><th>작성자</th><th>팔로워</th><th>좋아요</th><th>댓글</th>{UGC.sentiment && <th>감정</th>}<th>게시</th></tr>
+          </thead>
+          <tbody>
+            {(UGC.topPosts || []).map((p, i) => (
+              <tr key={p.url + i}>
+                <td className="mon-title">
+                  <a href={p.url} target="_blank" rel="noreferrer">{p.caption || '(캡션 없음)'}</a>
+                  {p.isAd && <span className="mon-flag">광고·협찬</span>}
+                </td>
+                <td className="mute">@{p.owner}</td>
+                <td>{p.followers != null ? compact(p.followers) : '—'}</td>
+                <td className="strong">{p.likes === null ? <span className="mute">비공개</span> : num(p.likes)}</td>
+                <td>{num(p.comments)}</td>
+                {UGC.sentiment && <td className="mute">{p.sentiment || '—'}</td>}
+                <td className="mute">{fmtDate(p.ts)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="group-label">주요 작성자 (반응 순)</div>
+      <div className="mon-scroll">
+        <table className="mon-table">
+          <thead><tr><th>작성자</th><th>팔로워</th><th>게시물</th><th>반응 합계</th></tr></thead>
+          <tbody>
+            {(UGC.creators || []).map(c => (
+              <tr key={c.owner}>
+                <td className="mon-acc">
+                  <a href={`https://www.instagram.com/${c.owner}/`} target="_blank" rel="noreferrer">@{c.owner}</a>
+                  {c.influencer && <span className="mon-flag">인플루언서</span>}
+                </td>
+                <td className="strong">{c.followers != null ? num(c.followers) : '—'}</td>
+                <td>{num(c.posts)}</td>
+                <td>{num(c.engagement)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mon-note">{UGC.note}</div>
+    </>
+  )
+}
+
 export default function MonitorPage() {
   const [platform, setPlatform] = useState('instagram')
-  const generatedAt = platform === 'instagram' ? IG.generatedAt : YT.generatedAt
+  const generatedAt =
+    platform === 'instagram' ? IG.generatedAt : platform === 'youtube' ? YT.generatedAt : UGC?.generatedAt
+
+  const segments = [['instagram', '인스타그램'], ['youtube', '유튜브'], ...(UGC ? [['ugc', 'UGC']] : [])]
 
   return (
     <div className="wrap cal-wrap">
@@ -298,7 +411,7 @@ export default function MonitorPage() {
         <h1>SNS 모니터링</h1>
         <div className="masthead-sub">
           자사 인스타그램·유튜브 계정 성과 지표 — 데이터 기준 {fmtDate(generatedAt)}
-          {' · '}격주 월 09:00 자동 수집 (수동: GitHub Actions → Run workflow, 로컬: <code>npm run sns:collect</code>)
+          {' · '}매주 월 09:00 자동 수집 (수동: GitHub Actions → Run workflow, 로컬: <code>npm run sns:collect</code>)
         </div>
       </header>
 
@@ -306,13 +419,13 @@ export default function MonitorPage() {
 
       <div className="cal-controls">
         <div className="seg">
-          {[['instagram', '인스타그램'], ['youtube', '유튜브']].map(([k, label]) => (
+          {segments.map(([k, label]) => (
             <button key={k} className={platform === k ? 'on' : ''} onClick={() => setPlatform(k)}>{label}</button>
           ))}
         </div>
       </div>
 
-      {platform === 'instagram' ? <InstagramView /> : <YoutubeView />}
+      {platform === 'instagram' ? <InstagramView /> : platform === 'youtube' ? <YoutubeView /> : <UgcView />}
     </div>
   )
 }
