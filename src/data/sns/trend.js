@@ -226,5 +226,34 @@ export const TREND = [
     "v": 2038
    }
   }
+ },
+ {
+  "date": "2026-07-15",
+  "ig": {
+   "thehyundai_cheonho": {
+    "f": 17987,
+    "e": 0.39,
+    "p": 0,
+    "d": true
+   }
+  },
+  "yt": {
+   "the_hyundai": {
+    "s": 148000,
+    "v": 533206
+   },
+   "wazitwine": {
+    "s": 114000,
+    "v": 8970
+   },
+   "roomnumber": {
+    "s": 5120,
+    "v": 9681
+   },
+   "yiyaho_studio": {
+    "s": 216,
+    "v": 2988
+   }
+  }
  }
 ]
