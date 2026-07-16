@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { CHANNELS, TEAM_TYPES, TEAM_KEYWORDS, channelById } from './data/channels.js'
 import { parseQuick, toISO, fromISO, displayTitle } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, listHistory, listDeleted, storageMode } from './lib/store.js'
@@ -395,14 +395,51 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
   )
 }
 
-function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false }) {
+function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove = null }) {
   const cells = useMemo(() => buildMonth(cursor), [cursor])
   const byDay = useMemo(() => indexByDay(events, wide), [events, wide])
   const today = todayISO()
   const MAX = wide ? 8 : 4   // 와이드 열람 모드는 셀당 표시 건수 확대
 
+  /* 드래그앤드롭 일정 이동 ('26.7) — 일정을 6px 이상 끌어야 드래그로 인식 (그 전에
+     놓으면 기존 클릭 = 상세 모달, 기존 동작 불변). 놓은 셀과 집어든 셀의 날짜 차만큼
+     평행이동 — 기간 일정의 "· 종료" 마커를 끌어도 전체가 같이 이동.
+     터치는 스크롤과 충돌해 제외(데스크톱 전용), 기념일 투영(orig)은 이동 불가 */
+  const [dragOver, setDragOver] = useState(null)   // 드래그 중 올라가 있는 셀 ISO
+  const [dragging, setDragging] = useState(false)
+  const dragRef = useRef(null)                     // {active} — 드래그 직후 클릭 억제용
+
+  const pickUp = (pv, e, srcDay) => {
+    if (!onMove || pv.pointerType === 'touch' || pv.button !== 0 || e.orig) return
+    const d = { active: false, startX: pv.clientX, startY: pv.clientY }
+    dragRef.current = d
+    const cellAt = v => document.elementFromPoint(v.clientX, v.clientY)?.closest('[data-date]')?.dataset.date || null
+    const move = mv => {
+      if (!d.active) {
+        if (Math.hypot(mv.clientX - d.startX, mv.clientY - d.startY) < 6) return
+        d.active = true
+        setDragging(true)
+      }
+      mv.preventDefault()
+      setDragOver(cellAt(mv))
+    }
+    const up = uv => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      setDragOver(null)
+      setDragging(false)
+      if (d.active) {
+        const to = cellAt(uv)
+        if (to && to !== srcDay) onMove(e, srcDay, to)
+      }
+      setTimeout(() => { dragRef.current = null }, 0)   // 뒤따르는 click까지 억제 유지
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+
   return (
-    <div className={'cal-grid' + (onDayClick ? ' editable' : '')}>
+    <div className={'cal-grid' + (onDayClick ? ' editable' : '') + (dragging ? ' dragging' : '')}>
       {DOW.map(d => <div key={d} className="cal-dow">{d}</div>)}
       {cells.map(c => {
         const list = byDay[c.iso] || []
@@ -410,8 +447,9 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false }) {
         return (
           <div
             key={c.iso}
-            className={'cal-cell' + (c.inMonth ? '' : ' dim') + (c.iso === today ? ' today' : '')}
-            onClick={onDayClick ? () => onDayClick(c.iso) : undefined}
+            data-date={c.iso}
+            className={'cal-cell' + (c.inMonth ? '' : ' dim') + (c.iso === today ? ' today' : '') + (dragging && dragOver === c.iso ? ' drop' : '')}
+            onClick={onDayClick ? () => { if (!dragRef.current?.active) onDayClick(c.iso) } : undefined}
             title={onDayClick ? '클릭해서 일정 등록' : undefined}
           >
             <div className="cal-dayrow">
@@ -422,7 +460,8 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false }) {
               <button
                 key={e.id + c.iso + (e.isEnd ? 'e' : e.isMid ? 'm' : '')}
                 className={'cal-ev' + (e.isEnd ? ' end' : '') + (e.isMid ? ' mid' : '')}
-                onClick={ev => { ev.stopPropagation(); onSelect(e) }}
+                onPointerDown={pv => pickUp(pv, e, c.iso)}
+                onClick={ev => { ev.stopPropagation(); if (dragRef.current?.active) return; onSelect(e) }}
                 title={`${channelById(e.channel)?.label || e.channel}${e.sub ? ` (${e.sub})` : ''} — ${displayTitle(e.title, e.channel)} (${fmtRange(e)})`}
               >
                 <ChannelIcon id={e.channel} />
@@ -823,6 +862,40 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
     } catch (err) { setError(err.message) }
   }
 
+  /* 드래그앤드롭 이동 ('26.7) — 집어든 셀 → 놓은 셀 날짜 차만큼 평행이동 (기간 유지).
+     updateEvent는 전체 필드를 보내야 해서(toDb) 기존 값으로 채움 — perfUrl은 미포함(확정 불변).
+     이동 직후 8초간 "실행 취소" 바 노출 (실수 이동 즉시 복구) */
+  const [undo, setUndo] = useState(null)
+  const undoTimer = useRef(null)
+  const addDays = (iso, n) => toISO(new Date(fromISO(iso).getTime() + n * 86400000))
+  const moveFields = (e, date, endDate) => ({
+    title: e.title, date, endDate: endDate || null, channel: e.channel,
+    sub: e.sub || null, campaign: e.campaign || null,
+    owner: e.owner || null, memo: e.memo || null, kind: e.kind || null,
+  })
+  const applyMove = async (id, fields) => {
+    const ev = await updateEvent(id, fields)
+    setEvents(prev => prev.map(x => (x.id === id ? ev : x)).sort((a, b) => a.date.localeCompare(b.date)))
+    return ev
+  }
+  const onMove = async (e, srcDay, dstDay) => {
+    const delta = Math.round((fromISO(dstDay) - fromISO(srcDay)) / 86400000)
+    if (!delta) return
+    try {
+      const nd = addDays(e.date, delta)
+      await applyMove(e.id, moveFields(e, nd, e.endDate ? addDays(e.endDate, delta) : null))
+      clearTimeout(undoTimer.current)
+      setUndo({ id: e.id, fields: moveFields(e, e.date, e.endDate), from: e.date, to: nd, title: e.title, channel: e.channel })
+      undoTimer.current = setTimeout(() => setUndo(null), 8000)
+    } catch (err) { setError(err.message) }
+  }
+  const onUndo = async () => {
+    if (!undo) return
+    clearTimeout(undoTimer.current)
+    try { await applyMove(undo.id, undo.fields) } catch (err) { setError(err.message) }
+    setUndo(null)
+  }
+
   /* 탭별 대상: 촬영 탭 = kind '촬영' / 팀 탭 = kind '팀' / 매체 캘린더 = 그 외 전부 */
   const kindEvents = useMemo(
     () => events.filter(e =>
@@ -948,6 +1021,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
         <MonthGrid
           cursor={cursor} events={monthEvents} onSelect={e => setSelected(e.orig || e)}
           onDayClick={readOnly ? null : setDayDraft} wide={readOnly}
+          onMove={readOnly ? null : onMove}
         />
       ) : (
         <CampaignView events={filtered} onSelect={setSelected} onRename={readOnly ? null : onRename} />
@@ -971,6 +1045,15 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
           campaigns={campaigns}
           onClose={() => setDayDraft(null)} onCreate={onCreate}
         />
+      )}
+
+      {undo && !readOnly && (
+        <div className="undo-bar">
+          <span className="undo-msg">
+            "{displayTitle(undo.title, undo.channel)}" {fmtDot(undo.from)} → {fmtDot(undo.to)} 이동됨
+          </span>
+          <button className="undo-btn" onClick={onUndo}>실행 취소</button>
+        </div>
       )}
 
     </div>
