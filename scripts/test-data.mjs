@@ -8,7 +8,7 @@ import { CHANNELS, KEYWORDS, TITLE_ALIASES } from '../src/data/channels.js'
 import { SPEC_LINK_MAP } from '../src/lib/specLink.js'
 import { YT_KEY, IG_HANDLE } from '../src/lib/perf.js'
 import { HOLIDAYS } from '../src/data/holidays.js'
-import { TEAM } from '../src/data/team.js'
+import { TEAM, withAuthorName } from '../src/data/team.js'
 import { IG_ACCOUNTS, YT_CHANNELS } from './sns/accounts.mjs'
 
 let fail = 0
@@ -62,6 +62,19 @@ for (const iso of Object.keys(HOLIDAYS)) {
 for (const email of Object.keys(TEAM)) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) bad(`team.js 이메일 형식 오류: "${email}"`)
   if (email !== email.toLowerCase()) bad(`team.js 이메일은 소문자로: "${email}" (authorName이 소문자로 조회)`)
+}
+
+/* 6b. 팀 일정 이름 자동 병기 — "연차"만 쓰면 작성자 이름이 붙고,
+   명단의 이름이 이미 있으면(대신 등록) 그대로 둬야 함 */
+const wa = [
+  [withAuthorName('연차', '노규빈 선임'), '노규빈 연차'],
+  [withAuthorName('오후 반차', '이수정 선임'), '이수정 오후 반차'],
+  [withAuthorName('김상수, 정소미, 노규빈 목동 외근', '노규빈 선임'), '김상수, 정소미, 노규빈 목동 외근'],
+  [withAuthorName('김희진 연차', '노규빈 선임'), '김희진 연차'],
+  [withAuthorName('연차', ''), '연차'],   // 로컬 모드(로그인 없음) — 변형 금지
+]
+for (const [got, want] of wa) {
+  if (got !== want) bad(`withAuthorName: "${got}" ≠ 기대값 "${want}"`)
 }
 
 /* 7. media.js 스키마 최소 요건 */
