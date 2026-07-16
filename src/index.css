@@ -265,6 +265,19 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .cal-grid.editable .cal-cell{cursor:pointer;}
 .cal-grid.editable .cal-cell:hover{background:var(--g50);}
 .cal-grid.editable .cal-cell.dim:hover{background:var(--g100);}
+/* 드래그앤드롭 일정 이동 ('26.7) — 대상 셀은 그린 아웃라인, 드래그 중 선택·호버 무효 */
+.cal-grid.editable .cal-ev{cursor:grab;}
+.cal-grid.dragging, .cal-grid.dragging .cal-ev, .cal-grid.dragging .cal-cell{cursor:grabbing;}
+.cal-grid.dragging{user-select:none;-webkit-user-select:none;}
+.cal-grid.dragging .cal-cell:hover{background:inherit;}
+.cal-cell.drop, .cal-grid.dragging .cal-cell.drop:hover{background:var(--g50);
+  outline:2px solid var(--green);outline-offset:-2px;}
+.undo-bar{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:120;
+  display:flex;align-items:center;gap:16px;max-width:calc(100vw - 40px);
+  background:var(--g900);color:#fff;border-radius:10px;padding:11px 18px;font-size:13.5px;}
+.undo-msg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.undo-btn{background:none;border:none;color:var(--hl);font-weight:800;font-size:13.5px;
+  cursor:pointer;padding:0;white-space:nowrap;}
 .cal-cell:nth-child(7n){border-right:none;}
 .cal-cell.dim{background:var(--g50);}
 .cal-cell.dim .cal-daynum{color:var(--g200);}
