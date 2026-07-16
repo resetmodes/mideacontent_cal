@@ -5,7 +5,7 @@ import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, list
 import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
 import { findPerformance } from './lib/perf.js'
-import { authorName } from './data/team.js'
+import { authorName, withAuthorName } from './data/team.js'
 import { HOLIDAYS } from './data/holidays.js'
 import { MIRROR_URL } from './config.js'
 import ChannelIcon from './ChannelIcon.jsx'
@@ -795,7 +795,11 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
 
   const onCreate = async e => {
     try {
-      const ev = await createEvent({ ...e, owner: e.owner || me || null })
+      const ev = await createEvent({
+        ...e,
+        ...(e.kind === '팀' ? { title: withAuthorName(e.title, me) } : {}),
+        owner: e.owner || me || null,
+      })
       setEvents(prev => [...prev, ev].sort((a, b) => a.date.localeCompare(b.date)))
     } catch (err) { setError(err.message) }
   }
@@ -842,7 +846,22 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
     }
     return out
   }, [filtered, team, cursor])
-  const campaigns = useMemo(() => [...new Set(events.map(e => e.campaign).filter(Boolean))], [events])
+  /* 캠페인 제안 목록 ('26.7 필터) — 마지막 게시 후 2개월 지난 캠페인은 제안에서 제외,
+     최근 게시순 정렬. "#"만 쳤을 때 옛 캠페인이 전부 쏟아지는 문제 방지.
+     (캠페인 뷰의 보관 목록에는 계속 보임 — 제안에서만 빠짐) */
+  const campaigns = useMemo(() => {
+    const last = {}
+    for (const e of events) {
+      if (!e.campaign) continue
+      const d = e.endDate || e.date
+      if (!last[e.campaign] || d > last[e.campaign]) last[e.campaign] = d
+    }
+    const c = new Date(); c.setMonth(c.getMonth() - 2)
+    const cutoff = toISO(c)
+    return Object.keys(last)
+      .filter(k => last[k] >= cutoff)
+      .sort((a, b) => last[b].localeCompare(last[a]))
+  }, [events])
   const monthLabel = `${cursor.getFullYear()}.${String(cursor.getMonth() + 1).padStart(2, '0')}`
   const searching = search.trim().length > 0
 
