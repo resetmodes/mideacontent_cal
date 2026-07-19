@@ -6,6 +6,8 @@
   --g200:#DBDCDF; --g100:#EAEBEC; --g50:#F7F7F8;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
+/* 가로 스크롤 원천 차단 ('26.7) — 모바일에서 화면이 좌우로 밀리는 현상 방지 */
+html,body{overflow-x:hidden;}
 body{font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;
   background:var(--paper);color:var(--ink);font-size:15px;line-height:1.5;
   -webkit-font-smoothing:antialiased;}
@@ -567,11 +569,17 @@ tr.dormant .mon-acc b{color:var(--g400);}
   .ch-pick{grid-template-columns:repeat(2,1fr);}
   .mon-hero{gap:20px;}
   .mon-stat{min-width:calc(50% - 10px);}
-  /* 모바일 모달 = 하단 시트 ('26.7) — 위 여백을 남겨 화면 전체를 덮지 않게 */
-  .modal-overlay{align-items:flex-end;padding:0;}
-  .modal{max-width:none;max-height:82dvh;border-radius:16px 16px 0 0;
-    padding:18px 18px calc(14px + env(safe-area-inset-bottom));}
+  /* 모바일 모달 = 상단 시트 ('26.7 하단→상단 변경) — 등록 시 자동 포커스로 키보드가
+     바로 올라오는데, 하단 시트는 키보드에 등록 버튼이 덮여 잘렸음. 상단 고정이면
+     입력·버튼이 키보드와 물리적으로 안 겹침 */
+  .modal-overlay{align-items:flex-start;padding:0;}
+  .modal{max-width:none;max-height:82dvh;border-radius:0 0 16px 16px;
+    padding:16px 16px 14px;overflow-x:hidden;}
   .md-form{gap:10px;}
-  /* iOS는 입력 폰트 16px 미만이면 포커스 시 화면을 강제 확대 — 모바일만 16px로 */
-  .modal input,.modal select,.modal textarea,.qa-input,.cal-search{font-size:16px;}
+  /* iOS는 입력 폰트 16px 미만이면 포커스 시 화면을 강제 확대(=좌우로 밀리는 원인) —
+     모바일에선 모든 입력을 16px로. 예시(placeholder)는 따로 줄여 잘리지 않게 */
+  input,select,textarea{font-size:16px !important;}
+  .qa-input::placeholder,.cal-search::placeholder,.md-quick::placeholder,
+  .md-form input::placeholder,.md-form textarea::placeholder{font-size:12.5px;}
+  .qa-input,.cal-search{min-width:0;}
 }

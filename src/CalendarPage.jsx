@@ -269,6 +269,9 @@ function ConfirmSheet({ draft, sim, onConfirm, onCancel, shootOnly = false, team
   )
 }
 
+/* 모바일 판별 — 예시 문구를 짧게 (긴 placeholder가 잘려 보이던 문제) */
+const isMobile = () => typeof window !== 'undefined' && window.matchMedia('(max-width:560px)').matches
+
 function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
   const [text, setText] = useState('')
   const [err, setErr] = useState(null)
@@ -333,11 +336,13 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
         <span className="io-label reg">등록</span>
         <input
           className="qa-input" type="text" autoComplete="off"
-          placeholder={team
-            ? '한 줄 등록 — 예: 7/20 김희진 연차 · 다음주 금요일 반차 · 8/1~3 김상수 부산 출장'
-            : shoot
-              ? '한 줄 등록 — 예: 7/10 촬영 7/15 업로드 여름 룩북 인스타 · 다음주 화요일 촬영 세팅'
-              : '한 줄 등록 — 예: 12/20 크리스마스 인스타 릴스 #크리스마스 · 다음주 목요일 앱푸쉬'}
+          placeholder={isMobile()
+            ? (team ? '예: 7/20 김희진 연차 · 다음주 월~수 출장' : shoot ? '예: 7/10 촬영 7/15 업로드 인스타' : '예: 12/20 인스타 릴스 #크리스마스')
+            : team
+              ? '한 줄 등록 — 예: 7/20 김희진 연차 · 다음주 금요일 반차 · 다음주 월~수 김상수 출장'
+              : shoot
+                ? '한 줄 등록 — 예: 7/10 촬영 7/15 업로드 여름 룩북 인스타 · 다음주 화요일 촬영 세팅'
+                : '한 줄 등록 — 예: 12/20 크리스마스 인스타 릴스 #크리스마스 · 다음주 목요일 앱푸쉬'}
           value={text}
           onChange={e => { setText(e.target.value); setErr(null) }}
           onKeyDown={e => {
@@ -728,9 +733,11 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
             {isNew && (
               <input
                 className="qa-input md-quick" type="text" autoComplete="off" autoFocus
-                placeholder={isTeam
-                  ? `한 줄 자동 작성 — 예: 김희진 연차${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`
-                  : `한 줄 자동 작성 — 예: 본사 인스타 릴스 촬영 #여름${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`}
+                placeholder={mobile
+                  ? (isTeam ? '예: 김희진 연차' : '예: 인스타 릴스 여름 룩북 #여름')
+                  : isTeam
+                    ? `한 줄 자동 작성 — 예: 김희진 연차${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`
+                    : `한 줄 자동 작성 — 예: 본사 인스타 릴스 촬영 #여름${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`}
                 value={quick}
                 onChange={e => applyQuick(e.target.value)}
               />
@@ -993,7 +1000,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
         <span className="io-label">검색</span>
         <input
           className="cal-search" type="search" autoComplete="off"
-          placeholder="등록된 일정 찾기 — 제목·캠페인·메모·작성자·매체"
+          placeholder={isMobile() ? '일정 찾기 — 제목·캠페인·작성자' : '등록된 일정 찾기 — 제목·캠페인·메모·작성자·매체'}
           value={search} onChange={e => setSearch(e.target.value)}
         />
         {searching && <button className="cal-search-clear" onClick={() => setSearch('')}>지우기</button>}
