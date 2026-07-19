@@ -110,7 +110,7 @@ function extractLabeledDates(text, today) {
        channel:"인스타", sub:"공식", campaign:"크리스마스" }
    날짜 지원: 12/20 · 12.20 · 7월 10일 · 범위(12/20~25, 7월 10일~15일, 7월 10일~8월 2일)
              · 오늘/내일/모레 · 상대 주차("다음주 목요일"·"다다음주 월요일"·"지난주 토요일",
-               금주/차주/저번주 동의어 — 주 시작 월요일)
+               기간 "다음주 월~수" — 금주/차주/저번주 동의어, 주 시작 월요일)
    그 외: 캠페인 #태그 · 매체 키워드 자동 인식 · 다중 매체(인스타+유튜브 → channels 배열)
         · 촬영/업로드 병기("7/10 촬영 7/15 업로드" → shootDate + date)
    opts ('26.7 팀 일정): { keywords, normalize } — 팀 일정 탭은 매체 대신 유형 키워드
@@ -145,9 +145,13 @@ export function parseQuick(input, today = new Date(), opts = {}) {
     /* 2) 숫자: "12/20", "12.20", 범위 "12/20~12/25", "12/20~25" */
     const nm = text.match(/(\d{1,2})[/.](\d{1,2})(?:\s*[~-]\s*(?:(\d{1,2})[/.])?(\d{1,2}))?/)
     /* 3) 상대 주차: "다음주 목요일", "다다음주 월요일", "지난주 토요일" ('26.7)
+       + 기간: "다음주 월~수", "다음주 월요일~수요일" ('26.7 확장)
        주 시작은 월요일 (한국 업무 관례) — 일요일에 "다음주"라고 쓰면 내일부터 시작하는 주.
-       금주=이번주, 차주=다음주, 저번주=지난주 동의어 지원 */
-    const wm = text.match(/(다다음\s*주|다음\s*주|이번\s*주|지난\s*주|저번\s*주|차차주|차주|금주)\s*([월화수목금토일])요일/)
+       금주=이번주, 차주=다음주, 저번주=지난주 동의어 지원.
+       단일은 "요일"까지 써야 인식 ("다음주 월간 보고" 오인 방지), 기간은 ~가 경계라 축약 허용 */
+    const W = '다다음\\s*주|다음\\s*주|이번\\s*주|지난\\s*주|저번\\s*주|차차주|차주|금주'
+    const wr = text.match(new RegExp(`(${W})\\s*([월화수목금토일])(?:요일)?\\s*[~-]\\s*([월화수목금토일])(?:요일)?`))
+    const wm = wr ? null : text.match(new RegExp(`(${W})\\s*([월화수목금토일])요일`))
     /* 4) 상대: 오늘/내일/모레 */
     const rm = text.match(/오늘|내일|모레/)
 
@@ -157,14 +161,22 @@ export function parseQuick(input, today = new Date(), opts = {}) {
       date = toISO(start)
       if (m[4]) endDate = rangeEnd(start, m[3] ? +m[3] : +m[1], +m[4])
       cut(m)
-    } else if (wm) {
+    } else if (wr || wm) {
+      const g = wr || wm
       const WEEK_OFF = { 다다음주: 2, 다음주: 1, 이번주: 0, 지난주: -1, 저번주: -1, 차차주: 2, 차주: 1, 금주: 0 }
-      const off = WEEK_OFF[wm[1].replace(/\s/g, '')]
-      const wd = '월화수목금토일'.indexOf(wm[2])          // 0=월 … 6=일
+      const off = WEEK_OFF[g[1].replace(/\s/g, '')]
+      const wd = '월화수목금토일'.indexOf(g[2])           // 0=월 … 6=일
       const d = new Date(today.getFullYear(), today.getMonth(), today.getDate())
       d.setDate(d.getDate() - (d.getDay() + 6) % 7 + off * 7 + wd)   // 이번 주 월요일 기준 이동
       date = toISO(d)
-      cut(wm)
+      if (wr) {
+        let wd2 = '월화수목금토일'.indexOf(g[3])
+        if (wd2 < wd) wd2 += 7                            // "금~월"처럼 주를 넘는 범위
+        const e2 = new Date(d)
+        e2.setDate(d.getDate() + (wd2 - wd))
+        endDate = toISO(e2)
+      }
+      cut(g)
     } else if (rm) {
       const offset = { 오늘: 0, 내일: 1, 모레: 2 }[rm[0]]
       const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset)
