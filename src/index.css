@@ -182,7 +182,7 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .qa-owner::placeholder{color:var(--g400);}
 .qa-owner:focus{border-color:var(--green);}
 .qa-btn{font-family:inherit;font-size:14px;font-weight:700;color:#fff;background:var(--green);
-  border:none;border-radius:10px;padding:0 20px;cursor:pointer;}
+  border:none;border-radius:10px;padding:0 20px;cursor:pointer;white-space:nowrap;}
 .qa-btn:active{opacity:.85;}
 /* 인식 상태 칩 — 인식(테두리 실선)·미인식(빨간 점선) 명확 구분 */
 .qa-status{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
@@ -420,6 +420,11 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .btn-solid:active{opacity:.85;}
 
 .md-quick{width:100%;margin-top:12px;font-size:14px;}
+.md-mini{margin-top:12px;}
+.md-expand{margin-top:12px;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--g600);
+  background:none;border:1px solid var(--g200);border-radius:9px;padding:8px 12px;cursor:pointer;}
+.md-expand:hover{border-color:var(--g400);color:var(--ink);}
+.md-actions .btn-solid:disabled{opacity:.4;cursor:default;}
 
 /* 집행 실적 후보 — 일정 ↔ SNS 수집분 매칭 (가로선만, 타이포 위계) */
 .md-perf{margin-top:14px;border-top:1px solid var(--ink);}
@@ -562,4 +567,11 @@ tr.dormant .mon-acc b{color:var(--g400);}
   .ch-pick{grid-template-columns:repeat(2,1fr);}
   .mon-hero{gap:20px;}
   .mon-stat{min-width:calc(50% - 10px);}
+  /* 모바일 모달 = 하단 시트 ('26.7) — 위 여백을 남겨 화면 전체를 덮지 않게 */
+  .modal-overlay{align-items:flex-end;padding:0;}
+  .modal{max-width:none;max-height:82dvh;border-radius:16px 16px 0 0;
+    padding:18px 18px calc(14px + env(safe-area-inset-bottom));}
+  .md-form{gap:10px;}
+  /* iOS는 입력 폰트 16px 미만이면 포커스 시 화면을 강제 확대 — 모바일만 16px로 */
+  .modal input,.modal select,.modal textarea,.qa-input,.cal-search{font-size:16px;}
 }
