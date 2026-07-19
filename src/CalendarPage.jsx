@@ -317,7 +317,7 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
   const submit = () => {
     if (!draft) return
     if (!draft.date && !draft.shootDate) { setErr(team ? '날짜를 인식하지 못함 — 7/20 또는 8/1~3 형식으로' : '날짜를 인식하지 못함 — 12/20 형식, 촬영·업로드 병기는 "7/10 촬영 7/15 업로드"'); return }
-    if (!draft.title) { setErr(team ? '내용이 비어 있음 — 날짜 뒤에 이름·내용을 입력 (예: 7/20 김희진 연차)' : '제목이 비어 있음 — 날짜 뒤에 내용을 입력'); return }
+    if (!draft.title) { setErr(team ? '내용이 비어 있음 — 날짜 뒤에 이름·내용을 입력 (예: 7/20 노규빈 연차)' : '제목이 비어 있음 — 날짜 뒤에 내용을 입력'); return }
     /* 촬영 건 포함 시 매체 제한 — 유튜브·인스타만 (팀 탭은 해당 없음) */
     const hasShoot = !team && (shoot || !!draft.shootDate)
     const chans = draft.channels?.length ? draft.channels : (draft.channel ? [{ channel: draft.channel }] : [])
@@ -337,9 +337,9 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
         <input
           className="qa-input" type="text" autoComplete="off"
           placeholder={isMobile()
-            ? (team ? '예: 7/20 김희진 연차 · 다음주 월~수 출장' : shoot ? '예: 7/10 촬영 7/15 업로드 인스타' : '예: 12/20 인스타 릴스 #크리스마스')
+            ? (team ? '예: 7/20 노규빈 연차 · 다음주 월~수 출장' : shoot ? '예: 7/10 촬영 7/15 업로드 인스타' : '예: 12/20 인스타 릴스 #크리스마스')
             : team
-              ? '한 줄 등록 — 예: 7/20 김희진 연차 · 다음주 금요일 반차 · 다음주 월~수 김상수 출장'
+              ? '한 줄 등록 — 예: 7/20 노규빈 연차 · 다음주 금요일 반차 · 다음주 월~수 노규빈 출장'
               : shoot
                 ? '한 줄 등록 — 예: 7/10 촬영 7/15 업로드 여름 룩북 인스타 · 다음주 화요일 촬영 세팅'
                 : '한 줄 등록 — 예: 12/20 크리스마스 인스타 릴스 #크리스마스 · 다음주 목요일 앱푸쉬'}
@@ -734,9 +734,9 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
               <input
                 className="qa-input md-quick" type="text" autoComplete="off" autoFocus
                 placeholder={mobile
-                  ? (isTeam ? '예: 김희진 연차' : '예: 인스타 릴스 여름 룩북 #여름')
+                  ? (isTeam ? '예: 노규빈 연차' : '예: 인스타 릴스 여름 룩북 #여름')
                   : isTeam
-                    ? `한 줄 자동 작성 — 예: 김희진 연차${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`
+                    ? `한 줄 자동 작성 — 예: 노규빈 연차${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`
                     : `한 줄 자동 작성 — 예: 본사 인스타 릴스 촬영 #여름${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`}
                 value={quick}
                 onChange={e => applyQuick(e.target.value)}
