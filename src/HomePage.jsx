@@ -29,7 +29,6 @@ const compact = n => {
 function WeekHero({ events, today, onGo }) {
   const s = useMemo(() => {
     const end7 = addDays(today, 7)
-    const inWeek = e => e.date <= end7 && (e.endDate || e.date) >= today
     const media = events.filter(e => !e.kind)
     const posts = media.filter(e => e.date >= today && e.date <= end7).length
     const campaigns = new Set(
@@ -37,7 +36,10 @@ function WeekHero({ events, today, onGo }) {
         .map(e => e.campaign)
     ).size
     const shoots = events.filter(e => e.kind === '촬영' && e.date >= today && e.date <= end7).length
-    const away = events.filter(e => e.kind === '팀' && e.channel !== '기념일' && inWeek(e)).length
+    /* 부재는 "오늘" 기준 ('26.7 변경) — 오늘 날짜가 일정 기간에 포함되는 건만 */
+    const away = events.filter(e =>
+      e.kind === '팀' && e.channel !== '기념일' && e.date <= today && (e.endDate || e.date) >= today
+    ).length
     return { posts, campaigns, shoots, away }
   }, [events, today])
 
@@ -45,7 +47,7 @@ function WeekHero({ events, today, onGo }) {
     { label: '이번 주 게시 예정', value: s.posts, unit: '건', sub: '오늘부터 7일', to: 'calendar' },
     { label: '진행·예정 캠페인', value: s.campaigns, unit: '개', sub: '3주 내 기준', to: 'calendar' },
     { label: '이번 주 촬영', value: s.shoots, unit: '건', sub: '유튜브·인스타', to: 'shoot' },
-    { label: '이번 주 팀원 부재', value: s.away, unit: '건', sub: '연차·외근·출장·교육', to: 'team' },
+    { label: '오늘 팀원 부재', value: s.away, unit: '건', sub: '연차·외근·출장·교육', to: 'team' },
   ]
 
   return (

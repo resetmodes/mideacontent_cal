@@ -554,11 +554,16 @@ tr.dormant .mon-acc b{color:var(--g400);}
   background:var(--g50);border:1px solid var(--g100);border-radius:4px;padding:0 4px;font-size:.92em;}
 
 @media (max-width:560px){
-  .cal-cell{min-height:72px;padding:4px 3px;}
+  /* 월간 그리드 모바일 가독성 ('26.7) — 셀 여유 확대 + 제목 2줄 표시(한 줄 말줄임 대신).
+     칩을 인라인으로 흘려 좁은 셀에서 제목이 셀 전체 폭을 쓰게 함 */
+  .cal-cell{min-height:88px;padding:5px 3px 6px;}
+  .cal-daynum{font-size:13px;}
+  .cal-ev{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;padding:2px 0;}
+  .cal-ev .ch-chip{display:inline-flex;width:12px;height:12px;margin-right:3px;vertical-align:-2px;}
   .ch-chip{width:14px;height:14px;}
-  .ch-chip svg{width:10px;height:10px;}
-  .cal-ev{gap:3px;}
-  .ev-title{font-size:10.5px;}
+  .ch-chip svg{width:9px;height:9px;}
+  .ev-title{display:inline;font-size:11px;line-height:1.3;white-space:normal;}
   .share-btn{white-space:nowrap;}
   .camp-ev{grid-template-columns:1fr;gap:2px;}
   .srch-ev{grid-template-columns:1fr;gap:2px;}
