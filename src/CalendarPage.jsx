@@ -594,6 +594,10 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
   const [editing, setEditing] = useState(isNew)
   const [confirmDel, setConfirmDel] = useState(false)
   const [quick, setQuick] = useState('')
+  /* 모바일 신규 등록 ('26.7): 한 줄 입력 + 요약 칩만 먼저 — 긴 폼은 "상세 입력"을
+     눌렀을 때만 펼침 (작은 화면에서 9개 필드 세로 스택이 화면을 다 덮던 문제) */
+  const mobile = typeof window !== 'undefined' && window.matchMedia('(max-width:560px)').matches
+  const [expanded, setExpanded] = useState(!(isNew && mobile))
   const isShoot = event.kind === '촬영'
   const isTeam = event.kind === '팀'
   const specName = isTeam ? null : resolveSpecMedia(event.channel, event.sub)
@@ -725,13 +729,24 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
               <input
                 className="qa-input md-quick" type="text" autoComplete="off" autoFocus
                 placeholder={isTeam
-                  ? '한 줄 자동 작성 — 예: 김희진 연차 (아래 폼이 자동으로 채워짐)'
-                  : '한 줄 자동 작성 — 예: 본사 인스타 릴스 촬영 #여름 (아래 폼이 자동으로 채워짐)'}
+                  ? `한 줄 자동 작성 — 예: 김희진 연차${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`
+                  : `한 줄 자동 작성 — 예: 본사 인스타 릴스 촬영 #여름${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`}
                 value={quick}
                 onChange={e => applyQuick(e.target.value)}
               />
             )}
-            <div className="md-form">
+            {!expanded && (
+              <>
+                <div className="qa-status md-mini">
+                  <span className="st got">{f.endDate ? `${fmtDot(f.date)} ~ ${fmtDot(f.endDate)}` : fmtDot(f.date)}</span>
+                  <span className="st got"><ChannelIcon id={f.channel} /> {channelById(f.channel)?.label || f.channel}{f.sub ? ` · ${f.sub}` : ''}</span>
+                  {f.campaign && <span className="st camp">#{f.campaign}</span>}
+                  {f.title ? <span className="st ttl">{f.title}</span> : <span className="st miss">내용을 위에 입력</span>}
+                </div>
+                <button className="md-expand" onClick={() => setExpanded(true)}>상세 입력 펼치기 — 매체·기간·메모 직접 선택</button>
+              </>
+            )}
+            <div className="md-form" style={expanded ? undefined : { display: 'none' }}>
               <label>제목
                 <input value={f.title} onChange={e => set('title', e.target.value)} />
               </label>
@@ -786,7 +801,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
             <div className="md-actions">
               <div className="md-spacer" />
               <button className="btn-ghost" onClick={() => (isNew ? onClose() : setEditing(false))}>취소</button>
-              <button className="btn-solid" onClick={save}>{isNew ? '등록' : '저장'}</button>
+              <button className="btn-solid" disabled={!f.title.trim() || !f.date} onClick={save}>{isNew ? '등록' : '저장'}</button>
             </div>
           </>
         )}
