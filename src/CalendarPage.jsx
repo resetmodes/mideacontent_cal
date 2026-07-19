@@ -330,13 +330,14 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
   return (
     <div className="quick-add">
       <div className="qa-row">
+        <span className="io-label reg">등록</span>
         <input
           className="qa-input" type="text" autoComplete="off"
           placeholder={team
-            ? '팀 일정 빠른 입력 — 예: 7/20 김희진 연차 · 8/1~3 김상수 부산 출장 · 7/25 이수정 생일'
+            ? '한 줄 등록 — 예: 7/20 김희진 연차 · 다음주 금요일 반차 · 8/1~3 김상수 부산 출장'
             : shoot
-              ? '촬영일정 빠른 입력 — 예: 7/10 촬영 7/15 업로드 여름 룩북 인스타 (업로드 건은 매체 캘린더로)'
-              : '일정 빠른 입력 — 예: 12/20 크리스마스 인스타 릴스 #크리스마스 (인스타+유튜브 = 동시 등록)'}
+              ? '한 줄 등록 — 예: 7/10 촬영 7/15 업로드 여름 룩북 인스타 · 다음주 화요일 촬영 세팅'
+              : '한 줄 등록 — 예: 12/20 크리스마스 인스타 릴스 #크리스마스 · 다음주 목요일 앱푸쉬'}
           value={text}
           onChange={e => { setText(e.target.value); setErr(null) }}
           onKeyDown={e => {
@@ -974,9 +975,10 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
       )}
 
       <div className="cal-search-row">
+        <span className="io-label">검색</span>
         <input
           className="cal-search" type="search" autoComplete="off"
-          placeholder="전체 일정 검색 — 제목·캠페인·메모·작성자·매체"
+          placeholder="등록된 일정 찾기 — 제목·캠페인·메모·작성자·매체"
           value={search} onChange={e => setSearch(e.target.value)}
         />
         {searching && <button className="cal-search-clear" onClick={() => setSearch('')}>지우기</button>}
