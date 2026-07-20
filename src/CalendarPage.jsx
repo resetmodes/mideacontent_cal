@@ -401,7 +401,22 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
   )
 }
 
-function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove = null }) {
+/* 타겟APP 셀 묶음 ('26.7) — 같은 제목·기간의 타겟APP 형제 건(세부만 다름)을 셀에서
+   한 줄 "×N"으로 합침 (10종 동시 등록 시 셀 도배 방지). 클릭하면 세부 선택 시트 */
+function groupCellEvents(list) {
+  const out = [], gmap = {}
+  for (const e of list) {
+    if (e.channel !== '타겟APP') { out.push(e); continue }
+    const key = [e.title, e.date, e.endDate || '', e.isEnd ? 'e' : e.isMid ? 'm' : ''].join('|')
+    if (gmap[key]) { gmap[key].group.push(e); continue }
+    const item = { ...e, group: [e] }
+    gmap[key] = item
+    out.push(item)
+  }
+  return out
+}
+
+function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove = null, onGroup = null }) {
   const cells = useMemo(() => buildMonth(cursor), [cursor])
   const byDay = useMemo(() => indexByDay(events, wide), [events, wide])
   const today = todayISO()
@@ -448,7 +463,7 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
     <div className={'cal-grid' + (onDayClick ? ' editable' : '') + (dragging ? ' dragging' : '')}>
       {DOW.map(d => <div key={d} className="cal-dow">{d}</div>)}
       {cells.map(c => {
-        const list = byDay[c.iso] || []
+        const list = groupCellEvents(byDay[c.iso] || [])
         const hol = HOLIDAYS[c.iso]
         return (
           <div
@@ -462,19 +477,30 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
               <div className={'cal-daynum' + (c.dow === 0 || c.dow === 6 || hol ? ' wknd' : '')}>{c.day}</div>
               {hol && <span className="cal-hol">{hol}</span>}
             </div>
-            {list.slice(0, MAX).map(e => (
-              <button
-                key={e.id + c.iso + (e.isEnd ? 'e' : e.isMid ? 'm' : '')}
-                className={'cal-ev' + (e.isEnd ? ' end' : '') + (e.isMid ? ' mid' : '')}
-                onPointerDown={pv => pickUp(pv, e, c.iso)}
-                onClick={ev => { ev.stopPropagation(); if (dragRef.current?.active) return; onSelect(e) }}
-                title={`${channelById(e.channel)?.label || e.channel}${e.sub ? ` (${e.sub})` : ''} — ${displayTitle(e.title, e.channel)} (${fmtRange(e)})`}
-              >
-                <ChannelIcon id={e.channel} />
-                {wide && <span className="ev-ch">{channelById(e.channel)?.label || e.channel}</span>}
-                <span className="ev-title">{displayTitle(e.title, e.channel)}{e.isEnd && ' · 종료'}</span>
-              </button>
-            ))}
+            {list.slice(0, MAX).map(e => {
+              const n = e.group?.length || 1
+              return (
+                <button
+                  key={e.id + c.iso + (e.isEnd ? 'e' : e.isMid ? 'm' : '') + (n > 1 ? 'g' : '')}
+                  className={'cal-ev' + (e.isEnd ? ' end' : '') + (e.isMid ? ' mid' : '')}
+                  onPointerDown={pv => pickUp(pv, e, c.iso)}
+                  onClick={ev => {
+                    ev.stopPropagation()
+                    if (dragRef.current?.active) return
+                    if (n > 1 && onGroup) onGroup(e.group)
+                    else onSelect(n > 1 ? e.group[0] : e)
+                  }}
+                  title={n > 1
+                    ? `타겟APP ${n}개 매체 동시 집행 — ${displayTitle(e.title, e.channel)} (${fmtRange(e)})`
+                    : `${channelById(e.channel)?.label || e.channel}${e.sub ? ` (${e.sub})` : ''} — ${displayTitle(e.title, e.channel)} (${fmtRange(e)})`}
+                >
+                  <ChannelIcon id={e.channel} />
+                  {n > 1 && <span className="ev-cnt">×{n}</span>}
+                  {wide && <span className="ev-ch">{channelById(e.channel)?.label || e.channel}</span>}
+                  <span className="ev-title">{displayTitle(e.title, e.channel)}{e.isEnd && ' · 종료'}</span>
+                </button>
+              )
+            })}
             {list.length > MAX && <div className="cal-more">+{list.length - MAX}</div>}
           </div>
         )
@@ -624,6 +650,12 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
   const [f, setF] = useState({ ...event, sub: event.sub || '', campaign: event.campaign || '', owner: event.owner || '', memo: event.memo || '', endDate: event.endDate || '' })
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
 
+  /* 세부 다중 선택 ('26.7) — 신규 등록에서 세부를 체크박스로 여러 개 고르면 선택 수만큼
+     동시 등록 (타겟APP 바이비+아파트너+카카오골프 등). 팀 일정은 단일 select 유지 */
+  const multiSub = isNew && !isTeam
+  const [subsSel, setSubsSel] = useState(event.sub ? [event.sub] : [])
+  const toggleSub = s => setSubsSel(prev => (prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]))
+
   /* 한 줄 입력 → 폼 자동 채움. 날짜를 안 쓰면 클릭한 날짜 유지 */
   const applyQuick = v => {
     setQuick(v)
@@ -638,6 +670,10 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
       date: d.date || prev.date,
       endDate: d.endDate || prev.endDate,
     }))
+    if (d.channels?.length > 1 && d.channels.every(c => c.channel === d.channels[0].channel))
+      setSubsSel(d.channels.map(c => c.sub).filter(Boolean))   // "바이비+아파트너" 한 줄 → 체크 반영
+    else if (d.sub) setSubsSel([d.sub])
+    else if (d.channel) setSubsSel([])
   }
   const subs = channelById(f.channel)?.subs || []
   const campSuggest = campaigns.filter(c =>
@@ -652,8 +688,14 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
       owner: f.owner.trim() || null, memo: f.memo.trim() || null,
       kind: f.kind || null,
     }
-    if (isNew) await onCreate(fields)
-    else await onSave(event.id, fields)
+    if (isNew && multiSub) {
+      const subs = subsSel.length ? subsSel : [null]
+      for (const s of subs) await onCreate({ ...fields, sub: s })   // 체크 수만큼 동시 등록
+    } else if (isNew) {
+      await onCreate(fields)
+    } else {
+      await onSave(event.id, fields)
+    }
     onClose()
   }
 
@@ -746,7 +788,8 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
               <>
                 <div className="qa-status md-mini">
                   <span className="st got">{f.endDate ? `${fmtDot(f.date)} ~ ${fmtDot(f.endDate)}` : fmtDot(f.date)}</span>
-                  <span className="st got"><ChannelIcon id={f.channel} /> {channelById(f.channel)?.label || f.channel}{f.sub ? ` · ${f.sub}` : ''}</span>
+                  <span className="st got"><ChannelIcon id={f.channel} /> {channelById(f.channel)?.label || f.channel}{subsSel.length ? ` · ${subsSel.join('·')}` : f.sub ? ` · ${f.sub}` : ''}</span>
+                  {subsSel.length > 1 && <span className="st camp">{subsSel.length}건 동시 등록</span>}
                   {f.campaign && <span className="st camp">#{f.campaign}</span>}
                   {f.title ? <span className="st ttl">{f.title}</span> : <span className="st miss">내용을 위에 입력</span>}
                 </div>
@@ -767,18 +810,35 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
               </div>
               <div className="md-cols">
                 <label>{isTeam ? '유형' : '매체'}
-                  <select value={f.channel} onChange={e => { set('channel', e.target.value); set('sub', '') }}>
+                  <select value={f.channel} onChange={e => { set('channel', e.target.value); set('sub', ''); setSubsSel([]) }}>
                     {(isTeam ? TEAM_TYPES : isShoot ? CHANNELS.filter(c => SHOOT_CHANNELS.has(c.id)) : CHANNELS)
                       .map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
                 </label>
-                <label>세부
-                  <select value={f.sub} onChange={e => set('sub', e.target.value)} disabled={subs.length === 0}>
-                    <option value="">{subs.length ? '선택' : '—'}</option>
-                    {subs.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </label>
+                {!(multiSub && subs.length > 0) && (
+                  <label>세부
+                    <select value={f.sub} onChange={e => set('sub', e.target.value)} disabled={subs.length === 0}>
+                      <option value="">{subs.length ? '선택' : '—'}</option>
+                      {subs.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </label>
+                )}
               </div>
+              {multiSub && subs.length > 0 && (
+                <label>세부 — 체크한 만큼 동시 등록{subsSel.length > 1 ? ` (${subsSel.length}건)` : ''}
+                  <div className="sub-pick">
+                    {subs.map(s => (
+                      <button type="button" key={s} className={subsSel.includes(s) ? 'on' : ''} onClick={() => toggleSub(s)}>{s}</button>
+                    ))}
+                    {subs.length > 2 && (
+                      <button type="button" className="sub-all"
+                        onClick={() => setSubsSel(subsSel.length === subs.length ? [] : [...subs])}>
+                        {subsSel.length === subs.length ? '전체 해제' : '전체 선택'}
+                      </button>
+                    )}
+                  </div>
+                </label>
+              )}
               <div className="md-cols">
                 {!isTeam && (
                   <label>캠페인
@@ -826,6 +886,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
   const [view, setView] = useState('월간')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
+  const [groupSel, setGroupSel] = useState(null)   // 타겟APP 묶음 클릭 → 세부 선택 시트
   const [dayDraft, setDayDraft] = useState(null)   // 날짜 셀 클릭 → 신규 등록 모달
   const me = authorName(session?.email)            // 작성자 = 로그인 계정 (자동)
 
@@ -904,18 +965,22 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
   const onMove = async (e, srcDay, dstDay) => {
     const delta = Math.round((fromISO(dstDay) - fromISO(srcDay)) / 86400000)
     if (!delta) return
+    const targets = e.group?.length > 1 ? e.group : [e]   // 타겟APP 묶음은 형제 전체 이동
     try {
-      const nd = addDays(e.date, delta)
-      await applyMove(e.id, moveFields(e, nd, e.endDate ? addDays(e.endDate, delta) : null))
+      const prev = targets.map(t => ({ id: t.id, fields: moveFields(t, t.date, t.endDate) }))
+      for (const t of targets)
+        await applyMove(t.id, moveFields(t, addDays(t.date, delta), t.endDate ? addDays(t.endDate, delta) : null))
       clearTimeout(undoTimer.current)
-      setUndo({ id: e.id, fields: moveFields(e, e.date, e.endDate), from: e.date, to: nd, title: e.title, channel: e.channel })
+      setUndo({ items: prev, from: e.date, to: addDays(e.date, delta), title: e.title, channel: e.channel, n: targets.length })
       undoTimer.current = setTimeout(() => setUndo(null), 8000)
     } catch (err) { setError(err.message) }
   }
   const onUndo = async () => {
     if (!undo) return
     clearTimeout(undoTimer.current)
-    try { await applyMove(undo.id, undo.fields) } catch (err) { setError(err.message) }
+    try {
+      for (const it of undo.items) await applyMove(it.id, it.fields)
+    } catch (err) { setError(err.message) }
     setUndo(null)
   }
 
@@ -1045,7 +1110,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
         <MonthGrid
           cursor={cursor} events={monthEvents} onSelect={e => setSelected(e.orig || e)}
           onDayClick={readOnly ? null : setDayDraft} wide={readOnly}
-          onMove={readOnly ? null : onMove}
+          onMove={readOnly ? null : onMove} onGroup={setGroupSel}
         />
       ) : (
         <CampaignView events={filtered} onSelect={setSelected} onRename={readOnly ? null : onRename} />
@@ -1074,9 +1139,31 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
       {undo && !readOnly && (
         <div className="undo-bar">
           <span className="undo-msg">
-            "{displayTitle(undo.title, undo.channel)}" {fmtDot(undo.from)} → {fmtDot(undo.to)} 이동됨
+            "{displayTitle(undo.title, undo.channel)}"{undo.n > 1 ? ` ×${undo.n}` : ''} {fmtDot(undo.from)} → {fmtDot(undo.to)} 이동됨
           </span>
           <button className="undo-btn" onClick={onUndo}>실행 취소</button>
+        </div>
+      )}
+
+      {groupSel && (
+        <div className="modal-overlay" onClick={() => setGroupSel(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="md-ch"><ChannelIcon id="타겟APP" /> 타겟APP {groupSel.length}개 매체 동시 집행</div>
+            <div className="md-title">{displayTitle(groupSel[0].title, groupSel[0].channel)}</div>
+            <dl className="md-grid"><dt>일자</dt><dd>{fmtRange(groupSel[0])}</dd></dl>
+            <div className="group-list">
+              {groupSel.map(e => (
+                <button key={e.id} className="group-item" onClick={() => { setGroupSel(null); setSelected(e) }}>
+                  <span className="gi-sub">{e.sub || '세부 미지정'}</span>
+                  <span className="gi-go">상세 →</span>
+                </button>
+              ))}
+            </div>
+            <div className="md-actions">
+              <div className="md-spacer" />
+              <button className="btn-ghost" onClick={() => setGroupSel(null)}>닫기</button>
+            </div>
+          </div>
         </div>
       )}
 
