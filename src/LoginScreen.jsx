@@ -24,7 +24,7 @@ export default function LoginScreen({ viewer = false }) {
         <div className="masthead-sub">
           {viewer
             ? '읽기 전용 공유 뷰 — 전달받은 뷰어 계정으로 로그인 (계정 문의: 미디어콘텐츠팀)'
-            : '매체 캘린더 · 매체 스펙 · SNS 모니터링 — 팀 계정으로 로그인 (계정 발급은 담당자에게 문의)'}
+            : '매체 캘린더 · 매체 스펙 · 매체 모니터링 — 팀 계정으로 로그인 (계정 발급은 담당자에게 문의)'}
         </div>
       </header>
       <form className="login-card" onSubmit={submit}>

@@ -7,28 +7,62 @@ import { getAccessToken } from './auth.js'
 
 const REMOTE = !!(SUPABASE_URL && SUPABASE_ANON_KEY)
 
-async function req(path) {
+async function req(path, options = {}) {
   const token = await getAccessToken()
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
     headers: {
       apikey: SUPABASE_ANON_KEY,
       Authorization: `Bearer ${token || SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      ...options.headers,
     },
   })
-  if (!res.ok) throw new Error(`targetapp ${res.status}`)
-  return res.json()
+  if (res.status === 403) throw new Error('이 계정은 쓰기 권한이 없습니다 (team_writers 미등록)')
+  if (!res.ok) throw new Error(`targetapp ${res.status} — 테이블 설정 확인 (setup.md 7장)`)
+  return res
 }
+
+const json = async res => res.json()
 
 export async function listTargetApp() {
   if (!REMOTE) return null
   try {
     const [rows, media] = await Promise.all([
-      req('targetapp_stats?select=*&order=year.asc,month.asc,office.asc'),
-      req('targetapp_media?select=*&order=exp.desc'),
+      req('targetapp_stats?select=*&order=year.asc,month.asc,office.asc').then(json),
+      req('targetapp_media?select=*&order=exp.desc').then(json),
     ])
     if (!Array.isArray(rows) || rows.length === 0) return null
     return { rows, media: Array.isArray(media) ? media : [] }
   } catch {
     return null
   }
+}
+
+/* ── 어드민 입력용 CRUD ('26.7) — 쓰기는 RLS(team_writers)가 최종 차단 */
+const toDb = r => ({
+  year: r.year, month: r.month, office: r.office, name: r.name,
+  period: r.period || null, media: r.media || [],
+  exp: r.exp || 0, clk: r.clk || 0, vis: r.vis || 0, inst: r.inst || 0,
+  note: r.note || null,
+})
+
+export async function createTargetApp(row) {
+  const res = await req('targetapp_stats', {
+    method: 'POST', headers: { Prefer: 'return=representation' },
+    body: JSON.stringify(toDb(row)),
+  })
+  return (await res.json())[0]
+}
+
+export async function updateTargetApp(id, row) {
+  const res = await req(`targetapp_stats?id=eq.${id}`, {
+    method: 'PATCH', headers: { Prefer: 'return=representation' },
+    body: JSON.stringify(toDb(row)),
+  })
+  return (await res.json())[0]
+}
+
+export async function deleteTargetApp(id) {
+  await req(`targetapp_stats?id=eq.${id}`, { method: 'DELETE' })
 }

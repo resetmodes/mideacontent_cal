@@ -485,6 +485,40 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .md-memo a:hover{background:var(--hl);}
 
 /* 모달 편집 폼 */
+/* 어드민 페이지 ('26.7) — 일괄 관리·삭제 복원·타겟APP 입력 */
+.adm-sec{margin-top:34px;}
+.adm-count{font-weight:400;color:var(--g400);margin-left:6px;letter-spacing:0;}
+.adm-filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+.adm-q{flex:1;min-width:220px;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);
+  border:1px solid var(--g200);border-radius:9px;padding:9px 12px;outline:none;background:var(--paper);}
+.adm-q:focus{border-color:var(--green);}
+.adm-filters input[type=date]{font-family:inherit;font-size:12.5px;color:var(--g600);
+  border:1px solid var(--g200);border-radius:9px;padding:8px 8px;outline:none;background:var(--paper);}
+.adm-tilde{color:var(--g400);font-size:12px;}
+.adm-bulk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;
+  background:var(--g50);border-top:2px solid var(--green);margin-bottom:8px;font-size:13px;}
+.adm-bulk input{font-family:inherit;font-size:13px;border:1px solid var(--g200);border-radius:8px;
+  padding:7px 10px;outline:none;background:var(--paper);}
+.adm-bulk input:focus{border-color:var(--green);}
+.adm-table{font-size:12.5px;}
+.adm-table td,.adm-table th{padding:8px 8px;}
+.adm-table tr.sel td{background:var(--g50);}
+.adm-table input[type=checkbox]{accent-color:var(--green);width:15px;height:15px;}
+.adm-note{font-size:12.5px;color:var(--g400);padding:10px 0;}
+.adm-msg{margin-top:10px;font-size:13px;font-weight:600;color:var(--green);}
+.adm-taform{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--ink);padding-top:14px;margin-bottom:18px;}
+.adm-taform label{font-size:11.5px;font-weight:600;color:var(--g400);display:flex;flex-direction:column;gap:5px;}
+.adm-taform input,.adm-taform textarea{font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);
+  border:1px solid var(--g200);border-radius:9px;padding:9px 11px;outline:none;background:var(--paper);width:100%;}
+.adm-taform input:focus,.adm-taform textarea:focus{border-color:var(--green);}
+.adm-row{display:flex;gap:10px;flex-wrap:wrap;}
+.adm-row label{flex:1;min-width:90px;}
+.adm-row label.wide{flex:2.5;min-width:200px;}
+.adm-actions{display:flex;gap:8px;justify-content:flex-end;}
+@media (max-width:560px){
+  .adm-row{flex-direction:column;}
+}
+
 /* 타겟APP 실적 세그먼트 ('26.7) — 사업소 아코디언·인사이트 */
 .ta-office{border-bottom:1px solid var(--g100);}
 .ta-office summary{display:flex;align-items:center;gap:10px;list-style:none;cursor:pointer;padding:13px 2px;}
