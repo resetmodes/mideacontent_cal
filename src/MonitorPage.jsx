@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { IG } from './data/sns/instagram.js'
 import { YT } from './data/sns/youtube.js'
 import { UGC } from './data/sns/ugc.js'
 import { TREND } from './data/sns/trend.js'
+import { TA_GROUPS } from './data/targetapp.js'
+import { listTargetApp } from './lib/targetappStore.js'
 
 /* 직전 수집 스냅샷 (현재 수집일보다 앞선 것 중 최신) — 없으면 증감 미표시 */
 const prevSnapshot = cur => {
@@ -401,12 +403,155 @@ function UgcView() {
   )
 }
 
+/* ── 타겟APP — 캠페인 실적 (수기 입력, '26.7) ──────────────────
+   데이터: Supabase targetapp_stats(캠페인 행)·targetapp_media(매체별 누적 스냅샷) —
+   내부 전용(RLS: 로그인 계정만, anon 정책 없음 → 미러에서 접근 불가).
+   API 자동 연동이 없어 매월 초 전월 실적을 수기 입력 (입력 폼은 어드민 2차) */
+function TargetAppView() {
+  const [data, setData] = useState(undefined)   // undefined=로딩 · null=미설정/빈 데이터
+  const [monFilter, setMonFilter] = useState('전체')
+  useEffect(() => { listTargetApp().then(setData) }, [])
+
+  if (data === undefined) return <div className="empty">불러오는 중…</div>
+  if (!data) return (
+    <div className="mon-note">
+      타겟APP 실적 데이터가 아직 없습니다 — Supabase SQL Editor에서 <b>data/targetapp-seed.sql</b>을
+      1회 실행하면 '26.1~4월 이관분(캠페인 50건 + 매체별 누적 10종)이 채워집니다
+      (절차: data/supabase-setup.md 7장). 이후 매월 실적은 어드민에서 입력 예정.
+    </div>
+  )
+
+  const { rows, media } = data
+  const total = k => rows.reduce((a, r) => a + (r[k] || 0), 0)
+  const ctr = (clk, exp) => (exp ? (clk / exp * 100).toFixed(2) + '%' : '—')
+  const offices = [...new Set(rows.map(r => r.office))]
+  const monthKeys = [...new Set(rows.map(r => `${r.year}.${r.month}`))]
+  const byMonth = monthKeys.map(k => {
+    const list = rows.filter(r => `${r.year}.${r.month}` === k)
+    const t = kk => list.reduce((a, r) => a + (r[kk] || 0), 0)
+    return { k, cnt: list.length, exp: t('exp'), clk: t('clk'), vis: t('vis'), inst: t('inst') }
+  })
+  const filtered = monFilter === '전체' ? rows : rows.filter(r => `${r.year}.${r.month}` === monFilter)
+  const offGroups = offices
+    .map(o => ({ o, list: filtered.filter(r => r.office === o), cnt: rows.filter(r => r.office === o).length }))
+    .filter(g => g.list.length > 0)
+    .sort((a, b) => b.cnt - a.cnt || a.o.localeCompare(b.o))
+  const mediaByName = Object.fromEntries(media.map(m => [m.name, m]))
+
+  return (
+    <>
+      <Hero stats={[
+        { label: '캠페인', value: num(rows.length), unit: '건', sub: "'26.1월~ 누적" },
+        { label: '총 노출', value: compact(total('exp')), sub: `클릭 ${compact(total('clk'))} · 클릭율 ${ctr(total('clk'), total('exp'))}` },
+        { label: '총 방문', value: num(total('vis')), unit: '명' },
+        { label: '앱설치', value: num(total('inst')), unit: '건', sub: `사업소·행사 ${offices.length}개 단위` },
+      ]} />
+
+      <div className="group-label">월별 추이</div>
+      <div className="mon-scroll">
+        <table className="mon-table">
+          <thead><tr><th>월</th><th>캠페인</th><th>노출</th><th>클릭</th><th>클릭율</th><th>방문</th><th>앱설치</th></tr></thead>
+          <tbody>
+            {byMonth.map(m => (
+              <tr key={m.k}>
+                <td className="mon-acc">{m.k}월</td>
+                <td>{m.cnt}건</td>
+                <td>{compact(m.exp)}</td>
+                <td>{compact(m.clk)}</td>
+                <td className="mute">{ctr(m.clk, m.exp)}</td>
+                <td>{num(m.vis)}</td>
+                <td className="strong">{num(m.inst)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {media.length > 0 && (
+        <>
+          <div className="group-label">매체별 누적 <small className="ta-basis">{media[0]?.basis}</small></div>
+          <div className="mon-scroll">
+            <table className="mon-table">
+              <thead><tr><th>구분</th><th>매체</th><th>역할</th><th>노출</th><th>클릭</th><th>클릭율</th><th>방문</th><th>앱설치</th><th>캠페인</th></tr></thead>
+              <tbody>
+                {TA_GROUPS.flatMap(g => g.media.map(name => {
+                  const m = mediaByName[name]
+                  if (!m) return null
+                  return (
+                    <tr key={name}>
+                      <td className="mute">{g.g}</td>
+                      <td className="mon-acc">{m.name}</td>
+                      <td className="mute">{m.role}</td>
+                      <td>{compact(m.exp)}</td>
+                      <td>{compact(m.clk)}</td>
+                      <td className="mute">{ctr(m.clk, m.exp)}</td>
+                      <td>{num(m.vis)}</td>
+                      <td className="strong">{num(m.inst)}</td>
+                      <td className="mute">{m.cam}건</td>
+                    </tr>
+                  )
+                })).filter(Boolean)}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      <div className="group-label">사업소별 캠페인</div>
+      <div className="filters">
+        {['전체', ...monthKeys].map(k => (
+          <button key={k} className={k === monFilter ? 'on' : ''} onClick={() => setMonFilter(k)}>
+            {k === '전체' ? `전체 (${rows.length}건)` : `${k.split('.')[1]}월`}
+          </button>
+        ))}
+      </div>
+      {offGroups.map(g => (
+        <details className="ta-office" key={g.o}>
+          <summary>
+            <span className="ta-name">{g.o}</span>
+            <span className="ta-cnt">{g.cnt}회 집행</span>
+            <span className="ta-sum">노출 {compact(g.list.reduce((a, r) => a + r.exp, 0))} · 설치 {num(g.list.reduce((a, r) => a + r.inst, 0))}</span>
+          </summary>
+          <div className="mon-scroll">
+            <table className="mon-table">
+              <thead><tr><th>월</th><th>캠페인</th><th>기간</th><th>매체</th><th>노출</th><th>클릭</th><th>클릭율</th><th>방문</th><th>앱설치</th></tr></thead>
+              <tbody>
+                {g.list.map(r => (
+                  <tr key={r.id}>
+                    <td className="mute">{r.month}월</td>
+                    <td className="mon-acc">{r.name}</td>
+                    <td className="mute">{r.period}</td>
+                    <td className="mute">{(r.media || []).join('·')}</td>
+                    <td>{compact(r.exp)}</td>
+                    <td>{compact(r.clk)}</td>
+                    <td className="mute">{ctr(r.clk, r.exp)}</td>
+                    <td>{num(r.vis)}</td>
+                    <td className="strong">{num(r.inst)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {[...new Set(g.list.map(r => r.note).filter(Boolean))].map((n, i) => (
+            <div className="ta-note" key={i}>{n}</div>
+          ))}
+        </details>
+      ))}
+
+      <div className="mon-note">
+        랜딩이 자사 페이지가 아니면(네이버 예약 등 외부 랜딩) 방문·앱설치가 자사 트래킹에
+        집계되지 않음 — 방문 0 건은 대부분 이 경우. 신규 실적은 매월 초 전월분 수기 입력
+      </div>
+    </>
+  )
+}
+
 export default function MonitorPage() {
   const [platform, setPlatform] = useState('instagram')
   const generatedAt =
     platform === 'instagram' ? IG.generatedAt : platform === 'youtube' ? YT.generatedAt : UGC?.generatedAt
 
-  const segments = [['instagram', '인스타그램'], ['youtube', '유튜브'], ...(UGC ? [['ugc', 'UGC']] : [])]
+  const segments = [['instagram', '인스타그램'], ['youtube', '유튜브'], ...(UGC ? [['ugc', 'UGC']] : []), ['targetapp', '타겟APP']]
 
   return (
     <div className="wrap cal-wrap">
@@ -414,7 +559,9 @@ export default function MonitorPage() {
         <div className="eyebrow">Media Content Team · SNS Monitor</div>
         <h1>SNS 모니터링</h1>
         <div className="masthead-sub">
-          자사 인스타그램·유튜브 계정 성과 지표 — 데이터 기준 {fmtDate(generatedAt)}
+          {platform === 'targetapp'
+            ? '타겟형 매체 캠페인 실적 — 수기 입력 (매월 갱신, 팀 내부 전용)'
+            : `자사 인스타그램·유튜브 계정 성과 지표 — 데이터 기준 ${fmtDate(generatedAt)}`}
         </div>
       </header>
 
@@ -428,7 +575,10 @@ export default function MonitorPage() {
         </div>
       </div>
 
-      {platform === 'instagram' ? <InstagramView /> : platform === 'youtube' ? <YoutubeView /> : <UgcView />}
+      {platform === 'instagram' ? <InstagramView />
+        : platform === 'youtube' ? <YoutubeView />
+        : platform === 'targetapp' ? <TargetAppView />
+        : <UgcView />}
     </div>
   )
 }

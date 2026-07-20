@@ -77,6 +77,23 @@ for (const [got, want] of wa) {
   if (got !== want) bad(`withAuthorName: "${got}" ≠ 기대값 "${want}"`)
 }
 
+/* 6c. 타겟APP 이관 SQL·메타 무결성 — 실적 수치는 번들 금지(내부 전용), SQL은 행 수 고정 */
+import { readFileSync } from 'node:fs'
+import { TA_GROUPS } from '../src/data/targetapp.js'
+const taSql = readFileSync(new URL('../data/targetapp-seed.sql', import.meta.url), 'utf8')
+if ((taSql.match(/^insert into targetapp_stats/gm) || []).length !== 50)
+  bad('targetapp-seed.sql: 캠페인 이관 50건이 아님')
+if ((taSql.match(/^insert into targetapp_media/gm) || []).length !== 10)
+  bad('targetapp-seed.sql: 매체 누적 10종이 아님')
+if (!taSql.includes('enable row level security')) bad('targetapp-seed.sql: RLS 누락')
+if (/to anon/.test(taSql)) bad('targetapp-seed.sql: 내부 전용 — anon 정책 금지')
+const taMeta = readFileSync(new URL('../src/data/targetapp.js', import.meta.url), 'utf8')
+if (/\b(exp|clk|vis|inst)\b/.test(taMeta.replace(/\/\*[\s\S]*?\*\//, '')))
+  bad('src/data/targetapp.js: 실적 수치 필드가 번들 파일에 있음 — DB로만 (유출 방지)')
+for (const g of TA_GROUPS) {
+  if (!g.g || !Array.isArray(g.media) || g.media.length === 0) bad(`TA_GROUPS "${g.g}": 형식 오류`)
+}
+
 /* 7. media.js 스키마 최소 요건 */
 for (const m of MEDIA) {
   if (!m.group || !m.cat || !m.name || !m.lead) bad(`media.js "${m.name || '?'}": group/cat/name/lead 누락`)
