@@ -4,7 +4,7 @@ import CalendarPage from './CalendarPage.jsx'
 
 /* 미러 전용 사이트 — 로그인 없는 읽기 전용 별도 배포 (타 팀 공유용)
    빌드 분기: VITE_MIRROR=1 (Vercel 두 번째 프로젝트의 환경변수) → main.jsx가 App 대신 이걸 렌더.
-   구성: 매체 캘린더(읽기 전용) + 매체 스펙. SNS 모니터링·등록·수정 UI 없음.
+   구성: 매체 캘린더(읽기 전용) + 매체 스펙. 매체 모니터링·등록·수정 UI 없음.
    캘린더 데이터 읽기는 Supabase RLS의 anon SELECT 정책 필요 — 절차는 data/mirror-setup.md.
    정책 적용 전에는 캘린더가 비어 보이는 게 정상 (쓰기는 정책과 무관하게 계속 차단됨) */
 export default function MirrorApp() {

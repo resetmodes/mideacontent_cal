@@ -556,8 +556,8 @@ export default function MonitorPage() {
   return (
     <div className="wrap cal-wrap">
       <header>
-        <div className="eyebrow">Media Content Team · SNS Monitor</div>
-        <h1>SNS 모니터링</h1>
+        <div className="eyebrow">Media Content Team · Media Monitor</div>
+        <h1>매체 모니터링</h1>
         <div className="masthead-sub">
           {platform === 'targetapp'
             ? '타겟형 매체 캠페인 실적 — 수기 입력 (매월 갱신, 팀 내부 전용)'

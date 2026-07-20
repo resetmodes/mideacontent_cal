@@ -50,7 +50,7 @@ const ok = m => console.log('✓ ' + m)
 const bad = m => { failed++; console.error('✗ ' + m) }
 
 try {
-  await writeFile(CONFIG, "export const SUPABASE_URL = ''\nexport const SUPABASE_ANON_KEY = ''\nexport const MIRROR_URL = ''\n")
+  await writeFile(CONFIG, "export const SUPABASE_URL = ''\nexport const SUPABASE_ANON_KEY = ''\nexport const MIRROR_URL = ''\nexport const ADMIN_EMAILS = []\n")
   execSync('npx vite build', { stdio: 'pipe' })
   server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--host', '127.0.0.1'], { stdio: 'ignore' })
   for (let i = 0; i < 30; i++) {
@@ -77,7 +77,7 @@ try {
 
   // 2. 탭 6개
   const tabs = await page.$$eval('.tabs button', els => els.map(e => e.textContent.trim()))
-  ;['홈', '팀 일정', '매체 캘린더', '촬영일정', '매체 스펙', 'SNS 모니터링'].every(t => tabs.includes(t))
+  ;['홈', '팀 일정', '매체 캘린더', '촬영일정', '매체 스펙', '매체 모니터링'].every(t => tabs.includes(t))
     ? ok('탭 6종: ' + tabs.slice(0, 6).join('/')) : bad('탭 구성 이상: ' + JSON.stringify(tabs))
 
   // 3. 빠른 입력 → 등록 → 검색 → 모달 (매체 캘린더로 이동)
@@ -100,9 +100,9 @@ try {
   ok('매체 스펙 렌더')
 
   // 5. 모니터링 렌더
-  await page.click('.tabs button:has-text("SNS 모니터링")')
+  await page.click('.tabs button:has-text("매체 모니터링")')
   await page.waitForSelector('.mon-table', { timeout: 4000 })
-  ok('SNS 모니터링 렌더')
+  ok('매체 모니터링 렌더')
 
   pageErrors.length ? bad('페이지 에러: ' + pageErrors.join(' | ')) : ok('페이지 에러 없음')
   await browser.close()
