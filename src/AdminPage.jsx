@@ -188,6 +188,109 @@ function RestoreDeleted() {
   )
 }
 
+/* ── ③-a 실적 엑셀 업로드 ('26.7) — 팀 내부 정리 문서(.xlsx)의 (결과) 시트를 자동 추출.
+   매체별 1행 분할, 미리보기에서 체크 선택 후 반영. 같은 사업소+기간+매체 행이 있으면
+   노출·클릭만 갱신하고 방문·앱설치·메모는 보존 (대행사 보완값 보호).
+   파일은 브라우저에서만 읽음 — 서버·외부 업로드 없음 */
+function XlsxUpload({ existing, onDone }) {
+  const [parsed, setParsed] = useState(null)   // {items, skipped}
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState(null)
+
+  const pick = async file => {
+    if (!file) return
+    setBusy(true); setMsg(null)
+    try {
+      const [XLSX, buf] = await Promise.all([import('xlsx'), file.arrayBuffer()])
+      const { parseTargetWorkbook } = await import('./lib/parseTargetXlsx.js')
+      const wb = XLSX.read(buf)
+      const res = parseTargetWorkbook(XLSX, wb)
+      if (res.items.length === 0) setMsg('인식된 (결과) 시트가 없습니다 — 문서 양식 확인 필요')
+      else setParsed(res)
+    } catch (e) { setMsg('파일 읽기 실패: ' + e.message) }
+    setBusy(false)
+  }
+
+  const toggle = i => setParsed(p => ({
+    ...p, items: p.items.map((it, x) => (x === i ? { ...it, checked: !it.checked } : it)),
+  }))
+
+  const apply = async () => {
+    const chosen = parsed.items.filter(it => it.checked)
+    if (chosen.length === 0) return
+    setBusy(true)
+    let created = 0, updated = 0
+    try {
+      const year = new Date().getFullYear()
+      for (const it of chosen) {
+        for (const m of it.media) {
+          const prev = existing.find(r =>
+            r.office === it.office && r.period === it.period &&
+            (r.media || []).length === 1 && r.media[0] === m.media)
+          const row = {
+            year: prev?.year ?? year, month: it.month, office: it.office, name: it.name,
+            period: it.period, media: [m.media], exp: m.exp, clk: m.clk,
+            vis: prev?.vis ?? 0, inst: prev?.inst ?? 0, note: prev?.note ?? '',
+          }
+          if (prev) { await updateTargetApp(prev.id, row); updated++ }
+          else { await createTargetApp(row); created++ }
+        }
+      }
+      setMsg(`반영 완료 — 신규 ${created}행 · 갱신 ${updated}행 (캠페인 ${chosen.length}건, 매체별 분할)`)
+      setParsed(null)
+      onDone()
+    } catch (e) { setMsg(e.message) }
+    setBusy(false)
+  }
+
+  return (
+    <div className="xu">
+      <label className="xu-pick">
+        {busy ? '처리 중…' : '실적 엑셀 업로드 (.xlsx — 내부 정리 문서 그대로)'}
+        <input type="file" accept=".xlsx,.xlsm" style={{ display: 'none' }}
+          onChange={e => { pick(e.target.files?.[0]); e.target.value = '' }} />
+      </label>
+      {parsed && (
+        <div className="xu-preview">
+          <div className="xu-head">
+            인식 {parsed.items.length}건 — 체크된 캠페인만 반영됩니다 (매체별 행 분할,
+            기존 행은 노출·클릭만 갱신되고 방문·앱설치는 보존)
+          </div>
+          <div className="mon-scroll">
+            <table className="mon-table adm-table">
+              <thead><tr><th></th><th>사업소</th><th>월</th><th>캠페인</th><th>기간</th><th>매체별 노출/클릭</th></tr></thead>
+              <tbody>
+                {parsed.items.map((it, i) => (
+                  <tr key={it.sheet} className={it.checked ? 'sel' : ''}>
+                    <td><input type="checkbox" checked={it.checked} onChange={() => toggle(i)} /></td>
+                    <td>{it.office}</td>
+                    <td className="mute">{it.month}월</td>
+                    <td className="mon-acc">{it.name}{it.dup && <span className="xu-dup">중복 의심(템플릿)</span>}</td>
+                    <td className="mute">{it.period}</td>
+                    <td className="mute">{it.media.map(m => `${m.media} ${m.exp.toLocaleString('ko-KR')}/${m.clk.toLocaleString('ko-KR')}`).join(' · ')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {parsed.skipped.length > 0 && (
+            <div className="adm-note">
+              인식 실패 {parsed.skipped.length}건: {parsed.skipped.map(s => `${s.sheet}(${s.reason})`).join(' · ')}
+            </div>
+          )}
+          <div className="adm-actions">
+            <button className="btn-ghost sm" onClick={() => setParsed(null)}>취소</button>
+            <button className="btn-solid sm" disabled={busy || parsed.items.every(it => !it.checked)} onClick={apply}>
+              선택 {parsed.items.filter(it => it.checked).length}건 반영
+            </button>
+          </div>
+        </div>
+      )}
+      {msg && <div className="adm-msg">{msg}</div>}
+    </div>
+  )
+}
+
 /* ── ③ 타겟APP 실적 입력 (매월 수기) ─────────────────── */
 const TA_SUBS = CHANNELS.find(c => c.id === '타겟APP')?.subs || []
 const EMPTY_TA = { year: 2026, month: new Date().getMonth() || 12, office: '', name: '', period: '', media: [], exp: '', clk: '', vis: '', inst: '', note: '' }
@@ -240,12 +343,13 @@ function TargetAppAdmin() {
 
   return (
     <section className="adm-sec">
-      <div className="group-label">타겟APP 실적 입력 <small className="adm-count">매월 초 전월 캠페인 단위</small></div>
+      <div className="group-label">타겟APP 실적 입력 <small className="adm-count">엑셀 업로드 또는 직접 입력</small></div>
       {!data && (
         <div className="adm-note">
           targetapp_stats 테이블 미설정 — data/targetapp-seed.sql 실행 후 입력 가능 (setup.md 7장)
         </div>
       )}
+      <XlsxUpload existing={rows} onDone={refresh} />
       <div className="adm-taform">
         <div className="adm-row">
           <label>연도<input type="number" value={f.year} onChange={e => set('year', e.target.value)} /></label>
