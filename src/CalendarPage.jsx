@@ -1065,7 +1065,9 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
         <span className="io-label">검색</span>
         <input
           className="cal-search" type="search" autoComplete="off"
-          placeholder={isMobile() ? '일정 찾기 — 제목·캠페인·작성자' : '등록된 일정 찾기 — 제목·캠페인·메모·작성자·매체'}
+          placeholder={team
+            ? (isMobile() ? '일정 찾기 — 이름·유형·메모' : '등록된 일정 찾기 — 이름·유형·메모·작성자')
+            : (isMobile() ? '일정 찾기 — 제목·캠페인·작성자' : '등록된 일정 찾기 — 제목·캠페인·메모·작성자·매체')}
           value={search} onChange={e => setSearch(e.target.value)}
         />
         {searching && <button className="cal-search-clear" onClick={() => setSearch('')}>지우기</button>}
