@@ -30,6 +30,15 @@
 ## SNS 모니터링 탭 ('26.7)
 - `src/MonitorPage.jsx` — 인스타그램/유튜브 세그먼트 전환. 캘린더와 동일 톤
   (히어로 타이포 지표 + 가로선 테이블 + 그룹 라벨)
+- **타겟APP 실적 세그먼트 ('26.7)**: 캠페인 실적 수기 입력 모니터링 (API 연동 불가 매체).
+  데이터는 **Supabase 전용**(targetapp_stats 캠페인 행 + targetapp_media 매체별 누적 스냅샷,
+  RLS 로그인 전용·anon 정책 없음) — 실적 수치를 번들 파일에 싣지 않음 (공개 미러 번들
+  유출 방지, 내부 전용 '26.7 사용자 결정). src/data/targetapp.js는 매체 구분 메타만
+  (test-data 6c가 수치 유입 감시). '26.1~4월 50건 이관 SQL = `data/targetapp-seed.sql`
+  (**사용자 액션: Supabase SQL Editor 1회 실행** — setup.md 7장). 미실행 시 안내 문구만.
+  화면: KPI 히어로 / 월별 추이 / 매체별 누적(구분 그룹) / 사업소별 아코디언(월 필터 +
+  인사이트 노트, note는 사업소 마지막 행에 저장). 신규 입력 = 매월 초 전월분,
+  입력 폼은 어드민 페이지(2차)에서 — 그전엔 Supabase Table Editor 직접 입력
 - 데이터: `src/data/sns/instagram.js`(자사 계정 요약 + 경쟁사) · `youtube.js`(채널 + 영상) —
   자동 생성 파일, 직접 수정 금지
 - **수집 파이프라인 내장 ('26.7 이전 완료)**: `scripts/sns/` — accounts.mjs(계정 메타 단일 소스),
