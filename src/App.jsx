@@ -7,6 +7,7 @@ import NotifyCenter from './NotifyCenter.jsx'
 import HomePage from './HomePage.jsx'
 import Celebration from './Celebration.jsx'
 import AdminPage from './AdminPage.jsx'
+import RmnPage from './RmnPage.jsx'
 import { getSession, onAuthChange, signOut } from './lib/auth.js'
 import { storageMode } from './lib/store.js'
 import { ADMIN_EMAILS } from './config.js'
@@ -30,12 +31,13 @@ export default function App() {
     if (window.location.hash === '#calendar') return 'calendar'
     if (window.location.hash === '#team') return 'team'
     if (window.location.hash === '#admin') return 'admin'
+    if (window.location.hash === '#rmn') return 'rmn'
     return 'home'   // '26.7: 홈이 접속 첫 화면
   })
   const go = t => {
     setTab(t)
     /* home = 기본 탭(해시 없음). 나머지는 딥링크 해시 */
-    const HASH = { spec: '#spec', monitor: '#monitor', shoot: '#shoot', calendar: '#calendar', team: '#team', admin: '#admin' }
+    const HASH = { spec: '#spec', monitor: '#monitor', shoot: '#shoot', calendar: '#calendar', team: '#team', admin: '#admin', rmn: '#rmn' }
     window.history.replaceState(null, '', HASH[t] || window.location.pathname + window.location.search)
   }
 
@@ -69,6 +71,7 @@ export default function App() {
           <button className={tab === 'shoot' ? 'on' : ''} onClick={() => go('shoot')}>촬영일정</button>
           <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
           <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>매체 모니터링</button>
+          <button className={tab === 'rmn' ? 'on' : ''} onClick={() => go('rmn')}>RMN</button>
           {isAdmin && (
             <button className={tab === 'admin' ? 'on' : ''} onClick={() => go('admin')}>어드민</button>
           )}
@@ -88,6 +91,7 @@ export default function App() {
       {tab === 'team' && <CalendarPage team />}
       {tab === 'spec' && <SpecLibrary isExternal={false} focusMedia={specFocus.name} focusSeq={specFocus.seq} />}
       {tab === 'monitor' && <MonitorPage />}
+      {tab === 'rmn' && <RmnPage />}
       {tab === 'admin' && isAdmin && <AdminPage />}
     </>
   )
