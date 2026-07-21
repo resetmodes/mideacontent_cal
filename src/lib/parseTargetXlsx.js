@@ -1,99 +1,102 @@
-/* 타겟APP 내부 정리 엑셀 → 실적 행 추출 ('26.7)
-   대상: "(결과)" 시트 — 규빈 팀 내부 문서 양식 기준:
-     · 제목  "□ 타겟형 매체 진행 실적 - {캠페인명}"  (B열 부근)
-     · "ㅁ 기간 : 6/12(금) ~ 6/27(토)"
-     · 소재 섹션의 매체 헤더 행 + "노출"/"클릭" 라벨 행(C열) — 매체별 수치는 같은 열에
-   방침: 매체별 1행 분할('26.7 사용자 결정), 사진(이미지)은 무시, 파일은 브라우저에서만
-   읽고 어디에도 업로드하지 않음. 양식이 다른 시트는 실패 목록으로 반환 (조용한 오입력 방지).
-   SheetJS는 어드민에서만 동적 import — 본 번들 크기에 영향 없음 */
+/* 타겟APP 실적 대장 엑셀 → 실적 행 추출 ('26.7 v2 — "26년도 타겟형 매체 광고 실적" 양식)
+   ─ 시트명 "{N}월_{사업소}(종료|진행중)" 만 파싱 (전체/Start/End 등 요약 시트 제외)
+   ─ 시트 구조: B2 제목("26년도 …") · B4 월 · C4 "캠페인명 (기간)"
+     헤더 행: B형태 C매체명 D지면 E예산 F비용 G노출수 H클릭수 K방문자수 N앱다운로드수(없는 시트도 있음)
+     매체 행 = C열에 매체명, D열은 매체별 기간(선택). 지면 행(C 비고 D만 있음)은 집계 불필요라 스킵
+   ─ 매체 행 중 실적·비용이 전부 0인 행은 미집행 템플릿 행이라 제외
+   ─ 사진(이미지)은 무시. 파일은 브라우저에서만 읽음 — 외부 전송 없음.
+   ─ 이전 "(결과)" 내부 정리 문서 양식은 잘못된 소스로 확인되어 폐기 ('26.7 사용자 확인) */
 
-const norm = v => (typeof v === 'string' ? v.replace(/\s+/g, '') : '')
-
-/* 시트 이름 → 사업소 (괄호·말미 숫자 제거: "대구2(결과)" → "대구") */
-const officeOf = sheetName =>
-  sheetName.replace(/\(결과\)\s*$/, '').replace(/\d+$/, '').trim()
-
-/* "6/12(금) ~ 6/27(토)" → { month: 6 } */
-const monthOf = period => {
-  const m = (period || '').match(/(\d{1,2})\s*[/.]/)
-  return m ? +m[1] : null
+const clean = v => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : '')
+const num = v => {
+  if (typeof v === 'number' && isFinite(v)) return Math.round(v)
+  if (typeof v === 'string') {
+    const n = Number(v.replace(/,/g, ''))
+    return isFinite(n) ? Math.round(n) : 0   // '서비스지원'·'클릭불가' 등 문구 → 0
+  }
+  return 0
 }
 
-function parseSheet(rows, sheetName) {
-  let title = null, period = null
-  for (let r = 0; r < Math.min(rows.length, 15); r++) {
-    for (let c = 0; c < 6; c++) {
-      const v = rows[r]?.[c]
-      if (typeof v !== 'string') continue
-      if (v.includes('진행 실적') && v.includes('-')) title = v.split('-').slice(1).join('-').trim()
-      const m = v.match(/기간\s*:\s*(.+)/)
-      if (m) period = m[1].trim()
+const SHEET_RE = /^(\d{1,2})월_(.+?)\((종료|진행중)\)\s*$/
+
+function parseSheet(rows, m) {
+  const month = +m[1]
+  const office = m[2].trim()
+  const status = m[3]
+
+  /* 제목에서 연도, C4에서 캠페인명·기간 */
+  let year = null, name = '', period = ''
+  for (let r = 0; r < Math.min(rows.length, 8); r++) {
+    const b = clean(rows[r]?.[1]), c = clean(rows[r]?.[2])
+    const ym = b.match(/(\d{2})년도/)
+    if (ym) year = 2000 + +ym[1]
+    if (/^\d{1,2}월$/.test(b) && c) {
+      const pm = c.match(/\(([^)]*)\)\s*$/)
+      period = pm ? pm[1].trim() : ''
+      name = pm ? c.slice(0, pm.index).trim() : c
     }
   }
 
-  /* 라벨 행 탐색 — 병합 셀 앵커 위치가 라이브러리마다 달라 앞쪽 0~4열을 모두 본다.
-     "매체"는 일정표 헤더에도 나오므로 소재 섹션(20행 이후) + "노출" 행보다 위인 마지막 것 */
-  const findLabel = row => {
-    for (let c = 0; c <= 4; c++) {
-      const t = norm(row?.[c])
-      if (t) return t
-    }
-    return ''
+  /* 헤더 행(C열 "매체명") + 지표 컬럼 인덱스 (라벨 기준 — 앱다운로드 없는 시트 대응) */
+  let head = -1
+  for (let r = 0; r < Math.min(rows.length, 20); r++) {
+    if (clean(rows[r]?.[2]) === '매체명') { head = r; break }
   }
-  const mediaRows = []
-  const labels = {}
-  for (let r = 19; r < rows.length; r++) {
-    const t = findLabel(rows[r])
-    if (t === '매체') mediaRows.push(r)
-    if ((t === '노출' || t === '클릭') && labels[t] == null) labels[t] = r
+  if (head < 0 || !name) return null
+  const col = {}
+  for (let c = 3; c < 30; c++) {
+    const t = clean(rows[head]?.[c])
+    if (t.includes('예산')) col.budget = c
+    else if (t.includes('비용')) col.cost = c
+    else if (t.includes('노출')) col.exp = c
+    else if (t.startsWith('클릭수')) col.clk = c
+    else if (t.includes('방문')) col.vis = c
+    else if (t.includes('앱') && t.includes('다운')) col.inst = c
   }
-  const mediaRow = labels['노출'] != null
-    ? mediaRows.filter(r => r < labels['노출']).pop() ?? null
-    : null
+  if (col.exp == null || col.clk == null) return null
 
   const media = []
-  if (mediaRow != null && labels['노출'] != null) {
-    for (let c = 3; c < 70; c++) {
-      const name = rows[mediaRow]?.[c]
-      if (typeof name !== 'string' || !name.trim()) continue
-      const exp = rows[labels['노출']]?.[c]
-      const clk = rows[labels['클릭']]?.[c]
-      if (typeof exp === 'number') {
-        media.push({ media: name.trim(), exp: Math.round(exp), clk: Math.round(typeof clk === 'number' ? clk : 0) })
-      }
+  for (let r = head + 1; r < rows.length; r++) {
+    const mname = clean(rows[r]?.[2])
+    if (!mname) continue                          // 지면·형태·총계 행
+    const g = c => (c == null ? 0 : num(rows[r]?.[c]))
+    const row = {
+      media: mname,
+      period: clean(rows[r]?.[3]) || period,      // 매체별 기간이 있으면 우선
+      budget: g(col.budget), cost: g(col.cost),
+      exp: g(col.exp), clk: g(col.clk), vis: g(col.vis), inst: g(col.inst),
     }
+    if (row.exp || row.clk || row.vis || row.inst || row.cost) media.push(row)   // 미집행 행 제외
   }
 
   return {
-    sheet: sheetName,
-    office: officeOf(sheetName),
-    name: title || '',
-    period: period || '',
-    month: monthOf(period),
-    media,
-    ok: !!(title && period && media.length > 0 && monthOf(period)),
+    office, month, year: year || new Date().getFullYear(),
+    name, period, status, media,
+    ok: media.length > 0,
   }
 }
 
-/* 워크북 전체 → { items: 인식된 시트[], skipped: 실패 시트[] }
-   동일 실적 중복(미기입 템플릿 복사본)은 checked=false로 표시 */
+/* 워크북 전체 → { items: 인식된 캠페인[], skipped: 실패·미기입[] } */
 export function parseTargetWorkbook(XLSX, workbook) {
   const items = [], skipped = []
-  for (const name of workbook.SheetNames) {
-    if (!name.includes('(결과)')) continue
-    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 })
-    const p = parseSheet(rows, name)
-    if (p.ok) items.push(p)
-    else skipped.push({ sheet: name, reason: p.media.length === 0 ? '실적 숫자 미기입' : '제목·기간 인식 실패' })
+  for (const sheetName of workbook.SheetNames) {
+    const m = sheetName.match(SHEET_RE)
+    if (!m) continue                              // 전체/Start/End 등 요약 시트
+    const ws = workbook.Sheets[sheetName]
+    if (!ws || !ws['!ref']) { skipped.push({ sheet: sheetName, reason: '빈 시트' }); continue }
+    /* !ref가 B2처럼 중간에서 시작해도 절대 좌표(A1 기준)로 읽기 */
+    const range = XLSX.utils.decode_range(ws['!ref'])
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, range: { s: { r: 0, c: 0 }, e: range.e } })
+    const p = parseSheet(rows, m)
+    if (p && p.ok) items.push({ ...p, sheet: sheetName, checked: true, dup: false })
+    else skipped.push({ sheet: sheetName, reason: p ? '실적 숫자 미기입' : '양식 인식 실패' })
   }
-  /* 중복 판정 — 캠페인명+기간+수치가 완전히 같은 시트가 2개 이상이면 전부 미기입
-     템플릿 복사본으로 보고 전원 체크 해제 (진짜 캠페인이 수치까지 같을 수는 없음) */
+  /* 완전 동일 중복(복사본) 안전망 — 전원 체크 해제 */
   const count = {}
-  const keyOf = it => [it.name, it.period, ...it.media.map(m => m.media + m.exp)].join('|')
+  const keyOf = it => [it.office, it.name, it.period, ...it.media.map(x => x.media + x.exp)].join('|')
   for (const it of items) count[keyOf(it)] = (count[keyOf(it)] || 0) + 1
   for (const it of items) {
-    it.dup = count[keyOf(it)] > 1
-    it.checked = !it.dup
+    if (count[keyOf(it)] > 1) { it.dup = true; it.checked = false }
   }
   return { items, skipped }
 }

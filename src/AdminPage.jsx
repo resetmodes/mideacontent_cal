@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { CHANNELS, channelById } from './data/channels.js'
 import { listEvents, updateEvent, deleteEvent, createEvent, listDeleted, storageMode } from './lib/store.js'
-import { listTargetApp, createTargetApp, updateTargetApp, deleteTargetApp } from './lib/targetappStore.js'
+import { listTargetApp, createTargetApp, updateTargetApp, deleteTargetApp, deleteAllTargetApp } from './lib/targetappStore.js'
 import ChannelIcon from './ChannelIcon.jsx'
 
 /* 어드민 페이지 ('26.7) — #admin, config.js ADMIN_EMAILS 계정만 탭 노출.
@@ -188,13 +188,16 @@ function RestoreDeleted() {
   )
 }
 
-/* ── ③-a 실적 엑셀 업로드 ('26.7) — 팀 내부 정리 문서(.xlsx)의 (결과) 시트를 자동 추출.
-   매체별 1행 분할, 미리보기에서 체크 선택 후 반영. 같은 사업소+기간+매체 행이 있으면
-   노출·클릭만 갱신하고 방문·앱설치·메모는 보존 (대행사 보완값 보호).
-   파일은 브라우저에서만 읽음 — 서버·외부 업로드 없음 */
+/* ── ③-a 실적 엑셀 업로드 ('26.7 v2 — "26년도 타겟형 매체 광고 실적" 대장 양식).
+   시트명 "{N}월_{사업소}(종료|진행중)"을 자동 추출 — 매체별 1행 분할(노출·클릭·방문·
+   앱다운로드·예산·비용, 매체별 기간 우선). 재업로드 시 같은 사업소+기간+매체 행은
+   파일 값으로 갱신(인사이트 메모만 보존). "전체 삭제 후 반영"으로 대체 업로드 가능.
+   파일은 브라우저에서만 읽음 — 사진 포함 원본 외부 전송 없음. 대용량(300MB급)은
+   PC 크롬 권장(이미지 포함 파일도 데이터만 읽음, 수십 초 소요 가능) */
 function XlsxUpload({ existing, onDone }) {
   const [parsed, setParsed] = useState(null)   // {items, skipped}
   const [busy, setBusy] = useState(false)
+  const [replaceAll, setReplaceAll] = useState(false)
   const [msg, setMsg] = useState(null)
 
   const pick = async file => {
@@ -205,7 +208,7 @@ function XlsxUpload({ existing, onDone }) {
       const { parseTargetWorkbook } = await import('./lib/parseTargetXlsx.js')
       const wb = XLSX.read(buf)
       const res = parseTargetWorkbook(XLSX, wb)
-      if (res.items.length === 0) setMsg('인식된 (결과) 시트가 없습니다 — 문서 양식 확인 필요')
+      if (res.items.length === 0) setMsg('인식된 캠페인 시트("N월_사업소(종료)")가 없습니다 — 파일 양식 확인 필요')
       else setParsed(res)
     } catch (e) { setMsg('파일 읽기 실패: ' + e.message) }
     setBusy(false)
@@ -221,53 +224,64 @@ function XlsxUpload({ existing, onDone }) {
     setBusy(true)
     let created = 0, updated = 0
     try {
-      const year = new Date().getFullYear()
+      if (replaceAll) await deleteAllTargetApp()
+      const base = replaceAll ? [] : existing
       for (const it of chosen) {
         for (const m of it.media) {
-          const prev = existing.find(r =>
-            r.office === it.office && r.period === it.period &&
+          const prev = base.find(r =>
+            r.office === it.office && r.period === m.period &&
             (r.media || []).length === 1 && r.media[0] === m.media)
           const row = {
-            year: prev?.year ?? year, month: it.month, office: it.office, name: it.name,
-            period: it.period, media: [m.media], exp: m.exp, clk: m.clk,
-            vis: prev?.vis ?? 0, inst: prev?.inst ?? 0, note: prev?.note ?? '',
+            year: it.year, month: it.month, office: it.office, name: it.name,
+            period: m.period, media: [m.media],
+            exp: m.exp, clk: m.clk, vis: m.vis, inst: m.inst,
+            budget: m.budget, cost: m.cost,
+            note: prev?.note ?? '',
           }
           if (prev) { await updateTargetApp(prev.id, row); updated++ }
           else { await createTargetApp(row); created++ }
         }
       }
-      setMsg(`반영 완료 — 신규 ${created}행 · 갱신 ${updated}행 (캠페인 ${chosen.length}건, 매체별 분할)`)
-      setParsed(null)
+      setMsg(`반영 완료 — ${replaceAll ? '기존 전체 삭제 후 ' : ''}신규 ${created}행 · 갱신 ${updated}행 (캠페인 ${chosen.length}건, 매체별 분할)`)
+      setParsed(null); setReplaceAll(false)
       onDone()
     } catch (e) { setMsg(e.message) }
     setBusy(false)
   }
 
+  const sum = (it, k) => it.media.reduce((a, m) => a + (m[k] || 0), 0)
+
   return (
     <div className="xu">
       <label className="xu-pick">
-        {busy ? '처리 중…' : '실적 엑셀 업로드 (.xlsx — 내부 정리 문서 그대로)'}
+        {busy ? '처리 중…' : '실적 엑셀 업로드 (.xlsx — 실적 대장 그대로)'}
         <input type="file" accept=".xlsx,.xlsm" style={{ display: 'none' }}
           onChange={e => { pick(e.target.files?.[0]); e.target.value = '' }} />
       </label>
       {parsed && (
         <div className="xu-preview">
           <div className="xu-head">
-            인식 {parsed.items.length}건 — 체크된 캠페인만 반영됩니다 (매체별 행 분할,
-            기존 행은 노출·클릭만 갱신되고 방문·앱설치는 보존)
+            인식 {parsed.items.length}건 — 체크된 캠페인만 매체별 행으로 반영됩니다
+            (노출·클릭·방문·앱다운로드·비용, 재업로드 시 파일 값으로 갱신·메모만 보존)
           </div>
           <div className="mon-scroll">
             <table className="mon-table adm-table">
-              <thead><tr><th></th><th>사업소</th><th>월</th><th>캠페인</th><th>기간</th><th>매체별 노출/클릭</th></tr></thead>
+              <thead><tr><th></th><th>사업소</th><th>월</th><th>캠페인</th><th>매체</th><th>노출</th><th>방문</th><th>설치</th></tr></thead>
               <tbody>
                 {parsed.items.map((it, i) => (
                   <tr key={it.sheet} className={it.checked ? 'sel' : ''}>
                     <td><input type="checkbox" checked={it.checked} onChange={() => toggle(i)} /></td>
                     <td>{it.office}</td>
                     <td className="mute">{it.month}월</td>
-                    <td className="mon-acc">{it.name}{it.dup && <span className="xu-dup">중복 의심(템플릿)</span>}</td>
-                    <td className="mute">{it.period}</td>
-                    <td className="mute">{it.media.map(m => `${m.media} ${m.exp.toLocaleString('ko-KR')}/${m.clk.toLocaleString('ko-KR')}`).join(' · ')}</td>
+                    <td className="mon-acc">
+                      {it.name}
+                      {it.status === '진행중' && <span className="xu-run">진행중</span>}
+                      {it.dup && <span className="xu-dup">중복 의심</span>}
+                    </td>
+                    <td className="mute">{it.media.map(m => m.media).join('·')}</td>
+                    <td className="mute">{sum(it, 'exp').toLocaleString('ko-KR')}</td>
+                    <td className="mute">{sum(it, 'vis').toLocaleString('ko-KR')}</td>
+                    <td className="strong">{sum(it, 'inst').toLocaleString('ko-KR')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -278,10 +292,14 @@ function XlsxUpload({ existing, onDone }) {
               인식 실패 {parsed.skipped.length}건: {parsed.skipped.map(s => `${s.sheet}(${s.reason})`).join(' · ')}
             </div>
           )}
+          <label className="xu-replace">
+            <input type="checkbox" checked={replaceAll} onChange={e => setReplaceAll(e.target.checked)} />
+            기존 실적 <b>전체 삭제 후</b> 반영 (대체 업로드 — 이 파일이 유일한 원본일 때만)
+          </label>
           <div className="adm-actions">
-            <button className="btn-ghost sm" onClick={() => setParsed(null)}>취소</button>
+            <button className="btn-ghost sm" onClick={() => { setParsed(null); setReplaceAll(false) }}>취소</button>
             <button className="btn-solid sm" disabled={busy || parsed.items.every(it => !it.checked)} onClick={apply}>
-              선택 {parsed.items.filter(it => it.checked).length}건 반영
+              {replaceAll ? '전체 교체 — ' : ''}선택 {parsed.items.filter(it => it.checked).length}건 반영
             </button>
           </div>
         </div>

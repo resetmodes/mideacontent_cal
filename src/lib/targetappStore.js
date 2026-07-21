@@ -45,6 +45,10 @@ const toDb = r => ({
   period: r.period || null, media: r.media || [],
   exp: r.exp || 0, clk: r.clk || 0, vis: r.vis || 0, inst: r.inst || 0,
   note: r.note || null,
+  /* 예산·비용 ('26.7 실적 대장 양식) — 값이 있을 때만 전송: 컬럼 추가 SQL(setup.md 7장)을
+     아직 안 돌린 DB에서도 비용 없는 입력은 계속 동작 */
+  ...(r.budget ? { budget: r.budget } : {}),
+  ...(r.cost ? { cost: r.cost } : {}),
 })
 
 export async function createTargetApp(row) {
@@ -65,4 +69,10 @@ export async function updateTargetApp(id, row) {
 
 export async function deleteTargetApp(id) {
   await req(`targetapp_stats?id=eq.${id}`, { method: 'DELETE' })
+}
+
+/* 대체 업로드용 전체 삭제 ('26.7) — 어드민 엑셀 업로드의 "기존 실적 전체 삭제 후 반영"
+   체크 시에만 호출. PostgREST는 필터 없는 delete를 거부하므로 전행 매칭 필터 사용 */
+export async function deleteAllTargetApp() {
+  await req('targetapp_stats?id=not.is.null', { method: 'DELETE' })
 }
