@@ -6,7 +6,7 @@ import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
 import { findPerformance } from './lib/perf.js'
 import { authorName, withAuthorName } from './data/team.js'
-import { HOLIDAYS, closedLabel } from './data/holidays.js'
+import { HOLIDAYS, CLOSED_DAYS } from './data/holidays.js'
 import { MIRROR_URL } from './config.js'
 import ChannelIcon from './ChannelIcon.jsx'
 import ShareButton from './ShareButton.jsx'
@@ -328,6 +328,14 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
 
   const submit = () => {
     if (!draft) return
+    /* 휴점일 등록 — 어느 캘린더 탭에서든 "8/10 휴점" 한 줄이면 kind='휴점' 마커 등록.
+       (제목이 "휴점"/"휴점일"뿐일 때만 — "휴점 안내 공지" 같은 실제 일정은 정상 등록) */
+    if (draft.date && /^휴점(일)?$/.test((draft.title || '').trim())) {
+      onCreate({ title: '휴점', channel: '휴점', campaign: null, kind: '휴점',
+        date: draft.date, endDate: draft.endDate || null })
+      setText(''); setErr(null); setPending(null)
+      return
+    }
     if (!draft.date && !draft.shootDate) { setErr(team ? '날짜를 인식하지 못함 — 7/20 또는 8/1~3 형식으로' : '날짜를 인식하지 못함 — 12/20 형식, 촬영·업로드 병기는 "7/10 촬영 7/15 업로드"'); return }
     if (!draft.title) { setErr(team ? '내용이 비어 있음 — 날짜 뒤에 이름·내용을 입력 (예: 7/20 노규빈 연차)' : '제목이 비어 있음 — 날짜 뒤에 내용을 입력'); return }
     /* 촬영 건 포함 시 매체 제한 — 유튜브·인스타만 (팀 탭은 해당 없음) */
@@ -428,7 +436,7 @@ function groupCellEvents(list) {
   return out
 }
 
-function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove = null, onGroup = null, onDay = null }) {
+function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove = null, onGroup = null, onDay = null, closedDays = CLOSED_DAYS }) {
   const cells = useMemo(() => buildMonth(cursor), [cursor])
   const byDay = useMemo(() => indexByDay(events, wide), [events, wide])
   const today = todayISO()
@@ -477,7 +485,7 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
       {cells.map(c => {
         const list = groupCellEvents(byDay[c.iso] || [])
         const hol = HOLIDAYS[c.iso]
-        const closed = closedLabel(c.iso)
+        const closed = closedDays[c.iso]
         return (
           <div
             key={c.iso}
@@ -540,9 +548,9 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
 /* ── 하루 일정 시트 ('26.7) — 셀이 넘칠 때(타겟APP 다건 등) 그날 전체를 큰 화면으로.
    진입: 일자 숫자 클릭 · "+N 더보기" 클릭 · (읽기 전용 뷰) 셀 클릭.
    등록과 분리 — 셀 빈 공간 클릭 = 등록(불변), 시트 하단에 별도 "이 날짜에 등록" 버튼 */
-function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister }) {
+function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister, closedDays = CLOSED_DAYS, canUnclose = false, onUnclose }) {
   const hol = HOLIDAYS[iso]
-  const closed = closedLabel(iso)
+  const closed = closedDays[iso]
   const list = useMemo(() => {
     const covers = e => {
       const o = orderRange(e)
@@ -579,6 +587,9 @@ function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister }) {
         </div>
         <div className="md-actions">
           {!readOnly && <button className="btn-ghost" onClick={onRegister}>+ 이 날짜에 등록</button>}
+          {!readOnly && canUnclose && (
+            <button className="btn-ghost danger" onClick={() => { onUnclose(iso); onClose() }}>휴점 해제</button>
+          )}
           <div className="md-spacer" />
           <button className="btn-ghost" onClick={onClose}>닫기</button>
         </div>
@@ -1081,12 +1092,38 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
     setUndo(null)
   }
 
-  /* 탭별 대상: 촬영 탭 = kind '촬영' / 팀 탭 = kind '팀' / 매체 캘린더 = 그 외 전부 */
+  /* 탭별 대상: 촬영 탭 = kind '촬영' / 팀 탭 = kind '팀' / 매체 캘린더 = 그 외 전부.
+     휴점일(kind='휴점')은 일정 행이 아니라 셀 마커라 전 탭에서 목록 제외 */
   const kindEvents = useMemo(
-    () => events.filter(e =>
-      team ? e.kind === '팀' : shoot ? e.kind === '촬영' : (e.kind !== '촬영' && e.kind !== '팀')),
+    () => events.filter(e => e.kind !== '휴점' && (
+      team ? e.kind === '팀' : shoot ? e.kind === '촬영' : (e.kind !== '촬영' && e.kind !== '팀'))),
     [events, shoot, team]
   )
+
+  /* 휴점일 ('26.7): UI 등록(kind='휴점') + 정적 CLOSED_DAYS 병합 → 셀 틴트.
+     closedDays[iso] = 표시 라벨 · closedEvt[iso] = DB 레코드(있으면 해제 가능) */
+  const { closedDays, closedEvt } = useMemo(() => {
+    const days = { ...CLOSED_DAYS }, evt = {}
+    for (const e of events) {
+      if (e.kind !== '휴점') continue
+      const s = fromISO(e.date), end = fromISO(e.endDate || e.date)
+      for (let d = new Date(s); d <= end; d.setDate(d.getDate() + 1)) {
+        const iso = toISO(d)
+        days[iso] = '휴점'
+        evt[iso] = e
+      }
+    }
+    return { closedDays: days, closedEvt: evt }
+  }, [events])
+
+  /* 한 줄 입력 "휴점"·날짜 셀 시트에서 등록/해제 */
+  const addClosed = async ({ date, endDate }) => {
+    await onCreate({ title: '휴점', channel: '휴점', campaign: null, kind: '휴점', date, endDate: endDate || null })
+  }
+  const removeClosed = async iso => {
+    const e = closedEvt[iso]
+    if (e) await onDelete(e.id)
+  }
   const chipChannels = team ? TEAM_TYPES : shoot ? CHANNELS.filter(c => SHOOT_CHANNELS.has(c.id)) : CHANNELS
   const filtered = filter === '전체' ? kindEvents : kindEvents.filter(e => e.channel === filter)
 
@@ -1210,6 +1247,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
           cursor={cursor} events={monthEvents} onSelect={e => setSelected(e.orig || e)}
           onDayClick={readOnly ? null : setDayDraft} wide={readOnly}
           onMove={readOnly ? null : onMove} onGroup={setGroupSel} onDay={setDaySel}
+          closedDays={closedDays}
         />
       ) : (
         <CampaignView events={filtered} onSelect={setSelected} onRename={readOnly ? null : onRename} />
@@ -1247,6 +1285,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
       {daySel && (
         <DaySheet
           iso={daySel} events={monthEvents} readOnly={readOnly}
+          closedDays={closedDays} canUnclose={!!closedEvt[daySel]} onUnclose={removeClosed}
           onClose={() => setDaySel(null)}
           onSelect={e => { setDaySel(null); setSelected(e.orig || e) }}
           onRegister={() => { setDayDraft(daySel); setDaySel(null) }}
