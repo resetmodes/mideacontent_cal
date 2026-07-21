@@ -5,6 +5,7 @@ import {
   rmnListPrice, applyDiscount, netAmount, fmtWon,
 } from './data/rmn.js'
 import { listRmn, createRmn, updateRmn, deleteRmn } from './lib/rmnStore.js'
+import { buildOrderXlsx, buildProposalXlsx, DOC_NAME, DOC_ORDER } from './lib/rmnDocs.js'
 import { toISO, fromISO } from './lib/parse.js'
 import { HOLIDAYS } from './data/holidays.js'
 
@@ -66,6 +67,60 @@ function RmnNotice({ notices, onConvert, onClose }) {
         </div>
       </div>
     </div>
+  )
+}
+
+/* ── 캠페인 제안서 만들기 ('26.7 3차) — 상품·기간·할인율 입력 → xlsx 다운로드.
+   예상 노출·클릭은 rmnAgencies.js RMN_BENCH(까르띠에 제안서 수치) 기준, 기준값 없는 상품은 "-" ── */
+function ProposalMaker() {
+  const [open, setOpen] = useState(false)
+  const [p, setP] = useState({
+    advertiser: '', start: '', end: '', discount: 15,
+    products: ['스플래시', '메인배너', '하단배너', '푸쉬'], pushUnits: 4,
+  })
+  const [msg, setMsg] = useState(null)
+  const set = (k, v) => setP(prev => ({ ...prev, [k]: v }))
+  const toggle = id => setP(prev => ({
+    ...prev,
+    products: prev.products.includes(id) ? prev.products.filter(x => x !== id) : [...prev.products, id],
+  }))
+  const valid = p.advertiser.trim() && p.start && p.end && p.end >= p.start && p.products.length >= 1 && p.products.length <= 4
+  const make = async () => {
+    try {
+      setMsg(null)
+      await buildProposalXlsx({ ...p, advertiser: p.advertiser.trim() })
+      setMsg('제안서가 다운로드됐습니다')
+    } catch (e) { setMsg(e.message) }
+  }
+  return (
+    <details className="ta-office" open={open} onToggle={e => setOpen(e.target.open)}>
+      <summary><span className="ta-name">캠페인 제안서 만들기</span><span className="ta-cnt">xlsx</span></summary>
+      <div className="adm-taform">
+        <label>광고주명 *<input value={p.advertiser} onChange={e => set('advertiser', e.target.value)} placeholder="예: 까르띠에" /></label>
+        <label>시작일 *<input type="date" value={p.start} onChange={e => set('start', e.target.value)} /></label>
+        <label>종료일 *<input type="date" value={p.end} onChange={e => set('end', e.target.value)} /></label>
+        <label>할인율 %<input type="number" value={p.discount} onChange={e => set('discount', e.target.value)} /></label>
+        {p.products.includes('푸쉬') && (
+          <label>푸시 발송량
+            <select value={p.pushUnits} onChange={e => set('pushUnits', Number(e.target.value))}>
+              {Array.from({ length: 18 }, (_, i) => i + 1).map(u =>
+                <option key={u} value={u}>{(u * 5).toLocaleString('ko-KR')}만 건</option>)}
+            </select>
+          </label>
+        )}
+      </div>
+      <div className="sub-pick rmn-prodpick">
+        {RMN_PRODUCTS.map(pr => (
+          <button key={pr.id} type="button" className={p.products.includes(pr.id) ? 'on' : ''}
+            onClick={() => toggle(pr.id)}>{DOC_NAME[pr.id] || pr.id}</button>
+        ))}
+      </div>
+      <div className="adm-actions">
+        <small className="mute">상품 1~4개 · 예상 지표는 기준값(rmnAgencies.js) 기반, 팝업·헤드라인·이벤트 메뉴는 "-"</small>
+        <button className="btn-solid sm" disabled={!valid} onClick={make}>제안서 다운로드</button>
+      </div>
+      {msg && <div className="adm-msg">{msg}</div>}
+    </details>
   )
 }
 
@@ -281,6 +336,17 @@ export default function RmnPage() {
   const active = bookings.filter(b => b.status !== '취소' && b.status !== '완료')
   const done = bookings.filter(b => b.status === '취소' || b.status === '완료')
 
+  /* 청약서 — 같은 광고주의 기간 겹침 형제 부킹을 한 장으로 (상품 순서 = RMN_PRODUCTS) */
+  const makeOrder = async b => {
+    const s = b.start_date, e = b.end_date || b.start_date
+    const group = bookings
+      .filter(x => x.advertiser === b.advertiser && x.status !== '취소' &&
+        x.start_date <= e && (x.end_date || x.start_date) >= s)
+      .sort((a, c) => DOC_ORDER.indexOf(a.product) - DOC_ORDER.indexOf(c.product))
+    try { await buildOrderXlsx(group, todayISO()); setMsg(`"${b.advertiser}" 청약서 다운로드 (${group.length}개 상품)`) }
+    catch (err) { setMsg(err.message) }
+  }
+
   return (
     <div className="wrap cal-wrap">
       <header>
@@ -403,7 +469,7 @@ export default function RmnPage() {
           <div className="group-label">진행 중 <small className="adm-count">{active.length}건</small></div>
           <div className="mon-scroll">
             <table className="mon-table adm-table">
-              <thead><tr><th>상품</th><th>광고주</th><th>기간</th><th>총광고비</th><th>입금가</th><th>판매사</th><th>상태</th><th></th><th></th><th></th></tr></thead>
+              <thead><tr><th>상품</th><th>광고주</th><th>기간</th><th>총광고비</th><th>입금가</th><th>판매사</th><th>상태</th><th></th><th></th><th></th><th></th></tr></thead>
               <tbody>
                 {active.map(b => (
                   <tr key={b.id} className={editId === b.id ? 'sel' : ''}>
@@ -422,6 +488,7 @@ export default function RmnPage() {
                     <td>{b.status !== '완료' && b.status !== '취소' && (
                       <button className="btn-ghost sm" onClick={() => setStatus(b, nextStatus(b.status))}>다음 →</button>
                     )}</td>
+                    <td><button className="btn-ghost sm" onClick={() => makeOrder(b)}>청약서</button></td>
                     <td><button className="btn-ghost sm" onClick={() => startEdit(b)}>수정</button></td>
                     <td>
                       <button className={'btn-ghost sm danger' + (confirmDel === b.id ? ' arm' : '')} onClick={() => del(b.id)}>
@@ -433,6 +500,9 @@ export default function RmnPage() {
               </tbody>
             </table>
           </div>
+
+          {/* ── 캠페인 제안서 만들기 ('26.7 3차 — 접힘, 기존 동선 불변) ── */}
+          <ProposalMaker />
 
           {/* ── 정산 요약 ('26.7 2차) — 월별 총광고비·입금가·미수금(입금 확인 전) ── */}
           <SettleSummary bookings={bookings} />
@@ -454,6 +524,7 @@ export default function RmnPage() {
                         <td className="mute">{fmtRange(b)}</td>
                         <td>{fmtWon(b.actual_price)}</td>
                         <td className="mute">{b.status}</td>
+                        <td><button className="btn-ghost sm" onClick={() => makeOrder(b)}>청약서</button></td>
                         <td><button className="btn-ghost sm" onClick={() => startEdit(b)}>수정</button></td>
                       </tr>
                     ))}
