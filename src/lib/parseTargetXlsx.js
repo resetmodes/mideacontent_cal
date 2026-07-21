@@ -8,6 +8,7 @@
    ─ 이전 "(결과)" 내부 정리 문서 양식은 잘못된 소스로 확인되어 폐기 ('26.7 사용자 확인) */
 
 const clean = v => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : '')
+const ns = v => clean(v).replace(/ /g, '')   // 공백 무시 비교용 ("매체 명" 변형 대응)
 const num = v => {
   if (typeof v === 'number' && isFinite(v)) return Math.round(v)
   if (typeof v === 'string') {
@@ -17,17 +18,20 @@ const num = v => {
   return 0
 }
 
-const SHEET_RE = /^(\d{1,2})월_(.+?)\((종료|진행중)\)\s*$/
+/* 시트명 규칙 ('26.7 완화): "1월_대구(종료)" 기본형 + 변형 허용 —
+   구분자 _/공백/·, 괄호 상태(종료·진행중·완료 등)는 어떤 문구든·없어도 OK.
+   "N월"로 시작하지 않는 시트(전체/Start/End 등 요약)만 제외 */
+const SHEET_RE = /^\s*(\d{1,2})\s*월[_\s·-]*(.*?)\s*(?:\(([^)]*)\))?\s*$/
 
 function parseSheet(rows, m) {
   const month = +m[1]
   const office = m[2].trim()
-  const status = m[3]
+  const status = (m[3] || '').trim()
 
-  /* 제목에서 연도, C4에서 캠페인명·기간 */
+  /* 제목에서 연도, "N월" 행의 C열에서 캠페인명·기간 */
   let year = null, name = '', period = ''
-  for (let r = 0; r < Math.min(rows.length, 8); r++) {
-    const b = clean(rows[r]?.[1]), c = clean(rows[r]?.[2])
+  for (let r = 0; r < Math.min(rows.length, 10); r++) {
+    const b = ns(rows[r]?.[1]), c = clean(rows[r]?.[2])
     const ym = b.match(/(\d{2})년도/)
     if (ym) year = 2000 + +ym[1]
     if (/^\d{1,2}월$/.test(b) && c) {
@@ -39,8 +43,8 @@ function parseSheet(rows, m) {
 
   /* 헤더 행(C열 "매체명") + 지표 컬럼 인덱스 (라벨 기준 — 앱다운로드 없는 시트 대응) */
   let head = -1
-  for (let r = 0; r < Math.min(rows.length, 20); r++) {
-    if (clean(rows[r]?.[2]) === '매체명') { head = r; break }
+  for (let r = 0; r < Math.min(rows.length, 25); r++) {
+    if (ns(rows[r]?.[2]) === '매체명') { head = r; break }
   }
   if (head < 0 || !name) return null
   const col = {}
@@ -76,12 +80,13 @@ function parseSheet(rows, m) {
   }
 }
 
-/* 워크북 전체 → { items: 인식된 캠페인[], skipped: 실패·미기입[] } */
+/* 워크북 전체 → { items: 인식된 캠페인[], skipped: 실패·미기입[], sheetNames: 전체 시트명 }
+   sheetNames는 0건 인식 시 원인 진단용 (어떤 이름이 있는데 왜 안 잡혔는지 화면에 표시) */
 export function parseTargetWorkbook(XLSX, workbook) {
   const items = [], skipped = []
   for (const sheetName of workbook.SheetNames) {
     const m = sheetName.match(SHEET_RE)
-    if (!m) continue                              // 전체/Start/End 등 요약 시트
+    if (!m || !m[2]) continue                     // "N월"로 시작 안 함 = 전체/Start/End 등 요약 시트
     const ws = workbook.Sheets[sheetName]
     if (!ws || !ws['!ref']) { skipped.push({ sheet: sheetName, reason: '빈 시트' }); continue }
     /* !ref가 B2처럼 중간에서 시작해도 절대 좌표(A1 기준)로 읽기 */
@@ -98,5 +103,5 @@ export function parseTargetWorkbook(XLSX, workbook) {
   for (const it of items) {
     if (count[keyOf(it)] > 1) { it.dup = true; it.checked = false }
   }
-  return { items, skipped }
+  return { items, skipped, sheetNames: workbook.SheetNames }
 }

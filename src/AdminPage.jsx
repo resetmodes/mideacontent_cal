@@ -208,8 +208,14 @@ function XlsxUpload({ existing, onDone }) {
       const { parseTargetWorkbook } = await import('./lib/parseTargetXlsx.js')
       const wb = XLSX.read(buf)
       const res = parseTargetWorkbook(XLSX, wb)
-      if (res.items.length === 0) setMsg('인식된 캠페인 시트("N월_사업소(종료)")가 없습니다 — 파일 양식 확인 필요')
-      else setParsed(res)
+      if (res.items.length === 0) {
+        /* 0건이면 원인 진단 정보 표시 — 실제 시트명·실패 사유를 봐야 규칙을 맞출 수 있음 */
+        const names = (res.sheetNames || []).slice(0, 20).join(' · ')
+        const why = res.skipped.length
+          ? '판독 실패: ' + res.skipped.slice(0, 10).map(s => `${s.sheet}(${s.reason})`).join(' · ')
+          : '"N월…" 형태로 시작하는 시트가 없음'
+        setMsg(`인식된 캠페인 시트가 없습니다. ${why} — 파일의 시트명: ${names}${(res.sheetNames || []).length > 20 ? ` 외 ${res.sheetNames.length - 20}개` : ''}. 이 문구를 캡처해서 알려주시면 규칙을 맞춰 드립니다.`)
+      } else setParsed(res)
     } catch (e) { setMsg('파일 읽기 실패: ' + e.message) }
     setBusy(false)
   }
