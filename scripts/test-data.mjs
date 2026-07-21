@@ -133,6 +133,17 @@ if (RMN_PRODUCTS.length !== 7) bad('RMN 상품이 7종이 아님')
   if (netAmount(10_000_000, true) !== 7_000_000) bad('판매사 수수료 30% 입금가 계산 오류')
 }
 
+/* 6e. RMN 이관 SQL — 행 수 고정 + 날짜 형식 (역순·비ISO가 섞이면 insert가 통째로 실패) */
+for (const [file, want] of [['rmn-seed.sql', 40], ['rmn-seed-2025.sql', 38]]) {
+  const sql = readFileSync(new URL(`../data/${file}`, import.meta.url), 'utf8')
+  const inserts = sql.match(/^insert into rmn_bookings/gm) || []
+  if (inserts.length !== want) bad(`${file}: 이관 ${want}건이 아님 (${inserts.length}건)`)
+  for (const m of sql.matchAll(/'(\d{4}-\d{2}-\d{2})','(\d{4}-\d{2}-\d{2})'/g)) {
+    if (m[2] < m[1]) bad(`${file}: 역순 기간 ${m[1]}→${m[2]}`)
+  }
+  if ((sql.match(/'\d{1,2}\/[^']*'/g) || []).length) bad(`${file}: 비ISO 날짜 잔존`)
+}
+
 /* 7. media.js 스키마 최소 요건 */
 for (const m of MEDIA) {
   if (!m.group || !m.cat || !m.name || !m.lead) bad(`media.js "${m.name || '?'}": group/cat/name/lead 누락`)
