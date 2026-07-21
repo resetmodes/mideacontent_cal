@@ -69,6 +69,55 @@ function RmnNotice({ notices, onConvert, onClose }) {
   )
 }
 
+/* ── 정산 요약 ('26.7 2차) — 시작월 기준 집계. 미수금 = 취소 제외, "입금 확인" 전 상태의 입금가 ── */
+function SettleSummary({ bookings }) {
+  const rows = useMemo(() => {
+    const map = {}
+    for (const b of bookings) {
+      if (b.status === '취소') continue
+      const ym = (b.start_date || '').slice(0, 7)
+      if (!ym) continue
+      const m = (map[ym] = map[ym] || { ym, cnt: 0, total: 0, net: 0, unpaid: 0 })
+      m.cnt++
+      m.total += b.actual_price || 0
+      m.net += b.net_amount || 0
+      if (statusIdx(b.status) > -1 && statusIdx(b.status) < statusIdx('입금 확인')) m.unpaid += b.net_amount || 0
+    }
+    return Object.values(map).sort((a, b) => a.ym.localeCompare(b.ym))
+  }, [bookings])
+
+  if (rows.length === 0) return null
+  const sum = k => rows.reduce((a, r) => a + r[k], 0)
+  return (
+    <>
+      <div className="group-label">정산 요약 <small className="adm-count">시작월 기준 · 미수금 = 입금 확인 전</small></div>
+      <div className="mon-scroll">
+        <table className="mon-table adm-table">
+          <thead><tr><th>월</th><th>건수</th><th>총광고비</th><th>입금가</th><th>미수금</th></tr></thead>
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.ym}>
+                <td className="mon-acc">{r.ym.replace('-', '.')}</td>
+                <td className="mute">{r.cnt}건</td>
+                <td>{fmtWon(r.total)}</td>
+                <td>{fmtWon(r.net)}</td>
+                <td className={r.unpaid > 0 ? 'strong' : 'mute'}>{r.unpaid > 0 ? fmtWon(r.unpaid) : '—'}</td>
+              </tr>
+            ))}
+            <tr className="rmn-sum">
+              <td className="mon-acc">합계</td>
+              <td className="mute">{sum('cnt')}건</td>
+              <td className="strong">{fmtWon(sum('total'))}</td>
+              <td className="strong">{fmtWon(sum('net'))}</td>
+              <td className={sum('unpaid') > 0 ? 'strong' : 'mute'}>{sum('unpaid') > 0 ? fmtWon(sum('unpaid')) : '—'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </>
+  )
+}
+
 /* ── 월간 캘린더 (간이) — 부킹을 상품 이니셜 칩으로 표시 ── */
 function RmnMonth({ bookings, onPick }) {
   const [cursor, setCursor] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
@@ -384,6 +433,9 @@ export default function RmnPage() {
               </tbody>
             </table>
           </div>
+
+          {/* ── 정산 요약 ('26.7 2차) — 월별 총광고비·입금가·미수금(입금 확인 전) ── */}
+          <SettleSummary bookings={bookings} />
 
           {/* ── 월간 캘린더 ── */}
           <div className="group-label">부킹 캘린더</div>
