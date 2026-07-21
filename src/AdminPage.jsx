@@ -272,7 +272,7 @@ function XlsxUpload({ existing, onDone }) {
           </div>
           <div className="mon-scroll">
             <table className="mon-table adm-table">
-              <thead><tr><th></th><th>사업소</th><th>월</th><th>캠페인</th><th>매체</th><th>노출</th><th>방문</th><th>설치</th></tr></thead>
+              <thead><tr><th></th><th>사업소</th><th>월</th><th>캠페인</th><th>매체</th><th>노출</th><th>클릭</th><th>방문</th><th>설치</th></tr></thead>
               <tbody>
                 {parsed.items.map((it, i) => (
                   <tr key={it.sheet} className={it.checked ? 'sel' : ''}>
@@ -286,6 +286,7 @@ function XlsxUpload({ existing, onDone }) {
                     </td>
                     <td className="mute">{it.media.map(m => m.media).join('·')}</td>
                     <td className="mute">{sum(it, 'exp').toLocaleString('ko-KR')}</td>
+                    <td className="mute">{sum(it, 'clk').toLocaleString('ko-KR')}</td>
                     <td className="mute">{sum(it, 'vis').toLocaleString('ko-KR')}</td>
                     <td className="strong">{sum(it, 'inst').toLocaleString('ko-KR')}</td>
                   </tr>
@@ -409,7 +410,7 @@ function TargetAppAdmin() {
       {recent.length > 0 && (
         <div className="mon-scroll">
           <table className="mon-table adm-table">
-            <thead><tr><th>월</th><th>사업소</th><th>캠페인</th><th>매체</th><th>노출</th><th>설치</th><th></th><th></th></tr></thead>
+            <thead><tr><th>월</th><th>사업소</th><th>캠페인</th><th>매체</th><th>노출</th><th>클릭</th><th>방문</th><th>설치</th><th></th><th></th></tr></thead>
             <tbody>
               {recent.map(r => (
                 <tr key={r.id} className={editId === r.id ? 'sel' : ''}>
@@ -418,6 +419,8 @@ function TargetAppAdmin() {
                   <td className="mon-acc">{r.name}</td>
                   <td className="mute">{(r.media || []).join('·')}</td>
                   <td className="mute">{(r.exp || 0).toLocaleString('ko-KR')}</td>
+                  <td className="mute">{(r.clk || 0).toLocaleString('ko-KR')}</td>
+                  <td className="mute">{(r.vis || 0).toLocaleString('ko-KR')}</td>
                   <td className="strong">{(r.inst || 0).toLocaleString('ko-KR')}</td>
                   <td><button className="btn-ghost sm" onClick={() => startEdit(r)}>수정</button></td>
                   <td>
