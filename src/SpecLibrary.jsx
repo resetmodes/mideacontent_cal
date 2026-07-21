@@ -125,9 +125,9 @@ function Slot({ s, query, onRef }) {
         {s.note && <div className="slot-note">{hl(s.note, query)}</div>}
       </div>
       {s.ref && (
-        <button className="ref-thumb" onClick={() => onRef(s.ref)} title="제작 가이드 크게 보기">
-          <img loading="lazy" src={`${import.meta.env.BASE_URL}media-ref/${s.ref}`} alt={`${s.name} 제작 가이드`} />
-          <span>제작 가이드 크게 보기</span>
+        <button className="ref-thumb" onClick={() => onRef(s.ref)} title="크게 보기">
+          <img loading="lazy" src={`${import.meta.env.BASE_URL}media-ref/${s.ref}`} alt={`${s.name} 목업·레퍼런스`} />
+          <span>크게 보기</span>
         </button>
       )}
     </div>
@@ -197,6 +197,12 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRe
       </div>
       <div className="media-body">
         {m.target && <div className="m-target">{hl(m.target, query)}</div>}
+        {/* 매체 대표 비주얼 (채널 캡처·목업 등 — 자산 있으면 media.visual에 파일명 한 줄) */}
+        {m.visual && (
+          <button className="ref-thumb media-visual" onClick={() => onRef(m.visual)} title="크게 보기">
+            <img loading="lazy" src={`${import.meta.env.BASE_URL}media-ref/${m.visual}`} alt={`${m.name} 레퍼런스`} />
+          </button>
+        )}
         {m.slots.map((s, i) => <Slot key={i} s={s} query={query} onRef={onRef} />)}
         {m.process && <Timeline process={m.process} query={query} />}
         {Object.keys(extras).length > 0 && (

@@ -43,59 +43,59 @@ export const MEDIA = [
   {group:"타겟형 매체", cat:"아파트앱", reg:"정기", name:"아파트너", lead:"D-7 (영업일)", verified:true,
    target:"4,300개 단지·360만 세대. 거주지 인증 입주민 데이터 — 35~54세 안정 소비층 80%. 세대수 TOP 22 아파트 중 70% 점유, 단지 커뮤니티 통한 2·3차 확산 기대.",
    slots:[
-     {name:"스플래시", size:"1080 × 720", cap:"1MB", fmt:"PNG(투명)"},
-     {name:"메인 팝업", size:"1080 × 1020", cap:"1MB", fmt:"JPG/PNG"},
-     {name:"서브 띠배너", size:"240 × 240", cap:"1MB", fmt:"JPG/PNG"}]},
+     {name:"스플래시", size:"1080 × 720", cap:"1MB", kind:"이미지", img:"PNG (투명)"},
+     {name:"메인 팝업", size:"1080 × 1020", cap:"1MB", kind:"이미지", img:"JPG · PNG"},
+     {name:"서브 띠배너", size:"240 × 240", cap:"1MB", kind:"이미지", img:"JPG · PNG"}]},
   {group:"타겟형 매체", cat:"아파트앱", reg:"정기", name:"바이비", lead:"D-7 (영업일)", verified:true,
    target:"올림픽파크포레온·나인원한남 등 랜드마크 단지 확보 — 브랜드 이미지 제고형. 노출량은 적으나 클릭율 2~3%로 높음.",
    slots:[
-     {name:"스플래시", size:"888 × 690", cap:"1MB", fmt:"JPG(흰배경)"},
-     {name:"메인 팝업", size:"1080 × 1020", cap:"1MB", fmt:"JPG/PNG"}]},
+     {name:"스플래시", size:"888 × 690", cap:"1MB", kind:"이미지", img:"JPG (흰배경)"},
+     {name:"메인 팝업", size:"1080 × 1020", cap:"1MB", kind:"이미지", img:"JPG · PNG"}]},
   {group:"타겟형 매체", cat:"키즈앱", reg:"정기", name:"키즈노트", lead:"D-7 (영업일)", verified:true,
    target:"어린이집·유치원 3만 개 가입 1위 플랫폼. 25~44세 학부모 82%, 고착도 65%. 아이 성별·연령·지역 기반 정교 타겟팅.",
    slots:[
-     {name:"메인배너", size:"1029 × 258", cap:"300KB", fmt:"PNG(투명)", note:"배경 색상값 전달 (6자리 HEX)"},
-     {name:"리스트배너", size:"1029 × 258", cap:"300KB", fmt:"PNG(투명)"},
-     {name:"빅배너", size:"1200 × 600", cap:"3MB", fmt:"PNG"},
+     {name:"메인배너", size:"1029 × 258", cap:"300KB", kind:"이미지", img:"PNG (투명)", note:"배경 색상값 전달 (6자리 HEX)"},
+     {name:"리스트배너", size:"1029 × 258", cap:"300KB", kind:"이미지", img:"PNG (투명)"},
+     {name:"빅배너", size:"1200 × 600", cap:"3MB", kind:"이미지", img:"PNG"},
      {name:"포토디테일", size:"규격 별도 확인", cap:"—", fmt:"—", note:"가이드라인 내 규격 미기재 — 요청 시 확인"}]},
   {group:"타겟형 매체", cat:"직장인앱", reg:"정기", name:"리멤버", lead:"D-10 (영업일)", verified:true,
    target:"400만 비즈니스맨. 명함·프로필 기반 직무·직급·산업군·회사 규모·근무 지역 타겟팅. B2B·B2C 모두 최적.",
    slots:[
-     {name:"메인배너", size:"968 × 258", cap:"400KB", fmt:"PNG"},
-     {name:"메인 팝업", size:"990 × 990", cap:"500KB", fmt:"JPG/PNG"},
-     {name:"앱종료배너", size:"1200 × 2325", cap:"700KB", fmt:"JPG/PNG"}]},
+     {name:"메인배너", size:"968 × 258", cap:"400KB", kind:"이미지", img:"PNG"},
+     {name:"메인 팝업", size:"990 × 990", cap:"500KB", kind:"이미지", img:"JPG · PNG"},
+     {name:"앱종료배너", size:"1200 × 2325", cap:"700KB", kind:"이미지", img:"JPG · PNG"}]},
   {group:"타겟형 매체", cat:"아파트앱", reg:"비정기", name:"아파트아이", lead:"D-10 (영업일)", verified:true,
    target:"관리비 결제 기반 전국 85%·3만 단지 (실사용 MAU 약 2백만). 결제·거주 형태 특화 타겟팅. 관리비 결제일(25일) 전후 반응 상승.",
    slots:[
-     {name:"메인 팝업", size:"1008 × 696", cap:"600KB", fmt:"JPG/PNG"},
-     {name:"홈 상단배너", size:"960 × 504", cap:"600KB", fmt:"JPG/PNG", note:"텍스트 제외"}]},
+     {name:"메인 팝업", size:"1008 × 696", cap:"600KB", kind:"이미지", img:"JPG · PNG"},
+     {name:"홈 상단배너", size:"960 × 504", cap:"600KB", kind:"이미지", img:"JPG · PNG", note:"텍스트 제외"}]},
   {group:"타겟형 매체", cat:"키즈앱", reg:"비정기", name:"하이클래스", lead:"D-10 (영업일)", verified:true,
    target:"알림장 4년 연속 1위, 전국 초등학교 가입률 99% — 학부모 매일 접속. 학생 대상 별도 노출 가능. 지역 타겟팅 불가 → 전국 단위 키즈·브랜딩 캠페인에 적합.",
    slots:[
-     {name:"홈 띠배너", size:"1440 × 360", cap:"1MB", fmt:"PNG"},
-     {name:"홈 빅배너", size:"1440 × 900", cap:"2MB", fmt:"PNG"}]},
+     {name:"홈 띠배너", size:"1440 × 360", cap:"1MB", kind:"이미지", img:"PNG"},
+     {name:"홈 빅배너", size:"1440 × 900", cap:"2MB", kind:"이미지", img:"PNG"}]},
   {group:"타겟형 매체", cat:"대학생앱", reg:"비정기", name:"에브리타임", lead:"D-10 (영업일)", verified:true,
    target:"MAU 290만 국내 최대 대학생 플랫폼. 학교·학과·학번 인증 유저, 20대 77.4%·잘파 85.3%. 게시글형 노출 상품은 거부감 없이 정보 전달.",
    slots:[
-     {name:"커뮤니티 보드", size:"1029 × 258", cap:"300KB", fmt:"PNG"},
-     {name:"홈 카드", size:"720 × 480", cap:"300KB", fmt:"JPG/PNG"}]},
+     {name:"커뮤니티 보드", size:"1029 × 258", cap:"300KB", kind:"이미지", img:"PNG"},
+     {name:"홈 카드", size:"720 × 480", cap:"300KB", kind:"이미지", img:"JPG · PNG"}]},
   {group:"타겟형 매체", cat:"글로벌앱", reg:"비정기", name:"위버스", lead:"D-20 (영업일)", verified:true,
    target:"245개국 글로벌 팬덤 플랫폼 — 고관여 유저, 주목도·체류시간 높음. 미국·중국·일본 국가 타겟팅 가능, 1020 트래픽 85%.",
    slots:[
-     {name:"홈 띠배너", size:"720 × 144", cap:"300KB", fmt:"PNG"},
-     {name:"알림 상단배너", size:"720 × 144", cap:"300KB", fmt:"PNG"}]},
+     {name:"홈 띠배너", size:"720 × 144", cap:"300KB", kind:"이미지", img:"PNG"},
+     {name:"알림 상단배너", size:"720 × 144", cap:"300KB", kind:"이미지", img:"PNG"}]},
   {group:"타겟형 매체", cat:"취미앱", reg:"비정기", name:"데일리샷", lead:"D-10 (영업일)", verified:true,
    target:"국내 1위 주류 플랫폼 — MAU 40만, 구매력 있는 20~40대 85%. 픽업 파트너 1만 개, 광고 외 제휴 협업 가능. ※ 주류 매체 — brand-guard 기준 표현 검수 필수.",
    slots:[
-     {name:"스플래시", size:"1170 × 1640", cap:"1MB", fmt:"PNG/GIF"},
-     {name:"메인 팝업", size:"1125 × 816", cap:"1MB", fmt:"PNG/GIF"},
-     {name:"앱종료배너", size:"984 × 1143", cap:"1MB", fmt:"PNG"}]},
+     {name:"스플래시", size:"1170 × 1640", cap:"1MB", kind:"이미지", img:"PNG · GIF"},
+     {name:"메인 팝업", size:"1125 × 816", cap:"1MB", kind:"이미지", img:"PNG · GIF"},
+     {name:"앱종료배너", size:"984 × 1143", cap:"1MB", kind:"이미지", img:"PNG"}]},
   {group:"타겟형 매체", cat:"취미앱", reg:"비정기", name:"카카오골프", lead:"D-15 (영업일)", verified:true,
    target:"30~50대 프리미엄 타겟 80% 이상. 스크린(프렌즈 스크린)부터 필드 예약까지 골퍼 동선 전체 커버, 오프라인 광고 결합 가능.",
    slots:[
-     {name:"메인 팝업", size:"1242 × 1326", cap:"400KB", fmt:"JPG/PNG"},
-     {name:"메인 탑배너", size:"1242 × 420", cap:"250KB", fmt:"JPG/PNG"},
-     {name:"앱종료배너", size:"1018 × 942", cap:"500KB", fmt:"JPG/PNG"}]},
+     {name:"메인 팝업", size:"1242 × 1326", cap:"400KB", kind:"이미지", img:"JPG · PNG"},
+     {name:"메인 탑배너", size:"1242 × 420", cap:"250KB", kind:"이미지", img:"JPG · PNG"},
+     {name:"앱종료배너", size:"1018 × 942", cap:"500KB", kind:"이미지", img:"JPG · PNG"}]},
 
   /* ── 자사 매체 · 온드 ('25.1 미디어키트) ───────────────── */
   {group:"자사 매체", cat:"온드 미디어", name:"홈페이지 (WEB)", lead:"D-14", verified:true,
@@ -189,10 +189,10 @@ export const MEDIA = [
   {group:"자사 매체", cat:"언드 미디어", name:"인스타그램 대표계정 (the_hyundai)", lead:"D-20", verified:true,
    target:"이슈를 가장 빠르게 전달하는 바이럴 특화 채널. 34세 이하 팔로워 40%.",
    slots:[
-     {name:"스토리", size:"1080 × 1920", cap:"—", fmt:"JPG · PNG"},
-     {name:"캐러셀 정방형", size:"1080 × 1080", cap:"—", fmt:"JPG · PNG"},
-     {name:"캐러셀 세로형", size:"1080 × 1350", cap:"—", fmt:"JPG · PNG"},
-     {name:"릴스", size:"1080 × 1920", cap:"라이트 30~40초 · 오리지널 60초 이내", fmt:"MP4 · AVI"}],
+     {name:"스토리", size:"1080 × 1920", cap:"—", kind:"이미지", img:"JPG · PNG"},
+     {name:"캐러셀 정방형", size:"1080 × 1080", cap:"—", kind:"이미지", img:"JPG · PNG"},
+     {name:"캐러셀 세로형", size:"1080 × 1350", cap:"—", kind:"이미지", img:"JPG · PNG"},
+     {name:"릴스", size:"1080 × 1920", cap:"—", kind:"영상", vid:"MP4 · AVI", vlen:"라이트 30~40초 · 오리지널 60초 이내"}],
    process:[
      {d:"D-20", label:"기획·스케줄·형식·촬영 협의"},
      {d:"D-7", label:"현장 정보·멘션 확인 후 (촬영)기획안 전달"},
@@ -205,8 +205,8 @@ export const MEDIA = [
   {group:"자사 매체", cat:"언드 미디어", name:"유튜브 (현대백화점 THE HYUNDAI)", lead:"D-30", verified:true,
    target:"브랜딩 영상 아카이빙·스토리텔링. 35세 이하 70%. SNS·LCD 미러링 가능.",
    slots:[
-     {name:"본편 (가로형 16:9)", size:"1920 × 1080", cap:"—", fmt:"MOV 제작 → MP4 변환"},
-     {name:"베리에이션 (세로형 9:16)", size:"1080 × 1920", cap:"15초 · 30초 · 1분 내외 (매체별 상이)", fmt:"MP4", note:"그 외 별도 협의 — 모델 초상권 체크 필수"}],
+     {name:"본편 (가로형 16:9)", size:"1920 × 1080", cap:"—", kind:"영상", vid:"MOV 제작 → MP4 변환"},
+     {name:"베리에이션 (세로형 9:16)", size:"1080 × 1920", cap:"—", kind:"영상", vid:"MP4", vlen:"15초 · 30초 · 1분 내외 (매체별 상이)", note:"그 외 별도 협의 — 모델 초상권 체크 필수"}],
    process:[
      {d:"D-30", label:"광고 소재 의뢰·제작/일정 협의 (행사 전 발행 위해 사전 기획 필수)"},
      {d:"D-20", label:"제작 방향성 전달, 협력사 선정, 촬영"},
@@ -228,8 +228,8 @@ export const MEDIA = [
   {group:"자사 매체", cat:"페이드 미디어", name:"카카오톡 대표계정", lead:"D-30", verified:true,
    target:"캠페인·행사 메시지 — 연령/성별/지역 타겟. 점 자체 발행 '디지털 지면' 역할.",
    slots:[
-     {name:"캐러셀", size:"800 × 1067", cap:"—", fmt:"JPG · PNG"},
-     {name:"상세", size:"720 × 2880", cap:"—", fmt:"JPG · PNG"},
+     {name:"캐러셀", size:"800 × 1067", cap:"—", kind:"이미지", img:"JPG · PNG"},
+     {name:"상세", size:"720 × 2880", cap:"—", kind:"이미지", img:"JPG · PNG"},
      {name:"페이지", size:"프리즘 or 자체 제작", cap:"—", fmt:"—"}],
    process:[
      {d:"D-30", label:"발송 희망 콘텐츠 요청·협의"},
@@ -243,11 +243,11 @@ export const MEDIA = [
   {group:"자사 매체", cat:"페이드 미디어", name:"아파트 LCD", lead:"D-20", verified:true,
    target:"수도권 아파트 거주민 타겟 — 단지별 타겟팅 (포커스미디어코리아, KT타운보드). ※ 아파트앱(타겟형 제휴 앱)과 다른 매체 — 요청 시 구분 필수.",
    slots:[
-     {name:"영상", size:"1920 × 2560", cap:"15초 기본", fmt:"MP4 · BGM 삽입 필수",
+     {name:"영상", size:"1920 × 2560", cap:"—", kind:"영상", vid:"MP4 (BGM 삽입 필수)", vlen:"15초 기본",
       note:"30초 소재 시 송출 횟수 차감 (일 100회 → 50회) · 이미지 프레임 내 배너 비율 임의 수정 가능"},
-     {name:"영상 (1080×1920)", size:"1080 × 1920", cap:"15초 기본", fmt:"MP4 · BGM 삽입 필수"},
-     {name:"영상 (1080×2460)", size:"1080 × 2460", cap:"15초 기본", fmt:"MP4 · BGM 삽입 필수"},
-     {name:"영상 (1080×2560)", size:"1080 × 2560", cap:"15초 기본", fmt:"MP4 · BGM 삽입 필수"}],
+     {name:"영상 (1080×1920)", size:"1080 × 1920", cap:"—", kind:"영상", vid:"MP4 (BGM 삽입 필수)", vlen:"15초 기본"},
+     {name:"영상 (1080×2460)", size:"1080 × 2460", cap:"—", kind:"영상", vid:"MP4 (BGM 삽입 필수)", vlen:"15초 기본"},
+     {name:"영상 (1080×2560)", size:"1080 × 2560", cap:"—", kind:"영상", vid:"MP4 (BGM 삽입 필수)", vlen:"15초 기본"}],
    process:[
      {d:"D-20", label:"소재 의뢰·제작·일정 협의"},
      {d:"D-14", label:"시안 영상 제작"},
@@ -261,7 +261,7 @@ export const MEDIA = [
   {group:"자사 매체", cat:"페이드 미디어", name:"신문광고", lead:"D-20", verified:true,
    target:"높은 매체 신뢰도 기반 브랜딩 — 경제지 10개 미디어, 주 3~5회 편성. 전점·대규모 소재 우선 (테마, ESG, 장기 전시).",
    slots:[
-     {name:"5단 광고", size:"31.5 × 16.5 cm", cap:"—", fmt:"언론사별 면 크기 상이", note:"행사 안내 QR 랜딩 연계"}],
+     {name:"5단 광고", size:"31.5 × 16.5 cm", cap:"—", kind:"이미지", note:"언론사별 면 크기 상이 · 행사 안내 QR 랜딩 연계"}],
    process:[
      {d:"D-20", label:"소재 의뢰·제작·일정 협의"},
      {d:"D-10", label:"키비주얼 확보, 문안·1차 시안 제작"},
@@ -274,8 +274,8 @@ export const MEDIA = [
   {group:"자사 매체", cat:"페이드 미디어", name:"포털광고", lead:"D-15", verified:true,
    target:"네이버·카카오·구글 — 검색/배너 광고, 브랜드·지점 키워드 점유. 지역·연령·성별 세부 타겟팅 가능.",
    slots:[
-     {name:"이미지 정방형", size:"500 × 500", cap:"—", fmt:"JPG · PNG"},
-     {name:"이미지 가로형", size:"228 × 152", cap:"—", fmt:"JPG · PNG"},
+     {name:"이미지 정방형", size:"500 × 500", cap:"—", kind:"이미지", img:"JPG · PNG"},
+     {name:"이미지 가로형", size:"228 × 152", cap:"—", kind:"이미지", img:"JPG · PNG"},
      {name:"텍스트", size:"타이틀 최대 20자", cap:"썸네일 최대 7자", fmt:"—"},
      {name:"페이지", size:"프리즘 or 자체 제작", cap:"—", fmt:"—"}],
    process:[
@@ -326,8 +326,8 @@ export const MEDIA = [
      {name:"사내 엘베", size:"800 × 600", cap:"—", fmt:"—", note:"제작 가이드 미기재 — 확인 중 (가안)"}],
    extra:{"심의":"옥외광고 사전 심의 필수","금지사항":"점멸 효과 초당 3회 초과 금지 · 타사 상표 노출 금지","담당":"미디어전략 파트"}},
   {group:"운영 매체", cat:"옥외·LCD", name:"서울버스TV", lead:"D-10", verified:false,
-   slots:[{name:"기본", size:"1920 × 540", cap:"100MB 이하", fmt:"MP4 (H.264 AVC) · 무음",
-    note:"라이브·소재 교체일 최소 3영업일 전 입고 · 기본 15초 (20·30초 가능, 최대 30초) · 영상+이미지 결합형은 1개 파일로 합쳐 전달 필수"}],
+   slots:[{name:"기본", size:"1920 × 540", cap:"100MB 이하", kind:"영상", vid:"MP4 (H.264 AVC) · 무음", vlen:"기본 15초 (20·30초 가능, 최대 30초)",
+    note:"라이브·소재 교체일 최소 3영업일 전 입고 · 영상+이미지 결합형은 1개 파일로 합쳐 전달 필수"}],
    extra:{"심의":"교통광고 심의 필수 (D-7 별도)","금지사항":"무음 매체 — 자막 필수","담당":"미디어전략 파트","비고":"자막 최소 48pt, 하단 1/5 자막 금지 영역"}},
   {group:"운영 매체", cat:"WEB·H.Point", name:"H.Point 메인 배너", lead:"D-3", verified:false,
    slots:[{name:"기본", size:"규격 없음", cap:"—", fmt:"—"}],
@@ -336,6 +336,6 @@ export const MEDIA = [
    slots:[{name:"기본", size:"규격 없음", cap:"—", fmt:"—"}],
    extra:{"심의":"카카오 소재 검수","금지사항":"과장 표현(최저가 등) 검수 반려 사유","담당":"카톡·유튜브 파트"}},
   {group:"운영 매체", cat:"인쇄·고지물", name:"고지물 (PMS)", lead:"D-7", verified:false,
-   slots:[{name:"기본", size:"210 × 297 mm", cap:"—", fmt:"PDF (CMYK)"}],
+   slots:[{name:"기본", size:"210 × 297 mm", cap:"—", kind:"이미지", img:"PDF (CMYK)"}],
    extra:{"심의":"내부 검수","금지사항":"경품·사은 법정 문구 필수","담당":"매거진·유튜브 파트","비고":"보이스가이드 병행 — 원고 별도"}}
 ];

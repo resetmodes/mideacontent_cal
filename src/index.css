@@ -83,6 +83,7 @@ h1{font-size:clamp(30px,6vw,44px);font-weight:800;letter-spacing:-0.02em;line-he
 .ref-thumb img{width:100%;border:1px solid var(--g200);display:block;}
 .ref-thumb span{font-size:11px;font-weight:600;color:var(--g400);letter-spacing:.04em;}
 .ref-thumb:hover span{color:var(--green);}
+.media-visual{max-width:420px;margin:2px 0 16px;}
 .ref-lightbox{position:fixed;inset:0;background:rgba(23,23,25,.72);z-index:120;cursor:zoom-out;
   display:flex;align-items:center;justify-content:center;padding:24px;}
 .ref-lightbox img{max-width:min(1100px,96vw);max-height:92vh;background:#fff;display:block;}
