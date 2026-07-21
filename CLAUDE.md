@@ -132,6 +132,9 @@
   **제안 목록 2개월 필터 ('26.7)**: 마지막 게시 후 2개월 지난 캠페인은 제안(칩·datalist)에서
   제외, 최근 게시순 정렬 (CalendarPage campaigns memo) — 캠페인 뷰 보관 목록에는 계속 보임
 - 기간 일정 표기: 시작일에 본 표기, 종료일에만 흐린(45%) "· 종료" 마커. 기간 중간 날짜는 표기 없음
+- 역순 기간 방지 ('26.7): 수정 폼의 시작·종료 날짜 선택기를 거꾸로 고르면(종료<시작)
+  저장 시 자동 정렬 (CalendarPage orderRange — onCreate/onSave 가드). 표시(fmtRange·
+  indexByDay)에도 적용해 가드 이전 저장분도 화면에선 바로잡혀 보임
 - 주의: Supabase 연동 전에는 localStorage(브라우저별 분리) — 서로 다른 브라우저에서는 일정·캠페인이
   안 보이는 게 정상. 기능 미동작으로 오인하기 쉬움
 - 로그인 게이트 ('26.7): `src/lib/auth.js` — Supabase Auth REST 직접 호출(email/password),

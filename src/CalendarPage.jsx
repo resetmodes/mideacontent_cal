@@ -18,7 +18,18 @@ const fmtDot = iso => {
   const d = fromISO(iso)
   return `${d.getMonth() + 1}.${d.getDate()} (${DOW[d.getDay()]})`
 }
-const fmtRange = e => e.endDate ? `${fmtDot(e.date)} ~ ${fmtDot(e.endDate)}` : fmtDot(e.date)
+
+/* 시작일보다 종료일이 앞서면 서로 맞바꿔 정렬 ('26.7) — 수정 폼의 두 날짜 선택기를
+   거꾸로 고르면 "7.30 ~ 7.27"처럼 역순 기간이 저장·표시되던 문제 방지.
+   저장(onCreate/onSave) 가드 + 표시(fmtRange·indexByDay)에 공통 적용 —
+   가드 이전에 이미 역순으로 저장된 일정도 화면에서는 바로잡혀 보임 */
+const orderRange = e => (e && e.endDate && e.date && e.endDate < e.date
+  ? { ...e, date: e.endDate, endDate: e.date } : e)
+
+const fmtRange = e0 => {
+  const e = orderRange(e0)
+  return e.endDate ? `${fmtDot(e.date)} ~ ${fmtDot(e.endDate)}` : fmtDot(e.date)
+}
 
 /* 월 그리드: 일요일 시작, 해당 월을 덮는 주 단위 셀 배열 */
 function buildMonth(cursor) {
@@ -40,7 +51,8 @@ function buildMonth(cursor) {
 function indexByDay(events, withMid = false) {
   const map = {}
   const push = (iso, e) => ((map[iso] = map[iso] || []).push(e))
-  for (const e of events) {
+  for (const e0 of events) {
+    const e = orderRange(e0)   // 역순 기간도 시작일에 본 표기·종료일에 마커가 바르게 찍히게
     push(e.date, e)
     if (e.endDate && e.endDate !== e.date) {
       if (withMid) {
@@ -918,17 +930,17 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
 
   const onCreate = async e => {
     try {
-      const ev = await createEvent({
+      const ev = await createEvent(orderRange({
         ...e,
         ...(e.kind === '팀' ? { title: withAuthorName(e.title, me) } : {}),
         owner: e.owner || me || null,
-      })
+      }))
       setEvents(prev => [...prev, ev].sort((a, b) => a.date.localeCompare(b.date)))
     } catch (err) { setError(err.message) }
   }
   const onSave = async (id, patch) => {
     try {
-      const ev = await updateEvent(id, patch)
+      const ev = await updateEvent(id, orderRange(patch))
       setEvents(prev => prev.map(x => (x.id === id ? ev : x)))
       setSelected(sel => (sel?.id === id ? ev : sel))   // 열린 모달도 즉시 갱신 (실적 확정 등)
     } catch (err) { setError(err.message) }
