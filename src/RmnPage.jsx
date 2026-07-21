@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import {
-  RMN_PRODUCTS, RMN_AGENCIES, RMN_STATUS, rmnProduct, statusIdx, nextStatus,
+  RMN_PRODUCTS, RMN_AGENCIES, RMN_STATUS, rmnProduct, rmnColor, statusIdx, nextStatus,
   slotAvailability, pushAvailability, canTentative, buildRmnNotices,
   rmnListPrice, applyDiscount, netAmount, fmtWon,
 } from './data/rmn.js'
@@ -22,8 +22,9 @@ const fmtD = iso => {
 }
 const fmtRange = b => (b.end_date && b.end_date !== b.start_date ? `${fmtD(b.start_date)} ~ ${fmtD(b.end_date)}` : fmtD(b.start_date))
 const addDaysISO = (iso, n) => { const d = fromISO(iso); d.setDate(d.getDate() + n); return toISO(d) }
-/* 상품 이니셜 칩 (흑백 유지 — 브랜드 컬러 없는 자사 구좌라 원색 미사용) */
+/* 상품 이니셜 칩 — 상품별 저채도 구분색 ('26.7, rmn.js color) */
 const initialOf = id => id === '헤드라인 뉴스' ? '헤' : id === '이벤트 메뉴' ? '이' : id[0]
+const Ini = ({ id }) => <span className="rmn-ini" style={{ background: rmnColor(id) }}>{initialOf(id)}</span>
 
 const EMPTY = {
   advertiser: '', campaign: '', product: '메인배너',
@@ -43,7 +44,7 @@ function RmnNotice({ notices, onConvert, onClose }) {
             <div className="rmn-nt">가부킹 → 부킹 전환 필요 <small>집행 시작 3개월 이내 진입</small></div>
             {notices.tentative.map(b => (
               <div key={b.id} className="rmn-nrow">
-                <span className="rmn-ini">{initialOf(b.product)}</span>
+                <Ini id={b.product} />
                 <span className="rmn-nttl">{b.advertiser} — {b.product} · {fmtRange(b)}</span>
                 <button className="btn-solid sm" onClick={() => onConvert(b)}>부킹 전환</button>
               </div>
@@ -55,7 +56,7 @@ function RmnNotice({ notices, onConvert, onClose }) {
             <div className="rmn-nt">세금계산서 미교부 <small>이번 달 종료 캠페인 중 교부 단계 미도달</small></div>
             {notices.tax.map(b => (
               <div key={b.id} className="rmn-nrow">
-                <span className="rmn-ini">{initialOf(b.product)}</span>
+                <Ini id={b.product} />
                 <span className="rmn-nttl">{b.advertiser} — {b.product} · {fmtRange(b)} · 현재 [{b.status}]</span>
               </div>
             ))}
@@ -215,7 +216,7 @@ function RmnMonth({ bookings, onPick }) {
                 <button key={b.id + c.iso} className={'cal-ev' + (statusIdx(b.status) < 1 ? ' rmn-tent' : '')}
                   onClick={() => onPick(b)}
                   title={`${b.product} — ${b.advertiser} (${fmtRange(b)}) [${b.status}]`}>
-                  <span className="rmn-ini">{initialOf(b.product)}</span>
+                  <Ini id={b.product} />
                   <span className="ev-title">{b.advertiser}{b.status === '가부킹' ? ' (가)' : ''}</span>
                 </button>
               ))}
@@ -225,7 +226,7 @@ function RmnMonth({ bookings, onPick }) {
         })}
       </div>
       <div className="rmn-legend">
-        {RMN_PRODUCTS.map(p => <span key={p.id}><span className="rmn-ini">{initialOf(p.id)}</span> {p.id}</span>)}
+        {RMN_PRODUCTS.map(p => <span key={p.id}><Ini id={p.id} /> {p.id}</span>)}
         <span className="mute">· (가) = 가부킹</span>
       </div>
     </div>
@@ -256,8 +257,15 @@ export default function RmnPage() {
   const closeNotice = () => { localStorage.setItem('rmn-notice-' + todayISO(), '1'); setNotices(null) }
 
   const bookings = Array.isArray(rows) ? rows : []
-  const p = rmnProduct(f.product)
-  const isPush = !!p?.push
+
+  /* 다중 상품 선택 ('26.7 — 묶음 판매): 신규 = 여러 상품 토글, 수정 = 단일(1건=1상품 모델 불변) */
+  const [sel, setSel] = useState(['메인배너'])
+  const products = editId ? [f.product] : sel
+  const toggleSel = id => setSel(prev =>
+    prev.includes(id) ? (prev.length > 1 ? prev.filter(x => x !== id) : prev) : [...prev, id])
+  const hasPush = products.includes('푸쉬')
+  const hasSlot = products.some(id => !rmnProduct(id)?.push)
+  const isPush = hasPush && !hasSlot   // 푸쉬만 선택 (기간 필드 숨김)
   const rangeEnd = f.end_date || f.start_date
 
   /* 재고: 폼의 기간 기준 상품별 잔여 (수정 중이면 자기 자신 제외) */
@@ -270,39 +278,57 @@ export default function RmnPage() {
     return out
   }, [bookings, f.start_date, rangeEnd, f.send_date, editId])
 
-  /* 가격 자동 계산 — 실판가 직접 수정 시 수동 모드 */
-  const listPrice = rmnListPrice(f.product, Number(f.push_units) || 1)
-  const autoActual = applyDiscount(listPrice, f.discount_rate)
-  const total = manualPrice && f.actual_price !== '' ? Number(String(f.actual_price).replace(/,/g, '')) || 0 : autoActual
+  /* 가격 자동 계산 — 선택 상품 합. 실판가 직접 수정(수동 모드)은 단일 상품일 때만 */
+  const perPrice = id => rmnListPrice(id, Number(f.push_units) || 1)
+  const listPrice = products.reduce((a, id) => a + perPrice(id), 0)
+  const autoActual = products.reduce((a, id) => a + applyDiscount(perPrice(id), f.discount_rate), 0)
+  const canManual = products.length === 1
+  const total = canManual && manualPrice && f.actual_price !== '' ? Number(String(f.actual_price).replace(/,/g, '')) || 0 : autoActual
   const deposit = netAmount(total, !!f.agency)
 
-  const tentativeOK = canTentative(f.start_date, todayISO())
-  const availNow = avail[f.product]
-  const soldOut = isPush
-    ? (availNow && (Number(f.push_units) || 1) * p.unitSize > availNow.left)
-    : (availNow && availNow.left <= 0)
+  const firstStart = [hasSlot ? f.start_date : null, hasPush ? f.send_date : null].filter(Boolean).sort()[0] || f.start_date
+  const tentativeOK = canTentative(firstStart, todayISO())
+  /* 선택 상품 중 마감된 것 */
+  const soldOutIds = products.filter(id => {
+    const a = avail[id]
+    if (!a) return false
+    return rmnProduct(id)?.push ? (Number(f.push_units) || 1) * 50_000 > a.left : a.left <= 0
+  })
+  const soldOut = soldOutIds.length > 0
 
-  const valid = f.advertiser.trim() && f.start_date && f.product &&
-    (!isPush || (f.send_date && f.send_time)) && !soldOut
+  const valid = f.advertiser.trim() && products.length >= 1 &&
+    (!hasSlot || f.start_date) && (!hasPush || (f.send_date && f.send_time)) && !soldOut
 
   const submit = async () => {
     if (!valid) return
-    const b = {
-      advertiser: f.advertiser.trim(), campaign: f.campaign.trim(), product: f.product,
-      start_date: isPush ? f.send_date : f.start_date,
-      end_date: isPush ? f.send_date : (f.end_date || null),
-      send_at: isPush ? `${f.send_date}T${f.send_time}:00+09:00` : null,
-      push_qty: isPush ? (Number(f.push_units) || 1) * p.unitSize : null,
-      list_price: listPrice, discount_rate: Number(f.discount_rate) || 0,
-      actual_price: total, net_amount: deposit,
+    const shared = {
+      advertiser: f.advertiser.trim(), campaign: f.campaign.trim(),
+      discount_rate: Number(f.discount_rate) || 0,
       agency: f.agency === '직접입력' ? (f.agency_custom || '').trim() || '기타' : f.agency,
       agency_manager: f.agency_manager, agency_phone: f.agency_phone, agency_email: f.agency_email,
       status: f.status, memo: f.memo.trim(),
     }
+    const rowOf = id => {
+      const pr = rmnProduct(id)
+      const push = !!pr?.push
+      const lp = perPrice(id)
+      const actual = canManual ? total : applyDiscount(lp, f.discount_rate)
+      return {
+        ...shared, product: id,
+        start_date: push ? f.send_date : f.start_date,
+        end_date: push ? f.send_date : (f.end_date || null),
+        send_at: push ? `${f.send_date}T${f.send_time}:00+09:00` : null,
+        push_qty: push ? (Number(f.push_units) || 1) * pr.unitSize : null,
+        list_price: lp, actual_price: actual, net_amount: netAmount(actual, !!shared.agency),
+      }
+    }
     try {
-      if (editId) { await updateRmn(editId, b); setMsg(`"${b.advertiser}" 수정됨`) }
-      else { await createRmn(b); setMsg(`"${b.advertiser}" ${b.status} 등록됨`) }
-      setF(EMPTY); setEditId(null); setManualPrice(false)
+      if (editId) { await updateRmn(editId, rowOf(f.product)); setMsg(`"${shared.advertiser}" 수정됨`) }
+      else {
+        for (const id of products) await createRmn(rowOf(id))
+        setMsg(`"${shared.advertiser}" ${shared.status} ${products.length}건 등록됨${products.length > 1 ? ` (${products.join('·')})` : ''}`)
+      }
+      setF(EMPTY); setEditId(null); setManualPrice(false); setSel(['메인배너'])
       refresh()
     } catch (e) { setMsg(e.message) }
   }
@@ -367,15 +393,16 @@ export default function RmnPage() {
 
       {Array.isArray(rows) && (
         <>
-          {/* ── 판매 가능 구좌 (선택 기간 기준) ── */}
-          <div className="group-label">판매 가능 구좌 <small className="adm-count">{fmtD(f.start_date)}{f.end_date ? ` ~ ${fmtD(f.end_date)}` : ''} 기준</small></div>
+          {/* ── 판매 가능 구좌 (선택 기간 기준) — 신규는 다중 토글(묶음 판매), 수정은 단일 ── */}
+          <div className="group-label">판매 가능 구좌 <small className="adm-count">{fmtD(f.start_date)}{f.end_date ? ` ~ ${fmtD(f.end_date)}` : ''} 기준{!editId && products.length > 1 ? ` · ${products.length}개 상품 묶음` : ''}</small></div>
           <div className="rmn-avail">
             {RMN_PRODUCTS.map(pr => {
               const a = avail[pr.id]
+              const on = products.includes(pr.id)
+              const pick = () => editId ? set('product', pr.id) : toggleSel(pr.id)
               if (pr.push) {
                 return (
-                  <button key={pr.id} className={'rmn-slot' + (f.product === pr.id ? ' on' : '')}
-                    onClick={() => set('product', pr.id)}>
+                  <button key={pr.id} className={'rmn-slot' + (on ? ' on' : '')} onClick={pick}>
                     <b>{pr.id}</b>
                     <span>{a ? `잔여 ${a.left.toLocaleString('ko-KR')}건` : '발송일 선택 시 표시'}</span>
                   </button>
@@ -383,8 +410,7 @@ export default function RmnPage() {
               }
               const full = a && a.left <= 0
               return (
-                <button key={pr.id} className={'rmn-slot' + (f.product === pr.id ? ' on' : '') + (full ? ' full' : '')}
-                  onClick={() => set('product', pr.id)}>
+                <button key={pr.id} className={'rmn-slot' + (on ? ' on' : '') + (full ? ' full' : '')} onClick={pick}>
                   <b>{pr.id}</b>
                   <span>{full ? '마감' : `잔여 ${a.left}/${a.total}`}</span>
                 </button>
@@ -400,11 +426,11 @@ export default function RmnPage() {
               <label className="wide">캠페인명<input value={f.campaign} onChange={e => set('campaign', e.target.value)} placeholder="예: 홀리데이 캠페인" /></label>
             </div>
             <div className="adm-row">
-              {!isPush && <label>시작일 *<input type="date" value={f.start_date} onChange={e => set('start_date', e.target.value)} /></label>}
-              {!isPush && <label>종료일<input type="date" value={f.end_date} onChange={e => set('end_date', e.target.value)} /></label>}
-              {isPush && <label>발송 일자 *<input type="date" value={f.send_date} onChange={e => { set('send_date', e.target.value); set('start_date', e.target.value) }} /></label>}
-              {isPush && <label>발송 시간 *<input type="time" value={f.send_time} onChange={e => set('send_time', e.target.value)} /></label>}
-              {isPush && (
+              {hasSlot && <label>시작일 *<input type="date" value={f.start_date} onChange={e => set('start_date', e.target.value)} /></label>}
+              {hasSlot && <label>종료일<input type="date" value={f.end_date} onChange={e => set('end_date', e.target.value)} /></label>}
+              {hasPush && <label>{hasSlot ? '푸시 ' : ''}발송 일자 *<input type="date" value={f.send_date} onChange={e => { set('send_date', e.target.value); if (!hasSlot) set('start_date', e.target.value) }} /></label>}
+              {hasPush && <label>발송 시간 *<input type="time" value={f.send_time} onChange={e => set('send_time', e.target.value)} /></label>}
+              {hasPush && (
                 <label>발송량 (5만 단위)
                   <select value={f.push_units} onChange={e => set('push_units', e.target.value)}>
                     {Array.from({ length: 18 }, (_, i) => i + 1).map(n => (
@@ -416,16 +442,17 @@ export default function RmnPage() {
             </div>
             {soldOut && (
               <div className="rmn-soldout">
-                이 기간 <b>{f.product}</b> 구좌가 마감되었습니다 — 다른 기간을 선택하거나 잔여 수량을 확인하세요
+                이 기간 <b>{soldOutIds.join('·')}</b> 구좌가 마감되었습니다 — 다른 기간을 선택하거나 잔여 수량을 확인하세요
               </div>
             )}
             <div className="adm-row">
               <label>공시가<input value={listPrice.toLocaleString('ko-KR')} readOnly className="rmn-ro" /></label>
               <label>할인율 %<input inputMode="numeric" value={f.discount_rate}
                 onChange={e => { set('discount_rate', e.target.value); setManualPrice(false) }} placeholder="0" /></label>
-              <label>실판가 (총광고비)<input inputMode="numeric"
-                value={manualPrice && f.actual_price !== '' ? f.actual_price : total.toLocaleString('ko-KR')}
-                onChange={e => { setManualPrice(true); set('actual_price', e.target.value) }} /></label>
+              <label>실판가 (총광고비){!canManual ? ' — 상품별 자동' : ''}<input inputMode="numeric"
+                readOnly={!canManual} className={!canManual ? 'rmn-ro' : ''}
+                value={canManual && manualPrice && f.actual_price !== '' ? f.actual_price : total.toLocaleString('ko-KR')}
+                onChange={e => { if (!canManual) return; setManualPrice(true); set('actual_price', e.target.value) }} /></label>
               <label>입금가{f.agency ? ' (수수료 30% 차감)' : ''}
                 <input value={deposit.toLocaleString('ko-KR')} readOnly className={'rmn-ro' + (f.agency ? ' rmn-net' : '')} />
               </label>
@@ -460,7 +487,9 @@ export default function RmnPage() {
               placeholder="사업자등록번호·주소는 판매사 연동값 확보 후 자동 입력 예정" /></label>
             <div className="adm-actions">
               {editId && <button className="btn-ghost sm" onClick={() => { setF(EMPTY); setEditId(null); setManualPrice(false) }}>수정 취소</button>}
-              <button className="btn-solid sm" disabled={!valid} onClick={submit}>{editId ? '수정 저장' : '부킹 등록'}</button>
+              <button className="btn-solid sm" disabled={!valid} onClick={submit}>
+                {editId ? '수정 저장' : products.length > 1 ? `${products.length}건 동시 부킹` : '부킹 등록'}
+              </button>
             </div>
             {msg && <div className="adm-msg">{msg}</div>}
           </div>
@@ -473,7 +502,7 @@ export default function RmnPage() {
               <tbody>
                 {active.map(b => (
                   <tr key={b.id} className={editId === b.id ? 'sel' : ''}>
-                    <td><span className="rmn-ini">{initialOf(b.product)}</span> {b.product}{b.push_qty ? ` ${(b.push_qty / 10000).toLocaleString('ko-KR')}만` : ''}</td>
+                    <td><Ini id={b.product} /> {b.product}{b.push_qty ? ` ${(b.push_qty / 10000).toLocaleString('ko-KR')}만` : ''}</td>
                     <td className="mon-acc">{b.advertiser}{b.campaign ? <small className="mute"> · {b.campaign}</small> : ''}</td>
                     <td className="mute">{b.send_at ? `${fmtD(b.send_at)} ${b.send_at.slice(11, 16)}` : fmtRange(b)}</td>
                     <td>{fmtWon(b.actual_price)}</td>

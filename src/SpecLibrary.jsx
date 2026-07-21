@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
-import { MEDIA, TARGET_COMMON, GROUP_NOTES } from './data/media.js'
+import { MEDIA, TARGET_COMMON, GROUP_NOTES, COMMON_GUIDE } from './data/media.js'
 import { MIRROR_URL } from './config.js'
 import ShareButton from './ShareButton.jsx'
 
@@ -63,7 +63,8 @@ function sanitizeGroupNote(html, isExternal) {
 function haystack(m) {
   return [
     m.name, m.cat, m.group, m.reg || '', m.target || '',
-    ...m.slots.map(s => [s.name, s.size, s.fmt, s.note || ''].join(' ')),
+    ...m.slots.map(s => [s.name, s.size, s.fmt || '', s.kind || '', s.img || '', s.vid || '',
+      s.vlen || '', s.vspec || '', s.text || '', (s.rules || []).join(' '), s.note || ''].join(' ')),
     ...(m.process ? m.process.map(p => p.d + ' ' + p.label) : []),
     ...(m.extra ? Object.values(m.extra) : []),
   ].join(' ').toLowerCase()
@@ -72,17 +73,81 @@ function haystack(m) {
 /* px 표기: "1080 × 1920" 같은 순수 숫자 규격에만 붙임 (cm·mm·문자 규격 제외) */
 const isPx = size => /^[\d,.]+ × [\d,.]+$/.test(size)
 
-function Slot({ s, query }) {
-  return (
-    <div className="slot">
-      <div className="slot-name">{hl(s.name, query)}</div>
-      <div className="slot-hero">
-        {hl(s.size, query)}
-        {isPx(s.size) && <small>px</small>}
-      </div>
-      <div className="slot-meta"><b>{s.cap}</b> · {hl(s.fmt, query)}</div>
-      {s.note && <div className="slot-note">{hl(s.note, query)}</div>}
+/* ── 지면 카드 ('26.7 개편 — On·Off 제작 가이드 방식) ──
+   kind/img/vid/rules/ref 필드가 있으면 스펙 표 + 레퍼런스 이미지 2단, 없으면 기존 간단형 (하위호환) */
+function Slot({ s, query, onRef }) {
+  const v2 = s.kind || s.img || s.vid || s.rules || s.text || s.ref
+  const hero = (
+    <div className="slot-hero">
+      {hl(s.size, query)}
+      {isPx(s.size) && <small>px</small>}
     </div>
+  )
+  if (!v2) {
+    return (
+      <div className="slot">
+        <div className="slot-name">{hl(s.name, query)}</div>
+        {hero}
+        <div className="slot-meta"><b>{s.cap}</b> · {hl(s.fmt, query)}</div>
+        {s.note && <div className="slot-note">{hl(s.note, query)}</div>}
+      </div>
+    )
+  }
+  const rows = [
+    ['유형', s.kind],
+    ['이미지 형식', s.img],
+    ['영상 형식', s.vid],
+    ['용량 제한', s.cap && s.cap !== '—' ? s.cap : null],
+    ['영상 길이', s.vlen],
+    ['영상 사양', s.vspec],
+    ['텍스트 소재', s.text],
+  ].filter(([, v]) => v)
+  return (
+    <div className="slot slot2">
+      <div className="slot2-info">
+        <div className="slot-name">
+          {hl(s.name, query)}
+          {s.kind && <span className="kind-tag">{s.kind}</span>}
+        </div>
+        {hero}
+        <dl className="slot-spec">
+          {rows.map(([k, v]) => (
+            <React.Fragment key={k}>
+              <dt>{k}</dt><dd>{hl(v, query)}</dd>
+            </React.Fragment>
+          ))}
+        </dl>
+        {s.rules && (
+          <ul className="slot-rules">
+            {s.rules.map((r, i) => <li key={i}>{hl(r, query)}</li>)}
+          </ul>
+        )}
+        {s.note && <div className="slot-note">{hl(s.note, query)}</div>}
+      </div>
+      {s.ref && (
+        <button className="ref-thumb" onClick={() => onRef(s.ref)} title="제작 가이드 크게 보기">
+          <img loading="lazy" src={`${import.meta.env.BASE_URL}media-ref/${s.ref}`} alt={`${s.name} 제작 가이드`} />
+          <span>제작 가이드 크게 보기</span>
+        </button>
+      )}
+    </div>
+  )
+}
+
+/* 광고 소재 공통 가이드 — 접힘 (전 매체 공통 작성 원칙) */
+function CommonGuide() {
+  return (
+    <details className="cg">
+      <summary>광고 소재 공통 가이드 <small>텍스트·이미지 공통 작성 원칙</small></summary>
+      <div className="cg-body">
+        {Object.entries(COMMON_GUIDE).map(([k, items]) => (
+          <div key={k} className="cg-col">
+            <div className="cg-title">{k}</div>
+            <ul>{items.map((t, i) => <li key={i}>{t}</li>)}</ul>
+          </div>
+        ))}
+      </div>
+    </details>
   )
 }
 
@@ -102,7 +167,7 @@ function Timeline({ process, query }) {
   )
 }
 
-function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq }) {
+function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRef }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const first = m.slots[0]
@@ -132,7 +197,7 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq }) {
       </div>
       <div className="media-body">
         {m.target && <div className="m-target">{hl(m.target, query)}</div>}
-        {m.slots.map((s, i) => <Slot key={i} s={s} query={query} />)}
+        {m.slots.map((s, i) => <Slot key={i} s={s} query={query} onRef={onRef} />)}
         {m.process && <Timeline process={m.process} query={query} />}
         {Object.keys(extras).length > 0 && (
           <dl className="spec-grid">
@@ -165,6 +230,7 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq }) {
 export default function SpecLibrary({ isExternal, mirror = false, focusMedia, focusSeq }) {
   const [activeCat, setActiveCat] = useState('전체')
   const [query, setQuery] = useState('')
+  const [refImg, setRefImg] = useState(null)   // 제작 가이드 원본 확대 보기
 
   /* 딥링크 진입 시 필터·검색을 초기화해 대상 매체가 목록에 반드시 보이게 함 */
   useEffect(() => {
@@ -210,6 +276,8 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
       </div>
       <div className="count">{items.length}개 매체</div>
 
+      <CommonGuide />
+
       <div id="list">
         {items.map(m => {
           const showGroup = m.group !== lastGroup
@@ -225,12 +293,19 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
                 </>
               )}
               <MediaItem m={m} query={query} isExternal={isExternal} mirror={mirror}
-                focus={!!focusMedia && focusMedia === m.name} focusSeq={focusSeq} />
+                focus={!!focusMedia && focusMedia === m.name} focusSeq={focusSeq} onRef={setRefImg} />
             </React.Fragment>
           )
         })}
       </div>
       {items.length === 0 && <div className="empty">조건에 맞는 매체가 없음</div>}
+
+      {refImg && (
+        <div className="ref-lightbox" onClick={() => setRefImg(null)}>
+          <img src={`${import.meta.env.BASE_URL}media-ref/${refImg}`} alt="제작 가이드 원본" />
+          <div className="ref-close">닫기 ✕</div>
+        </div>
+      )}
 
       <footer>문의: 미디어콘텐츠팀</footer>
     </div>
