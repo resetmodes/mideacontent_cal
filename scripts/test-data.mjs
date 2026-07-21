@@ -133,6 +133,31 @@ if (RMN_PRODUCTS.length !== 7) bad('RMN 상품이 7종이 아님')
   if (netAmount(10_000_000, true) !== 7_000_000) bad('판매사 수수료 30% 입금가 계산 오류')
 }
 
+/* 6f. RMN 문서 생성 — 판매사 마스터·기준값·양식 표기·빈 템플릿 정합성 */
+import { existsSync } from 'node:fs'
+import { RMN_AGENCY_INFO, RMN_BENCH } from '../src/data/rmnAgencies.js'
+import { RMN_AGENCIES } from '../src/data/rmn.js'
+import { DOC_NAME } from '../src/lib/rmnDocs.js'
+for (const a of RMN_AGENCIES) {
+  if (!RMN_AGENCY_INFO[a]) bad(`rmnAgencies: 판매사 "${a}" 마스터 누락 (청약서 회사 정보 빈칸됨)`)
+}
+for (const [id, b] of Object.entries(RMN_BENCH)) {
+  if (!RMN_PRODUCTS.some(p => p.id === id)) bad(`RMN_BENCH "${id}": rmn.js에 없는 상품`)
+  if (b.ctr != null && (b.ctr < 0 || b.ctr > 0.2)) bad(`RMN_BENCH "${id}": CTR ${b.ctr} 비정상 (비율로 저장 — % 아님)`)
+}
+for (const p of RMN_PRODUCTS) {
+  if (!DOC_NAME[p.id]) bad(`rmnDocs DOC_NAME: "${p.id}" 양식 표기 누락`)
+}
+for (const f of ['rmn-order.xlsx', 'rmn-proposal.xlsx']) {
+  if (!existsSync(new URL(`../public/templates/${f}`, import.meta.url)))
+    bad(`public/templates/${f} 없음 — 청약서·제안서 다운로드가 깨짐`)
+}
+{ // 빈 템플릿에 원본 실데이터가 남아 있으면 안 됨 (public = 공개 URL)
+  const raw = readFileSync(new URL('../public/templates/rmn-order.xlsx', import.meta.url))
+  // xlsx는 압축이라 문자열 grep은 불충분 — 최소한 파일 크기 급증(원본 복귀)만 감시
+  if (raw.length > 60_000) bad('rmn-order.xlsx 템플릿 크기 이상 — 실데이터 원본으로 되돌아간 것 아닌지 확인')
+}
+
 /* 6e. RMN 이관 SQL — 행 수 고정 + 날짜 형식 (역순·비ISO가 섞이면 insert가 통째로 실패) */
 for (const [file, want] of [['rmn-seed.sql', 40], ['rmn-seed-2025.sql', 38]]) {
   const sql = readFileSync(new URL(`../data/${file}`, import.meta.url), 'utf8')

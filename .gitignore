@@ -6,3 +6,4 @@ dist
 
 .env
 data/sns-raw
+data/rmn-out/
