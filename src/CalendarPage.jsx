@@ -805,6 +805,15 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                   {f.campaign && <span className="st camp">#{f.campaign}</span>}
                   {f.title ? <span className="st ttl">{f.title}</span> : <span className="st miss">내용을 위에 입력</span>}
                 </div>
+                {!isTeam && campaigns.length > 0 && (
+                  <div className="qa-suggest md-camp-quick">
+                    캠페인:
+                    {campaigns.slice(0, 4).map(c => (
+                      <button key={c} type="button" className={f.campaign === c ? 'on' : ''}
+                        onClick={() => set('campaign', f.campaign === c ? '' : c)}>#{c}</button>
+                    ))}
+                  </div>
+                )}
                 <button className="md-expand" onClick={() => setExpanded(true)}>상세 입력 펼치기 — 매체·기간·메모 직접 선택</button>
               </>
             )}
@@ -858,10 +867,18 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                     <datalist id="campaign-list">
                       {campaigns.map(c => <option key={c} value={c} />)}
                     </datalist>
-                    {campSuggest.length > 0 && (
+    {campSuggest.length > 0 ? (
                       <span className="qa-suggest">
                         기존:
                         {campSuggest.map(c => (
+                          <button key={c} type="button" onClick={() => set('campaign', c)}>#{c}</button>
+                        ))}
+                      </span>
+                    ) : !f.campaign && campaigns.length > 0 && (
+                      /* 캠페인 미입력 시 최근 캠페인 바로 선택 ('26.7 — 클릭 등록 편의) */
+                      <span className="qa-suggest">
+                        최근:
+                        {campaigns.slice(0, 5).map(c => (
                           <button key={c} type="button" onClick={() => set('campaign', c)}>#{c}</button>
                         ))}
                       </span>
@@ -932,7 +949,8 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
     try {
       const ev = await createEvent(orderRange({
         ...e,
-        ...(e.kind === '팀' ? { title: withAuthorName(e.title, me) } : {}),
+        /* 이름 자동 병기는 근태·기념일만 — 업무 일정(회의·마감)은 팀 공용이라 제외 ('26.7) */
+        ...(e.kind === '팀' && e.channel !== '업무' ? { title: withAuthorName(e.title, me) } : {}),
         owner: e.owner || me || null,
       }))
       setEvents(prev => [...prev, ev].sort((a, b) => a.date.localeCompare(b.date)))
