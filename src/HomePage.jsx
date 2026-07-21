@@ -36,9 +36,10 @@ function WeekHero({ events, today, onGo }) {
         .map(e => e.campaign)
     ).size
     const shoots = events.filter(e => e.kind === '촬영' && e.date >= today && e.date <= end7).length
-    /* 부재는 "오늘" 기준 ('26.7 변경) — 오늘 날짜가 일정 기간에 포함되는 건만 */
+    /* 부재는 "오늘" 기준 ('26.7 변경) — 오늘이 기간에 포함되는 근태만 (기념일·업무 일정 제외) */
     const away = events.filter(e =>
-      e.kind === '팀' && e.channel !== '기념일' && e.date <= today && (e.endDate || e.date) >= today
+      e.kind === '팀' && e.channel !== '기념일' && e.channel !== '업무' &&
+      e.date <= today && (e.endDate || e.date) >= today
     ).length
     return { posts, campaigns, shoots, away }
   }, [events, today])
@@ -69,7 +70,7 @@ function TeamStatus({ events, today, onGo }) {
   const covers = (e, iso) => (e.channel === '기념일'
     ? e.date.slice(5) === iso.slice(5)
     : e.date <= iso && iso <= (e.endDate || e.date))
-  const team = events.filter(e => e.kind === '팀')
+  const team = events.filter(e => e.kind === '팀' && e.channel !== '업무')   // 업무 일정은 전용 섹션에
   const rows = [
     { label: '오늘', iso: today, list: team.filter(e => covers(e, today)) },
     { label: '내일', iso: tomorrow, list: team.filter(e => covers(e, tomorrow)) },
@@ -98,6 +99,44 @@ function TeamStatus({ events, today, onGo }) {
               </div>
             ))}
           </div>
+        </div>
+      ))}
+    </section>
+  )
+}
+
+/* ── ①-b 주요 업무·마감 ('26.7) — 팀 일정의 "업무" 유형(회의·자료 마감 등)만 모아
+   D-day로 표시. 근태 섹션과 분리 — 부재가 아니라 팀 공용 할 일이므로.
+   오늘~3주 내(진행중 포함) 최대 6건, 임박순 */
+function WorkDeadlines({ events, today, onGo }) {
+  const list = useMemo(() => {
+    const horizon = addDays(today, 21)
+    return events
+      .filter(e => e.kind === '팀' && e.channel === '업무')
+      .filter(e => (e.endDate || e.date) >= today && e.date <= horizon)
+      .map(e => {
+        const ongoing = e.date <= today
+        const dday = ongoing ? 0 : Math.round((fromISO(e.date) - fromISO(today)) / 86400000)
+        return { ...e, ongoing, dday }
+      })
+      .sort((a, b) => a.dday - b.dday || a.date.localeCompare(b.date))
+      .slice(0, 6)
+  }, [events, today])
+
+  if (list.length === 0) return null
+  return (
+    <section>
+      <div className="group-label home-gl">
+        주요 업무·마감
+        <button className="home-more" onClick={() => onGo('team')}>팀 일정 전체 →</button>
+      </div>
+      {list.map(e => (
+        <div key={e.id} className="home-trow">
+          <span className={'home-dday' + (e.dday === 0 ? ' run' : '')}>
+            {e.ongoing && e.endDate ? '진행중' : e.dday === 0 ? '오늘' : `D-${e.dday}`}
+          </span>
+          <span className="home-ttl"><ChannelIcon id="업무" /> {e.title}</span>
+          <span className="home-sub">{e.endDate && e.endDate !== e.date ? `${fmtK(e.date)}~${fmtK(e.endDate)}` : fmtK(e.date)}</span>
         </div>
       ))}
     </section>
@@ -286,6 +325,7 @@ export default function HomePage({ onGo }) {
 
       <WeekHero events={events} today={today} onGo={onGo} />
       <TeamStatus events={events} today={today} onGo={onGo} />
+      <WorkDeadlines events={events} today={today} onGo={onGo} />
       <CampaignDday events={events} today={today} onGo={onGo} />
       <ShootWeek events={events} today={today} onGo={onGo} />
       <ChannelSignals onGo={onGo} />

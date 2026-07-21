@@ -32,6 +32,7 @@ export const TEAM_TYPES = [
   { id: '외근',   label: '외근',   color: '#2563EB', subs: [] },
   { id: '출장',   label: '출장',   color: '#0D9488', subs: [] },
   { id: '교육',   label: '교육',   color: '#7C3AED', subs: [] },
+  { id: '업무',   label: '업무',   color: '#0B4336', subs: [] },   // '26.7 — 회의·자료 마감 등 업무 일정 (홈 "주요 업무·마감"에 노출)
   { id: '기념일', label: '기념일', color: '#DB2777', rainbow: true, subs: ['생일', '결혼기념일', '결혼식'] },
   { id: '팀기타', label: '기타',   color: '#878A93', subs: [] },
 ]
@@ -59,6 +60,12 @@ export const TEAM_KEYWORDS = [
   ['세미나', '교육', null],
   ['연수', '교육', null],
   ['교육', '교육', null],
+  /* 업무 일정 ('26.7) — 근태 키워드보다 뒤에 둬서 "출장 보고"는 출장으로 인식 */
+  ['업무', '업무', null],
+  ['마감', '업무', null],
+  ['회의', '업무', null],
+  ['보고', '업무', null],
+  ['제출', '업무', null],
 ]
 
 /* 빠른 입력 파서용 키워드 → [키워드, 채널 id, 세부(없으면 null)]
