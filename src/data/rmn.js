@@ -7,16 +7,19 @@
      3개월 이내로 들어온 가부킹은 탭 접속 시 "부킹 전환" 알림 팝업 ('26.7 확정)
    ─ 판매사 수수료 30% → 입금가 = 총광고비 × 0.7 */
 
+/* color: 캘린더·목록 이니셜 칩 구분색 ('26.7 사용자 요청 — 전부 검정이라 구분 불가).
+   저채도 딥 톤만 사용 (원색·형광 금지 원칙 유지, 빨강 계열 제외 — 경고 전용) */
 export const RMN_PRODUCTS = [
-  { id: '스플래시',      slots: 1, price: 15_000_000 },
-  { id: '푸쉬',          push: true, unitSize: 50_000, perSend: 900_000, pricePer: 50 },   // 5만 단위 · 건당 50원
-  { id: '메인배너',      slots: 3, price: 7_000_000 },
-  { id: '팝업배너',      slots: 3, price: 3_000_000 },
-  { id: '하단배너',      slots: 3, price: 1_000_000 },
-  { id: '헤드라인 뉴스', slots: 3, price: 3_000_000 },
-  { id: '이벤트 메뉴',   slots: 1, price: 2_000_000 },
+  { id: '스플래시',      slots: 1, price: 15_000_000, color: '#0B4336' },
+  { id: '푸쉬',          push: true, unitSize: 50_000, perSend: 900_000, pricePer: 50, color: '#A07C2E' },   // 5만 단위 · 건당 50원
+  { id: '메인배너',      slots: 3, price: 7_000_000, color: '#1F3A5F' },
+  { id: '팝업배너',      slots: 3, price: 3_000_000, color: '#5B4A78' },
+  { id: '하단배너',      slots: 3, price: 1_000_000, color: '#2E6E63' },
+  { id: '헤드라인 뉴스', slots: 3, price: 3_000_000, color: '#6B4A32' },
+  { id: '이벤트 메뉴',   slots: 1, price: 2_000_000, color: '#566173' },
 ]
 export const rmnProduct = id => RMN_PRODUCTS.find(p => p.id === id)
+export const rmnColor = id => rmnProduct(id)?.color || '#191919'
 
 export const RMN_AGENCIES = ['나스미디어', '인크로스', 'M2Digital', '메조미디어', 'DMC미디어']
 export const RMN_COMMISSION = 0.3   // 판매사 수수료
