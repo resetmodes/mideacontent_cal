@@ -94,6 +94,45 @@ for (const g of TA_GROUPS) {
   if (!g.g || !Array.isArray(g.media) || g.media.length === 0) bad(`TA_GROUPS "${g.g}": 형식 오류`)
 }
 
+/* 6d. RMN 재고·가부킹·알림 로직 ('26.7) */
+import {
+  RMN_PRODUCTS, slotAvailability, pushAvailability, canTentative, buildRmnNotices,
+  applyDiscount, netAmount,
+} from '../src/data/rmn.js'
+if (RMN_PRODUCTS.length !== 7) bad('RMN 상품이 7종이 아님')
+{
+  const bk = (id, product, s, e, status = '부킹', extra = {}) =>
+    ({ id, product, start_date: s, end_date: e, status, ...extra })
+  const B = [
+    bk('a', '메인배너', '2026-08-01', '2026-08-10'),
+    bk('b', '메인배너', '2026-08-05', '2026-08-15'),
+    bk('c', '메인배너', '2026-08-08', '2026-08-12', '가부킹'),
+    bk('x', '메인배너', '2026-08-01', '2026-08-31', '취소'),
+    bk('p1', '푸쉬', '2026-08-20', '2026-08-20', '부킹', { send_at: '2026-08-20T10:00:00+09:00', push_qty: 850000 }),
+  ]
+  const a1 = slotAvailability(B, '메인배너', '2026-08-08', '2026-08-09')
+  if (a1.left !== 0) bad(`RMN 겹침 재고: 8/8~9 메인배너 잔여 ${a1.left} ≠ 0 (3구좌 동시 점유·취소 제외)`)
+  const a2 = slotAvailability(B, '메인배너', '2026-08-16', '2026-08-20')
+  if (a2.left !== 3) bad(`RMN 재고: 비는 기간 잔여 ${a2.left} ≠ 3`)
+  const a3 = slotAvailability(B, '메인배너', '2026-08-08', '2026-08-09', 'c')
+  if (a3.left !== 1) bad('RMN 재고: 수정 중 자기 자신 제외 실패')
+  const pa = pushAvailability(B, '2026-08-20')
+  if (pa.left !== 50000) bad(`RMN 푸쉬 재고: 잔여 ${pa.left} ≠ 50,000 (1회당 90만)`)
+  if (canTentative('2026-10-01', '2026-07-21')) bad('가부킹: 3개월 이내(10/1)인데 허용됨')
+  if (!canTentative('2026-10-22', '2026-07-21')) bad('가부킹: 3개월 초과(10/22)인데 불허됨')
+  const n = buildRmnNotices([
+    bk('t', '스플래시', '2026-08-30', '2026-08-31', '가부킹'),
+    bk('u', '팝업배너', '2026-07-10', '2026-07-18', '집행'),
+    bk('v', '하단배너', '2026-07-01', '2026-07-05', '세금계산서'),
+  ], '2026-07-26')
+  if (n.tentative.length !== 1) bad('알림: 가부킹 전환 대상 1건이어야 함')
+  if (n.tax.length !== 1 || n.tax[0].id !== 'u') bad('알림: 세금계산서 미교부는 u 1건이어야 함 (교부 완료 v 제외)')
+  const n2 = buildRmnNotices([bk('u', '팝업배너', '2026-07-10', '2026-07-18', '집행')], '2026-07-20')
+  if (n2.tax.length !== 0) bad('알림: 월말 5일 전 이전에는 세금계산서 팝업 없어야 함')
+  if (applyDiscount(15_000_000, 10) !== 13_500_000) bad('할인율 계산 오류')
+  if (netAmount(10_000_000, true) !== 7_000_000) bad('판매사 수수료 30% 입금가 계산 오류')
+}
+
 /* 7. media.js 스키마 최소 요건 */
 for (const m of MEDIA) {
   if (!m.group || !m.cat || !m.name || !m.lead) bad(`media.js "${m.name || '?'}": group/cat/name/lead 누락`)
