@@ -12,4 +12,7 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 export const MIRROR_URL = 'https://ediacontent-cal-mirror.vercel.app'
 
 /* 어드민 페이지('#admin' 탭) 접근 계정 — 소문자 이메일. 추가는 한 줄 ('26.7) */
-export const ADMIN_EMAILS = ['kyuvin@thehyundai.com']
+export const ADMIN_EMAILS = [
+  'kyuvin@thehyundai.com',   // 노규빈 선임
+  'jykim84@thehyundai.com',  // 김자영 책임 ('26.7 추가 — 타겟형 매체 운영)
+]
