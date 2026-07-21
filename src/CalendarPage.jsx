@@ -428,7 +428,7 @@ function groupCellEvents(list) {
   return out
 }
 
-function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove = null, onGroup = null }) {
+function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove = null, onGroup = null, onDay = null }) {
   const cells = useMemo(() => buildMonth(cursor), [cursor])
   const byDay = useMemo(() => indexByDay(events, wide), [events, wide])
   const today = todayISO()
@@ -482,11 +482,19 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
             key={c.iso}
             data-date={c.iso}
             className={'cal-cell' + (c.inMonth ? '' : ' dim') + (c.iso === today ? ' today' : '') + (dragging && dragOver === c.iso ? ' drop' : '')}
-            onClick={onDayClick ? () => { if (!dragRef.current?.active) onDayClick(c.iso) } : undefined}
-            title={onDayClick ? '클릭해서 일정 등록' : undefined}
+            onClick={onDayClick
+              ? () => { if (!dragRef.current?.active) onDayClick(c.iso) }
+              : onDay ? () => onDay(c.iso) : undefined}   /* 읽기 전용 = 셀 클릭이 하루 보기 */
+            title={onDayClick ? '클릭해서 일정 등록 · 날짜 숫자 클릭 = 하루 전체 보기' : onDay ? '클릭해서 이 날 일정 전체 보기' : undefined}
           >
             <div className="cal-dayrow">
-              <div className={'cal-daynum' + (c.dow === 0 || c.dow === 6 || hol ? ' wknd' : '')}>{c.day}</div>
+              {/* 일자 숫자 = 하루 전체 보기 ('26.7) — 셀(등록)과 분리된 명시 타깃 */}
+              <button
+                type="button"
+                className={'cal-daynum' + (c.dow === 0 || c.dow === 6 || hol ? ' wknd' : '')}
+                onClick={ev => { ev.stopPropagation(); onDay?.(c.iso) }}
+                title="이 날 일정 전체 보기"
+              >{c.day}</button>
               {hol && <span className="cal-hol">{hol}</span>}
             </div>
             {list.slice(0, MAX).map(e => {
@@ -513,10 +521,62 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
                 </button>
               )
             })}
-            {list.length > MAX && <div className="cal-more">+{list.length - MAX}</div>}
+            {list.length > MAX && (
+              <button type="button" className="cal-more"
+                onClick={ev => { ev.stopPropagation(); onDay?.(c.iso) }}>
+                +{list.length - MAX} 더보기
+              </button>
+            )}
           </div>
         )
       })}
+    </div>
+  )
+}
+
+/* ── 하루 일정 시트 ('26.7) — 셀이 넘칠 때(타겟APP 다건 등) 그날 전체를 큰 화면으로.
+   진입: 일자 숫자 클릭 · "+N 더보기" 클릭 · (읽기 전용 뷰) 셀 클릭.
+   등록과 분리 — 셀 빈 공간 클릭 = 등록(불변), 시트 하단에 별도 "이 날짜에 등록" 버튼 */
+function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister }) {
+  const hol = HOLIDAYS[iso]
+  const list = useMemo(() => {
+    const covers = e => {
+      const o = orderRange(e)
+      return o.date <= iso && iso <= (o.endDate || o.date)
+    }
+    const chOrder = e => CHANNELS.findIndex(c => c.id === e.channel)
+    return events.filter(covers).sort((a, b) =>
+      (chOrder(a) - chOrder(b)) || (a.sub || '').localeCompare(b.sub || '') || a.title.localeCompare(b.title))
+  }, [events, iso])
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal day-sheet" onClick={e => e.stopPropagation()}>
+        <div className="md-ch">하루 일정 {list.length}건</div>
+        <div className="md-title">{fmtDot(iso)}{hol ? <small className="day-hol"> · {hol}</small> : ''}</div>
+        <div className="day-list">
+          {list.map(e => {
+            const o = orderRange(e)
+            const ranged = o.endDate && o.endDate !== o.date
+            const tag = ranged ? (o.date === iso ? '시작' : o.endDate === iso ? '종료' : '진행중') : null
+            return (
+              <button key={e.id} className="day-row" onClick={() => onSelect(e)}>
+                <ChannelIcon id={e.channel} />
+                <span className="day-ch">{channelById(e.channel)?.label || e.channel}{e.sub ? ` · ${e.sub}` : ''}</span>
+                <span className="day-ttl">{displayTitle(e.title, e.channel)}</span>
+                {e.campaign && <span className="day-camp">#{e.campaign}</span>}
+                {tag && <span className="day-sub">{tag} · {fmtRange(o)}</span>}
+              </button>
+            )
+          })}
+          {list.length === 0 && <div className="empty">이 날짜에 등록된 일정 없음</div>}
+        </div>
+        <div className="md-actions">
+          {!readOnly && <button className="btn-ghost" onClick={onRegister}>+ 이 날짜에 등록</button>}
+          <div className="md-spacer" />
+          <button className="btn-ghost" onClick={onClose}>닫기</button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -917,6 +977,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
   const [selected, setSelected] = useState(null)
   const [groupSel, setGroupSel] = useState(null)   // 타겟APP 묶음 클릭 → 세부 선택 시트
   const [dayDraft, setDayDraft] = useState(null)   // 날짜 셀 클릭 → 신규 등록 모달
+  const [daySel, setDaySel] = useState(null)       // 일자 숫자·더보기 클릭 → 하루 일정 시트
   const me = authorName(session?.email)            // 작성자 = 로그인 계정 (자동)
 
   const refresh = useCallback(async () => {
@@ -1142,7 +1203,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
         <MonthGrid
           cursor={cursor} events={monthEvents} onSelect={e => setSelected(e.orig || e)}
           onDayClick={readOnly ? null : setDayDraft} wide={readOnly}
-          onMove={readOnly ? null : onMove} onGroup={setGroupSel}
+          onMove={readOnly ? null : onMove} onGroup={setGroupSel} onDay={setDaySel}
         />
       ) : (
         <CampaignView events={filtered} onSelect={setSelected} onRename={readOnly ? null : onRename} />
@@ -1175,6 +1236,15 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
           </span>
           <button className="undo-btn" onClick={onUndo}>실행 취소</button>
         </div>
+      )}
+
+      {daySel && (
+        <DaySheet
+          iso={daySel} events={monthEvents} readOnly={readOnly}
+          onClose={() => setDaySel(null)}
+          onSelect={e => { setDaySel(null); setSelected(e.orig || e) }}
+          onRegister={() => { setDayDraft(daySel); setDaySel(null) }}
+        />
       )}
 
       {groupSel && (
