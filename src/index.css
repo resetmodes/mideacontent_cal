@@ -143,8 +143,8 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 
 /* ═══════════ 상단 탭 ═══════════ */
 .tabs{border-bottom:1px solid var(--g100);}
-.tabs-inner{max-width:880px;margin:0 auto;padding:0 20px;display:flex;gap:24px;
-  flex-wrap:wrap;align-items:center;}
+.tabs-inner{max-width:880px;margin:0 auto;padding:0 20px;display:flex;gap:24px;align-items:center;}
+.tabs-scroll{display:flex;gap:24px;flex-wrap:wrap;align-items:center;min-width:0;}
 .tabs button{background:none;border:none;font-family:inherit;cursor:pointer;
   font-size:14px;font-weight:600;color:var(--g400);padding:14px 0 12px;
   border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:-0.01em;}
@@ -154,8 +154,20 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .tab-link{margin-left:auto;font-size:13px;font-weight:600;color:var(--g400);
   text-decoration:none;padding:14px 0 12px;}
 .tab-link:hover{color:var(--ink);}
-.tabs-session{margin-left:auto;display:flex;align-items:center;gap:8px;
-  font-size:12px;color:var(--g400);}
+.tabs-session{order:2;margin-left:auto;display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--g400);flex-shrink:0;}
+.ts-email{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
+/* 모바일: 세션 정보는 상단 한 줄, 탭은 가로 스크롤 한 줄 (줄바꿈으로 지저분해지던 것 정리) */
+@media (max-width:640px){
+  .tabs-inner{flex-direction:column;align-items:stretch;gap:0;padding:0;}
+  .tabs-session{order:-1;margin-left:0;justify-content:flex-end;gap:9px;
+    padding:8px 16px;border-bottom:1px solid var(--g50);}
+  .ts-email{max-width:none;font-size:11.5px;}
+  .tabs-scroll{flex-wrap:nowrap;overflow-x:auto;gap:20px;padding:0 16px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .tabs-scroll::-webkit-scrollbar{display:none;}
+  .tabs-scroll button{flex-shrink:0;white-space:nowrap;padding:12px 0 11px;}
+}
 .tabs-session button{font-family:inherit;font-size:11.5px;font-weight:600;color:var(--g600);
   background:none;border:1px solid var(--g200);border-radius:7px;padding:3px 10px;cursor:pointer;}
 .tabs-session button:hover{border-color:var(--g400);color:var(--ink);}
