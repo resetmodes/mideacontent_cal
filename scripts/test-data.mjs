@@ -169,11 +169,17 @@ for (const [file, want] of [['rmn-seed.sql', 40], ['rmn-seed-2025.sql', 38]]) {
   if ((sql.match(/'\d{1,2}\/[^']*'/g) || []).length) bad(`${file}: 비ISO 날짜 잔존`)
 }
 
-/* 7. media.js 스키마 최소 요건 */
+/* 7. media.js 스키마 최소 요건 + 레퍼런스 이미지 실재 검증 ('26.7 제작 가이드 개편) */
 for (const m of MEDIA) {
   if (!m.group || !m.cat || !m.name || !m.lead) bad(`media.js "${m.name || '?'}": group/cat/name/lead 누락`)
   if (!Array.isArray(m.slots) || m.slots.length === 0) bad(`media.js "${m.name}": slots 비어 있음`)
   if (typeof m.verified !== 'boolean') bad(`media.js "${m.name}": verified는 boolean`)
+  for (const s of m.slots) {
+    if (s.ref && !existsSync(new URL(`../public/media-ref/${s.ref}`, import.meta.url)))
+      bad(`media.js "${m.name}" 지면 "${s.name}": 레퍼런스 이미지 없음 (public/media-ref/${s.ref})`)
+    if (s.kind && !['이미지', '영상', '이미지·영상', '텍스트'].includes(s.kind))
+      bad(`media.js "${m.name}" 지면 "${s.name}": kind "${s.kind}" 비표준`)
+  }
 }
 
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')

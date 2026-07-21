@@ -67,6 +67,44 @@ h1{font-size:clamp(30px,6vw,44px);font-weight:800;letter-spacing:-0.02em;line-he
 .slot-meta{font-size:13.5px;font-variant-numeric:tabular-nums;color:#333;}
 .slot-meta b{font-weight:700;}
 .slot-note{font-size:12px;color:var(--grey);margin-top:3px;line-height:1.55;}
+/* 지면 카드 v2 ('26.7 — On·Off 제작 가이드 방식: 스펙 표 + 레퍼런스 이미지) */
+.slot2{display:grid;grid-template-columns:1fr 190px;gap:18px;align-items:start;}
+.kind-tag{display:inline-block;margin-left:8px;font-size:10.5px;font-weight:700;letter-spacing:.08em;
+  color:var(--g600);border:1px solid var(--g200);border-radius:4px;padding:1px 6px;vertical-align:1px;}
+.slot-spec{display:grid;grid-template-columns:88px 1fr;margin-top:8px;border-top:1px solid var(--g200);}
+.slot-spec dt{font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--green);padding:8px 0;border-bottom:1px solid var(--hairline);}
+.slot-spec dd{font-size:13px;color:#333;padding:8px 0;border-bottom:1px solid var(--hairline);margin:0;line-height:1.5;
+  font-variant-numeric:tabular-nums;}
+.slot-rules{margin:8px 0 0;padding:0;list-style:none;}
+.slot-rules li{font-size:12.5px;color:#444;line-height:1.6;padding-left:12px;position:relative;}
+.slot-rules li::before{content:"·";position:absolute;left:2px;color:var(--green);font-weight:800;}
+.ref-thumb{font-family:inherit;background:none;border:none;padding:0;cursor:zoom-in;text-align:center;
+  display:flex;flex-direction:column;gap:6px;margin-top:14px;}
+.ref-thumb img{width:100%;border:1px solid var(--g200);display:block;}
+.ref-thumb span{font-size:11px;font-weight:600;color:var(--g400);letter-spacing:.04em;}
+.ref-thumb:hover span{color:var(--green);}
+.ref-lightbox{position:fixed;inset:0;background:rgba(23,23,25,.72);z-index:120;cursor:zoom-out;
+  display:flex;align-items:center;justify-content:center;padding:24px;}
+.ref-lightbox img{max-width:min(1100px,96vw);max-height:92vh;background:#fff;display:block;}
+.ref-close{position:fixed;top:16px;right:20px;font-size:13px;font-weight:700;color:#fff;letter-spacing:.04em;}
+/* 광고 소재 공통 가이드 (접힘) */
+.cg{border-top:2px solid var(--ink);margin:6px 0 22px;}
+.cg summary{cursor:pointer;list-style:none;padding:13px 0;font-size:13.5px;font-weight:800;color:var(--ink);
+  display:flex;align-items:baseline;gap:10px;}
+.cg summary::-webkit-details-marker{display:none;}
+.cg summary small{font-size:12px;font-weight:500;color:var(--g400);}
+.cg summary::after{content:"펼치기 +";margin-left:auto;font-size:11.5px;font-weight:600;color:var(--g400);}
+.cg[open] summary::after{content:"접기 −";}
+.cg-body{display:grid;grid-template-columns:1fr 1fr;gap:22px;padding:2px 0 18px;}
+.cg-title{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--green);margin-bottom:8px;}
+.cg-col ul{margin:0;padding:0;list-style:none;}
+.cg-col li{font-size:12.5px;color:#444;line-height:1.65;padding:3px 0 3px 12px;position:relative;}
+.cg-col li::before{content:"·";position:absolute;left:2px;color:var(--green);font-weight:800;}
+@media (max-width:680px){
+  .slot2{grid-template-columns:1fr;}
+  .ref-thumb{max-width:300px;margin-top:4px;}
+  .cg-body{grid-template-columns:1fr;}
+}
 
 /* 진행 프로세스 — D-day 타임라인 (타이포 기반) */
 .tl-section{border-top:1px solid var(--ink);padding:14px 0 18px;}
