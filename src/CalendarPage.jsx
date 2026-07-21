@@ -6,7 +6,7 @@ import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
 import { findPerformance } from './lib/perf.js'
 import { authorName, withAuthorName } from './data/team.js'
-import { HOLIDAYS } from './data/holidays.js'
+import { HOLIDAYS, closedLabel } from './data/holidays.js'
 import { MIRROR_URL } from './config.js'
 import ChannelIcon from './ChannelIcon.jsx'
 import ShareButton from './ShareButton.jsx'
@@ -477,11 +477,13 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
       {cells.map(c => {
         const list = groupCellEvents(byDay[c.iso] || [])
         const hol = HOLIDAYS[c.iso]
+        const closed = closedLabel(c.iso)
         return (
           <div
             key={c.iso}
             data-date={c.iso}
-            className={'cal-cell' + (c.inMonth ? '' : ' dim') + (c.iso === today ? ' today' : '') + (dragging && dragOver === c.iso ? ' drop' : '')}
+            className={'cal-cell' + (c.inMonth ? '' : ' dim') + (c.iso === today ? ' today' : '')
+              + (closed ? ' closed' : hol ? ' holiday' : '') + (dragging && dragOver === c.iso ? ' drop' : '')}
             onClick={onDayClick
               ? () => { if (!dragRef.current?.active) onDayClick(c.iso) }
               : onDay ? () => onDay(c.iso) : undefined}   /* 읽기 전용 = 셀 클릭이 하루 보기 */
@@ -495,6 +497,7 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
                 onClick={ev => { ev.stopPropagation(); onDay?.(c.iso) }}
                 title="이 날 일정 전체 보기"
               >{c.day}</button>
+              {closed && <span className="cal-closed">{closed}</span>}
               {hol && <span className="cal-hol">{hol}</span>}
             </div>
             {list.slice(0, MAX).map(e => {
@@ -539,6 +542,7 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
    등록과 분리 — 셀 빈 공간 클릭 = 등록(불변), 시트 하단에 별도 "이 날짜에 등록" 버튼 */
 function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister }) {
   const hol = HOLIDAYS[iso]
+  const closed = closedLabel(iso)
   const list = useMemo(() => {
     const covers = e => {
       const o = orderRange(e)
@@ -553,7 +557,9 @@ function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal day-sheet" onClick={e => e.stopPropagation()}>
         <div className="md-ch">하루 일정 {list.length}건</div>
-        <div className="md-title">{fmtDot(iso)}{hol ? <small className="day-hol"> · {hol}</small> : ''}</div>
+        <div className="md-title">{fmtDot(iso)}
+          {closed && <small className="day-closed"> · {closed}</small>}
+          {hol && <small className="day-hol"> · {hol}</small>}</div>
         <div className="day-list">
           {list.map(e => {
             const o = orderRange(e)

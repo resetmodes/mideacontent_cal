@@ -7,7 +7,7 @@ import { MEDIA } from '../src/data/media.js'
 import { CHANNELS, KEYWORDS, TITLE_ALIASES } from '../src/data/channels.js'
 import { SPEC_LINK_MAP } from '../src/lib/specLink.js'
 import { YT_KEY, IG_HANDLE } from '../src/lib/perf.js'
-import { HOLIDAYS } from '../src/data/holidays.js'
+import { HOLIDAYS, CLOSED_DAYS } from '../src/data/holidays.js'
 import { TEAM, withAuthorName } from '../src/data/team.js'
 import { IG_ACCOUNTS, YT_CHANNELS } from './sns/accounts.mjs'
 
@@ -52,10 +52,14 @@ for (const [sub, handle] of Object.entries(IG_HANDLE)) {
   if (!igHandles.has(handle)) bad(`perf.js IG_HANDLE "${sub}" → accounts.mjs에 없는 핸들 "${handle}"`)
 }
 
-/* 5. 공휴일 — 날짜 형식·유효성 */
+/* 5. 공휴일·휴점일 — 날짜 형식·유효성 */
 for (const iso of Object.keys(HOLIDAYS)) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || isNaN(new Date(iso).getTime()))
     bad(`holidays.js 잘못된 날짜 키: "${iso}"`)
+}
+for (const iso of Object.keys(CLOSED_DAYS)) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || isNaN(new Date(iso).getTime()))
+    bad(`holidays.js CLOSED_DAYS 잘못된 날짜 키: "${iso}"`)
 }
 
 /* 6. 팀원 명단 — 이메일 형식 */

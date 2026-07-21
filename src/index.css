@@ -343,6 +343,16 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .cal-cell:nth-child(7n){border-right:none;}
 .cal-cell.dim{background:var(--g50);}
 .cal-cell.dim .cal-daynum{color:var(--g200);}
+/* 공휴일·휴점일 셀 강조 ('26.7) — 빨강 금지 원칙 유지: 공휴일=중립 그레이 틴트,
+   휴점일=클레이 틴트 + "휴점" 마커 (운영 정보라 더 뚜렷하게) */
+.cal-cell.holiday{background:#F1F2F5;}
+.cal-cell.closed{background:#F6ECE4;}
+.cal-grid.editable .cal-cell.holiday:hover{background:#E9EAEF;}
+.cal-grid.editable .cal-cell.closed:hover{background:#F0E0D3;}
+.cal-closed{font-size:10px;font-weight:700;color:#8A5A3C;background:#EEDDCE;
+  border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;letter-spacing:-0.01em;}
+.wide .cal-closed{font-size:11px;}
+.day-closed{font-size:14px;font-weight:600;color:#8A5A3C;}
 .cal-dayrow{display:flex;align-items:center;gap:5px;margin-bottom:5px;min-width:0;}
 .cal-dayrow .cal-daynum{margin-bottom:0;}
 .cal-hol{font-size:10px;color:var(--g400);white-space:nowrap;overflow:hidden;
