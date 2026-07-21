@@ -94,8 +94,14 @@ function ProposalMaker() {
     } catch (e) { setMsg(e.message) }
   }
   return (
-    <details className="ta-office" open={open} onToggle={e => setOpen(e.target.open)}>
-      <summary><span className="ta-name">캠페인 제안서 만들기</span><span className="ta-cnt">xlsx</span></summary>
+    <details className="ta-office rmn-propmaker" open={open} onToggle={e => setOpen(e.target.open)}>
+      <summary>
+        <span className="pm-ico" aria-hidden>＋</span>
+        <span className="ta-name">캠페인 제안서 만들기</span>
+        <span className="pm-tag">xlsx 자동 생성</span>
+        <span className="pm-chev" aria-hidden>{open ? '접기' : '열기'}</span>
+      </summary>
+      <div className="pm-body">
       <div className="adm-taform">
         <label>광고주명 *<input value={p.advertiser} onChange={e => set('advertiser', e.target.value)} placeholder="예: 까르띠에" /></label>
         <label>시작일 *<input type="date" value={p.start} onChange={e => set('start', e.target.value)} /></label>
@@ -121,6 +127,7 @@ function ProposalMaker() {
         <button className="btn-solid sm" disabled={!valid} onClick={make}>제안서 다운로드</button>
       </div>
       {msg && <div className="adm-msg">{msg}</div>}
+      </div>
     </details>
   )
 }
