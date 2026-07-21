@@ -46,3 +46,10 @@ export const HOLIDAYS = {
   '2027-12-25': '성탄절',
   '2027-12-27': '대체공휴일',
 }
+
+/* 백화점 휴점일 ('26.7) — 보통 매월 1회. 확정되는 대로 한 줄씩 추가.
+   캘린더 월간 그리드에서 셀 배경 강조 + "휴점" 마커. 값은 표시용 라벨(대개 "휴점") */
+export const CLOSED_DAYS = {
+  '2026-08-10': '휴점',
+}
+export const closedLabel = iso => CLOSED_DAYS[iso] || null

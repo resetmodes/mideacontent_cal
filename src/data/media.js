@@ -38,6 +38,18 @@ export const COMMON_GUIDE = {
   ],
 };
 
+/* 인스타·유튜브 서브 계정 공통 제작 지면 ('26.7 — 계정별 규격 동일, 단일 소스로 재사용) */
+const IG_SLOTS = [
+  {name:"스토리", size:"1080 × 1920", cap:"—", kind:"이미지", img:"JPG · PNG"},
+  {name:"캐러셀 정방형", size:"1080 × 1080", cap:"—", kind:"이미지", img:"JPG · PNG"},
+  {name:"캐러셀 세로형", size:"1080 × 1350", cap:"—", kind:"이미지", img:"JPG · PNG"},
+  {name:"릴스", size:"1080 × 1920", cap:"—", kind:"영상", vid:"MP4 · AVI", vlen:"라이트 30~40초 · 오리지널 60초 이내"},
+]
+const YT_SLOTS = [
+  {name:"본편 (가로형 16:9)", size:"1920 × 1080", cap:"—", kind:"영상", vid:"MOV 제작 → MP4 변환"},
+  {name:"베리에이션 (세로형 9:16)", size:"1080 × 1920", cap:"—", kind:"영상", vid:"MP4", vlen:"15초 · 30초 · 1분 내외 (매체별 상이)", note:"그 외 별도 협의 — 모델 초상권 체크 필수"},
+]
+
 export const MEDIA = [
   /* ── 타겟형 매체 ('26.2 가이드라인 확정) ───────────────── */
   {group:"타겟형 매체", cat:"아파트앱", reg:"정기", name:"아파트너", lead:"D-7 (영업일)", verified:true,
@@ -189,11 +201,7 @@ export const MEDIA = [
   {group:"자사 매체", cat:"언드 미디어", name:"인스타그램 대표계정 (the_hyundai)", lead:"D-20", verified:true,
    target:"이슈를 가장 빠르게 전달하는 바이럴 특화 채널. 34세 이하 팔로워 40%.",
    visual:"insta-thehyundai.jpg",
-   slots:[
-     {name:"스토리", size:"1080 × 1920", cap:"—", kind:"이미지", img:"JPG · PNG"},
-     {name:"캐러셀 정방형", size:"1080 × 1080", cap:"—", kind:"이미지", img:"JPG · PNG"},
-     {name:"캐러셀 세로형", size:"1080 × 1350", cap:"—", kind:"이미지", img:"JPG · PNG"},
-     {name:"릴스", size:"1080 × 1920", cap:"—", kind:"영상", vid:"MP4 · AVI", vlen:"라이트 30~40초 · 오리지널 60초 이내"}],
+   slots:IG_SLOTS,
    process:[
      {d:"D-20", label:"기획·스케줄·형식·촬영 협의"},
      {d:"D-7", label:"현장 정보·멘션 확인 후 (촬영)기획안 전달"},
@@ -203,11 +211,21 @@ export const MEDIA = [
      "담당":"노규빈 선임 (정) · 정소미 선임 (부)",
      "참고 지표":"'25.1 — 팔로워 31.3만 · 조회 월 69만 (건당 3.3만) · 발행 월 21건",
      "비고":"동일 소재 페이스북 미러링 · 필요시 도달·클릭 광고 집행 · 지점 계정과 콜랍스 공동게시(CO-WORK)"}},
+  {group:"자사 매체", cat:"언드 미디어", name:"인스타그램 · 도시매뉴얼 (dosi.manual)", lead:"D-20", verified:true,
+   target:"본사 운영 서브 콘텐츠 계정 — 도시·라이프스타일 큐레이션. 제작 규격은 대표계정과 동일.",
+   slots:IG_SLOTS,
+   extra:{"담당":"노규빈 선임 (정) · 정소미 선임 (부)","비고":"세부 지표·발행 라인업은 매체 모니터링 탭(본사 그룹) 참조"}},
+  {group:"자사 매체", cat:"언드 미디어", name:"인스타그램 · 에딧뎁트 (edit.dept)", lead:"D-20", verified:true,
+   target:"본사 운영 서브 콘텐츠 계정 — 에디토리얼·큐레이션. 제작 규격은 대표계정과 동일.",
+   slots:IG_SLOTS,
+   extra:{"담당":"노규빈 선임 (정) · 정소미 선임 (부)","비고":"세부 지표는 매체 모니터링 탭(본사 그룹) 참조"}},
+  {group:"자사 매체", cat:"언드 미디어", name:"인스타그램 · 와지트 (wazit_wine)", lead:"별도 협의", verified:true,
+   target:"와인 니치 콘텐츠 계정 — 소믈리에 화자. ※ 주류 콘텐츠 — 표현 검수 필수. 콘텐츠 개요는 아래 '와지트' 항목 참조.",
+   slots:IG_SLOTS,
+   extra:{"담당":"엄혜원 선임 (정) · 김상수 책임 (부)","금지사항":"주류 관련 표현·이미지 검수 필수 (brand-guard 기준)","비고":"인스타그램·스포티파이 동시 운영 · 세부 지표는 매체 모니터링 탭 참조"}},
   {group:"자사 매체", cat:"언드 미디어", name:"유튜브 (현대백화점 THE HYUNDAI)", lead:"D-30", verified:true,
    target:"브랜딩 영상 아카이빙·스토리텔링. 35세 이하 70%. SNS·LCD 미러링 가능.",
-   slots:[
-     {name:"본편 (가로형 16:9)", size:"1920 × 1080", cap:"—", kind:"영상", vid:"MOV 제작 → MP4 변환"},
-     {name:"베리에이션 (세로형 9:16)", size:"1080 × 1920", cap:"—", kind:"영상", vid:"MP4", vlen:"15초 · 30초 · 1분 내외 (매체별 상이)", note:"그 외 별도 협의 — 모델 초상권 체크 필수"}],
+   slots:YT_SLOTS,
    process:[
      {d:"D-30", label:"광고 소재 의뢰·제작/일정 협의 (행사 전 발행 위해 사전 기획 필수)"},
      {d:"D-20", label:"제작 방향성 전달, 협력사 선정, 촬영"},
@@ -218,6 +236,14 @@ export const MEDIA = [
      "담당":"김상수 책임 (정) · 엄혜원 선임 (부)",
      "참고 지표":"'25.1 — 구독 15만 · 조회 월 80만 · 노출 월 100만",
      "비고":"발행 라인업: 미팅룸(백화점MD) 주 1회 · 지금현대(명품) 월 2건 · 더현대 아트 / My 현백 routine 비정기"}},
+  {group:"자사 매체", cat:"언드 미디어", name:"유튜브 · 룸넘버 (ROOMNUMBER)", lead:"D-30", verified:true,
+   target:"유튜브 서브 채널 (@룸넘버 ROOMNUMBER). 제작 규격은 대표 채널과 동일.",
+   slots:YT_SLOTS,
+   extra:{"담당":"김상수 책임 (정) · 엄혜원 선임 (부)","비고":"세부 지표는 매체 모니터링 탭(유튜브) 참조"}},
+  {group:"자사 매체", cat:"언드 미디어", name:"유튜브 · 이야호 (이야호스튜디오)", lead:"D-30", verified:true,
+   target:"유튜브 서브 채널 (이야호스튜디오 @yiyaho_studio). 제작 규격은 대표 채널과 동일.",
+   slots:YT_SLOTS,
+   extra:{"담당":"김상수 책임 (정) · 엄혜원 선임 (부)","비고":"세부 지표는 매체 모니터링 탭(유튜브) 참조"}},
   {group:"자사 매체", cat:"언드 미디어", name:"와지트", lead:"별도 협의", verified:true,
    target:"와인 니치 콘텐츠 — 소믈리에 화자. 식당가·메뉴 연계, 와인페어 오프라인 연계. ※ 주류 콘텐츠 — 표현 검수 필수.",
    slots:[

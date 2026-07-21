@@ -41,6 +41,10 @@
   파일 실재는 test-data 7이 검증. **전 매체 일관 카드**: 타겟형·인스타·유튜브·LCD 등 기존
   fmt 필드도 kind/img/vid/vlen으로 전환 완료. 매체 대표 비주얼(`media.visual` — 채널 캡처·
   목업)은 렌더 지원만 구현 — 인스타 등 자산 확보 시 파일 넣고 한 줄 지정.
+  **언드 미디어 서브 계정 등재 ('26.7)**: 인스타 대표계정 외 도시매뉴얼(dosi.manual)·
+  에딧뎁트(edit.dept)·와지트(wazit_wine), 유튜브 룸넘버·이야호(yiyaho_studio) 추가.
+  제작 규격은 계정 무관 동일이라 `IG_SLOTS`/`YT_SLOTS` 상수 단일 소스로 재사용 —
+  포지셔닝·지표는 미확보라 지어내지 않고 "모니터링 탭 참조" 안내 (확보 시 target·extra 채움).
   **채널 캡처 → 아이폰 목업 합성**: `scripts/media/iphone-mock.py` (PIL) — 스크린샷만 주면
   베젤·다이나믹 아일랜드·라운드 스크린 프레임 자동 합성 (사용자가 목업 제작 불필요).
   실행: `python scripts/media/iphone-mock.py <shot.png> public/media-ref/<name>.jpg`
@@ -283,9 +287,11 @@
   "이 매체 외부 링크 복사" 버튼으로 생성, MIRROR_URL은 config.js). **외부인에게 계정 발급
   금지** — 뷰어 계정도 로그인만 하면 RLS상 일정 읽기가 가능해 캘린더가 새는 구멍이 됨.
   팀원용 가이드 docs/team-guide.md · 장애 대응 docs/runbook.md
-- 공휴일 표시 ('26.7): 월간 그리드에 한국 공휴일 이름 표시 (`src/data/holidays.js` — '26·'27
-  정적 데이터, 대체공휴일 반영). 빨강 금지 원칙에 따라 그레이 표기. '27 음력 기반 날짜는
-  발표 시 확인, 임시공휴일은 파일에 한 줄 추가
+- 공휴일·휴점일 표시 ('26.7): 월간 그리드 셀 강조 (`src/data/holidays.js`). **공휴일**(HOLIDAYS,
+  '26·'27 정적·대체공휴일 반영) = 중립 그레이 틴트 + 이름(빨강 금지 원칙). **휴점일**(CLOSED_DAYS,
+  백화점 월 1회 휴점 — 확정 시 한 줄 추가) = 클레이 틴트 + "휴점" 마커로 더 뚜렷. 세 캘린더
+  탭·미러 공통, 하루 시트 제목에도 병기. 8/10 휴점 반영. test-data 5가 날짜 형식 감시.
+  '27 음력 기반 날짜·임시공휴일·향후 휴점일은 파일에 한 줄 추가
 - 데이터 자동 백업 ('26.7): `.github/workflows/backup.yml` — 주 1회(월 05:43 KST) 일정 전체를
   `data/backup/media-events.json`으로 커밋 (git 이력 = 시점별 복원점). 인증: anon 키(미러 읽기
   정책 필요) 또는 `SUPABASE_SERVICE_KEY` 시크릿(이력까지 백업). 0건 응답이면 저장 안 하고 실패
