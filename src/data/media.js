@@ -188,6 +188,7 @@ export const MEDIA = [
   /* ── 자사 매체 · 언드 ───────────────── */
   {group:"자사 매체", cat:"언드 미디어", name:"인스타그램 대표계정 (the_hyundai)", lead:"D-20", verified:true,
    target:"이슈를 가장 빠르게 전달하는 바이럴 특화 채널. 34세 이하 팔로워 40%.",
+   visual:"insta-thehyundai.jpg",
    slots:[
      {name:"스토리", size:"1080 × 1920", cap:"—", kind:"이미지", img:"JPG · PNG"},
      {name:"캐러셀 정방형", size:"1080 × 1080", cap:"—", kind:"이미지", img:"JPG · PNG"},

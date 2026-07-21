@@ -65,23 +65,25 @@ export default function App() {
     <>
       <nav className="tabs">
         <div className="tabs-inner">
-          <button className={tab === 'home' ? 'on' : ''} onClick={() => go('home')}>홈</button>
-          <button className={tab === 'team' ? 'on' : ''} onClick={() => go('team')}>팀 일정</button>
-          <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
-          <button className={tab === 'shoot' ? 'on' : ''} onClick={() => go('shoot')}>촬영일정</button>
-          <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
-          <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>매체 모니터링</button>
-          <button className={tab === 'rmn' ? 'on' : ''} onClick={() => go('rmn')}>RMN</button>
-          {isAdmin && (
-            <button className={tab === 'admin' ? 'on' : ''} onClick={() => go('admin')}>어드민</button>
-          )}
           {session && (
             <span className="tabs-session">
               <NotifyCenter session={session} />
-              {session.email}
+              <span className="ts-email">{session.email}</span>
               <button onClick={signOut}>로그아웃</button>
             </span>
           )}
+          <div className="tabs-scroll">
+            <button className={tab === 'home' ? 'on' : ''} onClick={() => go('home')}>홈</button>
+            <button className={tab === 'team' ? 'on' : ''} onClick={() => go('team')}>팀 일정</button>
+            <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
+            <button className={tab === 'shoot' ? 'on' : ''} onClick={() => go('shoot')}>촬영일정</button>
+            <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
+            <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>매체 모니터링</button>
+            <button className={tab === 'rmn' ? 'on' : ''} onClick={() => go('rmn')}>RMN</button>
+            {isAdmin && (
+              <button className={tab === 'admin' ? 'on' : ''} onClick={() => go('admin')}>어드민</button>
+            )}
+          </div>
         </div>
       </nav>
       {tab === 'home' && <Celebration />}
