@@ -256,3 +256,19 @@ alter table rmn_bookings add column if not exists qty int default 1;
 
 - 미실행 시: 수량 1개짜리 부킹은 정상 동작. **수량 2개 이상으로 등록할 때만** 저장이
   막힙니다(그 외 기존 기능 무영향). 위 한 줄 실행하면 수량 판매가 열립니다.
+
+## 9. 정산 탭 ('26.7 테스트 — 노규빈·박준영·한은비 3인)
+
+"정산" 탭용 테이블 + 증빙 파일 저장소(Storage). 금액·증빙 정보라 **팀 내부 전용**
+(미러·번들 미노출). 탭 노출은 config.js `SETTLE_EMAILS` 3인 게이트.
+
+1. Supabase 대시보드 → **SQL Editor** → **New query**
+2. 리포의 `data/settle-setup.sql` 내용 전체 복사 → 붙여넣기 → **Run** (1회)
+   - settlements 테이블 + `settle-docs` 비공개 Storage 버킷 + 정책이 한 번에 생성됨
+
+- 읽기: 로그인 계정 전원 / 쓰기: team_writers 등록 계정
+- 실행 전까지: 정산 탭에 안내 문구만 뜨고 다른 기능 무영향
+- 증빙 이미지는 업로드 시 브라우저에서 자동 압축(긴 변 1600px JPEG) — 폰 사진 3~5MB가
+  ~300KB로 저장돼 무료 플랜 Storage 1GB로 장기간 운영 가능. 파일당 상한 10MB
+- 용량 관리: 회기 마감 후 "증빙 일괄 다운로드"(ZIP, 월별/건별 폴더)로 백업 → 지난 회기
+  건 삭제 권장. 그래도 1GB에 근접하면 Supabase Pro($25/월, 100GB) 검토

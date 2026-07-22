@@ -8,9 +8,10 @@ import HomePage from './HomePage.jsx'
 import Celebration from './Celebration.jsx'
 import AdminPage from './AdminPage.jsx'
 import RmnPage from './RmnPage.jsx'
+import SettlePage from './SettlePage.jsx'
 import { getSession, onAuthChange, signOut } from './lib/auth.js'
 import { storageMode } from './lib/store.js'
-import { ADMIN_EMAILS } from './config.js'
+import { ADMIN_EMAILS, SETTLE_EMAILS } from './config.js'
 
 /* 사이트 전체 로그인 게이트 + 상단 탭 셸.
    기본 탭은 매체 캘린더. 로그인 전에는 어떤 경로(탭·뷰 파라미터)로 들어와도 LoginScreen만 보임.
@@ -32,12 +33,13 @@ export default function App() {
     if (window.location.hash === '#team') return 'team'
     if (window.location.hash === '#admin') return 'admin'
     if (window.location.hash === '#rmn') return 'rmn'
+    if (window.location.hash === '#settle') return 'settle'
     return 'home'   // '26.7: 홈이 접속 첫 화면
   })
   const go = t => {
     setTab(t)
     /* home = 기본 탭(해시 없음). 나머지는 딥링크 해시 */
-    const HASH = { spec: '#spec', monitor: '#monitor', shoot: '#shoot', calendar: '#calendar', team: '#team', admin: '#admin', rmn: '#rmn' }
+    const HASH = { spec: '#spec', monitor: '#monitor', shoot: '#shoot', calendar: '#calendar', team: '#team', admin: '#admin', rmn: '#rmn', settle: '#settle' }
     window.history.replaceState(null, '', HASH[t] || window.location.pathname + window.location.search)
   }
 
@@ -45,6 +47,10 @@ export default function App() {
      로그인이 없으므로 허용 — 실서비스(REMOTE)에선 반드시 지정 계정 로그인 필요 */
   const isAdmin = storageMode !== 'supabase'
     || (session && ADMIN_EMAILS.includes((session.email || '').toLowerCase()))
+
+  /* 정산 ('26.7 테스트): SETTLE_EMAILS 3인만 탭 노출 + 렌더 (로컬 테스트 모드는 허용) */
+  const isSettle = storageMode !== 'supabase'
+    || (session && SETTLE_EMAILS.includes((session.email || '').toLowerCase()))
 
   /* 캘린더 일정 모달 → 매체 스펙 딥링크. seq는 같은 매체를 다시 눌러도 재포커스되도록 */
   const [specFocus, setSpecFocus] = useState({ name: null, seq: 0 })
@@ -80,6 +86,9 @@ export default function App() {
             <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
             <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>매체 모니터링</button>
             <button className={tab === 'rmn' ? 'on' : ''} onClick={() => go('rmn')}>RMN</button>
+            {isSettle && (
+              <button className={tab === 'settle' ? 'on' : ''} onClick={() => go('settle')}>정산</button>
+            )}
             {isAdmin && (
               <button className={tab === 'admin' ? 'on' : ''} onClick={() => go('admin')}>어드민</button>
             )}
@@ -87,13 +96,14 @@ export default function App() {
         </div>
       </nav>
       {tab === 'home' && <Celebration />}
-      {tab === 'home' && <HomePage onGo={go} />}
+      {tab === 'home' && <HomePage onGo={go} canSettle={isSettle && storageMode === 'supabase'} />}
       {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} />}
       {tab === 'shoot' && <CalendarPage shoot onOpenSpec={openSpec} />}
       {tab === 'team' && <CalendarPage team />}
       {tab === 'spec' && <SpecLibrary isExternal={false} focusMedia={specFocus.name} focusSeq={specFocus.seq} />}
       {tab === 'monitor' && <MonitorPage />}
       {tab === 'rmn' && <RmnPage />}
+      {tab === 'settle' && isSettle && <SettlePage />}
       {tab === 'admin' && isAdmin && <AdminPage />}
     </>
   )

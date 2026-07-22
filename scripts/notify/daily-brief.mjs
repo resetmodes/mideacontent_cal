@@ -72,10 +72,18 @@ async function collect() {
     rmnSkipped = true
     console.warn(`⚠ RMN 섹션 생략 (${e.message})${SERVICE_KEY ? '' : ' — SUPABASE_SERVICE_KEY 시크릿 설정 시 포함됨'}`)
   }
-  return { shoots, uploads, rmn, rmnSkipped }
+
+  /* ④ 정산 증빙 미첨부 ('26.7 테스트) — 완료 아니고 파일 0건. 테이블 미설정이면 생략 */
+  let settleMissing = []
+  try {
+    const st = await fetchRows('settlements', 'select=title,owner_name,files,status,recurring&limit=500')
+    settleMissing = st.filter(s => !s.recurring && s.status !== '완료' && (!s.files || s.files.length === 0))
+  } catch { /* 정산 미설정 — 조용히 생략 */ }
+
+  return { shoots, uploads, rmn, rmnSkipped, settleMissing }
 }
 
-function buildCard({ shoots, uploads, rmn }) {
+function buildCard({ shoots, uploads, rmn, settleMissing = [] }) {
   const body = []
   const tb = (text, opts = {}) => body.push({ type: 'TextBlock', wrap: true, text, ...opts })
   const section = (title, rows) => {
@@ -98,8 +106,10 @@ function buildCard({ shoots, uploads, rmn }) {
     ...rmn.tentative.map(b => `가부킹 → 부킹 전환: ${b.advertiser} — ${b.product} · ${fmtD(b.start_date)} 시작`),
     ...rmn.tax.map(b => `세금계산서 미교부: ${b.advertiser} — ${b.product} · 현재 [${b.status}]`),
   ])
+  section(`정산 증빙 미첨부 ${settleMissing.length}건`,
+    settleMissing.map(s => `${s.title} — ${(s.owner_name || '').split(' ')[0]}`))
 
-  const hasContent = shoots.length + uploads.length + rmnCount > 0
+  const hasContent = shoots.length + uploads.length + rmnCount + settleMissing.length > 0
   if (!hasContent) return null
 
   /* 보러가기 — 웹 캘린더 링크 버튼만 (RMN은 텍스트 섹션으로 충분, '26.7 버튼 제거) */

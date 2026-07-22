@@ -305,8 +305,30 @@ function Highlight({ onGo }) {
   )
 }
 
+/* ── 정산 배지 ('26.7 — SETTLE_EMAILS 3인 전용): 내 증빙 미첨부 건 알림 ── */
+function SettleBadge({ onGo }) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    let alive = true
+    Promise.all([
+      import('./lib/settleStore.js'), import('./data/settle.js'), import('./lib/auth.js'),
+    ]).then(([store, data, auth]) => store.listSettle().then(rows => {
+      if (!alive || !Array.isArray(rows)) return
+      const me = (auth.getSession()?.email || '').toLowerCase()
+      setCount(rows.filter(r => !r.recurring && (r.owner_email || '').toLowerCase() === me && data.isMissingFiles(r)).length)
+    })).catch(() => {})
+    return () => { alive = false }
+  }, [])
+  if (!count) return null
+  return (
+    <button className="stl-badge" onClick={() => onGo('settle')}>
+      정산 증빙 첨부 필요 <b>{count}건</b> — 정산 탭에서 첨부 →
+    </button>
+  )
+}
+
 /* ── 홈 셸 ─────────────────────────────────────────────────── */
-export default function HomePage({ onGo }) {
+export default function HomePage({ onGo, canSettle }) {
   const [events, setEvents] = useState([])
   useEffect(() => { listEvents().then(setEvents).catch(() => {}) }, [])
   const today = toISO(new Date())
@@ -323,6 +345,7 @@ export default function HomePage({ onGo }) {
         </div>
       </header>
 
+      {canSettle && <SettleBadge onGo={onGo} />}
       <WeekHero events={events} today={today} onGo={onGo} />
       <TeamStatus events={events} today={today} onGo={onGo} />
       <WorkDeadlines events={events} today={today} onGo={onGo} />

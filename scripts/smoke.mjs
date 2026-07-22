@@ -50,7 +50,7 @@ const ok = m => console.log('✓ ' + m)
 const bad = m => { failed++; console.error('✗ ' + m) }
 
 try {
-  await writeFile(CONFIG, "export const SUPABASE_URL = ''\nexport const SUPABASE_ANON_KEY = ''\nexport const MIRROR_URL = ''\nexport const ADMIN_EMAILS = []\n")
+  await writeFile(CONFIG, "export const SUPABASE_URL = ''\nexport const SUPABASE_ANON_KEY = ''\nexport const MIRROR_URL = ''\nexport const ADMIN_EMAILS = []\nexport const SETTLE_EMAILS = []\n")
   execSync('npx vite build', { stdio: 'pipe' })
   server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--host', '127.0.0.1'], { stdio: 'ignore' })
   for (let i = 0; i < 30; i++) {
