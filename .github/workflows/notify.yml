@@ -32,4 +32,6 @@ jobs:
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          # 수동 실행(Run workflow)은 내용이 없어도 테스트 카드 강제 발송, 정기(cron)는 빈 날 생략
+          ALWAYS_SEND: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
         run: node scripts/notify/daily-brief.mjs
