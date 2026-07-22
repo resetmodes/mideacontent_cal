@@ -653,7 +653,35 @@ function CampBlock({ g, renaming, renameVal, setRenameVal, onConfirmRename, onSt
    최근 = 마지막 게시(종료일 포함)가 최근 1개월 이내이거나 진행·예정 → 항상 펼침.
    지난 = 마지막 게시 후 1개월 경과 → 자동 보관(접힘).
    이전 기준(종료일 지나면 즉시 보관)은 막 끝난 캠페인이 바로 묻히는 문제가 있었음 */
-function CampaignView({ events, onSelect, onRename, focus = null, onFocus = null }) {
+/* 캠페인 네비 ('26.7) — 큰 제목 ‹ #캠페인명 › 좌우 넘김 + 아래 작은 선택 칩.
+   seq = [전체, ...최근 캠페인] 순환. 포커스가 지난 캠페인이면 seq에 끼워 넣어 넘김 정상 */
+function CampNav({ names, focus, onFocus }) {
+  const seq = [null, ...names]
+  if (focus && !seq.includes(focus)) seq.splice(1, 0, focus)
+  const idx = Math.max(0, seq.indexOf(focus ?? null))
+  const go = dir => onFocus(seq[(idx + dir + seq.length) % seq.length])
+  return (
+    <div className="camp-nav">
+      <div className="camp-nav-title">
+        <button className="camp-arrow" onClick={() => go(-1)} aria-label="이전 캠페인">‹</button>
+        <span className="camp-title-txt">{focus ? `#${focus}` : '전체 캠페인'}</span>
+        <button className="camp-arrow" onClick={() => go(1)} aria-label="다음 캠페인">›</button>
+      </div>
+      <div className="camp-chips">
+        <button className={!focus ? 'on' : ''} onClick={() => onFocus(null)}>전체</button>
+        {names.map(n => (
+          <button key={n} className={focus === n ? 'on' : ''}
+            onClick={() => onFocus(focus === n ? null : n)}>#{n}</button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CampaignView({
+  events, onSelect, onRename, focus = null, onFocus = null,
+  cursor, onDayClick = null, onMove = null, onGroup = null, onDay = null, closedDays = CLOSED_DAYS, wide = false,
+}) {
   const today = todayISO()
   const [renaming, setRenaming] = useState(null)   // 이름 변경 중인 캠페인
   const [renameVal, setRenameVal] = useState('')
@@ -696,33 +724,32 @@ function CampaignView({ events, onSelect, onRename, focus = null, onFocus = null
   }
 
   const focusedGroup = focus ? [...groups.recent, ...groups.past].find(g => g.name === focus) : null
+  const empty = groups.recent.length === 0 && groups.past.length === 0
+  /* 캘린더에 표시할 캠페인 일정 — 태그 붙은 것만, 선택 시 그 캠페인만 */
+  const campEvents = events.filter(e => e.campaign && (!focus || e.campaign === focus))
 
   return (
     <div className="camp-view">
-      {groups.recent.length === 0 && groups.past.length === 0 && (
-        <div className="empty">캠페인 태그가 붙은 일정이 없음 — 빠른 입력에 #캠페인명 을 붙이면 여기에 묶임</div>
+      {/* 캠페인 선택 = 큰 제목 네비 (캘린더 위, '26.7) */}
+      {onFocus && !empty && (
+        <CampNav names={groups.recent.map(g => g.name)} focus={focus} onFocus={onFocus} />
       )}
 
-      {/* 캠페인 선택 칩 ('26.7) — 클릭 시 위 캘린더가 해당 캠페인만 표시 */}
-      {onFocus && (groups.recent.length > 0 || focusedGroup) && (
-        <div className="camp-chips">
-          <button className={!focus ? 'on' : ''} onClick={() => onFocus(null)}>전체 캠페인</button>
-          {groups.recent.map(g => (
-            <button key={g.name} className={focus === g.name ? 'on' : ''}
-              onClick={() => onFocus(focus === g.name ? null : g.name)}>#{g.name}</button>
-          ))}
-          {focusedGroup && focusedGroup.past && (
-            <button className="on" onClick={() => onFocus(null)}>#{focus}</button>
-          )}
-        </div>
+      <MonthGrid
+        cursor={cursor} events={campEvents} onSelect={onSelect}
+        onDayClick={onDayClick} wide={wide} onMove={onMove} onGroup={onGroup} onDay={onDay}
+        closedDays={closedDays} />
+
+      {empty && (
+        <div className="empty">캠페인 태그가 붙은 일정이 없음 — 빠른 입력에 #캠페인명 을 붙이면 여기에 묶임</div>
       )}
 
       {focusedGroup ? (
         <>
-          <div className="camp-sec">#{focusedGroup.name} <small>위 캘린더에 이 캠페인만 표시 중</small></div>
+          <div className="camp-sec">#{focusedGroup.name} <small>이 캠페인만 캘린더에 표시 중</small></div>
           <CampBlock key={focusedGroup.name} g={focusedGroup} {...blockProps} />
         </>
-      ) : (
+      ) : !empty && (
         <>
           {groups.recent.length > 0 && <div className="camp-sec">최근 캠페인</div>}
           {groups.recent.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
@@ -1194,13 +1221,9 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
   const monthLabel = `${cursor.getFullYear()}.${String(cursor.getMonth() + 1).padStart(2, '0')}`
   const searching = search.trim().length > 0
 
-  /* 캠페인 뷰 캘린더 ('26.7) — 캠페인 태그가 붙은 일정만, 선택 캠페인이 있으면 그 캠페인만.
-     선택한 캠페인이 사라지면(삭제·이름 변경) 자동으로 전체로 복귀 */
+  /* 캠페인 뷰 ('26.7) — 선택 캠페인이 사라지면(삭제·이름 변경) 자동으로 전체로 복귀 */
   const campNames = useMemo(() => new Set(filtered.filter(e => e.campaign).map(e => e.campaign)), [filtered])
   useEffect(() => { if (campFocus && !campNames.has(campFocus)) setCampFocus(null) }, [campFocus, campNames])
-  const campMonthEvents = useMemo(
-    () => filtered.filter(e => e.campaign && (!campFocus || e.campaign === campFocus)),
-    [filtered, campFocus])
 
   return (
     <div className={'wrap cal-wrap' + (readOnly ? ' wide' : '')}>
@@ -1292,17 +1315,12 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
           closedDays={closedDays}
         />
       ) : (
-        <>
-          <MonthGrid
-            cursor={cursor} events={campMonthEvents} onSelect={e => setSelected(e.orig || e)}
-            onDayClick={readOnly ? null : setDayDraft} wide={readOnly}
-            onMove={readOnly ? null : onMove} onGroup={setGroupSel} onDay={setDaySel}
-            closedDays={closedDays}
-          />
-          <CampaignView
-            events={filtered} focus={campFocus} onFocus={setCampFocus}
-            onSelect={setSelected} onRename={readOnly ? null : onRename} />
-        </>
+        <CampaignView
+          events={filtered} focus={campFocus} onFocus={setCampFocus}
+          onSelect={e => setSelected(e.orig || e)} onRename={readOnly ? null : onRename}
+          cursor={cursor} onDayClick={readOnly ? null : setDayDraft} wide={readOnly}
+          onMove={readOnly ? null : onMove} onGroup={setGroupSel} onDay={setDaySel}
+          closedDays={closedDays} />
       )}
 
       {!loading && !searching && !readOnly && storageMode === 'supabase' && (
