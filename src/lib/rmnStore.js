@@ -32,6 +32,8 @@ const toDb = b => ({
   agency: b.agency || null, agency_manager: b.agency_manager || null,
   agency_phone: b.agency_phone || null, agency_email: b.agency_email || null,
   status: b.status, memo: b.memo || null,
+  /* qty: 값 있을 때만 전송 (qty 컬럼 미설정 하위호환 — 단일 수량은 컬럼 없이도 동작) */
+  ...(b.qty != null ? { qty: b.qty } : {}),
 })
 
 export async function listRmn() {

@@ -3,6 +3,7 @@ import {
   RMN_PRODUCTS, RMN_AGENCIES, RMN_STATUS, rmnProduct, rmnColor, statusIdx, nextStatus,
   slotAvailability, pushAvailability, canTentative, buildRmnNotices,
   rmnListPrice, applyDiscount, netAmount, fmtWon,
+  groupCampaigns, campaignOn, periodDays, PRICE_DAYS, bookingQty,
 } from './data/rmn.js'
 import { listRmn, createRmn, updateRmn, deleteRmn } from './lib/rmnStore.js'
 import { buildOrderXlsx, buildProposalXlsx, DOC_NAME, DOC_ORDER } from './lib/rmnDocs.js'
@@ -27,11 +28,14 @@ const initialOf = id => id === '헤드라인 뉴스' ? '헤' : id === '이벤트
 const Ini = ({ id }) => <span className="rmn-ini" style={{ background: rmnColor(id) }}>{initialOf(id)}</span>
 
 const EMPTY = {
-  advertiser: '', campaign: '', product: '메인배너',
-  start_date: todayISO(), end_date: '', send_date: '', send_time: '10:00', push_units: 1,
+  advertiser: '', campaign: '', product: '메인배너', qty: 1,
+  start_date: todayISO(), end_date: addDaysISO(todayISO(), 6), send_date: '', send_time: '10:00', push_units: 1,
   discount_rate: '', actual_price: '', agency: '', agency_manager: '', agency_phone: '', agency_email: '',
   status: '부킹', memo: '',
 }
+/* 상품별 구분 점 (캘린더 캠페인 칩) */
+const Dot = ({ id }) => <span className="rmn-dot" style={{ background: rmnColor(id) }} title={id} />
+const productsOn = (g, iso) => [...new Set(g.items.filter(b => b.start_date <= iso && (b.end_date || b.start_date) >= iso).map(b => b.product))]
 
 /* ── 탭 접속 알림 팝업 — 가부킹 전환 + 세금계산서 (하루 1회) ── */
 function RmnNotice({ notices, onConvert, onClose }) {
@@ -181,8 +185,79 @@ function SettleSummary({ bookings }) {
   )
 }
 
-/* ── 월간 캘린더 (간이) — 부킹을 상품 이니셜 칩으로 표시 ── */
-function RmnMonth({ bookings, onPick }) {
+/* ── 진행 중 캠페인 행 ('26.7) — [광고주+캠페인명] 헤더, 펼치면 세부 상품 ── */
+function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onItemStatus, onEdit, onDel, onItemAdvance }) {
+  const prods = g.items.map(b => b.product + (bookingQty(b) > 1 ? `×${bookingQty(b)}` : ''))
+  return (
+    <div className={'rmn-camp-row' + (open ? ' open' : '')}>
+      <div className="rmn-camp-head" onClick={onToggle}>
+        <span className="rmn-camp-dots">{[...new Set(g.items.map(b => b.product))].slice(0, 4).map(p => <Dot key={p} id={p} />)}</span>
+        <span className="rmn-camp-name">
+          <b>{g.advertiser}</b>{g.campaign ? <span className="mute"> · {g.campaign}</span> : ''}
+          {g.status === '가부킹' && <span className="rmn-gtag">가부킹</span>}
+        </span>
+        <span className="rmn-camp-meta">{fmtD(g.start)} ~ {fmtD(g.end)} · {g.items.length}개 상품 · {fmtWon(g.total)}</span>
+        <span className="rmn-camp-chev" aria-hidden>{open ? '▾' : '▸'}</span>
+      </div>
+      <div className="rmn-camp-sub mute">{prods.join(' · ')}</div>
+      <div className="rmn-camp-ctl">
+        <select className="rmn-status" value={g.mixed ? '' : g.status} onChange={e => e.target.value && onSetStatus(e.target.value)}
+          title={g.mixed ? '상품별 상태가 다름 — 선택 시 전체 통일' : '캠페인 전체 상태'}>
+          {g.mixed && <option value="">상태 혼합…</option>}
+          {RMN_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <button className="btn-ghost sm" onClick={onAdvance}>다음 → <small className="mute">{nextStatus(g.status)}</small></button>
+        <button className="btn-ghost sm" onClick={onOrder}>청약서</button>
+      </div>
+      {open && (
+        <div className="rmn-camp-items">
+          {g.items.map(b => (
+            <div key={b.id} className={'rmn-item' + (editId === b.id ? ' sel' : '')}>
+              <span className="rmn-item-p"><Ini id={b.product} /> {b.product}{bookingQty(b) > 1 ? ` ×${bookingQty(b)}` : ''}{b.push_qty ? ` ${(b.push_qty / 10000).toLocaleString('ko-KR')}만` : ''}</span>
+              <span className="mute rmn-item-d">{b.send_at ? `${fmtD(b.send_at)} ${b.send_at.slice(11, 16)}` : fmtRange(b)}</span>
+              <span className="rmn-item-w">{fmtWon(b.actual_price)}</span>
+              <select className="rmn-status" value={b.status} onChange={e => onItemStatus(b, e.target.value)}>
+                {RMN_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+                <option value="취소">취소</option>
+              </select>
+              <button className="btn-ghost sm" onClick={() => onEdit(b)}>수정</button>
+              <button className={'btn-ghost sm danger' + (confirmDel === b.id ? ' arm' : '')} onClick={() => onDel(b.id)}>
+                {confirmDel === b.id ? '한 번 더' : '삭제'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── 캘린더 캠페인 클릭 → 상품 선택 시트 ── */
+function CampaignPicker({ g, onEdit, onOrder, onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="md-ch">{g.advertiser}{g.campaign ? ` · ${g.campaign}` : ''}</div>
+        <div className="mute" style={{ marginBottom: 10 }}>{fmtD(g.start)} ~ {fmtD(g.end)} · {g.items.length}개 상품 · {fmtWon(g.total)}</div>
+        {g.items.map(b => (
+          <button key={b.id} className="rmn-pick-item" onClick={() => onEdit(b)}>
+            <Ini id={b.product} />
+            <span className="rmn-pick-t">{b.product}{bookingQty(b) > 1 ? ` ×${bookingQty(b)}` : ''}</span>
+            <span className="mute">{b.send_at ? `${fmtD(b.send_at)} ${b.send_at.slice(11, 16)}` : fmtRange(b)} · [{b.status}]</span>
+          </button>
+        ))}
+        <div className="md-actions">
+          <button className="btn-ghost" onClick={onOrder}>청약서</button>
+          <div className="md-spacer" />
+          <button className="btn-ghost" onClick={onClose}>닫기</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── 월간 캘린더 (간이) — 캠페인 단위 칩(상품 색점 + 광고주), 클릭 시 상품 시트 ── */
+function RmnMonth({ campaigns, onPick }) {
   const [cursor, setCursor] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
   const cells = useMemo(() => {
     const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1)
@@ -211,7 +286,7 @@ function RmnMonth({ bookings, onPick }) {
       <div className="cal-grid">
         {DOW.map(d => <div key={d} className="cal-dow">{d}</div>)}
         {cells.map(c => {
-          const list = bookings.filter(b => b.status !== '취소' && b.start_date <= c.iso && (b.end_date || b.start_date) >= c.iso)
+          const list = campaigns.filter(g => campaignOn(g, c.iso))
           const hol = HOLIDAYS[c.iso]
           return (
             <div key={c.iso} className={'cal-cell' + (c.inMonth ? '' : ' dim') + (c.iso === today ? ' today' : '')}>
@@ -219,12 +294,12 @@ function RmnMonth({ bookings, onPick }) {
                 <span className={'cal-daynum rmn-dn' + (c.dow === 0 || c.dow === 6 || hol ? ' wknd' : '')}>{c.day}</span>
                 {hol && <span className="cal-hol">{hol}</span>}
               </div>
-              {list.slice(0, 4).map(b => (
-                <button key={b.id + c.iso} className={'cal-ev' + (statusIdx(b.status) < 1 ? ' rmn-tent' : '')}
-                  onClick={() => onPick(b)}
-                  title={`${b.product} — ${b.advertiser} (${fmtRange(b)}) [${b.status}]`}>
-                  <Ini id={b.product} />
-                  <span className="ev-title">{b.advertiser}{b.status === '가부킹' ? ' (가)' : ''}</span>
+              {list.slice(0, 4).map(g => (
+                <button key={g.key + c.iso} className={'cal-ev' + (g.status === '가부킹' ? ' rmn-tent' : '')}
+                  onClick={() => onPick(g)}
+                  title={`${g.advertiser}${g.campaign ? ' · ' + g.campaign : ''} — ${productsOn(g, c.iso).join('·')} [${g.status}]`}>
+                  <span className="rmn-camp-dots">{productsOn(g, c.iso).slice(0, 3).map(p => <Dot key={p} id={p} />)}</span>
+                  <span className="ev-title">{g.advertiser}{g.status === '가부킹' ? ' (가)' : ''}</span>
                 </button>
               ))}
               {list.length > 4 && <div className="cal-more">+{list.length - 4}</div>}
@@ -233,7 +308,7 @@ function RmnMonth({ bookings, onPick }) {
         })}
       </div>
       <div className="rmn-legend">
-        {RMN_PRODUCTS.map(p => <span key={p.id}><Ini id={p.id} /> {p.id}</span>)}
+        {RMN_PRODUCTS.map(p => <span key={p.id}><Dot id={p.id} /> {p.id}</span>)}
         <span className="mute">· (가) = 가부킹</span>
       </div>
     </div>
@@ -244,10 +319,13 @@ export default function RmnPage() {
   const [rows, setRows] = useState(undefined)   // undefined=로딩 · null=미설정
   const [f, setF] = useState(EMPTY)
   const [editId, setEditId] = useState(null)
+  const [origQty, setOrigQty] = useState(1)
   const [manualPrice, setManualPrice] = useState(false)
   const [confirmDel, setConfirmDel] = useState(null)
   const [msg, setMsg] = useState(null)
   const [notices, setNotices] = useState(null)
+  const [pickGroup, setPickGroup] = useState(null)   // 캘린더 캠페인 클릭 → 상품 선택 시트
+  const [expanded, setExpanded] = useState(null)      // 진행중 목록에서 펼친 캠페인 key
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
 
   const refresh = useCallback(() => listRmn().then(setRows), [])
@@ -267,13 +345,27 @@ export default function RmnPage() {
 
   /* 다중 상품 선택 ('26.7 — 묶음 판매): 신규 = 여러 상품 토글, 수정 = 단일(1건=1상품 모델 불변) */
   const [sel, setSel] = useState(['메인배너'])
+  const [qtys, setQtys] = useState({})   // 신규: 상품별 수량 {상품: n}
   const products = editId ? [f.product] : sel
   const toggleSel = id => setSel(prev =>
     prev.includes(id) ? (prev.length > 1 ? prev.filter(x => x !== id) : prev) : [...prev, id])
+  /* 상품별 수량 ('26.7 — 같은 상품 N개 구매). 푸쉬는 발송량으로 관리하므로 항상 1 */
+  const qtyOf = id => {
+    if (rmnProduct(id)?.push) return 1
+    return Math.max(1, Number(editId ? f.qty : qtys[id]) || 1)
+  }
+  const setQty = (id, n) => {
+    const max = rmnProduct(id)?.slots || 1
+    const v = Math.min(max, Math.max(1, Number(n) || 1))
+    if (editId) set('qty', v)
+    else setQtys(prev => ({ ...prev, [id]: v }))
+  }
   const hasPush = products.includes('푸쉬')
   const hasSlot = products.some(id => !rmnProduct(id)?.push)
   const isPush = hasPush && !hasSlot   // 푸쉬만 선택 (기간 필드 숨김)
   const rangeEnd = f.end_date || f.start_date
+  const days = periodDays(f.start_date, rangeEnd)
+  const daysOff = hasSlot && days !== PRICE_DAYS   // 7일 기준과 다름
 
   /* 재고: 폼의 기간 기준 상품별 잔여 (수정 중이면 자기 자신 제외) */
   const avail = useMemo(() => {
@@ -285,21 +377,21 @@ export default function RmnPage() {
     return out
   }, [bookings, f.start_date, rangeEnd, f.send_date, editId])
 
-  /* 가격 자동 계산 — 선택 상품 합. 실판가 직접 수정(수동 모드)은 단일 상품일 때만 */
+  /* 가격 자동 계산 — 선택 상품 × 수량 합. 실판가 직접 수정(수동)은 단일 상품일 때만 */
   const perPrice = id => rmnListPrice(id, Number(f.push_units) || 1)
-  const listPrice = products.reduce((a, id) => a + perPrice(id), 0)
-  const autoActual = products.reduce((a, id) => a + applyDiscount(perPrice(id), f.discount_rate), 0)
+  const listPrice = products.reduce((a, id) => a + perPrice(id) * qtyOf(id), 0)
+  const autoActual = products.reduce((a, id) => a + applyDiscount(perPrice(id), f.discount_rate) * qtyOf(id), 0)
   const canManual = products.length === 1
   const total = canManual && manualPrice && f.actual_price !== '' ? Number(String(f.actual_price).replace(/,/g, '')) || 0 : autoActual
   const deposit = netAmount(total, !!f.agency)
 
   const firstStart = [hasSlot ? f.start_date : null, hasPush ? f.send_date : null].filter(Boolean).sort()[0] || f.start_date
   const tentativeOK = canTentative(firstStart, todayISO())
-  /* 선택 상품 중 마감된 것 */
+  /* 선택 상품 중 (수량 기준) 마감된 것 */
   const soldOutIds = products.filter(id => {
     const a = avail[id]
     if (!a) return false
-    return rmnProduct(id)?.push ? (Number(f.push_units) || 1) * 50_000 > a.left : a.left <= 0
+    return rmnProduct(id)?.push ? (Number(f.push_units) || 1) * 50_000 > a.left : qtyOf(id) > a.left
   })
   const soldOut = soldOutIds.length > 0
 
@@ -318,9 +410,10 @@ export default function RmnPage() {
     const rowOf = id => {
       const pr = rmnProduct(id)
       const push = !!pr?.push
-      const lp = perPrice(id)
-      const actual = canManual ? total : applyDiscount(lp, f.discount_rate)
-      return {
+      const q = qtyOf(id)
+      const lp = perPrice(id) * q
+      const actual = canManual ? total : applyDiscount(perPrice(id), f.discount_rate) * q
+      const row = {
         ...shared, product: id,
         start_date: push ? f.send_date : f.start_date,
         end_date: push ? f.send_date : (f.end_date || null),
@@ -328,23 +421,30 @@ export default function RmnPage() {
         push_qty: push ? (Number(f.push_units) || 1) * pr.unitSize : null,
         list_price: lp, actual_price: actual, net_amount: netAmount(actual, !!shared.agency),
       }
+      /* qty: 값 있을 때만 전송(컬럼 미설정 하위호환). 수정으로 1까지 낮추는 경우도
+         원본이 >1이면 컬럼이 이미 존재하므로 명시 전송해 갱신 */
+      if (q > 1 || (editId && origQty > 1)) row.qty = q
+      return row
     }
     try {
       if (editId) { await updateRmn(editId, rowOf(f.product)); setMsg(`"${shared.advertiser}" 수정됨`) }
       else {
         for (const id of products) await createRmn(rowOf(id))
-        setMsg(`"${shared.advertiser}" ${shared.status} ${products.length}건 등록됨${products.length > 1 ? ` (${products.join('·')})` : ''}`)
+        const label = products.map(id => qtyOf(id) > 1 ? `${id}×${qtyOf(id)}` : id).join('·')
+        setMsg(`"${shared.advertiser}" ${shared.status} ${products.length}건 등록됨${products.length > 1 ? ` (${label})` : ''}`)
       }
-      setF(EMPTY); setEditId(null); setManualPrice(false); setSel(['메인배너'])
+      setF(EMPTY); setEditId(null); setOrigQty(1); setManualPrice(false); setSel(['메인배너']); setQtys({})
       refresh()
     } catch (e) { setMsg(e.message) }
   }
 
   const startEdit = b => {
     setEditId(b.id)
+    setOrigQty(bookingQty(b))
     setManualPrice(true)
+    setPickGroup(null)
     setF({
-      advertiser: b.advertiser, campaign: b.campaign || '', product: b.product,
+      advertiser: b.advertiser, campaign: b.campaign || '', product: b.product, qty: bookingQty(b),
       start_date: b.start_date, end_date: b.end_date || '',
       send_date: (b.send_at || '').slice(0, 10), send_time: (b.send_at || 'T10:00').slice(11, 16) || '10:00',
       push_units: b.push_qty ? Math.round(b.push_qty / 50000) : 1,
@@ -366,17 +466,25 @@ export default function RmnPage() {
     try { await deleteRmn(id); setMsg('삭제됨'); refresh() } catch (e) { setMsg(e.message) }
   }
 
-  const active = bookings.filter(b => b.status !== '취소' && b.status !== '완료')
-  const done = bookings.filter(b => b.status === '취소' || b.status === '완료')
+  /* 캠페인 그룹핑 ('26.7) — [광고주+캠페인명] 기준. 진행중 = 미완료 캠페인 / 완료·취소 별도 */
+  const campaigns = useMemo(() => groupCampaigns(bookings), [bookings])
+  const activeCamps = campaigns.filter(g => !g.done)
+  const doneCamps = campaigns.filter(g => g.done)
+  const canceled = bookings.filter(b => b.status === '취소')
 
-  /* 청약서 — 같은 광고주의 기간 겹침 형제 부킹을 한 장으로 (상품 순서 = RMN_PRODUCTS) */
-  const makeOrder = async b => {
-    const s = b.start_date, e = b.end_date || b.start_date
-    const group = bookings
-      .filter(x => x.advertiser === b.advertiser && x.status !== '취소' &&
-        x.start_date <= e && (x.end_date || x.start_date) >= s)
+  /* 상태 일괄 — 캠페인 전체 상품을 함께 진행 (취소 건 제외) */
+  const setCampaignStatus = async (g, s) => {
+    try {
+      await Promise.all(g.items.filter(b => b.status !== '취소').map(b => updateRmn(b.id, { status: s })))
+      refresh()
+    } catch (e) { setMsg(e.message) }
+  }
+
+  /* 청약서 — 캠페인 상품 전체를 한 장으로 (상품 순서 = DOC_ORDER) */
+  const makeOrderGroup = async g => {
+    const group = [...g.items].filter(b => b.status !== '취소')
       .sort((a, c) => DOC_ORDER.indexOf(a.product) - DOC_ORDER.indexOf(c.product))
-    try { await buildOrderXlsx(group, todayISO()); setMsg(`"${b.advertiser}" 청약서 다운로드 (${group.length}개 상품)`) }
+    try { await buildOrderXlsx(group, todayISO()); setMsg(`"${g.advertiser}" 청약서 다운로드 (${group.length}개 상품)`) }
     catch (err) { setMsg(err.message) }
   }
 
@@ -418,12 +526,34 @@ export default function RmnPage() {
               const full = a && a.left <= 0
               return (
                 <button key={pr.id} className={'rmn-slot' + (on ? ' on' : '') + (full ? ' full' : '')} onClick={pick}>
-                  <b>{pr.id}</b>
+                  <b>{pr.id}{qtyOf(pr.id) > 1 ? ` ×${qtyOf(pr.id)}` : ''}</b>
                   <span>{full ? '마감' : `잔여 ${a.left}/${a.total}`}</span>
                 </button>
               )
             })}
           </div>
+
+          {/* ── 선택 상품 수량 ('26.7 — 같은 상품 N개 구매, 구좌 2개 이상 상품만) ── */}
+          {products.some(id => (rmnProduct(id)?.slots || 1) > 1) && (
+            <div className="rmn-qtys">
+              {products.filter(id => (rmnProduct(id)?.slots || 1) > 1).map(id => {
+                const a = avail[id]
+                const q = qtyOf(id)
+                const max = Math.min(rmnProduct(id).slots, (a ? a.left : rmnProduct(id).slots))
+                return (
+                  <div key={id} className="rmn-qty">
+                    <span className="rmn-qty-name"><Ini id={id} /> {id}</span>
+                    <div className="rmn-step">
+                      <button type="button" onClick={() => setQty(id, q - 1)} disabled={q <= 1} aria-label="수량 감소">−</button>
+                      <b>{q}</b>
+                      <button type="button" onClick={() => setQty(id, q + 1)} disabled={q >= max} aria-label="수량 증가">＋</button>
+                    </div>
+                    <span className="mute rmn-qty-hint">개 · 잔여 {a ? a.left : rmnProduct(id).slots}/{rmnProduct(id).slots}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
 
           {/* ── 부킹 등록 폼 ── */}
           <div className="group-label">{editId ? '부킹 수정' : '신규 부킹'}</div>
@@ -433,7 +563,8 @@ export default function RmnPage() {
               <label className="wide">캠페인명<input value={f.campaign} onChange={e => set('campaign', e.target.value)} placeholder="예: 홀리데이 캠페인" /></label>
             </div>
             <div className="adm-row">
-              {hasSlot && <label>시작일 *<input type="date" value={f.start_date} onChange={e => set('start_date', e.target.value)} /></label>}
+              {hasSlot && <label>시작일 *<input type="date" value={f.start_date}
+                onChange={e => { const v = e.target.value; set('start_date', v); if (v && (!f.end_date || f.end_date < v)) set('end_date', addDaysISO(v, PRICE_DAYS - 1)) }} /></label>}
               {hasSlot && <label>종료일<input type="date" value={f.end_date} onChange={e => set('end_date', e.target.value)} /></label>}
               {hasPush && <label>{hasSlot ? '푸시 ' : ''}발송 일자 *<input type="date" value={f.send_date} onChange={e => { set('send_date', e.target.value); if (!hasSlot) set('start_date', e.target.value) }} /></label>}
               {hasPush && <label>발송 시간 *<input type="time" value={f.send_time} onChange={e => set('send_time', e.target.value)} /></label>}
@@ -447,6 +578,15 @@ export default function RmnPage() {
                 </label>
               )}
             </div>
+            {hasSlot && f.start_date && (
+              <div className={'rmn-days' + (daysOff ? ' off' : '')}>
+                집행 기간 <b>{days}일</b>
+                {daysOff
+                  ? <> · 단가는 <b>7일 기준</b>입니다 — 의도한 기간인지 확인하세요
+                      <button type="button" className="rmn-snap" onClick={() => set('end_date', addDaysISO(f.start_date, PRICE_DAYS - 1))}>7일로 맞추기</button></>
+                  : ' · 7일 기준'}
+              </div>
+            )}
             {soldOut && (
               <div className="rmn-soldout">
                 이 기간 <b>{soldOutIds.join('·')}</b> 구좌가 마감되었습니다 — 다른 기간을 선택하거나 잔여 수량을 확인하세요
@@ -493,7 +633,7 @@ export default function RmnPage() {
             <label>메모<textarea rows={2} value={f.memo} onChange={e => set('memo', e.target.value)}
               placeholder="사업자등록번호·주소는 판매사 연동값 확보 후 자동 입력 예정" /></label>
             <div className="adm-actions">
-              {editId && <button className="btn-ghost sm" onClick={() => { setF(EMPTY); setEditId(null); setManualPrice(false) }}>수정 취소</button>}
+              {editId && <button className="btn-ghost sm" onClick={() => { setF(EMPTY); setEditId(null); setOrigQty(1); setManualPrice(false) }}>수정 취소</button>}
               <button className="btn-solid sm" disabled={!valid} onClick={submit}>
                 {editId ? '수정 저장' : products.length > 1 ? `${products.length}건 동시 부킹` : '부킹 등록'}
               </button>
@@ -501,40 +641,19 @@ export default function RmnPage() {
             {msg && <div className="adm-msg">{msg}</div>}
           </div>
 
-          {/* ── 진행 중 목록 ── */}
-          <div className="group-label">진행 중 <small className="adm-count">{active.length}건</small></div>
-          <div className="mon-scroll">
-            <table className="mon-table adm-table">
-              <thead><tr><th>상품</th><th>광고주</th><th>기간</th><th>총광고비</th><th>입금가</th><th>판매사</th><th>상태</th><th></th><th></th><th></th><th></th></tr></thead>
-              <tbody>
-                {active.map(b => (
-                  <tr key={b.id} className={editId === b.id ? 'sel' : ''}>
-                    <td><Ini id={b.product} /> {b.product}{b.push_qty ? ` ${(b.push_qty / 10000).toLocaleString('ko-KR')}만` : ''}</td>
-                    <td className="mon-acc">{b.advertiser}{b.campaign ? <small className="mute"> · {b.campaign}</small> : ''}</td>
-                    <td className="mute">{b.send_at ? `${fmtD(b.send_at)} ${b.send_at.slice(11, 16)}` : fmtRange(b)}</td>
-                    <td>{fmtWon(b.actual_price)}</td>
-                    <td className={b.agency ? 'strong' : 'mute'}>{fmtWon(b.net_amount)}</td>
-                    <td className="mute">{b.agency || '직접'}</td>
-                    <td>
-                      <select className="rmn-status" value={b.status} onChange={e => setStatus(b, e.target.value)}>
-                        {RMN_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
-                        <option value="취소">취소</option>
-                      </select>
-                    </td>
-                    <td>{b.status !== '완료' && b.status !== '취소' && (
-                      <button className="btn-ghost sm" onClick={() => setStatus(b, nextStatus(b.status))}>다음 →</button>
-                    )}</td>
-                    <td><button className="btn-ghost sm" onClick={() => makeOrder(b)}>청약서</button></td>
-                    <td><button className="btn-ghost sm" onClick={() => startEdit(b)}>수정</button></td>
-                    <td>
-                      <button className={'btn-ghost sm danger' + (confirmDel === b.id ? ' arm' : '')} onClick={() => del(b.id)}>
-                        {confirmDel === b.id ? '한 번 더' : '삭제'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* ── 진행 중 캠페인 ('26.7 — [광고주+캠페인명] 그룹, 클릭 시 세부 상품 펼침) ── */}
+          <div className="group-label">진행 중 <small className="adm-count">{activeCamps.length}캠페인 · {activeCamps.reduce((a, g) => a + g.items.length, 0)}건</small></div>
+          <div className="rmn-camps">
+            {activeCamps.length === 0 && <div className="mute rmn-empty">진행 중인 캠페인이 없습니다</div>}
+            {activeCamps.map(g => (
+              <CampaignRow key={g.key} g={g} open={expanded === g.key}
+                onToggle={() => setExpanded(x => x === g.key ? null : g.key)}
+                editId={editId} confirmDel={confirmDel}
+                onAdvance={() => setCampaignStatus(g, nextStatus(g.status))}
+                onSetStatus={s => setCampaignStatus(g, s)}
+                onOrder={() => makeOrderGroup(g)}
+                onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))} />
+            ))}
           </div>
 
           {/* ── 캠페인 제안서 만들기 ('26.7 3차 — 접힘, 기존 동선 불변) ── */}
@@ -543,24 +662,33 @@ export default function RmnPage() {
           {/* ── 정산 요약 ('26.7 2차) — 월별 총광고비·입금가·미수금(입금 확인 전) ── */}
           <SettleSummary bookings={bookings} />
 
-          {/* ── 월간 캘린더 ── */}
-          <div className="group-label">부킹 캘린더</div>
-          <RmnMonth bookings={bookings} onPick={startEdit} />
+          {/* ── 월간 캘린더 ('26.7 — 캠페인 칩, 클릭 시 상품 시트) ── */}
+          <div className="group-label">부킹 캘린더 <small className="adm-count">칩 = 광고주·캠페인 · 클릭 시 상품</small></div>
+          <RmnMonth campaigns={campaigns} onPick={setPickGroup} />
 
-          {done.length > 0 && (
+          {(doneCamps.length > 0 || canceled.length > 0) && (
             <details className="ta-office">
-              <summary><span className="ta-name">완료·취소</span><span className="ta-cnt">{done.length}건</span></summary>
+              <summary><span className="ta-name">완료·취소</span><span className="ta-cnt">{doneCamps.length + canceled.length}건</span></summary>
               <div className="mon-scroll">
                 <table className="mon-table adm-table">
                   <tbody>
-                    {done.map(b => (
+                    {doneCamps.map(g => (
+                      <tr key={g.key}>
+                        <td className="mon-acc">{g.advertiser}{g.campaign ? <small className="mute"> · {g.campaign}</small> : ''}</td>
+                        <td className="mute">{g.items.map(b => b.product).join('·')}</td>
+                        <td className="mute">{fmtD(g.start)} ~ {fmtD(g.end)}</td>
+                        <td>{fmtWon(g.total)}</td>
+                        <td className="mute">완료</td>
+                        <td><button className="btn-ghost sm" onClick={() => makeOrderGroup(g)}>청약서</button></td>
+                      </tr>
+                    ))}
+                    {canceled.map(b => (
                       <tr key={b.id}>
-                        <td>{b.product}</td>
-                        <td className="mon-acc">{b.advertiser}</td>
+                        <td className="mon-acc">{b.advertiser}{b.campaign ? <small className="mute"> · {b.campaign}</small> : ''}</td>
+                        <td className="mute">{b.product}</td>
                         <td className="mute">{fmtRange(b)}</td>
                         <td>{fmtWon(b.actual_price)}</td>
-                        <td className="mute">{b.status}</td>
-                        <td><button className="btn-ghost sm" onClick={() => makeOrder(b)}>청약서</button></td>
+                        <td className="mute">취소</td>
                         <td><button className="btn-ghost sm" onClick={() => startEdit(b)}>수정</button></td>
                       </tr>
                     ))}
@@ -571,6 +699,8 @@ export default function RmnPage() {
           )}
         </>
       )}
+
+      {pickGroup && <CampaignPicker g={pickGroup} onEdit={startEdit} onOrder={() => makeOrderGroup(pickGroup)} onClose={() => setPickGroup(null)} />}
 
       {notices && <RmnNotice notices={notices} onClose={closeNotice}
         onConvert={async b => { await setStatus(b, '부킹'); setNotices(n => ({ ...n, tentative: n.tentative.filter(x => x.id !== b.id) })) }} />}

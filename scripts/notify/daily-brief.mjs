@@ -102,9 +102,8 @@ function buildCard({ shoots, uploads, rmn }) {
   const hasContent = shoots.length + uploads.length + rmnCount > 0
   if (!hasContent) return null
 
-  /* 보러가기 — 웹 링크 버튼 (RMN 항목 있을 때만 RMN 딥링크 추가) */
+  /* 보러가기 — 웹 캘린더 링크 버튼만 (RMN은 텍스트 섹션으로 충분, '26.7 버튼 제거) */
   const actions = [{ type: 'Action.OpenUrl', title: '캘린더 보러가기', url: `${SITE}/#calendar` }]
-  if (rmnCount) actions.push({ type: 'Action.OpenUrl', title: 'RMN 확인하기', url: `${SITE}/#rmn` })
 
   return {
     type: 'message',
