@@ -100,8 +100,8 @@ for (const g of TA_GROUPS) {
 
 /* 6d. RMN 재고·가부킹·알림 로직 ('26.7) */
 import {
-  RMN_PRODUCTS, slotAvailability, pushAvailability, canTentative, buildRmnNotices,
-  applyDiscount, netAmount, groupCampaigns, periodDays, bookingQty, PRICE_DAYS,
+  RMN_PRODUCTS, rmnProduct, slotAvailability, pushAvailability, canTentative, buildRmnNotices,
+  applyDiscount, netAmount, groupCampaigns, periodDays, priceWeeks, bookingQty, PRICE_DAYS,
 } from '../src/data/rmn.js'
 if (RMN_PRODUCTS.length !== 7) bad('RMN 상품이 7종이 아님')
 {
@@ -148,6 +148,23 @@ if (RMN_PRODUCTS.length !== 7) bad('RMN 상품이 7종이 아님')
   /* 7일 기준 기간 계산 (양끝 포함) */
   if (periodDays('2026-09-01', '2026-09-07') !== PRICE_DAYS) bad(`periodDays: 9/1~9/7 이 ${PRICE_DAYS}일이 아님`)
   if (periodDays('2026-09-01', '2026-09-01') !== 1) bad('periodDays: 하루 = 1일이어야 함')
+
+  /* 기간 비례 과금 ('26.7) — 21일 = ×3, 14일 = ×2, 7일 = ×1, 4일 = ×1(최소) */
+  if (priceWeeks(7) !== 1) bad('priceWeeks: 7일 = ×1이어야 함')
+  if (priceWeeks(14) !== 2) bad('priceWeeks: 14일 = ×2여야 함')
+  if (priceWeeks(21) !== 3) bad(`priceWeeks: 21일 = ×3이어야 함 (${priceWeeks(21)})`)
+  if (priceWeeks(4) !== 1) bad('priceWeeks: 4일 = 최소 ×1이어야 함')
+  {
+    /* 라인 가격 검증: 메인배너(7,000,000/7일) 21일 = 21,000,000, 할인 10% = 18,900,000 */
+    const base = rmnProduct('메인배너').price
+    const days = periodDays('2026-09-01', '2026-09-21')   // 21일
+    const list = base * priceWeeks(days) * 1
+    if (list !== 21_000_000) bad(`라인 공시가: 메인배너 21일 ${list} ≠ 21,000,000 (7일×3)`)
+    if (applyDiscount(list, 10) !== 18_900_000) bad('라인 실판가: 21일 10% 할인 계산 오류')
+    /* 상품별 상이 기간·할인 합산: 스플래시 7일 15,000,000(할인0) + 메인배너 21일 21,000,000 할인10% = 33,900,000 */
+    const sum = applyDiscount(15_000_000, 0) + applyDiscount(21_000_000, 10)
+    if (sum !== 33_900_000) bad(`상품별 합산: ${sum} ≠ 33,900,000`)
+  }
 
   /* 캠페인 그룹핑 — [광고주+캠페인명] 기준, 취소 제외.
      ① 이름 있으면: 기간 갭 커도(분할 집행) 한 캠페인 유지

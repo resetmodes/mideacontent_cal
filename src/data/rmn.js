@@ -113,6 +113,8 @@ export function periodDays(startISO, endISO) {
   const s = new Date(startISO + 'T00:00:00'), e = new Date((endISO || startISO) + 'T00:00:00')
   return Math.round((e - s) / 86400e3) + 1   // 양끝 포함
 }
+/* 7일 기준 주(회차) 수 — 21일이면 ×3. 가격 배수 ('26.7: 7일 초과분도 비례 과금) */
+export const priceWeeks = days => Math.max(1, Math.round((days || 0) / PRICE_DAYS))
 export const addDaysISO = (iso, n) => {
   const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n)
   return d.toISOString().slice(0, 10)
