@@ -204,6 +204,55 @@ for (const [file, want] of [['rmn-seed.sql', 40], ['rmn-seed-2025.sql', 38]]) {
   if ((sql.match(/'\d{1,2}\/[^']*'/g) || []).length) bad(`${file}: 비ISO 날짜 잔존`)
 }
 
+/* 8. 정산 탭 ('26.7 테스트 — 3인) — 점 배분 합계·재정규화·상태 파이프라인 */
+import { ALLOC_PRESETS, computeAlloc, SETTLE_FLOW, isMissingFiles, isTaxUnissued } from '../src/data/settle.js'
+import { SETTLE_EMAILS } from '../src/config.js'
+if (SETTLE_EMAILS.length !== 3) bad(`정산 게이트: 테스트 3인이어야 함 (${SETTLE_EMAILS.length}명)`)
+for (const p of ALLOC_PRESETS) {
+  const sum = Math.round(p.stores.reduce((a, s) => a + s.rate, 0) * 10) / 10
+  if (sum !== 100) bad(`점 배분 "${p.label}": 분담률 합 ${sum} ≠ 100 (정산 엑셀과 대조 필요)`)
+  const csum = Math.round(p.corp.reduce((a, c) => a + c.rate, 0) * 10) / 10
+  if (csum !== 100) bad(`점 배분 "${p.label}": 법인 분할 합 ${csum} ≠ 100`)
+  const names = p.stores.map(s => s.name)
+  if (new Set(names).size !== names.length) bad(`점 배분 "${p.label}": 점 이름 중복 (제외 체크가 엉킴)`)
+}
+{
+  /* 정산 엑셀 원본 값 재현: 백화점 14,150,000원 → 본점 13.5% = 1,910,250원 */
+  const a = computeAlloc('dept', 14_150_000)
+  if (a.rows.find(r => r.name === '본점')?.cost !== 1_910_250) bad('점 배분: 본점 13.5% 배분액이 정산 엑셀과 다름')
+  if (a.rows.reduce((s, r) => s + r.cost, 0) !== 14_150_000) bad('점 배분: 배분 합 ≠ 정산 금액 (잔차 보정 실패)')
+  if (a.corp.reduce((s, c) => s + c.cost, 0) !== 14_150_000) bad('점 배분: 법인 분할 합 ≠ 정산 금액')
+  /* 제외 시 재정규화 — 남은 점 비율 합 100%, 배분 합은 여전히 정확히 일치 */
+  const b = computeAlloc('dept', 10_000_000, ['본점', '판교'])
+  if (b.rows.length !== 11) bad('점 배분: 2점 제외 시 11점이어야 함')
+  if (Math.round(b.rows.reduce((s, r) => s + r.effRate, 0)) !== 100) bad('점 배분: 재정규화 비율 합 ≠ 100%')
+  if (b.rows.reduce((s, r) => s + r.cost, 0) !== 10_000_000) bad('점 배분: 재정규화 후 배분 합 ≠ 정산 금액')
+}
+if (!SETTLE_FLOW['세금계산서'].includes('계산서 발행')) bad('정산 상태: 세금계산서 파이프라인에 계산서 발행 단계 없음')
+if (SETTLE_FLOW['법인카드'].includes('계산서 발행')) bad('정산 상태: 법인카드에는 계산서 발행 단계가 없어야 함')
+if (!isMissingFiles({ files: [], status: '작성' })) bad('정산: 파일 0건 = 미첨부여야 함')
+if (isMissingFiles({ files: [], status: '완료' })) bad('정산: 완료 건은 미첨부 목록에서 제외')
+if (!isTaxUnissued({ stype: '세금계산서', status: '증빙 완료' })) bad('정산: 발행 전 세금계산서 = 미발행이어야 함')
+if (isTaxUnissued({ stype: '세금계산서', status: '계산서 발행' })) bad('정산: 발행 단계 도달 건은 미발행 아님')
+if (isTaxUnissued({ stype: '법인카드', status: '작성' })) bad('정산: 법인카드는 계산서 미발행 대상 아님')
+
+/* 8b. ZIP 생성기 — 시그니처·엔트리 수·UTF-8 파일명 (증빙 일괄 다운로드가 못 열리면 사고) */
+{
+  const { buildZip } = await import('../src/lib/zip.js')
+  const enc2 = new TextEncoder()
+  const blob = buildZip([
+    { path: '2026-07/0715_테스트_노규빈/영수증.jpg', data: enc2.encode('x'.repeat(100)) },
+    { path: '2026-08/견적서.pdf', data: enc2.encode('y') },
+  ])
+  const buf = new Uint8Array(await blob.arrayBuffer())
+  if (!(buf[0] === 0x50 && buf[1] === 0x4B && buf[2] === 3 && buf[3] === 4)) bad('ZIP: 로컬 헤더 시그니처(PK34) 아님')
+  /* EOCD(끝에서 22바이트)의 총 엔트리 수 = 2 */
+  const eocd = buf.length - 22
+  if (!(buf[eocd] === 0x50 && buf[eocd + 1] === 0x4B && buf[eocd + 2] === 5 && buf[eocd + 3] === 6)) bad('ZIP: EOCD 시그니처 아님')
+  const count = buf[eocd + 10] | (buf[eocd + 11] << 8)
+  if (count !== 2) bad(`ZIP: 엔트리 수 ${count} ≠ 2`)
+}
+
 /* 7. media.js 스키마 최소 요건 + 레퍼런스 이미지 실재 검증 ('26.7 제작 가이드 개편) */
 for (const m of MEDIA) {
   if (!m.group || !m.cat || !m.name || !m.lead) bad(`media.js "${m.name || '?'}": group/cat/name/lead 누락`)

@@ -16,3 +16,10 @@ export const ADMIN_EMAILS = [
   'kyuvin@thehyundai.com',   // 노규빈 선임
   'jykim84@thehyundai.com',  // 김자영 책임 ('26.7 추가 — 타겟형 매체 운영)
 ]
+
+/* 정산 탭('#settle') 접근 계정 ('26.7 테스트 — 3인. 전 팀 오픈 시 목록 확장 또는 게이트 제거) */
+export const SETTLE_EMAILS = [
+  'kyuvin@thehyundai.com',    // 노규빈 선임
+  'qlslekf11@thehyundai.com', // 박준영 전임
+  'dmsqlfpdy@thehyundai.com', // 한은비 전임
+]
