@@ -600,9 +600,10 @@ function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister, closed
 
 /* 캠페인 블록 — CampaignView 밖에 정의 (렌더마다 컴포넌트가 재생성되면
    이름 변경 입력이 한 글자마다 재마운트되어 커서가 튀는 문제 방지) */
-function CampBlock({ g, renaming, renameVal, setRenameVal, onConfirmRename, onStartRename, onCancelRename, canRename, onSelect }) {
+function CampBlock({ g, renaming, renameVal, setRenameVal, onConfirmRename, onStartRename, onCancelRename, canRename, onSelect, focus, onFocus }) {
+  const focused = focus === g.name
   return (
-    <div className="camp-block">
+    <div className={'camp-block' + (focused ? ' focused' : '')}>
       <div className="camp-head">
         {renaming === g.name ? (
           <span className="camp-rename-form">
@@ -620,7 +621,13 @@ function CampBlock({ g, renaming, renameVal, setRenameVal, onConfirmRename, onSt
           </span>
         ) : (
           <>
-            <span className="camp-name">#{g.name}</span>
+            {onFocus ? (
+              <button className={'camp-name camp-name-btn' + (focused ? ' on' : '')}
+                onClick={() => onFocus(focused ? null : g.name)}
+                title={focused ? '전체 캠페인 보기' : '이 캠페인만 캘린더에 보기'}>#{g.name}</button>
+            ) : (
+              <span className="camp-name">#{g.name}</span>
+            )}
             {canRename && (
               <button className="camp-rename" onClick={() => onStartRename(g.name)}>이름 변경·통합</button>
             )}
@@ -646,7 +653,7 @@ function CampBlock({ g, renaming, renameVal, setRenameVal, onConfirmRename, onSt
    최근 = 마지막 게시(종료일 포함)가 최근 1개월 이내이거나 진행·예정 → 항상 펼침.
    지난 = 마지막 게시 후 1개월 경과 → 자동 보관(접힘).
    이전 기준(종료일 지나면 즉시 보관)은 막 끝난 캠페인이 바로 묻히는 문제가 있었음 */
-function CampaignView({ events, onSelect, onRename }) {
+function CampaignView({ events, onSelect, onRename, focus = null, onFocus = null }) {
   const today = todayISO()
   const [renaming, setRenaming] = useState(null)   // 이름 변경 중인 캠페인
   const [renameVal, setRenameVal] = useState('')
@@ -685,21 +692,47 @@ function CampaignView({ events, onSelect, onRename }) {
     onStartRename: startRename,
     onCancelRename: () => setRenaming(null),
     canRename: !!onRename,
-    onSelect,
+    onSelect, focus, onFocus,
   }
+
+  const focusedGroup = focus ? [...groups.recent, ...groups.past].find(g => g.name === focus) : null
 
   return (
     <div className="camp-view">
       {groups.recent.length === 0 && groups.past.length === 0 && (
         <div className="empty">캠페인 태그가 붙은 일정이 없음 — 빠른 입력에 #캠페인명 을 붙이면 여기에 묶임</div>
       )}
-      {groups.recent.length > 0 && <div className="camp-sec">최근 캠페인</div>}
-      {groups.recent.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
-      {groups.past.length > 0 && (
-        <details className="camp-past">
-          <summary>지난 캠페인 {groups.past.length}건 — 최근 1개월 게시 없음, 자동 보관</summary>
-          {groups.past.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
-        </details>
+
+      {/* 캠페인 선택 칩 ('26.7) — 클릭 시 위 캘린더가 해당 캠페인만 표시 */}
+      {onFocus && (groups.recent.length > 0 || focusedGroup) && (
+        <div className="camp-chips">
+          <button className={!focus ? 'on' : ''} onClick={() => onFocus(null)}>전체 캠페인</button>
+          {groups.recent.map(g => (
+            <button key={g.name} className={focus === g.name ? 'on' : ''}
+              onClick={() => onFocus(focus === g.name ? null : g.name)}>#{g.name}</button>
+          ))}
+          {focusedGroup && focusedGroup.past && (
+            <button className="on" onClick={() => onFocus(null)}>#{focus}</button>
+          )}
+        </div>
+      )}
+
+      {focusedGroup ? (
+        <>
+          <div className="camp-sec">#{focusedGroup.name} <small>위 캘린더에 이 캠페인만 표시 중</small></div>
+          <CampBlock key={focusedGroup.name} g={focusedGroup} {...blockProps} />
+        </>
+      ) : (
+        <>
+          {groups.recent.length > 0 && <div className="camp-sec">최근 캠페인</div>}
+          {groups.recent.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
+          {groups.past.length > 0 && (
+            <details className="camp-past">
+              <summary>지난 캠페인 {groups.past.length}건 — 최근 1개월 게시 없음, 자동 보관</summary>
+              {groups.past.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
+            </details>
+          )}
+        </>
       )}
       {noCampaign > 0 && (
         <div className="camp-note">캠페인 미지정 일정 {noCampaign}건은 월간 뷰에서 확인</div>
@@ -995,6 +1028,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
   const [groupSel, setGroupSel] = useState(null)   // 타겟APP 묶음 클릭 → 세부 선택 시트
   const [dayDraft, setDayDraft] = useState(null)   // 날짜 셀 클릭 → 신규 등록 모달
   const [daySel, setDaySel] = useState(null)       // 일자 숫자·더보기 클릭 → 하루 일정 시트
+  const [campFocus, setCampFocus] = useState(null) // 캠페인 뷰에서 선택한 캠페인 (null = 전체)
   const me = authorName(session?.email)            // 작성자 = 로그인 계정 (자동)
 
   const refresh = useCallback(async () => {
@@ -1160,6 +1194,14 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
   const monthLabel = `${cursor.getFullYear()}.${String(cursor.getMonth() + 1).padStart(2, '0')}`
   const searching = search.trim().length > 0
 
+  /* 캠페인 뷰 캘린더 ('26.7) — 캠페인 태그가 붙은 일정만, 선택 캠페인이 있으면 그 캠페인만.
+     선택한 캠페인이 사라지면(삭제·이름 변경) 자동으로 전체로 복귀 */
+  const campNames = useMemo(() => new Set(filtered.filter(e => e.campaign).map(e => e.campaign)), [filtered])
+  useEffect(() => { if (campFocus && !campNames.has(campFocus)) setCampFocus(null) }, [campFocus, campNames])
+  const campMonthEvents = useMemo(
+    () => filtered.filter(e => e.campaign && (!campFocus || e.campaign === campFocus)),
+    [filtered, campFocus])
+
   return (
     <div className={'wrap cal-wrap' + (readOnly ? ' wide' : '')}>
       <header>
@@ -1216,7 +1258,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
               ))}
             </div>
           )}
-          {view === '월간' && (
+          {(view === '월간' || view === '캠페인') && (
             <div className="cal-nav">
               <button onClick={() => setCursor(c => new Date(c.getFullYear(), c.getMonth() - 1, 1))}>◀</button>
               <span className="cal-month">{monthLabel}</span>
@@ -1250,7 +1292,17 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
           closedDays={closedDays}
         />
       ) : (
-        <CampaignView events={filtered} onSelect={setSelected} onRename={readOnly ? null : onRename} />
+        <>
+          <MonthGrid
+            cursor={cursor} events={campMonthEvents} onSelect={e => setSelected(e.orig || e)}
+            onDayClick={readOnly ? null : setDayDraft} wide={readOnly}
+            onMove={readOnly ? null : onMove} onGroup={setGroupSel} onDay={setDaySel}
+            closedDays={closedDays}
+          />
+          <CampaignView
+            events={filtered} focus={campFocus} onFocus={setCampFocus}
+            onSelect={setSelected} onRename={readOnly ? null : onRename} />
+        </>
       )}
 
       {!loading && !searching && !readOnly && storageMode === 'supabase' && (
