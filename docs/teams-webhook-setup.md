@@ -60,8 +60,19 @@ request is received" → Next → Add workflow → Copy URL → Done`
 
 ---
 
-## D. 규빈 액션 요약
+## D. 웹훅 확보 후 — GitHub Secret 등록 (1회)
 
-1. 위 A(안 되면 B)로 **웹훅 URL 확보**
-2. URL 전달 → 제가 발송 로직 + 스케줄(예: 매일 아침 8시 요약) 붙임
-3. 발송 항목·시각은 확보 후 함께 조율 (촬영 D-day · RMN 세금계산서/가부킹 · 신규 일정)
+발송 자동화는 구현 완료: `scripts/notify/daily-brief.mjs` + `.github/workflows/notify.yml`
+(매일 08:00 KST — 오늘 촬영 · RMN 세금계산서/가부킹 전환 · 신규 등록 일정. 없으면 발송 생략).
+남은 건 시크릿 등록뿐:
+
+1. 브라우저에서 **github.com/resetmodes/mideacontent_cal** 접속
+2. 상단 **Settings** 탭 → 좌측 **Secrets and variables** → **Actions**
+3. **"New repository secret"** 클릭
+   - Name: `TEAMS_WEBHOOK_URL` / Secret: 복사해둔 웹훅 URL 전체 → **Add secret**
+4. (권장) 하나 더 — RMN 섹션 포함용:
+   - supabase.com 대시보드 → 프로젝트 → **Settings → API** → **service_role** 키 복사
+   - 같은 방법으로 Name: `SUPABASE_SERVICE_KEY` 로 등록
+   - 없으면 브리핑은 발송되지만 RMN 섹션만 빠짐 (rmn_bookings는 내부 전용 RLS)
+5. 테스트: 리포 **Actions** 탭 → 좌측 **"팀즈 아침 브리핑"** → **Run workflow** →
+   1분 내 팀즈 채널에 카드 확인 (알릴 내용이 없으면 "발송 생략" 로그만 남음)

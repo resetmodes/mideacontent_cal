@@ -296,6 +296,13 @@
   (제목이 휴점/휴점일뿐일 때) → `kind='휴점'` 마커 저장 (media_events 재사용, 새 SQL 불필요).
   전 탭 셀 틴트 + 하루 시트 "휴점 해제"로 삭제 (정적 CLOSED_DAYS는 코드값이라 해제 버튼 없음).
   휴점 이벤트는 일정 행에서 제외(셀 마커 전용). CalendarApp closedDays/closedEvt 병합
+- **팀즈 아침 브리핑 ('26.7)**: `.github/workflows/notify.yml` — 매일 08:00 KST 팀즈 채널로
+  요약 카드 (오늘 촬영 · RMN 세금계산서/가부킹 전환 · 신규 등록 24h · 휴점/공휴일 한 줄).
+  `scripts/notify/daily-brief.mjs` — buildRmnNotices 재사용, 없는 섹션 숨김·전부 비면 발송
+  생략(ALWAYS_SEND=1로 강제). 웹훅 = Power Automate 워크플로(docs/teams-webhook-setup.md,
+  구 Incoming Webhook 커넥터는 MS 폐지). **시크릿: TEAMS_WEBHOOK_URL(필수) ·
+  SUPABASE_SERVICE_KEY(권장 — 없으면 RMN 섹션 생략)**. 검증: --mock --dry-run.
+  샌드박스는 powerplatform.com·supabase.co 아웃바운드 차단 — 실발송 검증은 Actions에서만 가능
 - 데이터 자동 백업 ('26.7): `.github/workflows/backup.yml` — 주 1회(월 05:43 KST) 일정 전체를
   `data/backup/media-events.json`으로 커밋 (git 이력 = 시점별 복원점). 인증: anon 키(미러 읽기
   정책 필요) 또는 `SUPABASE_SERVICE_KEY` 시크릿(이력까지 백업). 0건 응답이면 저장 안 하고 실패
