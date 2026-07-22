@@ -149,20 +149,23 @@ if (RMN_PRODUCTS.length !== 7) bad('RMN 상품이 7종이 아님')
   if (periodDays('2026-09-01', '2026-09-07') !== PRICE_DAYS) bad(`periodDays: 9/1~9/7 이 ${PRICE_DAYS}일이 아님`)
   if (periodDays('2026-09-01', '2026-09-01') !== 1) bad('periodDays: 하루 = 1일이어야 함')
 
-  /* 캠페인 그룹핑 — [광고주+캠페인명] 기준, 취소 제외, 기간 갭 크면 회차 분리 */
+  /* 캠페인 그룹핑 — [광고주+캠페인명] 기준, 취소 제외.
+     ① 이름 있으면: 기간 갭 커도(분할 집행) 한 캠페인 유지
+     ② 이름 없으면: 갭>3일이면 회차 분리 */
   const G = groupCampaigns([
-    bk('c1', '스플래시', '2026-09-01', '2026-09-07', '부킹', { advertiser: '샤넬', campaign: '홀리데이', actual_price: 15_000_000 }),
-    bk('c2', '메인배너', '2026-09-01', '2026-09-07', '집행', { advertiser: '샤넬', campaign: '홀리데이', actual_price: 7_000_000 }),
-    bk('c3', '스플래시', '2026-11-01', '2026-11-07', '부킹', { advertiser: '샤넬', campaign: '홀리데이', actual_price: 15_000_000 }),
+    bk('c1', '스플래시', '2026-09-01', '2026-09-03', '부킹', { advertiser: '샤넬', campaign: '홀리데이', actual_price: 15_000_000 }),
+    bk('c2', '스플래시', '2026-09-20', '2026-09-23', '집행', { advertiser: '샤넬', campaign: '홀리데이', actual_price: 0 }), // 분할 이어짐(갭 커도 이름 같으면 한 캠페인)
     bk('c4', '메인배너', '2026-09-02', '2026-09-08', '부킹', { advertiser: '까르띠에', campaign: '', actual_price: 7_000_000 }),
+    bk('c5', '팝업배너', '2026-11-02', '2026-11-08', '부킹', { advertiser: '까르띠에', campaign: '', actual_price: 3_000_000 }), // 이름 없고 갭 커서 별 회차
     bk('cx', '메인배너', '2026-09-01', '2026-09-07', '취소', { advertiser: '샤넬', campaign: '홀리데이', actual_price: 7_000_000 }),
   ])
-  if (G.length !== 3) bad(`캠페인 그룹: 3개 회차여야 함 (샤넬 9월·11월·까르띠에) — ${G.length}개`)
-  const sep = G.find(g => g.advertiser === '샤넬' && g.start === '2026-09-01')
-  if (!sep || sep.items.length !== 2) bad('캠페인 그룹: 샤넬 9월 회차는 상품 2건(취소 제외)이어야 함')
-  if (sep.total !== 22_000_000) bad(`캠페인 그룹: 총광고비 합 ${sep.total} ≠ 22,000,000 (취소 제외)`)
-  if (sep.status !== '부킹') bad(`캠페인 상태: 가장 덜 진행된 '부킹'이어야 함 — ${sep.status}`)
-  if (!sep.mixed) bad('캠페인 그룹: 부킹·집행 혼합이면 mixed=true')
+  if (G.length !== 3) bad(`캠페인 그룹: 3그룹이어야 함 (샤넬 홀리데이 / 까르띠에 9월 / 까르띠에 11월) — ${G.length}개`)
+  const shanel = G.find(g => g.advertiser === '샤넬')
+  if (!shanel || shanel.items.length !== 2) bad('캠페인 그룹: 샤넬 홀리데이는 갭 커도 이름 같으면 한 캠페인 2건(취소 제외)')
+  if (shanel.total !== 15_000_000) bad(`캠페인 그룹: 분할 이어짐(금액 0) 합산 시 총광고비 ${shanel.total} ≠ 15,000,000 (1회분만)`)
+  if (shanel.status !== '부킹') bad(`캠페인 상태: 가장 덜 진행된 '부킹'이어야 함 — ${shanel.status}`)
+  if (!shanel.mixed) bad('캠페인 그룹: 부킹·집행 혼합이면 mixed=true')
+  if (G.filter(g => g.advertiser === '까르띠에').length !== 2) bad('캠페인 그룹: 이름 없는 까르띠에는 갭>3일이면 회차 분리')
 }
 
 /* 6f. RMN 문서 생성 — 판매사 마스터·기준값·양식 표기·빈 템플릿 정합성 */

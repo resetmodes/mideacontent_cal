@@ -120,8 +120,9 @@ export const addDaysISO = (iso, n) => {
 
 /* ── 캠페인 그룹핑 ('26.7) — [광고주 + 캠페인명] 기준. 상품별 개별 행을 하나의
    캠페인으로 묶어 목록·캘린더·상태 진행을 캠페인 단위로 다룬다.
-   같은 광고주+캠페인명이라도 기간이 크게 벌어지면(3일 초과 갭) 별개 캠페인 회차로 분리 —
-   캠페인명이 비어 있어도 서로 다른 달의 집행이 한 덩어리로 뭉치지 않게. */
+   ─ 캠페인명이 있으면: 같은 광고주+캠페인명은 기간이 벌어져도 한 캠페인 (분할 집행 —
+     3일+4일처럼 끊어 넣어도 하나로 유지)
+   ─ 캠페인명이 비어 있으면: 기간 갭>3일이면 별개 회차로 분리 (서로 다른 달 집행이 안 뭉치게) */
 const CLUSTER_GAP = 3
 export function groupCampaigns(bookings) {
   const held = bookings.filter(holds)   // 취소 제외
@@ -134,7 +135,8 @@ export function groupCampaigns(bookings) {
   const endOf = b => b.end_date || b.start_date
   for (const b of sorted) {
     const same = cur && cur.advertiser === b.advertiser && (cur.campaign || '') === (b.campaign || '')
-    const near = same && b.start_date <= addDaysISO(cur.end, CLUSTER_GAP)
+    const named = (b.campaign || '') !== ''
+    const near = same && (named || b.start_date <= addDaysISO(cur.end, CLUSTER_GAP))
     if (near) {
       cur.items.push(b)
       if (endOf(b) > cur.end) cur.end = endOf(b)

@@ -211,11 +211,13 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
       </div>
       {open && (
         <div className="rmn-camp-items">
-          {g.items.map(b => (
+          {g.items.map(b => {
+            const split = !b.actual_price && g.items.some(x => x.product === b.product && x.actual_price > 0)
+            return (
             <div key={b.id} className={'rmn-item' + (editId === b.id ? ' sel' : '')}>
               <span className="rmn-item-p"><Ini id={b.product} /> {b.product}{bookingQty(b) > 1 ? ` ×${bookingQty(b)}` : ''}{b.push_qty ? ` ${(b.push_qty / 10000).toLocaleString('ko-KR')}만` : ''}</span>
               <span className="mute rmn-item-d">{b.send_at ? `${fmtD(b.send_at)} ${b.send_at.slice(11, 16)}` : fmtRange(b)}</span>
-              <span className="rmn-item-w">{fmtWon(b.actual_price)}</span>
+              <span className="rmn-item-w">{split ? <span className="mute">분할 집행</span> : fmtWon(b.actual_price)}</span>
               <select className="rmn-status" value={b.status} onChange={e => onItemStatus(b, e.target.value)}>
                 {RMN_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
                 <option value="취소">취소</option>
@@ -225,7 +227,8 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
                 {confirmDel === b.id ? '한 번 더' : '삭제'}
               </button>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
@@ -346,6 +349,7 @@ export default function RmnPage() {
   /* 다중 상품 선택 ('26.7 — 묶음 판매): 신규 = 여러 상품 토글, 수정 = 단일(1건=1상품 모델 불변) */
   const [sel, setSel] = useState(['메인배너'])
   const [qtys, setQtys] = useState({})   // 신규: 상품별 수량 {상품: n}
+  const [extraSegs, setExtraSegs] = useState([])   // 분할 집행: 추가 일정 [{start,end}] (신규·구좌 상품만)
   const products = editId ? [f.product] : sel
   const toggleSel = id => setSel(prev =>
     prev.includes(id) ? (prev.length > 1 ? prev.filter(x => x !== id) : prev) : [...prev, id])
@@ -364,8 +368,18 @@ export default function RmnPage() {
   const hasSlot = products.some(id => !rmnProduct(id)?.push)
   const isPush = hasPush && !hasSlot   // 푸쉬만 선택 (기간 필드 숨김)
   const rangeEnd = f.end_date || f.start_date
-  const days = periodDays(f.start_date, rangeEnd)
-  const daysOff = hasSlot && days !== PRICE_DAYS   // 7일 기준과 다름
+  /* 분할 집행 ('26.7): 기본 기간 + 추가 일정 세그먼트. 총 일수가 7일 기준 대비 얼마인지 체크 */
+  const validSegs = editId ? [] : extraSegs.filter(s => s.start && (!s.end || s.end >= s.start))
+  const segRanges = [{ s: f.start_date, e: rangeEnd }, ...validSegs.map(s => ({ s: s.start, e: s.end || s.start }))]
+  const primaryDays = periodDays(f.start_date, rangeEnd)
+  const totalDays = primaryDays + validSegs.reduce((a, s) => a + periodDays(s.start, s.end || s.start), 0)
+  const daysOff = hasSlot && totalDays !== PRICE_DAYS   // 7일 기준과 다름
+  const remainDays = Math.max(1, PRICE_DAYS - totalDays)
+  const lastEnd = segRanges.map(r => r.e).filter(Boolean).sort().at(-1) || f.start_date
+  const addSeg = () => setExtraSegs(prev => [...prev, { start: addDaysISO(lastEnd, 1), end: addDaysISO(lastEnd, remainDays) }])
+  const setSeg = (i, k, v) => setExtraSegs(prev => prev.map((s, j) => j === i ? { ...s, [k]: v } : s))
+  const rmSeg = i => setExtraSegs(prev => prev.filter((_, j) => j !== i))
+  const segsComplete = validSegs.length === extraSegs.length   // 미완성 세그먼트 없음
 
   /* 재고: 폼의 기간 기준 상품별 잔여 (수정 중이면 자기 자신 제외) */
   const avail = useMemo(() => {
@@ -387,16 +401,22 @@ export default function RmnPage() {
 
   const firstStart = [hasSlot ? f.start_date : null, hasPush ? f.send_date : null].filter(Boolean).sort()[0] || f.start_date
   const tentativeOK = canTentative(firstStart, todayISO())
-  /* 선택 상품 중 (수량 기준) 마감된 것 */
+  /* 선택 상품 중 (수량 기준) 마감된 것 — 분할 시 모든 세그먼트에서 잔여 확인 */
   const soldOutIds = products.filter(id => {
-    const a = avail[id]
-    if (!a) return false
-    return rmnProduct(id)?.push ? (Number(f.push_units) || 1) * 50_000 > a.left : qtyOf(id) > a.left
+    if (rmnProduct(id)?.push) {
+      const a = avail[id]
+      return a ? (Number(f.push_units) || 1) * 50_000 > a.left : false
+    }
+    const q = qtyOf(id)
+    return segRanges.some(r => {
+      const a = slotAvailability(bookings, id, r.s, r.e, editId)
+      return a && q > a.left
+    })
   })
   const soldOut = soldOutIds.length > 0
 
   const valid = f.advertiser.trim() && products.length >= 1 &&
-    (!hasSlot || f.start_date) && (!hasPush || (f.send_date && f.send_time)) && !soldOut
+    (!hasSlot || f.start_date) && (!hasPush || (f.send_date && f.send_time)) && !soldOut && segsComplete
 
   const submit = async () => {
     if (!valid) return
@@ -407,16 +427,18 @@ export default function RmnPage() {
       agency_manager: f.agency_manager, agency_phone: f.agency_phone, agency_email: f.agency_email,
       status: f.status, memo: f.memo.trim(),
     }
-    const rowOf = id => {
+    /* seg = {s,e} 집행 세그먼트. isPrimary=false면 분할 이어짐 행(단가는 7일 기준 1회분이라
+       추가 세그먼트는 금액 0, 재고만 점유) */
+    const rowOf = (id, seg, isPrimary = true) => {
       const pr = rmnProduct(id)
       const push = !!pr?.push
       const q = qtyOf(id)
-      const lp = perPrice(id) * q
-      const actual = canManual ? total : applyDiscount(perPrice(id), f.discount_rate) * q
+      const lp = isPrimary ? perPrice(id) * q : 0
+      const actual = !isPrimary ? 0 : (canManual ? total : applyDiscount(perPrice(id), f.discount_rate) * q)
       const row = {
         ...shared, product: id,
-        start_date: push ? f.send_date : f.start_date,
-        end_date: push ? f.send_date : (f.end_date || null),
+        start_date: push ? f.send_date : seg.s,
+        end_date: push ? f.send_date : (seg.e || null),
         send_at: push ? `${f.send_date}T${f.send_time}:00+09:00` : null,
         push_qty: push ? (Number(f.push_units) || 1) * pr.unitSize : null,
         list_price: lp, actual_price: actual, net_amount: netAmount(actual, !!shared.agency),
@@ -427,13 +449,21 @@ export default function RmnPage() {
       return row
     }
     try {
-      if (editId) { await updateRmn(editId, rowOf(f.product)); setMsg(`"${shared.advertiser}" 수정됨`) }
+      if (editId) { await updateRmn(editId, rowOf(f.product, { s: f.start_date, e: f.end_date || null })); setMsg(`"${shared.advertiser}" 수정됨`) }
       else {
-        for (const id of products) await createRmn(rowOf(id))
+        let n = 0
+        for (const id of products) {
+          if (rmnProduct(id)?.push) { await createRmn(rowOf(id, { s: f.send_date, e: f.send_date })); n++ }
+          else {
+            await createRmn(rowOf(id, { s: f.start_date, e: f.end_date || null }, true)); n++
+            for (const s of validSegs) { await createRmn(rowOf(id, { s: s.start, e: s.end || s.start }, false)); n++ }
+          }
+        }
         const label = products.map(id => qtyOf(id) > 1 ? `${id}×${qtyOf(id)}` : id).join('·')
-        setMsg(`"${shared.advertiser}" ${shared.status} ${products.length}건 등록됨${products.length > 1 ? ` (${label})` : ''}`)
+        const splitNote = validSegs.length ? ` · 분할 ${validSegs.length + 1}회` : ''
+        setMsg(`"${shared.advertiser}" ${shared.status} ${n}건 등록됨${products.length > 1 ? ` (${label})` : ''}${splitNote}`)
       }
-      setF(EMPTY); setEditId(null); setOrigQty(1); setManualPrice(false); setSel(['메인배너']); setQtys({})
+      setF(EMPTY); setEditId(null); setOrigQty(1); setManualPrice(false); setSel(['메인배너']); setQtys({}); setExtraSegs([])
       refresh()
     } catch (e) { setMsg(e.message) }
   }
@@ -443,6 +473,7 @@ export default function RmnPage() {
     setOrigQty(bookingQty(b))
     setManualPrice(true)
     setPickGroup(null)
+    setExtraSegs([])
     setF({
       advertiser: b.advertiser, campaign: b.campaign || '', product: b.product, qty: bookingQty(b),
       start_date: b.start_date, end_date: b.end_date || '',
@@ -580,11 +611,28 @@ export default function RmnPage() {
             </div>
             {hasSlot && f.start_date && (
               <div className={'rmn-days' + (daysOff ? ' off' : '')}>
-                집행 기간 <b>{days}일</b>
-                {daysOff
-                  ? <> · 단가는 <b>7일 기준</b>입니다 — 의도한 기간인지 확인하세요
-                      <button type="button" className="rmn-snap" onClick={() => set('end_date', addDaysISO(f.start_date, PRICE_DAYS - 1))}>7일로 맞추기</button></>
-                  : ' · 7일 기준'}
+                <div className="rmn-days-line">
+                  집행 기간 <b>{totalDays}일</b>{validSegs.length ? <span className="mute"> (분할 {validSegs.length + 1}회)</span> : ''}
+                  {daysOff
+                    ? <> · 단가는 <b>7일 기준</b>입니다.
+                        {totalDays < PRICE_DAYS
+                          ? <> 잔여 <b>{PRICE_DAYS - totalDays}일</b>을 나눠 넣으려면
+                              <button type="button" className="rmn-snap" onClick={addSeg}>＋ 추가 일정 선택</button>
+                              {!editId && extraSegs.length === 0 && <button type="button" className="rmn-snap ghost" onClick={() => set('end_date', addDaysISO(f.start_date, PRICE_DAYS - 1))}>7일 연속으로</button>}</>
+                          : ' 의도한 기간인지 확인하세요'}
+                      </>
+                    : ' · 7일 기준 ✓'}
+                </div>
+                {extraSegs.map((s, i) => (
+                  <div key={i} className="rmn-seg">
+                    <span className="rmn-seg-lbl">추가 일정 {i + 2}회차</span>
+                    <input type="date" value={s.start} onChange={e => { const v = e.target.value; setSeg(i, 'start', v); if (v && (!s.end || s.end < v)) setSeg(i, 'end', v) }} />
+                    <span className="rmn-seg-til">~</span>
+                    <input type="date" value={s.end} min={s.start} onChange={e => setSeg(i, 'end', e.target.value)} />
+                    <span className="mute">{s.start ? `${periodDays(s.start, s.end || s.start)}일` : ''}</span>
+                    <button type="button" className="rmn-seg-x" onClick={() => rmSeg(i)} aria-label="추가 일정 삭제">삭제</button>
+                  </div>
+                ))}
               </div>
             )}
             {soldOut && (
@@ -633,7 +681,7 @@ export default function RmnPage() {
             <label>메모<textarea rows={2} value={f.memo} onChange={e => set('memo', e.target.value)}
               placeholder="사업자등록번호·주소는 판매사 연동값 확보 후 자동 입력 예정" /></label>
             <div className="adm-actions">
-              {editId && <button className="btn-ghost sm" onClick={() => { setF(EMPTY); setEditId(null); setOrigQty(1); setManualPrice(false) }}>수정 취소</button>}
+              {editId && <button className="btn-ghost sm" onClick={() => { setF(EMPTY); setEditId(null); setOrigQty(1); setManualPrice(false); setExtraSegs([]) }}>수정 취소</button>}
               <button className="btn-solid sm" disabled={!valid} onClick={submit}>
                 {editId ? '수정 저장' : products.length > 1 ? `${products.length}건 동시 부킹` : '부킹 등록'}
               </button>
