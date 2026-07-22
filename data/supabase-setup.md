@@ -245,3 +245,14 @@ alter table targetapp_stats add column if not exists cost bigint default 0;
 - 읽기: 로그인 계정 전원 / 쓰기: team_writers 등록 계정
 - 실행 전까지: RMN 탭에 안내 문구만 뜨고 다른 기능 무영향
 - GA4 노출·클릭 자동 연동(3차)은 별도 — 이 테이블의 부킹 기간·구좌가 연동 기준이 됨
+
+### 8-1. 상품 수량 컬럼 추가 ('26.7 — 같은 상품 N개 구매용, 선택)
+
+같은 캠페인에서 같은 상품을 여러 개 사는 경우(예: 팝업배너 3개)를 한 행으로 저장하려면:
+
+```sql
+alter table rmn_bookings add column if not exists qty int default 1;
+```
+
+- 미실행 시: 수량 1개짜리 부킹은 정상 동작. **수량 2개 이상으로 등록할 때만** 저장이
+  막힙니다(그 외 기존 기능 무영향). 위 한 줄 실행하면 수량 판매가 열립니다.

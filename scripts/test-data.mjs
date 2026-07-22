@@ -101,7 +101,7 @@ for (const g of TA_GROUPS) {
 /* 6d. RMN 재고·가부킹·알림 로직 ('26.7) */
 import {
   RMN_PRODUCTS, slotAvailability, pushAvailability, canTentative, buildRmnNotices,
-  applyDiscount, netAmount,
+  applyDiscount, netAmount, groupCampaigns, periodDays, bookingQty, PRICE_DAYS,
 } from '../src/data/rmn.js'
 if (RMN_PRODUCTS.length !== 7) bad('RMN 상품이 7종이 아님')
 {
@@ -135,6 +135,34 @@ if (RMN_PRODUCTS.length !== 7) bad('RMN 상품이 7종이 아님')
   if (n2.tax.length !== 0) bad('알림: 월말 5일 전 이전에는 세금계산서 팝업 없어야 함')
   if (applyDiscount(15_000_000, 10) !== 13_500_000) bad('할인율 계산 오류')
   if (netAmount(10_000_000, true) !== 7_000_000) bad('판매사 수수료 30% 입금가 계산 오류')
+
+  /* 수량(qty): 팝업배너 3개 = 3구좌 점유 → 잔여 0. 값 없으면 1로 취급 */
+  if (bookingQty({}) !== 1) bad('bookingQty: qty 없으면 1이어야 함')
+  if (bookingQty({ qty: 3 }) !== 3) bad('bookingQty: qty 3 반영 실패')
+  const Q = [bk('q1', '팝업배너', '2026-09-01', '2026-09-07', '부킹', { qty: 3 })]
+  const qa = slotAvailability(Q, '팝업배너', '2026-09-03', '2026-09-04')
+  if (qa.left !== 0) bad(`RMN 수량 재고: 팝업배너 3개 점유 시 잔여 ${qa.left} ≠ 0`)
+  const qa2 = slotAvailability([bk('q2', '팝업배너', '2026-09-01', '2026-09-07', '부킹', { qty: 1 })], '팝업배너', '2026-09-03', '2026-09-04')
+  if (qa2.left !== 2) bad(`RMN 수량 재고: 팝업배너 1개 점유 시 잔여 ${qa2.left} ≠ 2`)
+
+  /* 7일 기준 기간 계산 (양끝 포함) */
+  if (periodDays('2026-09-01', '2026-09-07') !== PRICE_DAYS) bad(`periodDays: 9/1~9/7 이 ${PRICE_DAYS}일이 아님`)
+  if (periodDays('2026-09-01', '2026-09-01') !== 1) bad('periodDays: 하루 = 1일이어야 함')
+
+  /* 캠페인 그룹핑 — [광고주+캠페인명] 기준, 취소 제외, 기간 갭 크면 회차 분리 */
+  const G = groupCampaigns([
+    bk('c1', '스플래시', '2026-09-01', '2026-09-07', '부킹', { advertiser: '샤넬', campaign: '홀리데이', actual_price: 15_000_000 }),
+    bk('c2', '메인배너', '2026-09-01', '2026-09-07', '집행', { advertiser: '샤넬', campaign: '홀리데이', actual_price: 7_000_000 }),
+    bk('c3', '스플래시', '2026-11-01', '2026-11-07', '부킹', { advertiser: '샤넬', campaign: '홀리데이', actual_price: 15_000_000 }),
+    bk('c4', '메인배너', '2026-09-02', '2026-09-08', '부킹', { advertiser: '까르띠에', campaign: '', actual_price: 7_000_000 }),
+    bk('cx', '메인배너', '2026-09-01', '2026-09-07', '취소', { advertiser: '샤넬', campaign: '홀리데이', actual_price: 7_000_000 }),
+  ])
+  if (G.length !== 3) bad(`캠페인 그룹: 3개 회차여야 함 (샤넬 9월·11월·까르띠에) — ${G.length}개`)
+  const sep = G.find(g => g.advertiser === '샤넬' && g.start === '2026-09-01')
+  if (!sep || sep.items.length !== 2) bad('캠페인 그룹: 샤넬 9월 회차는 상품 2건(취소 제외)이어야 함')
+  if (sep.total !== 22_000_000) bad(`캠페인 그룹: 총광고비 합 ${sep.total} ≠ 22,000,000 (취소 제외)`)
+  if (sep.status !== '부킹') bad(`캠페인 상태: 가장 덜 진행된 '부킹'이어야 함 — ${sep.status}`)
+  if (!sep.mixed) bad('캠페인 그룹: 부킹·집행 혼합이면 mixed=true')
 }
 
 /* 6f. RMN 문서 생성 — 판매사 마스터·기준값·양식 표기·빈 템플릿 정합성 */

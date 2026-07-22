@@ -34,7 +34,11 @@ const holds = b => b.status !== '취소'   // 취소 외 전부 구좌 점유
 
 const overlaps = (b, s, e) => b.start_date <= e && (b.end_date || b.start_date) >= s
 
-/* 구좌 상품: 기간 내 "같은 날 동시 점유"의 최대값 기준 잔여 구좌 (excludeId = 수정 중인 건 제외) */
+/* 한 건이 점유하는 구좌 수 — 수량(qty) 반영 ('26.7: 같은 상품 N개 구매). 값 없으면 1 */
+export const bookingQty = b => Math.max(1, Number(b.qty) || 1)
+
+/* 구좌 상품: 기간 내 "같은 날 동시 점유"의 최대값 기준 잔여 구좌 (excludeId = 수정 중인 건 제외).
+   점유는 건 수가 아니라 수량 합 (팝업배너 3개 = 3구좌 점유) */
 export function slotAvailability(bookings, productId, s, e, excludeId = null) {
   const p = rmnProduct(productId)
   if (!p || p.push) return null
@@ -45,7 +49,9 @@ export function slotAvailability(bookings, productId, s, e, excludeId = null) {
   const end = new Date(e + 'T00:00:00')
   for (; d <= end; d.setDate(d.getDate() + 1)) {
     const iso = d.toISOString().slice(0, 10)
-    const used = list.filter(b => b.start_date <= iso && (b.end_date || b.start_date) >= iso).length
+    const used = list
+      .filter(b => b.start_date <= iso && (b.end_date || b.start_date) >= iso)
+      .reduce((a, b) => a + bookingQty(b), 0)
     if (used > maxUsed) maxUsed = used
   }
   return { total: p.slots, used: maxUsed, left: Math.max(0, p.slots - maxUsed) }
@@ -98,3 +104,62 @@ export const applyDiscount = (price, rate) => Math.round(price * (1 - (Number(ra
 export const netAmount = (total, hasAgency) => (hasAgency ? Math.round(total * (1 - RMN_COMMISSION)) : total)
 
 export const fmtWon = n => (n == null ? '—' : Number(n).toLocaleString('ko-KR') + '원')
+
+/* ── 7일 기준 ('26.7) — 모든 구좌 캠페인 단가는 7일 기준. 대부분 7일 연속,
+   불가피하게 3·4일로 끊는 경우가 있어 기간이 7일인지 체크(푸쉬 제외) ── */
+export const PRICE_DAYS = 7
+export function periodDays(startISO, endISO) {
+  if (!startISO) return 0
+  const s = new Date(startISO + 'T00:00:00'), e = new Date((endISO || startISO) + 'T00:00:00')
+  return Math.round((e - s) / 86400e3) + 1   // 양끝 포함
+}
+export const addDaysISO = (iso, n) => {
+  const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+
+/* ── 캠페인 그룹핑 ('26.7) — [광고주 + 캠페인명] 기준. 상품별 개별 행을 하나의
+   캠페인으로 묶어 목록·캘린더·상태 진행을 캠페인 단위로 다룬다.
+   같은 광고주+캠페인명이라도 기간이 크게 벌어지면(3일 초과 갭) 별개 캠페인 회차로 분리 —
+   캠페인명이 비어 있어도 서로 다른 달의 집행이 한 덩어리로 뭉치지 않게. */
+const CLUSTER_GAP = 3
+export function groupCampaigns(bookings) {
+  const held = bookings.filter(holds)   // 취소 제외
+  const sorted = [...held].sort((a, b) =>
+    (a.advertiser || '').localeCompare(b.advertiser || '') ||
+    (a.campaign || '').localeCompare(b.campaign || '') ||
+    (a.start_date || '').localeCompare(b.start_date || ''))
+  const groups = []
+  let cur = null
+  const endOf = b => b.end_date || b.start_date
+  for (const b of sorted) {
+    const same = cur && cur.advertiser === b.advertiser && (cur.campaign || '') === (b.campaign || '')
+    const near = same && b.start_date <= addDaysISO(cur.end, CLUSTER_GAP)
+    if (near) {
+      cur.items.push(b)
+      if (endOf(b) > cur.end) cur.end = endOf(b)
+      if (b.start_date < cur.start) cur.start = b.start_date
+    } else {
+      cur = {
+        key: `${b.advertiser}␟${b.campaign || ''}␟${b.start_date}`,
+        advertiser: b.advertiser, campaign: b.campaign || '',
+        items: [b], start: b.start_date, end: endOf(b),
+      }
+      groups.push(cur)
+    }
+  }
+  for (const g of groups) {
+    g.items.sort((a, b) => RMN_PRODUCTS.findIndex(p => p.id === a.product) - RMN_PRODUCTS.findIndex(p => p.id === b.product))
+    g.total = g.items.reduce((a, b) => a + (b.actual_price || 0), 0)
+    g.net = g.items.reduce((a, b) => a + (b.net_amount || 0), 0)
+    g.agency = g.items.find(b => b.agency)?.agency || ''
+    /* 캠페인 상태 = 가장 덜 진행된 건 (다음→ 은 이 상태 기준으로 전체를 한 칸 진행) */
+    const stages = g.items.map(b => statusIdx(b.status)).filter(i => i >= 0)
+    g.statusIdx = stages.length ? Math.min(...stages) : 0
+    g.status = RMN_STATUS[g.statusIdx] || g.items[0].status
+    g.mixed = new Set(g.items.map(b => b.status)).size > 1
+    g.done = g.items.every(b => b.status === '완료')
+  }
+  return groups
+}
+export const campaignOn = (g, iso) => g.items.some(b => b.start_date <= iso && (b.end_date || b.start_date) >= iso)
