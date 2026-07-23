@@ -46,6 +46,11 @@ const defaultLine = () => ({
 })
 const isSlot = id => { const p = rmnProduct(id); return p && !p.push && !p.insta }
 const num = v => Number(String(v).replace(/,/g, '')) || 0
+const rmnSaveBlob = (blob, filename) => {
+  const url = URL.createObjectURL(blob); const a = document.createElement('a')
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 4000)
+}
 /* 상품별 구분 점 (캘린더 캠페인 칩) */
 const Dot = ({ id }) => <span className="rmn-dot" style={{ background: rmnColor(id) }} title={id} />
 const productsOn = (g, iso) => [...new Set(g.items.filter(b => b.start_date <= iso && (b.end_date || b.start_date) >= iso).map(b => b.product))]
@@ -149,8 +154,9 @@ function ProposalMaker() {
   )
 }
 
-/* ── 정산 요약 ('26.7 2차) — 시작월 기준 집계. 미수금 = 취소 제외, "입금 확인" 전 상태의 입금가 ── */
-function SettleSummary({ bookings }) {
+/* ── 정산 요약 ('26.7 2차 → 3차: 연도 필터·연도별 소계·엑셀 다운로드) —
+   시작월 기준 집계. 미수금 = 취소 제외, "입금 확인" 전 상태의 입금가 ── */
+function SettleSummary({ bookings, onMsg }) {
   const rows = useMemo(() => {
     const map = {}
     for (const b of bookings) {
@@ -166,26 +172,85 @@ function SettleSummary({ bookings }) {
     return Object.values(map).sort((a, b) => a.ym.localeCompare(b.ym))
   }, [bookings])
 
+  const years = useMemo(() => [...new Set(rows.map(r => r.ym.slice(0, 4)))].sort(), [rows])
+  const [yf, setYf] = useState('전체')
   if (rows.length === 0) return null
-  const sum = k => rows.reduce((a, r) => a + r[k], 0)
+  const shown = yf === '전체' ? rows : rows.filter(r => r.ym.slice(0, 4) === yf)
+  const showSub = yf === '전체' && years.length > 1
+
+  /* 연도별 소계를 끼운 표시 행 */
+  const display = []
+  let cur = null, yt = null
+  const blank = () => ({ cnt: 0, total: 0, net: 0, unpaid: 0 })
+  for (const r of shown) {
+    const y = r.ym.slice(0, 4)
+    if (cur && y !== cur) { if (showSub) display.push({ sub: cur, ...yt }); yt = null }
+    if (y !== cur) { cur = y; yt = blank() }
+    for (const k of ['cnt', 'total', 'net', 'unpaid']) yt[k] += r[k]
+    display.push({ row: r })
+  }
+  if (cur && showSub) display.push({ sub: cur, ...yt })
+  const sum = k => shown.reduce((a, r) => a + r[k], 0)
+
+  const downloadXlsx = async () => {
+    try {
+      const ExcelJS = (await import('exceljs')).default
+      const wb = new ExcelJS.Workbook(); const ws = wb.addWorksheet('RMN 정산 요약')
+      ws.columns = [{ header: '월', width: 12 }, { header: '건수', width: 8 }, { header: '총광고비', width: 16 },
+        { header: '입금가', width: 16 }, { header: '미수금', width: 16 }]
+      ws.getRow(1).font = { bold: true }
+      let cy = null, sub = blank()
+      const pushSub = y => { ws.addRow([`${y} 소계`, sub.cnt, sub.total, sub.net, sub.unpaid]).font = { bold: true, italic: true } }
+      for (const r of rows) {
+        const y = r.ym.slice(0, 4)
+        if (cy && y !== cy) { pushSub(cy); sub = blank() }
+        cy = y; for (const k of ['cnt', 'total', 'net', 'unpaid']) sub[k] += r[k]
+        ws.addRow([r.ym.replace('-', '.'), r.cnt, r.total, r.net, r.unpaid])
+      }
+      if (cy) pushSub(cy)
+      const g = k => rows.reduce((a, r) => a + r[k], 0)
+      ws.addRow(['합계', g('cnt'), g('total'), g('net'), g('unpaid')]).font = { bold: true }
+      ;['C', 'D', 'E'].forEach(c => ws.getColumn(c).numFmt = '#,##0"원"')
+      const buf = await wb.xlsx.writeBuffer()
+      rmnSaveBlob(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `RMN_정산요약_${todayISO()}.xlsx`)
+      onMsg && onMsg('정산 요약이 다운로드됐습니다')
+    } catch (e) { onMsg && onMsg(e.message) }
+  }
+
   return (
     <>
       <div className="group-label">정산 요약 <small className="adm-count">시작월 기준 · 미수금 = 입금 확인 전</small></div>
+      <div className="rmn-settle-bar">
+        <div className="rmn-yf">
+          {['전체', ...years].map(y => (
+            <button key={y} className={yf === y ? 'on' : ''} onClick={() => setYf(y)}>{y === '전체' ? `전체 (${years.length}개년)` : `${y}년`}</button>
+          ))}
+        </div>
+        <button className="btn-ghost sm" onClick={downloadXlsx}>엑셀 다운로드</button>
+      </div>
       <div className="mon-scroll">
         <table className="mon-table adm-table">
           <thead><tr><th>월</th><th>건수</th><th>총광고비</th><th>입금가</th><th>미수금</th></tr></thead>
           <tbody>
-            {rows.map(r => (
-              <tr key={r.ym}>
-                <td className="mon-acc">{r.ym.replace('-', '.')}</td>
-                <td className="mute">{r.cnt}건</td>
-                <td>{fmtWon(r.total)}</td>
-                <td>{fmtWon(r.net)}</td>
-                <td className={r.unpaid > 0 ? 'strong' : 'mute'}>{r.unpaid > 0 ? fmtWon(r.unpaid) : '—'}</td>
+            {display.map((d, i) => d.sub ? (
+              <tr key={'sub' + d.sub} className="rmn-yearsub">
+                <td className="mon-acc">{d.sub}년 소계</td>
+                <td className="mute">{d.cnt}건</td>
+                <td>{fmtWon(d.total)}</td>
+                <td>{fmtWon(d.net)}</td>
+                <td className={d.unpaid > 0 ? 'strong' : 'mute'}>{d.unpaid > 0 ? fmtWon(d.unpaid) : '—'}</td>
+              </tr>
+            ) : (
+              <tr key={d.row.ym}>
+                <td className="mon-acc">{d.row.ym.replace('-', '.')}</td>
+                <td className="mute">{d.row.cnt}건</td>
+                <td>{fmtWon(d.row.total)}</td>
+                <td>{fmtWon(d.row.net)}</td>
+                <td className={d.row.unpaid > 0 ? 'strong' : 'mute'}>{d.row.unpaid > 0 ? fmtWon(d.row.unpaid) : '—'}</td>
               </tr>
             ))}
             <tr className="rmn-sum">
-              <td className="mon-acc">합계</td>
+              <td className="mon-acc">{yf === '전체' ? '합계' : `${yf}년 합계`}</td>
               <td className="mute">{sum('cnt')}건</td>
               <td className="strong">{fmtWon(sum('total'))}</td>
               <td className="strong">{fmtWon(sum('net'))}</td>
@@ -199,13 +264,14 @@ function SettleSummary({ bookings }) {
 }
 
 /* ── 진행 중 캠페인 행 ('26.7) — [광고주+캠페인명] 헤더, 펼치면 세부 상품 ── */
-function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onItemStatus, onEdit, onDel, onItemAdvance }) {
+function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onItemStatus, onEdit, onDel, onItemAdvance, showYear = false }) {
   const prods = g.items.map(b => b.product + (bookingQty(b) > 1 ? `×${bookingQty(b)}` : ''))
   return (
     <div className={'rmn-camp-row' + (open ? ' open' : '')}>
       <div className="rmn-camp-head" onClick={onToggle}>
         <span className="rmn-camp-dots">{[...new Set(g.items.map(b => b.product))].slice(0, 4).map(p => <Dot key={p} id={p} />)}</span>
         <span className="rmn-camp-name">
+          {showYear && <span className="rmn-year">{g.start.slice(0, 4)}</span>}
           <b>{g.advertiser}</b>{g.campaign ? <span className="mute"> · {g.campaign}</span> : ''}
           {g.status === '가부킹' && <span className="rmn-gtag">가부킹</span>}
         </span>
@@ -870,7 +936,7 @@ export default function RmnPage() {
           <ProposalMaker />
 
           {/* ── 정산 요약 ('26.7 2차) — 월별 총광고비·입금가·미수금(입금 확인 전) ── */}
-          <SettleSummary bookings={bookings} />
+          <SettleSummary bookings={bookings} onMsg={setMsg} />
 
           {(doneCamps.length > 0 || canceled.length > 0) && (
             <details className="ta-office rmn-done">
@@ -880,7 +946,7 @@ export default function RmnPage() {
               <div className="rmn-camps">
                 {doneShown.length === 0 && <div className="mute rmn-empty">검색 결과 없음</div>}
                 {doneShown.map(g => (
-                  <CampaignRow key={g.key} g={g} open={expanded === g.key}
+                  <CampaignRow key={g.key} g={g} open={expanded === g.key} showYear
                     onToggle={() => setExpanded(x => x === g.key ? null : g.key)}
                     editId={editId} confirmDel={confirmDel}
                     onAdvance={() => setCampaignStatus(g, nextStatus(g.status))}
@@ -890,7 +956,7 @@ export default function RmnPage() {
                 ))}
                 {canceledShown.map(b => (
                   <div key={b.id} className="rmn-cancel-row">
-                    <span className="rmn-line-name"><Ini id={b.product} /> <b>{b.advertiser}</b>{b.campaign ? <span className="mute"> · {b.campaign}</span> : ''} <span className="rmn-gtag">취소</span></span>
+                    <span className="rmn-line-name"><Ini id={b.product} /> <span className="rmn-year">{(b.start_date || '').slice(0, 4)}</span> <b>{b.advertiser}</b>{b.campaign ? <span className="mute"> · {b.campaign}</span> : ''} <span className="rmn-gtag">취소</span></span>
                     <span className="mute rmn-camp-meta">{b.product} · {fmtRange(b)} · {fmtWon(b.actual_price)}</span>
                     <button className="btn-ghost sm" onClick={() => startEdit(b)}>수정</button>
                     <button className={'btn-ghost sm danger' + (confirmDel === b.id ? ' arm' : '')} onClick={() => del(b.id)}>{confirmDel === b.id ? '한 번 더' : '삭제'}</button>
