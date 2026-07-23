@@ -17,9 +17,29 @@ export const RMN_PRODUCTS = [
   { id: '하단배너',      slots: 3, price: 1_000_000, color: '#2E6E63' },
   { id: '헤드라인 뉴스', slots: 3, price: 3_000_000, color: '#6B4A32' },
   { id: '이벤트 메뉴',   slots: 1, price: 2_000_000, color: '#566173' },
+  /* '26.7 추가: 카카오톡 = 발송형 건당 100원, 타겟팅 시 10% 할증 (발송 한도 미확정 — 재고 미표시) */
+  { id: '카카오톡',      push: true, msg: true, unitSize: 50_000, pricePer: 100, surcharge: 0.1, color: '#7A6A1E' },
+  /* '26.7 추가: 인스타그램 = 게시형 — 구성 4종 × 형식(이미지/영상) 단가표 (기간·구좌 개념 없음) */
+  { id: '인스타그램',    insta: true, color: '#7A3B52' },
 ]
 export const rmnProduct = id => RMN_PRODUCTS.find(p => p.id === id)
 export const rmnColor = id => rmnProduct(id)?.color || '#191919'
+
+/* 인스타그램 단가표 ('26.7 — 사용자 제공 상품 구성) */
+export const INSTA_PRODUCTS = ['1회 업로드', '스토리 동시 업로드', '상단 고정 (7일)', '3피드 + 스토리 3회']
+export const INSTA_FORMATS = ['피드(이미지)', '피드(영상)']
+export const INSTA_PRICES = {
+  '1회 업로드':        { '피드(이미지)': 2_000_000, '피드(영상)': 3_000_000 },
+  '스토리 동시 업로드': { '피드(이미지)': 3_000_000, '피드(영상)': 4_000_000 },
+  '상단 고정 (7일)':    { '피드(이미지)': 3_500_000, '피드(영상)': 4_500_000 },
+  '3피드 + 스토리 3회': { '피드(이미지)': 9_000_000, '피드(영상)': 12_000_000 },
+}
+export const instaPrice = (prod, fmt) => INSTA_PRICES[prod]?.[fmt] || 0
+/* 카카오톡 발송비 — 건수 × 100원, 타겟팅 시 10% 할증 */
+export function kakaoPrice(qty, targeted) {
+  const p = rmnProduct('카카오톡')
+  return Math.round(qty * p.pricePer * (targeted ? 1 + p.surcharge : 1))
+}
 
 export const RMN_AGENCIES = ['나스미디어', '인크로스', 'M2Digital', '메조미디어', 'DMC미디어']
 export const RMN_COMMISSION = 0.3   // 판매사 수수료
@@ -41,7 +61,7 @@ export const bookingQty = b => Math.max(1, Number(b.qty) || 1)
    점유는 건 수가 아니라 수량 합 (팝업배너 3개 = 3구좌 점유) */
 export function slotAvailability(bookings, productId, s, e, excludeId = null) {
   const p = rmnProduct(productId)
-  if (!p || p.push) return null
+  if (!p || p.push || p.insta) return null   // 발송형·게시형은 구좌 재고 개념 없음
   const list = bookings.filter(b =>
     b.product === productId && holds(b) && b.id !== excludeId && overlaps(b, s, e))
   let maxUsed = 0
