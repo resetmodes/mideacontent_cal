@@ -50,9 +50,9 @@
   실행: `python scripts/media/iphone-mock.py <shot.png> public/media-ref/<name>.jpg`
   (캡처에 iOS 상태바 있으면 상단 ~150px 크롭 + 흰 여백 ~130px 패딩 후 합성해야 아일랜드가
   콘텐츠 안 가림). 인스타 대표계정 목업 `insta-thehyundai.jpg` 적용 완료 ('26.7 첫 사례)
-- **모바일 탭 바 정리 ('26.7)**: 줄바꿈으로 2~3줄 지저분하던 것 → 세션 정보(알림·이메일·
-  로그아웃)는 상단 별도 한 줄, 탭은 가로 스크롤 한 줄(≤640px). App.jsx tabs-scroll 래퍼 분리,
-  데스크톱 레이아웃은 불변
+- **탭 바 1줄 개편 ('26.7 — 2차)**: 데스크톱·모바일 공통 — 탭이 상위 1줄(줄바꿈 없음,
+  넘치면 가로 스크롤), 세션 정보(알림·이메일·로그아웃)는 **하위 별도 줄**. 정산 탭 추가로
+  데스크톱도 2줄로 겹치던 것 해소. App.jsx tabs-scroll 래퍼 + tabs-session order:2
 - **RMN 캠페인 제안서 메이커 가시성**: 접힘이지만 그린 CTA(테두리+＋아이콘, 열면 그린 채움
   헤더)로 노출 — `.rmn-propmaker`, ta-office 공용 스타일과 분리 (완료·취소·어드민 아코디언 불변)
 - **PDF 기준 데이터 반영**: 앱(APP) 지면 전면 재작성 — 스플래시 하단형/전면형(1182×2560),
@@ -302,15 +302,16 @@
   (제목이 휴점/휴점일뿐일 때) → `kind='휴점'` 마커 저장 (media_events 재사용, 새 SQL 불필요).
   전 탭 셀 틴트 + 하루 시트 "휴점 해제"로 삭제 (정적 CLOSED_DAYS는 코드값이라 해제 버튼 없음).
   휴점 이벤트는 일정 행에서 제외(셀 마커 전용). CalendarApp closedDays/closedEvt 병합
-- **팀즈 아침 브리핑 ('26.7)**: `.github/workflows/notify.yml` — 매일 08:00 KST 팀즈 채널로
-  요약 카드 3섹션 (① 오늘 촬영 ② 오늘 업로드 콘텐츠 ③ RMN 확인 필요 = 가부킹 전환·세금계산서
-  미교부) + 오늘 휴점/공휴일 한 줄 + 하단 "캘린더 보러가기" 웹 링크 버튼 (RMN 버튼은 제거,
-  텍스트만 — '26.7 사용자 요청).
-  `scripts/notify/daily-brief.mjs` — buildRmnNotices 재사용, 없는 섹션 숨김·전부 비면 발송
-  생략(ALWAYS_SEND=1로 강제). 웹훅 = Power Automate 워크플로(docs/teams-webhook-setup.md,
-  구 Incoming Webhook 커넥터는 MS 폐지). **시크릿: TEAMS_WEBHOOK_URL(필수) ·
-  SUPABASE_SERVICE_KEY(권장 — 없으면 RMN 섹션 생략)**. 검증: --mock --dry-run.
-  샌드박스는 powerplatform.com·supabase.co 아웃바운드 차단 — 실발송 검증은 Actions에서만 가능
+- **팀즈 아침 브리핑 ('26.7 확정)**: `.github/workflows/notify.yml` — 매일 08:00 KST 팀즈
+  채널로 요약 카드 3섹션 (① 오늘 팀원 일정 = kind='팀', 기념일은 월-일 일치 ② 오늘 촬영 일정
+  ③ 오늘 업로드 일정) + 하단 "캘린더 보러가기" 버튼. **RMN·정산·휴점 등 기타 항목은 전부
+  제외** ('26.7 사용자 확정 — 이전 RMN 섹션·버튼 구성을 대체).
+  `scripts/notify/daily-brief.mjs` — 없는 섹션 숨김·전부 비면 발송 생략(ALWAYS_SEND=1로 강제).
+  웹훅 = Power Automate 워크플로(docs/teams-webhook-setup.md, 구 Incoming Webhook 커넥터는
+  MS 폐지 — 워크플로 재생성 시 TEAMS_WEBHOOK_URL 시크릿 값만 교체하면 됨).
+  **시크릿: TEAMS_WEBHOOK_URL(필수) · SUPABASE_SERVICE_KEY(권장 — 일정 조회용)**.
+  검증: --mock --dry-run. 샌드박스는 powerplatform.com·supabase.co 아웃바운드 차단 —
+  실발송 검증은 Actions에서만 가능
 - 데이터 자동 백업 ('26.7): `.github/workflows/backup.yml` — 주 1회(월 05:43 KST) 일정 전체를
   `data/backup/media-events.json`으로 커밋 (git 이력 = 시점별 복원점). 인증: anon 키(미러 읽기
   정책 필요) 또는 `SUPABASE_SERVICE_KEY` 시크릿(이력까지 백업). 0건 응답이면 저장 안 하고 실패
