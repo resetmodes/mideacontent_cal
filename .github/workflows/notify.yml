@@ -1,8 +1,8 @@
 name: 팀즈 아침 브리핑
 
 # 매일 08:00 KST (= 전날 23:00 UTC) 팀즈 채널로 요약 발송 + 수동 실행(Run workflow).
-# 내용: ① 오늘 촬영 ② 오늘 업로드 콘텐츠 ③ RMN 확인(가부킹 전환·세금계산서) — 없으면 발송 생략.
-# 시크릿: TEAMS_WEBHOOK_URL(필수) · SUPABASE_SERVICE_KEY(권장 — 없으면 RMN 섹션 생략)
+# 내용 ('26.7 확정): ① 오늘 팀원 일정 ② 오늘 촬영 일정 ③ 오늘 업로드 일정 — 없으면 발송 생략.
+# 시크릿: TEAMS_WEBHOOK_URL(필수) · SUPABASE_SERVICE_KEY(권장 — 일정 조회용)
 on:
   schedule:
     - cron: '0 23 * * *'
