@@ -4,7 +4,7 @@
    내용 ('26.7 사용자 확정 — RMN·정산 등 기타 항목 제외, 아래 3개만):
    ① 오늘 팀원 일정 (팀 캘린더 kind='팀' — 연차·외근·교육 등. '업무' 유형·제외, 기념일은 월-일 일치 시)
    ② 오늘 촬영 일정 (kind='촬영', 오늘이 기간에 포함)
-   ③ 오늘 업로드 일정 (매체 캘린더 게시 시작일=오늘)
+   ③ 오늘 매체 일정 (매체 캘린더 게시 시작일=오늘)
    비는 섹션은 "일정 없음" 표기 (카드는 평일 매일 발송) + 하단 "캘린더 보러가기" 버튼.
    주말은 cron(월~금)으로, 공휴일은 스크립트가 HOLIDAYS 대조로 발송 생략
 
@@ -88,7 +88,7 @@ function buildCard({ team, shoots, uploads }) {
     team.map(e => `${e.title} — ${chLabel(e.channel)}${e.end_date && e.end_date !== e.date ? ` (${fmtRange(e)})` : ''}`))
   section(`오늘 촬영 일정${shoots.length ? ` ${shoots.length}건` : ''}`,
     shoots.map(e => `${e.title} — ${chLabel(e.channel)}${e.sub ? ` (${e.sub})` : ''}`))
-  section(`오늘 업로드 일정${uploads.length ? ` ${uploads.length}건` : ''}`,
+  section(`오늘 매체 일정${uploads.length ? ` ${uploads.length}건` : ''}`,
     uploads.map(e => `${chLabel(e.channel)}${e.sub ? ` (${e.sub})` : ''} — ${e.title}`))
 
   return {
