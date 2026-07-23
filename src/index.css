@@ -736,9 +736,17 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .rmn-gtag{margin-left:7px;font-size:10.5px;font-weight:700;color:var(--g600);
   border:1px solid var(--g200);border-radius:5px;padding:1px 6px;vertical-align:1px;}
 .rmn-camp-meta{margin-left:auto;font-size:12px;color:var(--g400);font-variant-numeric:tabular-nums;
-  white-space:nowrap;flex-shrink:0;}
+  white-space:nowrap;flex-shrink:0;min-width:0;}
 .rmn-camp-chev{color:var(--g400);font-size:12px;flex-shrink:0;}
 .rmn-camp-sub{font-size:12px;margin:5px 0 0 19px;}
+/* 모바일: 기간·금액(메타)이 nowrap이라 화살표를 밀어내 삐져나오던 것 → 메타를 아랫줄로,
+   화살표는 이름줄 우측 고정 ('26.7 수정) */
+@media (max-width:560px){
+  .rmn-camp-head{flex-wrap:wrap;}
+  .rmn-camp-name{flex:1 1 auto;flex-shrink:1;}
+  .rmn-camp-chev{order:1;margin-left:auto;}
+  .rmn-camp-meta{order:2;flex-basis:100%;white-space:normal;margin:4px 0 0 19px;}
+}
 .rmn-camp-ctl{display:flex;align-items:center;gap:8px;margin:9px 0 0 19px;}
 .rmn-camp-ctl .rmn-status{padding:4px 6px;}
 .rmn-camp-items{margin:11px 0 2px;border-top:1px solid var(--g200);}
