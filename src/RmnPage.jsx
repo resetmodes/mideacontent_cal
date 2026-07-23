@@ -7,7 +7,7 @@ import {
   INSTA_PRODUCTS, INSTA_FORMATS, instaPrice, kakaoPrice,
 } from './data/rmn.js'
 import { listRmn, createRmn, updateRmn, deleteRmn } from './lib/rmnStore.js'
-import { buildOrderXlsx, buildProposalXlsx, DOC_NAME, DOC_ORDER } from './lib/rmnDocs.js'
+import { buildOrderXlsx, buildProposalXlsx, buildLedgerXlsx, DOC_NAME, DOC_ORDER } from './lib/rmnDocs.js'
 import { toISO, fromISO } from './lib/parse.js'
 import { HOLIDAYS } from './data/holidays.js'
 
@@ -46,11 +46,6 @@ const defaultLine = () => ({
 })
 const isSlot = id => { const p = rmnProduct(id); return p && !p.push && !p.insta }
 const num = v => Number(String(v).replace(/,/g, '')) || 0
-const rmnSaveBlob = (blob, filename) => {
-  const url = URL.createObjectURL(blob); const a = document.createElement('a')
-  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 4000)
-}
 /* 상품별 구분 점 (캘린더 캠페인 칩) */
 const Dot = ({ id }) => <span className="rmn-dot" style={{ background: rmnColor(id) }} title={id} />
 const productsOn = (g, iso) => [...new Set(g.items.filter(b => b.start_date <= iso && (b.end_date || b.start_date) >= iso).map(b => b.product))]
@@ -192,28 +187,11 @@ function SettleSummary({ bookings, onMsg }) {
   if (cur && showSub) display.push({ sub: cur, ...yt })
   const sum = k => shown.reduce((a, r) => a + r[k], 0)
 
-  const downloadXlsx = async () => {
+  /* 전체 실적 대장 다운로드 — 원본 판매실적 대장 양식·수식 그대로 (연도별 시트, 소계·합계·YoY 수식 포함) */
+  const downloadLedger = async () => {
     try {
-      const ExcelJS = (await import('exceljs')).default
-      const wb = new ExcelJS.Workbook(); const ws = wb.addWorksheet('RMN 정산 요약')
-      ws.columns = [{ header: '월', width: 12 }, { header: '건수', width: 8 }, { header: '총광고비', width: 16 },
-        { header: '입금가', width: 16 }, { header: '미수금', width: 16 }]
-      ws.getRow(1).font = { bold: true }
-      let cy = null, sub = blank()
-      const pushSub = y => { ws.addRow([`${y} 소계`, sub.cnt, sub.total, sub.net, sub.unpaid]).font = { bold: true, italic: true } }
-      for (const r of rows) {
-        const y = r.ym.slice(0, 4)
-        if (cy && y !== cy) { pushSub(cy); sub = blank() }
-        cy = y; for (const k of ['cnt', 'total', 'net', 'unpaid']) sub[k] += r[k]
-        ws.addRow([r.ym.replace('-', '.'), r.cnt, r.total, r.net, r.unpaid])
-      }
-      if (cy) pushSub(cy)
-      const g = k => rows.reduce((a, r) => a + r[k], 0)
-      ws.addRow(['합계', g('cnt'), g('total'), g('net'), g('unpaid')]).font = { bold: true }
-      ;['C', 'D', 'E'].forEach(c => ws.getColumn(c).numFmt = '#,##0"원"')
-      const buf = await wb.xlsx.writeBuffer()
-      rmnSaveBlob(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `RMN_정산요약_${todayISO()}.xlsx`)
-      onMsg && onMsg('정산 요약이 다운로드됐습니다')
+      await buildLedgerXlsx(bookings, todayISO())
+      onMsg && onMsg('판매 실적 대장이 다운로드됐습니다 (수식 포함)')
     } catch (e) { onMsg && onMsg(e.message) }
   }
 
@@ -226,7 +204,7 @@ function SettleSummary({ bookings, onMsg }) {
             <button key={y} className={yf === y ? 'on' : ''} onClick={() => setYf(y)}>{y === '전체' ? `전체 (${years.length}개년)` : `${y}년`}</button>
           ))}
         </div>
-        <button className="btn-ghost sm" onClick={downloadXlsx}>엑셀 다운로드</button>
+        <button className="btn-ghost sm" onClick={downloadLedger}>실적 대장 다운로드</button>
       </div>
       <div className="mon-scroll">
         <table className="mon-table adm-table">
