@@ -149,11 +149,13 @@ if (RMN_PRODUCTS.length !== 7) bad('RMN 상품이 7종이 아님')
   if (periodDays('2026-09-01', '2026-09-07') !== PRICE_DAYS) bad(`periodDays: 9/1~9/7 이 ${PRICE_DAYS}일이 아님`)
   if (periodDays('2026-09-01', '2026-09-01') !== 1) bad('periodDays: 하루 = 1일이어야 함')
 
-  /* 기간 비례 과금 ('26.7) — 21일 = ×3, 14일 = ×2, 7일 = ×1, 4일 = ×1(최소) */
+  /* 기간 비례 과금 ('26.7) — 비 7일 배수는 무조건 올림: 8일=×2, 10일=×2, 21일=×3 */
   if (priceWeeks(7) !== 1) bad('priceWeeks: 7일 = ×1이어야 함')
   if (priceWeeks(14) !== 2) bad('priceWeeks: 14일 = ×2여야 함')
   if (priceWeeks(21) !== 3) bad(`priceWeeks: 21일 = ×3이어야 함 (${priceWeeks(21)})`)
   if (priceWeeks(4) !== 1) bad('priceWeeks: 4일 = 최소 ×1이어야 함')
+  if (priceWeeks(8) !== 2) bad(`priceWeeks: 8일 = 올림 ×2여야 함 (${priceWeeks(8)})`)
+  if (priceWeeks(10) !== 2) bad(`priceWeeks: 10일 = 올림 ×2여야 함 (${priceWeeks(10)})`)
   {
     /* 라인 가격 검증: 메인배너(7,000,000/7일) 21일 = 21,000,000, 할인 10% = 18,900,000 */
     const base = rmnProduct('메인배너').price
