@@ -3,7 +3,7 @@
    ─ ExcelJS는 동적 import (별도 청크 — 버튼 누를 때만 로드, 초기 번들 무영향)
    ─ 셀 좌표는 원본 양식 고정 좌표 (양식 개정 시 여기 좌표만 갱신)
    ─ 결과보고서(부쉐론 양식)는 GA 데이터 필요 — scripts/rmn/build-report.mjs (파이프라인, 3차) */
-import { rmnProduct } from '../data/rmn.js'
+import { rmnProduct, groupCampaigns } from '../data/rmn.js'
 import { RMN_AGENCY_INFO, HD_TAX_EMAIL, RMN_BENCH } from '../data/rmnAgencies.js'
 
 /* 청약서·제안서의 상품 표기 (양식 표기 ≠ 시스템 id) */
@@ -165,4 +165,114 @@ export async function buildProposalXlsx({ advertiser, start, end, discount, prod
   })
 
   await downloadWb(wb, `제안서_${advertiser}_${start.replace(/-/g, '')}.xlsx`)
+}
+
+/* ── 판매 실적 대장 (원본 양식·수식 그대로 재현, '26.7) ──────────────
+   부킹을 캠페인(소계) 단위로 묶어 연도별 시트로. 수식(할인율=L/J-1·매출=SUM·수익=IF(직거래,매출,매출×0.7)·
+   소계=SUM·합계=SUMIFS·YoY=전년 시트 참조)까지 포함. 금액은 천원(원/1000). */
+const LEDGER_COLS = { B: '구 분', C: '광고주명', D: '판매사', E: '광고 상품명', F: '상품 상세', G: '타겟팅', H: '게시일', I: '종료일', J: '공시가', K: '할인율', L: '매출', O: '수익 계', R: '광고 상태', S: '리포트', T: '비 고' }
+const LED_ACC = '_-* #,##0_-;\\-* #,##0_-;_-* "-"_-;_-@_-'
+const LED_PCT = '0.0%;[Red]\\ \\-0.0%\\ ;"- "'
+const LED_DATE = 'm/d(aaa)'
+const thin = { style: 'thin', color: { argb: 'FFBFBFBF' } }
+const BORDER = { top: thin, left: thin, bottom: thin, right: thin }
+const won千 = n => Math.round((n || 0) / 1000)   // 원 → 천원
+
+function writeLedgerYear(ws, groups, year, prevName) {
+  ws.columns = [{ width: 3 }, { width: 11 }, { width: 13 }, { width: 15.125 }, { width: 13 }, { width: 16.25 },
+    { width: 11 }, { width: 13 }, { width: 13 }, { width: 13 }, { width: 11 }, { width: 13.5 },
+    { width: 13 }, { width: 13 }, { width: 13 }, { width: 13 }, { width: 13 }, { width: 11 }, { width: 13 }, { width: 13 }]
+  const set = (addr, val, opts = {}) => {
+    const c = ws.getCell(addr)
+    c.value = val
+    if (opts.fmt) c.numFmt = opts.fmt
+    if (opts.bold) c.font = { ...(c.font || {}), bold: true }
+    if (opts.wrap) c.alignment = { wrapText: true, vertical: 'top' }
+    if (opts.center) c.alignment = { ...(c.alignment || {}), horizontal: 'center', vertical: 'center' }
+    return c
+  }
+  /* 제목·단위 */
+  set('B2', `[현대백화점APP 외부 광고 판매 실적] ${year}년`, { bold: true })
+  if (prevName) {
+    set('L2', { formula: `L6/'${prevName}'!L6*100-100` }, { fmt: '0.0' })
+    set('O2', { formula: `O6/'${prevName}'!O6*100-100` }, { fmt: '_-* #,##0.0_-;\\-* #,##0.0_-;_-* "-"_-;_-@_-' })
+  }
+  set('T3', '(단위 : 천원, %)')
+  /* 헤더 (행4~5) */
+  for (const [col, label] of Object.entries(LEDGER_COLS)) set(`${col}4`, label, { bold: true, center: true })
+  set('M5', '온라인', { center: true }); set('N5', '오프라인', { center: true })
+  set('P5', '온라인', { center: true }); set('Q5', '오프라인', { center: true })
+  for (const c of 'BCDEFGHIJKLORST') ws.mergeCells(`${c}4:${c}5`)
+  /* 합계 (행6) */
+  set('B6', '합 계', { bold: true, center: true })
+  set('J6', { formula: 'SUMIFS($J:$J,$F:$F,"소 계")' }, { fmt: LED_ACC, bold: true })
+  set('K6', { formula: 'IFERROR(L6/J6-1,"- ")' }, { fmt: LED_PCT, bold: true })
+  for (const c of 'LMNOPQ') set(`${c}6`, { formula: `SUMIFS($${c}:$${c},$F:$F,"소 계")` }, { fmt: LED_ACC, bold: true })
+
+  let r = 7
+  for (const g of groups) {
+    const items = [...g.items].sort((a, b) => DOC_ORDER.indexOf(a.product) - DOC_ORDER.indexOf(b.product))
+    const sub = r, d1 = r + 1, dn = r + items.length
+    const mon = `${year}.${g.start.slice(5, 7)}`
+    const agency = g.agency || '직거래'
+    const eNames = items.map(b => DOC_NAME[b.product] || b.product).join('\n')
+    /* 소계 행 */
+    set(`B${sub}`, mon, { center: true })
+    set(`C${sub}`, g.campaign ? `${g.advertiser}\n${g.campaign}` : g.advertiser, { wrap: true })
+    set(`D${sub}`, agency); set(`E${sub}`, eNames, { wrap: true })
+    set(`F${sub}`, '소 계', { center: true })
+    set(`G${sub}`, '-', { center: true }); set(`H${sub}`, '-', { center: true }); set(`I${sub}`, '-', { center: true })
+    set(`J${sub}`, { formula: `SUM(J${d1}:J${dn})` }, { fmt: LED_ACC })
+    set(`K${sub}`, { formula: `IFERROR(L${sub}/J${sub}-1,"- ")` }, { fmt: LED_PCT })
+    set(`L${sub}`, { formula: `SUM(M${sub}:N${sub})` }, { fmt: LED_ACC })
+    set(`M${sub}`, { formula: `SUM(M${d1}:M${dn})` }, { fmt: LED_ACC })
+    set(`N${sub}`, { formula: `SUM(N${d1}:N${dn})` }, { fmt: LED_ACC })
+    set(`O${sub}`, { formula: `P${sub}+Q${sub}` }, { fmt: LED_ACC })
+    set(`P${sub}`, { formula: `IF($D${sub}="직거래",$M${sub}*1,$M${sub}*0.7)` }, { fmt: LED_ACC })
+    set(`Q${sub}`, { formula: `IF($D${sub}="직거래",$N${sub}*1,$N${sub}*0.7)` }, { fmt: LED_ACC })
+    set(`R${sub}`, g.status, { center: true }); set(`S${sub}`, g.status, { center: true })
+    /* 상세 행 */
+    items.forEach((b, i) => {
+      const row = d1 + i
+      set(`D${row}`, agency)
+      set(`F${row}`, DOC_NAME[b.product] || b.product)
+      set(`G${row}`, b.option === '타겟팅' ? 'Y' : 'N', { center: true })
+      if (b.send_at || b.start_date) { const c = set(`H${row}`, new Date((b.send_at || b.start_date).slice(0, 10) + 'T00:00:00'), { fmt: LED_DATE, center: true }) }
+      const e = b.end_date || b.start_date
+      if (e) set(`I${row}`, new Date(e.slice(0, 10) + 'T00:00:00'), { fmt: LED_DATE, center: true })
+      set(`J${row}`, won千(b.list_price), { fmt: LED_ACC })
+      set(`K${row}`, { formula: `IFERROR(L${row}/J${row}-1,"- ")` }, { fmt: LED_PCT })
+      set(`L${row}`, { formula: `SUM(M${row}:N${row})` }, { fmt: LED_ACC })
+      set(`M${row}`, won千(b.actual_price), { fmt: LED_ACC })
+      set(`N${row}`, 0, { fmt: LED_ACC })
+      set(`O${row}`, { formula: `P${row}+Q${row}` }, { fmt: LED_ACC })
+      set(`P${row}`, { formula: `IF($D${row}="직거래",$M${row}*1,$M${row}*0.7)` }, { fmt: LED_ACC })
+      set(`Q${row}`, { formula: `IF($D${row}="직거래",$N${row}*1,$N${row}*0.7)` }, { fmt: LED_ACC })
+    })
+    /* 캠페인 블록 병합 (구분·광고주·상품명·상태·리포트·비고) */
+    if (items.length >= 1) {
+      for (const c of ['B', 'C', 'E', 'R', 'S', 'T']) ws.mergeCells(`${c}${sub}:${c}${dn}`)
+    }
+    r = dn + 1
+  }
+  /* 테두리 (헤더~마지막 데이터) */
+  for (let rr = 4; rr < r; rr++) for (let cc = 2; cc <= 20; cc++) ws.getCell(rr, cc).border = BORDER
+  ws.views = [{ state: 'frozen', ySplit: 6 }]
+}
+
+export async function buildLedgerXlsx(bookings, todayISO) {
+  if (!bookings || bookings.length === 0) throw new Error('내보낼 부킹이 없습니다')
+  const ExcelJS = (await import('exceljs')).default
+  const wb = new ExcelJS.Workbook()
+  const held = bookings.filter(b => b.status !== '취소')
+  const years = [...new Set(held.map(b => (b.start_date || '').slice(0, 4)).filter(Boolean))].sort()
+  let prev = null
+  for (const y of years) {
+    const yb = held.filter(b => (b.start_date || '').slice(0, 4) === y)
+    const groups = groupCampaigns(yb).sort((a, b) => a.start.localeCompare(b.start))
+    const ws = wb.addWorksheet(y)
+    writeLedgerYear(ws, groups, y, prev)
+    prev = y
+  }
+  await downloadWb(wb, `RMN_판매실적대장_${(todayISO || '').replace(/-/g, '')}.xlsx`)
 }

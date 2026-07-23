@@ -209,7 +209,11 @@ if (RMN_PRODUCTS.length !== 9) bad('RMN 상품이 9종이 아님 (7종 + 카카�
 import { existsSync } from 'node:fs'
 import { RMN_AGENCY_INFO, RMN_BENCH } from '../src/data/rmnAgencies.js'
 import { RMN_AGENCIES } from '../src/data/rmn.js'
-import { DOC_NAME } from '../src/lib/rmnDocs.js'
+import { DOC_NAME, DOC_ORDER, buildLedgerXlsx } from '../src/lib/rmnDocs.js'
+if (typeof buildLedgerXlsx !== 'function') bad('rmnDocs: buildLedgerXlsx export 누락 — 실적 대장 다운로드 깨짐')
+for (const p of RMN_PRODUCTS) {   // 대장 상세 행 정렬(DOC_ORDER)에서 빠진 상품이 있으면 정렬 붕괴
+  if (!DOC_ORDER.includes(p.id)) bad(`rmnDocs DOC_ORDER: "${p.id}" 누락 — 실적 대장 상품 정렬 깨짐`)
+}
 for (const a of RMN_AGENCIES) {
   if (!RMN_AGENCY_INFO[a]) bad(`rmnAgencies: 판매사 "${a}" 마스터 누락 (청약서 회사 정보 빈칸됨)`)
 }
