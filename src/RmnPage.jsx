@@ -35,14 +35,16 @@ const EMPTY = {
   status: '부킹', memo: '',
 }
 /* 상품 라인 기본값 — 구좌: 시작~+6(7일 1주) + 분할 세그먼트 / 푸쉬: 발송일·시간·발송량.
-   discount·price는 양방향 동기 ('26.7): 할인율 입력 → 실판가 자동 / 실판가 입력 → 할인율 자동 */
+   discount·price는 양방향 동기 ('26.7): 할인율 입력 → 실판가 자동 / 실판가 입력 → 할인율 자동
+   own=false면 캠페인 기간을 따라감(일괄), 라인 날짜를 직접 고치면 own=true(상품별 개별 기간) */
 const defaultLine = () => ({
-  start: todayISO(), end: addDaysISO(todayISO(), PRICE_DAYS - 1), segs: [],
+  start: todayISO(), end: addDaysISO(todayISO(), PRICE_DAYS - 1), segs: [], own: false,
   qty: 1, discount: '', price: '',
-  send_date: '', send_time: '10:00', push_units: 1,
+  send_date: '', send_time: '10:00', push_units: 1, msg_count: '',   // msg_count: 카카오 발송 건수(직접 입력)
   target: false,                                        // 카카오톡: 타겟팅 (10% 할증)
   insta_prod: INSTA_PRODUCTS[0], insta_fmt: INSTA_FORMATS[0],   // 인스타: 구성·형식
 })
+const isSlot = id => { const p = rmnProduct(id); return p && !p.push && !p.insta }
 const num = v => Number(String(v).replace(/,/g, '')) || 0
 /* 상품별 구분 점 (캘린더 캠페인 칩) */
 const Dot = ({ id }) => <span className="rmn-dot" style={{ background: rmnColor(id) }} title={id} />
@@ -360,19 +362,40 @@ export default function RmnPage() {
      신규 = 여러 상품 토글, 수정 = 단일(1건=1상품). lines[상품id] = {start,end,qty,discount,manual,price,...} */
   const [sel, setSel] = useState(['메인배너'])
   const [lines, setLines] = useState({ 메인배너: defaultLine() })
+  /* 캠페인 기간 ('26.7) — 일괄 선택. own=false인 구좌 라인이 이 기간을 따라감 */
+  const [camp, setCamp] = useState({ start: todayISO(), end: addDaysISO(todayISO(), PRICE_DAYS - 1) })
   const products = editId ? [f.product] : sel
   const lineOf = id => lines[id] || defaultLine()
+  const hasSlotProduct = products.some(isSlot)
   const toggleSel = id => {
     if (editId) return
     setSel(prev => prev.includes(id) ? (prev.length > 1 ? prev.filter(x => x !== id) : prev) : [...prev, id])
-    setLines(prev => (prev[id] ? prev : { ...prev, [id]: defaultLine() }))
+    /* 신규 선택 구좌 라인은 캠페인 기간을 물려받음 (own=false) */
+    setLines(prev => (prev[id] ? prev : { ...prev, [id]: { ...defaultLine(), start: camp.start, end: camp.end, own: false } }))
   }
+  /* 캠페인 기간 변경 → 개별 설정(own) 아닌 구좌 라인에 일괄 적용 */
+  const setCampPeriod = (k, v) => {
+    const next = { ...camp, [k]: v }
+    if (k === 'start' && (!next.end || next.end < v)) next.end = addDaysISO(v, PRICE_DAYS - 1)
+    setCamp(next)
+    setLines(prev => {
+      const out = { ...prev }
+      for (const id of Object.keys(out)) {
+        if (!isSlot(id) || out[id].own) continue
+        out[id] = syncFromDiscount(id, { ...out[id], start: next.start, end: next.end })
+      }
+      return out
+    })
+  }
+  const resetLinePeriod = id => setLines(prev => ({
+    ...prev, [id]: syncFromDiscount(id, { ...(prev[id] || defaultLine()), start: camp.start, end: camp.end, own: false }),
+  }))
   /* 라인 공시가 — 구좌: 단가 × 주(7일 올림 배수) × 수량 / 푸쉬: 발송량 × 50원 /
      카카오톡: 발송량 × 100원 (타겟팅 +10%) / 인스타: 구성 × 형식 단가표 */
   const listOf = (id, L) => {
     const pr = rmnProduct(id)
     if (pr.insta) return instaPrice(L.insta_prod, L.insta_fmt)
-    if (pr.msg) return kakaoPrice((Number(L.push_units) || 1) * pr.unitSize, L.target)
+    if (pr.msg) return kakaoPrice(Number(L.msg_count) || 0, L.target)   // 카카오: 발송 건수 직접 입력
     if (pr.push) return (Number(L.push_units) || 1) * pr.unitSize * pr.pricePer
     const days = periodDays(L.start, L.end || L.start) +
       L.segs.reduce((a, s) => a + (s.start ? periodDays(s.start, s.end || s.start) : 0), 0)
@@ -384,11 +407,15 @@ export default function RmnPage() {
     const L = { ...(prev[id] || defaultLine()), [k]: v }
     return { ...prev, [id]: syncFromDiscount(id, L) }   // 기간·수량·발송량·할인 변경 → 실판가 재계산
   })
+  /* 라인 날짜 직접 변경 = 상품별 개별 기간(own=true) — 캠페인 기간 추종 해제 */
   const setLineStart = (id, v) => setLines(prev => {
     const L0 = prev[id] || defaultLine()
     const end = (!L0.end || L0.end < v) ? addDaysISO(v, PRICE_DAYS - 1) : L0.end
-    return { ...prev, [id]: syncFromDiscount(id, { ...L0, start: v, end }) }
+    return { ...prev, [id]: syncFromDiscount(id, { ...L0, start: v, end, own: true }) }
   })
+  const setLineEnd = (id, v) => setLines(prev => ({
+    ...prev, [id]: syncFromDiscount(id, { ...(prev[id] || defaultLine()), end: v, own: true }),
+  }))
   const setLinePrice = (id, v) => setLines(prev => {
     const L = { ...(prev[id] || defaultLine()), price: v }
     const list = listOf(id, L)
@@ -452,11 +479,29 @@ export default function RmnPage() {
   })
   const soldOut = soldOutIds.length > 0
 
-  const linesReady = products.every(id => {
+  /* 필수 항목 미입력 체크 ('26.7) — key로 해당 입력에 빨간 테두리, label로 안내 목록 */
+  const missing = []
+  if (!f.advertiser.trim()) missing.push({ key: 'advertiser', label: '광고주명' })
+  for (const id of products) {
     const pr = rmnProduct(id); const L = lineOf(id)
-    return pr.push ? (L.send_date && L.send_time) : (L.start && L.segs.every(s => s.start))
-  })
-  const valid = f.advertiser.trim() && products.length >= 1 && linesReady && !soldOut
+    const pre = products.length > 1 ? `${id} ` : ''
+    if (pr.msg) {   // 카카오톡: 발송 일자·시간·건수
+      if (!L.send_date) missing.push({ key: `${id}:send_date`, label: `${pre}발송 일자` })
+      if (!L.send_time) missing.push({ key: `${id}:send_time`, label: `${pre}발송 시간` })
+      if (!(Number(L.msg_count) > 0)) missing.push({ key: `${id}:msg_count`, label: `${pre}발송 건수` })
+    } else if (pr.push) {
+      if (!L.send_date) missing.push({ key: `${id}:send_date`, label: `${pre}발송 일자` })
+      if (!L.send_time) missing.push({ key: `${id}:send_time`, label: `${pre}발송 시간` })
+    } else if (pr.insta) {
+      if (!L.start) missing.push({ key: `${id}:start`, label: `${pre}게시일` })
+    } else {
+      if (!L.start) missing.push({ key: `${id}:start`, label: `${pre}시작일` })
+      L.segs.forEach((s, i) => { if (!s.start) missing.push({ key: `${id}:seg${i}`, label: `${pre}추가 일정 ${i + 2}회차` }) })
+    }
+  }
+  const missKeys = new Set(missing.map(m => m.key))
+  const errCls = key => (missKeys.has(key) ? ' rmn-err' : '')
+  const valid = products.length >= 1 && missing.length === 0 && !soldOut
 
   const submit = async () => {
     if (!valid) return
@@ -478,7 +523,7 @@ export default function RmnPage() {
         start_date: push ? L.send_date : L.start,
         end_date: push ? L.send_date : insta ? instaEnd : (L.end || null),
         send_at: push ? `${L.send_date}T${L.send_time}:00+09:00` : null,
-        push_qty: push ? (Number(L.push_units) || 1) * pr.unitSize : null,
+        push_qty: push ? (pr.msg ? (Number(L.msg_count) || 0) : (Number(L.push_units) || 1) * pr.unitSize) : null,
         discount_rate: Number(L.discount) || 0,
         list_price: c.list, actual_price: c.actual, net_amount: netAmount(c.actual, !!shared.agency),
       }
@@ -504,6 +549,7 @@ export default function RmnPage() {
         setMsg(`"${shared.advertiser}" ${shared.status} ${n}건 등록됨${products.length > 1 ? ` (${label})` : ''}`)
       }
       setF(EMPTY); setEditId(null); setOrigQty(1); setSel(['메인배너']); setLines({ 메인배너: defaultLine() })
+      setCamp({ start: todayISO(), end: addDaysISO(todayISO(), PRICE_DAYS - 1) })
       refresh()
     } catch (e) { setMsg(e.message) }
   }
@@ -514,13 +560,15 @@ export default function RmnPage() {
     setPickGroup(null)
     setSel([b.product])
     const opt = b.option || ''
+    const pr = rmnProduct(b.product)
     setLines({
       [b.product]: {
-        start: b.start_date, end: b.end_date || '', segs: [],
+        start: b.start_date, end: b.end_date || '', segs: [], own: true,
         qty: bookingQty(b), discount: String(b.discount_rate || ''),
         price: String(b.actual_price || ''),   // 저장값 보존 — 할인·기간 바꾸면 재계산
         send_date: (b.send_at || '').slice(0, 10), send_time: (b.send_at || 'T10:00').slice(11, 16) || '10:00',
-        push_units: b.push_qty ? Math.round(b.push_qty / 50000) : 1,
+        push_units: (b.push_qty && !pr?.msg) ? Math.round(b.push_qty / 50000) : 1,
+        msg_count: pr?.msg ? String(b.push_qty || '') : '',
         target: opt === '타겟팅',
         insta_prod: INSTA_PRODUCTS.find(p => opt.includes(p)) || INSTA_PRODUCTS[0],
         insta_fmt: INSTA_FORMATS.find(x => opt.includes(x)) || INSTA_FORMATS[0],
@@ -595,9 +643,18 @@ export default function RmnPage() {
           <div className="group-label">{editId ? '부킹 수정' : '신규 부킹'} <small className="adm-count">{editId ? '단일 상품' : products.length > 1 ? `${products.length}개 상품 묶음` : '상품을 골라 여러 개 묶음 판매 가능'}</small></div>
           <div className="adm-taform">
             <div className="adm-row">
-              <label className="wide">광고주명 *<input value={f.advertiser} onChange={e => set('advertiser', e.target.value)} placeholder="예: 샤넬" /></label>
+              <label className="wide">광고주명 *<input className={errCls('advertiser')} value={f.advertiser} onChange={e => set('advertiser', e.target.value)} placeholder="예: 샤넬" /></label>
               <label className="wide">캠페인명<input value={f.campaign} onChange={e => set('campaign', e.target.value)} placeholder="예: 홀리데이 캠페인" /></label>
             </div>
+
+            {/* 캠페인 기간 일괄 선택 ('26.7) — 구좌 상품이 이 기간을 따라감, 상품별로 다를 때만 라인에서 개별 변경 */}
+            {!editId && hasSlotProduct && (
+              <div className="adm-row rmn-campperiod">
+                <label>캠페인 시작일<input type="date" value={camp.start} onChange={e => setCampPeriod('start', e.target.value)} /></label>
+                <label>캠페인 종료일<input type="date" value={camp.end} min={camp.start} onChange={e => setCampPeriod('end', e.target.value)} /></label>
+                <span className="rmn-cp-note mute">구좌 상품 기간 일괄 적용 · 상품별로 다르면 아래 라인에서 개별 변경</span>
+              </div>
+            )}
 
             {/* 상품 선택 토글 — 폼 안 ('26.7: 별도 섹션에서 신규 부킹 안으로 통합) */}
             <div className="rmn-avail rmn-avail-in">
@@ -645,29 +702,42 @@ export default function RmnPage() {
                             {INSTA_FORMATS.map(x => <option key={x} value={x}>{x}</option>)}
                           </select>
                         </label>
-                        <label>게시일 *<input type="date" value={L.start} onChange={e => setLine(id, 'start', e.target.value)} /></label>
+                        <label>게시일 *<input type="date" className={errCls(`${id}:start`)} value={L.start} onChange={e => setLine(id, 'start', e.target.value)} /></label>
+                      </div>
+                    ) : pr.msg ? (
+                      <div className="adm-row">
+                        <label>발송 일자 *<input type="date" className={errCls(`${id}:send_date`)} value={L.send_date} onChange={e => setLine(id, 'send_date', e.target.value)} /></label>
+                        <label>발송 시간 *<input type="time" className={errCls(`${id}:send_time`)} value={L.send_time} onChange={e => setLine(id, 'send_time', e.target.value)} /></label>
+                        <label>발송 건수 *<input inputMode="numeric" className={errCls(`${id}:msg_count`)}
+                          value={L.msg_count !== '' ? Number(num(L.msg_count)).toLocaleString('ko-KR') : ''}
+                          onChange={e => setLine(id, 'msg_count', e.target.value)} placeholder="예: 120,000" /></label>
+                        <label className="rmn-target">타겟팅 (+10%)
+                          <input type="checkbox" checked={!!L.target} onChange={e => setLine(id, 'target', e.target.checked)} />
+                        </label>
                       </div>
                     ) : pr.push ? (
                       <div className="adm-row">
-                        <label>발송 일자 *<input type="date" value={L.send_date} onChange={e => setLine(id, 'send_date', e.target.value)} /></label>
-                        <label>발송 시간 *<input type="time" value={L.send_time} onChange={e => setLine(id, 'send_time', e.target.value)} /></label>
+                        <label>발송 일자 *<input type="date" className={errCls(`${id}:send_date`)} value={L.send_date} onChange={e => setLine(id, 'send_date', e.target.value)} /></label>
+                        <label>발송 시간 *<input type="time" className={errCls(`${id}:send_time`)} value={L.send_time} onChange={e => setLine(id, 'send_time', e.target.value)} /></label>
                         <label>발송량 (5만 단위)
                           <select value={L.push_units} onChange={e => setLine(id, 'push_units', e.target.value)}>
                             {Array.from({ length: 18 }, (_, i) => i + 1).map(n => (
                               <option key={n} value={n}>{(n * 5).toLocaleString('ko-KR')}만 건</option>))}
                           </select>
                         </label>
-                        {pr.msg && (
-                          <label className="rmn-target">타겟팅 (+10%)
-                            <input type="checkbox" checked={!!L.target} onChange={e => setLine(id, 'target', e.target.checked)} />
-                          </label>
-                        )}
                       </div>
                     ) : (
                       <>
+                        {!editId && (
+                          <div className="rmn-perflag">
+                            {L.own
+                              ? <>개별 기간 <button type="button" className="rmn-snap ghost" onClick={() => resetLinePeriod(id)}>캠페인 기간으로</button></>
+                              : <span className="mute">캠페인 기간 적용 중 — 날짜를 바꾸면 이 상품만 개별 기간</span>}
+                          </div>
+                        )}
                         <div className="adm-row">
-                          <label>시작일 *<input type="date" value={L.start} onChange={e => setLineStart(id, e.target.value)} /></label>
-                          <label>종료일<input type="date" value={L.end} min={L.start} onChange={e => setLine(id, 'end', e.target.value)} /></label>
+                          <label>시작일 *<input type="date" className={errCls(`${id}:start`)} value={L.start} onChange={e => setLineStart(id, e.target.value)} /></label>
+                          <label>종료일<input type="date" value={L.end} min={L.start} onChange={e => setLineEnd(id, e.target.value)} /></label>
                           {pr.slots > 1 && (
                             <label>수량
                               <div className="rmn-step">
@@ -692,7 +762,7 @@ export default function RmnPage() {
                         {L.segs.map((s, i) => (
                           <div key={i} className="rmn-seg">
                             <span className="rmn-seg-lbl">추가 일정 {i + 2}회차</span>
-                            <input type="date" value={s.start} onChange={e => { const v = e.target.value; setSeg(id, i, 'start', v); if (v && (!s.end || s.end < v)) setSeg(id, i, 'end', v) }} />
+                            <input type="date" className={errCls(`${id}:seg${i}`)} value={s.start} onChange={e => { const v = e.target.value; setSeg(id, i, 'start', v); if (v && (!s.end || s.end < v)) setSeg(id, i, 'end', v) }} />
                             <span className="rmn-seg-til">~</span>
                             <input type="date" value={s.end} min={s.start} onChange={e => setSeg(id, i, 'end', e.target.value)} />
                             <span className="mute">{s.start ? `${periodDays(s.start, s.end || s.start)}일` : ''}</span>
@@ -758,7 +828,13 @@ export default function RmnPage() {
             <label>메모<textarea rows={2} value={f.memo} onChange={e => set('memo', e.target.value)}
               placeholder="사업자등록번호·주소는 판매사 연동값 확보 후 자동 입력 예정" /></label>
             <div className="adm-actions">
-              {editId && <button className="btn-ghost sm" onClick={() => { setF(EMPTY); setEditId(null); setOrigQty(1); setSel(['메인배너']); setLines({ 메인배너: defaultLine() }) }}>수정 취소</button>}
+              {missing.length > 0 && (
+                <span className="rmn-missing">미입력: {missing.map(m => m.label).join(' · ')}</span>
+              )}
+              {soldOut && missing.length === 0 && (
+                <span className="rmn-missing">{soldOutIds.join('·')} 구좌 마감 — 기간·수량 조정</span>
+              )}
+              {editId && <button className="btn-ghost sm" onClick={() => { setF(EMPTY); setEditId(null); setOrigQty(1); setSel(['메인배너']); setLines({ 메인배너: defaultLine() }); setCamp({ start: todayISO(), end: addDaysISO(todayISO(), PRICE_DAYS - 1) }) }}>수정 취소</button>}
               <button className="btn-solid sm" disabled={!valid} onClick={submit}>
                 {editId ? '수정 저장' : products.length > 1 ? `${products.length}건 동시 부킹` : '부킹 등록'}
               </button>
