@@ -1,11 +1,13 @@
 name: 팀즈 아침 브리핑
 
-# 매일 08:00 KST (= 전날 23:00 UTC) 팀즈 채널로 요약 발송 + 수동 실행(Run workflow).
-# 내용 ('26.7 확정): ① 오늘 팀원 일정 ② 오늘 촬영 일정 ③ 오늘 업로드 일정 — 없으면 발송 생략.
+# 평일(월~금) 09:00 KST (= 00:00 UTC) 팀즈 채널로 요약 발송 + 수동 실행(Run workflow).
+# 공휴일은 스크립트가 HOLIDAYS(src/data/holidays.js) 대조로 발송 생략.
+# 내용 ('26.7 확정): ① 오늘 팀원 일정(업무 제외) ② 오늘 촬영 일정 ③ 오늘 업로드 일정
+#   — 비는 섹션은 "일정 없음" 표기, 카드는 평일 매일 발송.
 # 시크릿: TEAMS_WEBHOOK_URL(필수) · SUPABASE_SERVICE_KEY(권장 — 일정 조회용)
 on:
   schedule:
-    - cron: '0 23 * * *'
+    - cron: '0 0 * * 1-5'
   workflow_dispatch: {}
 
 permissions:
