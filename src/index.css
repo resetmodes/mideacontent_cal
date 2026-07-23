@@ -604,6 +604,10 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .md-img-x:hover{color:var(--ink);border-color:var(--g400);}
 .md-img-x.arm{color:#fff;background:var(--red);border-color:var(--red);}
 .md-imgs-err{font-size:12px;color:var(--red);margin-top:4px;}
+/* RMN 상품별 이미지 패널 ('26.7) — 캠페인 펼침의 상품 행 아래 */
+.rmn-item-imgs{padding:2px 10px 10px 30px;border-bottom:1px solid var(--g100);}
+.rmn-item-imgs .md-imgs{margin-top:2px;}
+.rmn-img-on{color:var(--green);font-weight:700;}
 
 /* 모달 편집 폼 */
 /* 어드민 페이지 ('26.7) — 일괄 관리·삭제 복원·타겟APP 입력 */

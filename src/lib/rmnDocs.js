@@ -177,6 +177,9 @@ const LED_DATE = 'm/d(aaa)'
 const thin = { style: 'thin', color: { argb: 'FFBFBFBF' } }
 const BORDER = { top: thin, left: thin, bottom: thin, right: thin }
 const won千 = n => Math.round((n || 0) / 1000)   // 원 → 천원
+/* 수익 수식 — 원본 대장('0723 v1')과 자구까지 동일한 열 참조 형태(행 무관 암시 교차) */
+const PROFIT_ON = 'IF($D:$D="직거래", $M:$M*1, $M:$M*0.7)'
+const PROFIT_OFF = 'IF($D:$D="직거래", $N:$N*1, $N:$N*0.7)'
 
 function writeLedgerYear(ws, groups, year, prevName) {
   ws.columns = [{ width: 3 }, { width: 11 }, { width: 13 }, { width: 15.125 }, { width: 13 }, { width: 16.25 },
@@ -228,8 +231,8 @@ function writeLedgerYear(ws, groups, year, prevName) {
     set(`M${sub}`, { formula: `SUM(M${d1}:M${dn})` }, { fmt: LED_ACC })
     set(`N${sub}`, { formula: `SUM(N${d1}:N${dn})` }, { fmt: LED_ACC })
     set(`O${sub}`, { formula: `P${sub}+Q${sub}` }, { fmt: LED_ACC })
-    set(`P${sub}`, { formula: `IF($D${sub}="직거래",$M${sub}*1,$M${sub}*0.7)` }, { fmt: LED_ACC })
-    set(`Q${sub}`, { formula: `IF($D${sub}="직거래",$N${sub}*1,$N${sub}*0.7)` }, { fmt: LED_ACC })
+    set(`P${sub}`, { formula: PROFIT_ON }, { fmt: LED_ACC })
+    set(`Q${sub}`, { formula: PROFIT_OFF }, { fmt: LED_ACC })
     set(`R${sub}`, g.status, { center: true }); set(`S${sub}`, g.status, { center: true })
     /* 상세 행 */
     items.forEach((b, i) => {
@@ -246,8 +249,8 @@ function writeLedgerYear(ws, groups, year, prevName) {
       set(`M${row}`, won千(b.actual_price), { fmt: LED_ACC })
       set(`N${row}`, 0, { fmt: LED_ACC })
       set(`O${row}`, { formula: `P${row}+Q${row}` }, { fmt: LED_ACC })
-      set(`P${row}`, { formula: `IF($D${row}="직거래",$M${row}*1,$M${row}*0.7)` }, { fmt: LED_ACC })
-      set(`Q${row}`, { formula: `IF($D${row}="직거래",$N${row}*1,$N${row}*0.7)` }, { fmt: LED_ACC })
+      set(`P${row}`, { formula: PROFIT_ON }, { fmt: LED_ACC })
+      set(`Q${row}`, { formula: PROFIT_OFF }, { fmt: LED_ACC })
     })
     /* 캠페인 블록 병합 (구분·광고주·상품명·상태·리포트·비고) */
     if (items.length >= 1) {
