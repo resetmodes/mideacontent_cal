@@ -705,6 +705,13 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .rmn-avail-in{margin:2px 0 14px;}
 .rmn-line .rmn-days{margin:0 0 10px;}
 .rmn-line .rmn-seg{margin:0 0 10px;}
+/* 필수 미입력 — 빨간 테두리 + 안내 ('26.7) */
+.rmn-err{border-color:var(--red) !important;box-shadow:0 0 0 1px var(--red);}
+.rmn-missing{font-size:12px;font-weight:600;color:var(--red);margin-right:auto;line-height:1.5;}
+/* 캠페인 기간 일괄 + 상품별 개별 기간 표기 ('26.7) */
+.rmn-campperiod{align-items:flex-end;}
+.rmn-cp-note{font-size:11.5px;align-self:center;}
+.rmn-perflag{font-size:11.5px;color:var(--g600);margin:0 0 7px;display:flex;align-items:center;gap:8px;}
 
 /* 7일 기준 기간 체크 + 분할 집행 ('26.7) */
 .rmn-days{margin:2px 0 4px;font-size:12.5px;color:var(--g600);}
