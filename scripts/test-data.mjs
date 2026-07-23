@@ -230,15 +230,17 @@ for (const f of ['rmn-order.xlsx', 'rmn-proposal.xlsx']) {
   if (raw.length > 60_000) bad('rmn-order.xlsx 템플릿 크기 이상 — 실데이터 원본으로 되돌아간 것 아닌지 확인')
 }
 
-/* 6e. RMN 이관 SQL — 행 수 고정 + 날짜 형식 (역순·비ISO가 섞이면 insert가 통째로 실패) */
-for (const [file, want] of [['rmn-seed.sql', 40], ['rmn-seed-2025.sql', 38]]) {
-  const sql = readFileSync(new URL(`../data/${file}`, import.meta.url), 'utf8')
+/* 6e. RMN 이관 SQL — 대장 전체 재적재('26.06 대장, 2025 48 + 2026 76 = 124건).
+   행 수 고정 + delete 선행 + 날짜 형식(역순·비ISO가 섞이면 insert가 통째로 실패) */
+{
+  const sql = readFileSync(new URL('../data/rmn-seed.sql', import.meta.url), 'utf8')
   const inserts = sql.match(/^insert into rmn_bookings/gm) || []
-  if (inserts.length !== want) bad(`${file}: 이관 ${want}건이 아님 (${inserts.length}건)`)
+  if (inserts.length !== 124) bad(`rmn-seed.sql: 이관 124건이 아님 (${inserts.length}건)`)
+  if (!/^delete from rmn_bookings;/m.test(sql)) bad('rmn-seed.sql: 재적재 전 delete 문 누락')
   for (const m of sql.matchAll(/'(\d{4}-\d{2}-\d{2})','(\d{4}-\d{2}-\d{2})'/g)) {
-    if (m[2] < m[1]) bad(`${file}: 역순 기간 ${m[1]}→${m[2]}`)
+    if (m[2] < m[1]) bad(`rmn-seed.sql: 역순 기간 ${m[1]}→${m[2]}`)
   }
-  if ((sql.match(/'\d{1,2}\/[^']*'/g) || []).length) bad(`${file}: 비ISO 날짜 잔존`)
+  if ((sql.match(/'\d{1,2}\/[^']*'/g) || []).length) bad('rmn-seed.sql: 비ISO 날짜 잔존')
 }
 
 /* 8. 정산 탭 ('26.7 테스트 — 3인) — 점 배분 합계·재정규화·상태 파이프라인 */
