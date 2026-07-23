@@ -327,6 +327,49 @@ function SettleBadge({ onGo }) {
   )
 }
 
+/* ── RMN 영업 현황 ('26.7) — 이번 달 매출·미수금·확인 필요. 데이터 있을 때만.
+   RMN은 팀 전체 내부 공개라 로그인 계정 모두 노출 (동적 import — 로컬 모드/미설정 시 조용히 숨김) */
+function RmnSummary({ today, onGo }) {
+  const [data, setData] = useState(null)
+  useEffect(() => {
+    let alive = true
+    Promise.all([import('./lib/rmnStore.js'), import('./data/rmn.js')])
+      .then(([store, rmn]) => store.listRmn().then(rows => {
+        if (!alive || !Array.isArray(rows) || rows.length === 0) return
+        const ym = today.slice(0, 7)
+        const active = rows.filter(b => b.status !== '취소')
+        const revenue = active.filter(b => (b.start_date || '').slice(0, 7) === ym).reduce((a, b) => a + (b.actual_price || 0), 0)
+        const unpaid = active.filter(b => rmn.statusIdx(b.status) > -1 && rmn.statusIdx(b.status) < rmn.statusIdx('입금 확인')).reduce((a, b) => a + (b.net_amount || 0), 0)
+        const n = rmn.buildRmnNotices(rows, today)
+        setData({ revenue, unpaid, due: n.tentative.length + n.tax.length })
+      })).catch(() => {})
+    return () => { alive = false }
+  }, [today])
+  if (!data) return null
+  const stats = [
+    { label: '이번 달 매출', value: compact(data.revenue), unit: '원', sub: `${today.slice(0, 7).replace('-', '.')} 시작 기준` },
+    { label: '미수금', value: compact(data.unpaid), unit: '원', sub: '입금 확인 전' },
+    { label: '확인 필요', value: data.due, unit: '건', sub: '가부킹 전환·세금계산서' },
+  ]
+  return (
+    <section>
+      <div className="group-label home-gl">
+        RMN 영업 현황
+        <button className="home-more" onClick={() => onGo('rmn')}>RMN 전체 →</button>
+      </div>
+      <div className="mon-hero home-hero rmn-home-hero">
+        {stats.map(st => (
+          <button key={st.label} className="mon-stat home-stat" onClick={() => onGo('rmn')}>
+            <div className="mon-label">{st.label}</div>
+            <div className={'mon-value' + (st.label === '미수금' && data.unpaid > 0 ? ' strong' : '')}>{st.value}<small>{st.unit}</small></div>
+            <div className="mon-sub">{st.sub} <span className="home-stat-go">→</span></div>
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 /* ── 홈 셸 ─────────────────────────────────────────────────── */
 export default function HomePage({ onGo, canSettle }) {
   const [events, setEvents] = useState([])
@@ -347,6 +390,7 @@ export default function HomePage({ onGo, canSettle }) {
 
       {canSettle && <SettleBadge onGo={onGo} />}
       <WeekHero events={events} today={today} onGo={onGo} />
+      <RmnSummary today={today} onGo={onGo} />
       <TeamStatus events={events} today={today} onGo={onGo} />
       <WorkDeadlines events={events} today={today} onGo={onGo} />
       <CampaignDday events={events} today={today} onGo={onGo} />
