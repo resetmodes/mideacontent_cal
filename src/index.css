@@ -701,6 +701,8 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .rmn-sumbar b{font-size:17px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
 .rmn-sumbar b.rmn-net{color:var(--green);}
 .rmn-sum-disc{font-size:11px;color:var(--g600);font-variant-numeric:tabular-nums;}
+.rmn-target{flex-direction:row !important;align-items:center;gap:7px !important;}
+.rmn-target input{width:16px;height:16px;accent-color:var(--green);}
 .rmn-avail-in{margin:2px 0 14px;}
 .rmn-line .rmn-days{margin:0 0 10px;}
 .rmn-line .rmn-seg{margin:0 0 10px;}

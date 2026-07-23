@@ -102,8 +102,9 @@ for (const g of TA_GROUPS) {
 import {
   RMN_PRODUCTS, rmnProduct, slotAvailability, pushAvailability, canTentative, buildRmnNotices,
   applyDiscount, netAmount, groupCampaigns, periodDays, priceWeeks, bookingQty, PRICE_DAYS,
+  instaPrice, kakaoPrice, INSTA_PRODUCTS, INSTA_FORMATS, INSTA_PRICES,
 } from '../src/data/rmn.js'
-if (RMN_PRODUCTS.length !== 7) bad('RMN 상품이 7종이 아님')
+if (RMN_PRODUCTS.length !== 9) bad('RMN 상품이 9종이 아님 (7종 + 카카오톡·인스타그램)')
 {
   const bk = (id, product, s, e, status = '부킹', extra = {}) =>
     ({ id, product, start_date: s, end_date: e, status, ...extra })
@@ -166,7 +167,24 @@ if (RMN_PRODUCTS.length !== 7) bad('RMN 상품이 7종이 아님')
     /* 상품별 상이 기간·할인 합산: 스플래시 7일 15,000,000(할인0) + 메인배너 21일 21,000,000 할인10% = 33,900,000 */
     const sum = applyDiscount(15_000_000, 0) + applyDiscount(21_000_000, 10)
     if (sum !== 33_900_000) bad(`상품별 합산: ${sum} ≠ 33,900,000`)
+    /* 총 할인율 ('26.7 확정) — 공시가 합 대비 실판가 합: 메인 7M(10%) + 팝업 3M(20%) = 8.7M → 13% */
+    const tl = 7_000_000 + 3_000_000
+    const ta = applyDiscount(7_000_000, 10) + applyDiscount(3_000_000, 20)
+    const rate = Math.round((1 - ta / tl) * 1000) / 10
+    if (ta !== 8_700_000 || rate !== 13) bad(`총 할인율: ${ta} → ${rate}% ≠ 8,700,000 → 13%`)
   }
+
+  /* 카카오톡 ('26.7) — 건당 100원, 타겟팅 +10% */
+  if (kakaoPrice(50_000, false) !== 5_000_000) bad('카카오톡: 5만 건 × 100원 = 5,000,000이어야 함')
+  if (kakaoPrice(50_000, true) !== 5_500_000) bad('카카오톡: 타겟팅 10% 할증 = 5,500,000이어야 함')
+
+  /* 인스타그램 ('26.7) — 구성 4종 × 형식 2종 단가표 완비 + 대표값 원본 대조 */
+  for (const p of INSTA_PRODUCTS) for (const x of INSTA_FORMATS) {
+    if (!INSTA_PRICES[p]?.[x]) bad(`인스타 단가표: "${p}" × "${x}" 누락`)
+  }
+  if (instaPrice('1회 업로드', '피드(이미지)') !== 2_000_000) bad('인스타: 1회 업로드 이미지 = 200만원')
+  if (instaPrice('상단 고정 (7일)', '피드(영상)') !== 4_500_000) bad('인스타: 상단 고정 영상 = 450만원')
+  if (instaPrice('3피드 + 스토리 3회', '피드(영상)') !== 12_000_000) bad('인스타: 3피드+스토리 영상 = 1,200만원')
 
   /* 캠페인 그룹핑 — [광고주+캠페인명] 기준, 취소 제외.
      ① 이름 있으면: 기간 갭 커도(분할 집행) 한 캠페인 유지

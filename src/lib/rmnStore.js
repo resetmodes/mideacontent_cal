@@ -32,8 +32,10 @@ const toDb = b => ({
   agency: b.agency || null, agency_manager: b.agency_manager || null,
   agency_phone: b.agency_phone || null, agency_email: b.agency_email || null,
   status: b.status, memo: b.memo || null,
-  /* qty: 값 있을 때만 전송 (qty 컬럼 미설정 하위호환 — 단일 수량은 컬럼 없이도 동작) */
+  /* qty·option: 값 있을 때만 전송 (컬럼 미설정 하위호환).
+     option = 상품 세부 구성 ('26.7 — 카카오톡 "타겟팅", 인스타 "구성·형식") */
   ...(b.qty != null ? { qty: b.qty } : {}),
+  ...(b.option ? { option: b.option } : {}),
 })
 
 export async function listRmn() {

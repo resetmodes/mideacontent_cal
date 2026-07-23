@@ -4,6 +4,7 @@ import {
   slotAvailability, pushAvailability, canTentative, buildRmnNotices,
   applyDiscount, netAmount, fmtWon,
   groupCampaigns, campaignOn, periodDays, priceWeeks, PRICE_DAYS, bookingQty,
+  INSTA_PRODUCTS, INSTA_FORMATS, instaPrice, kakaoPrice,
 } from './data/rmn.js'
 import { listRmn, createRmn, updateRmn, deleteRmn } from './lib/rmnStore.js'
 import { buildOrderXlsx, buildProposalXlsx, DOC_NAME, DOC_ORDER } from './lib/rmnDocs.js'
@@ -39,6 +40,8 @@ const defaultLine = () => ({
   start: todayISO(), end: addDaysISO(todayISO(), PRICE_DAYS - 1), segs: [],
   qty: 1, discount: '', price: '',
   send_date: '', send_time: '10:00', push_units: 1,
+  target: false,                                        // 카카오톡: 타겟팅 (10% 할증)
+  insta_prod: INSTA_PRODUCTS[0], insta_fmt: INSTA_FORMATS[0],   // 인스타: 구성·형식
 })
 const num = v => Number(String(v).replace(/,/g, '')) || 0
 /* 상품별 구분 점 (캘린더 캠페인 칩) */
@@ -223,7 +226,7 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
             const split = !b.actual_price && g.items.some(x => x.product === b.product && x.actual_price > 0)
             return (
             <div key={b.id} className={'rmn-item' + (editId === b.id ? ' sel' : '')}>
-              <span className="rmn-item-p"><Ini id={b.product} /> {b.product}{bookingQty(b) > 1 ? ` ×${bookingQty(b)}` : ''}{b.push_qty ? ` ${(b.push_qty / 10000).toLocaleString('ko-KR')}만` : ''}</span>
+              <span className="rmn-item-p"><Ini id={b.product} /> {b.product}{bookingQty(b) > 1 ? ` ×${bookingQty(b)}` : ''}{b.push_qty ? ` ${(b.push_qty / 10000).toLocaleString('ko-KR')}만` : ''}{b.option ? <small className="mute"> · {b.option}</small> : ''}</span>
               <span className="mute rmn-item-d">{b.send_at ? `${fmtD(b.send_at)} ${b.send_at.slice(11, 16)}` : fmtRange(b)}</span>
               <span className="rmn-item-w">{split ? <span className="mute">분할 집행</span> : fmtWon(b.actual_price)}</span>
               <select className="rmn-status" value={b.status} onChange={e => onItemStatus(b, e.target.value)}>
@@ -364,9 +367,12 @@ export default function RmnPage() {
     setSel(prev => prev.includes(id) ? (prev.length > 1 ? prev.filter(x => x !== id) : prev) : [...prev, id])
     setLines(prev => (prev[id] ? prev : { ...prev, [id]: defaultLine() }))
   }
-  /* 라인 공시가 — 구좌: 단가 × 주(7일 올림 배수) × 수량, 푸쉬: 발송량 × 50원 */
+  /* 라인 공시가 — 구좌: 단가 × 주(7일 올림 배수) × 수량 / 푸쉬: 발송량 × 50원 /
+     카카오톡: 발송량 × 100원 (타겟팅 +10%) / 인스타: 구성 × 형식 단가표 */
   const listOf = (id, L) => {
     const pr = rmnProduct(id)
+    if (pr.insta) return instaPrice(L.insta_prod, L.insta_fmt)
+    if (pr.msg) return kakaoPrice((Number(L.push_units) || 1) * pr.unitSize, L.target)
     if (pr.push) return (Number(L.push_units) || 1) * pr.unitSize * pr.pricePer
     const days = periodDays(L.start, L.end || L.start) +
       L.segs.reduce((a, s) => a + (s.start ? periodDays(s.start, s.end || s.start) : 0), 0)
@@ -405,9 +411,9 @@ export default function RmnPage() {
 
   const lineCalc = id => {
     const pr = rmnProduct(id); const L = lineOf(id)
-    if (pr.push) {
+    if (pr.push || pr.insta) {
       const list = listOf(id, L)
-      return { id, push: true, list, actual: L.price !== '' ? num(L.price) : list, weeks: 1, qty: 1, days: 1, discount: Number(L.discount) || 0 }
+      return { id, push: !!pr.push, insta: !!pr.insta, list, actual: L.price !== '' ? num(L.price) : list, weeks: 1, qty: 1, days: 1, discount: Number(L.discount) || 0 }
     }
     const days = periodDays(L.start, L.end || L.start) +
       L.segs.reduce((a, s) => a + (s.start ? periodDays(s.start, s.end || s.start) : 0), 0)
@@ -417,23 +423,22 @@ export default function RmnPage() {
     return { id, push: false, list, actual: L.price !== '' ? num(L.price) : list, weeks, days, qty: q, discount: Number(L.discount) || 0 }
   }
   const calcOf = id => lineCalc(id)
-  /* 재고 — 본 기간 + 세그먼트 전 구간에서 잔여 확인 (가장 빡빡한 구간 기준) */
+  /* 재고 — 본 기간 + 세그먼트 전 구간에서 잔여 확인 (가장 빡빡한 구간 기준).
+     푸쉬만 발송 한도 표시 (카카오톡 한도 미확정·인스타 게시형 = 재고 개념 없음) */
   const availOf = id => {
     const pr = rmnProduct(id); const L = lineOf(id)
+    if (pr.insta || pr.msg) return null
     if (pr.push) return L.send_date ? pushAvailability(bookings, L.send_date, editId) : null
     const ranges = [{ s: L.start, e: L.end || L.start }, ...L.segs.filter(s => s.start).map(s => ({ s: s.start, e: s.end || s.start }))]
     return ranges.map(r => slotAvailability(bookings, id, r.s, r.e, editId))
       .filter(Boolean).reduce((m, a) => (!m || a.left < m.left ? a : m), null)
   }
 
-  /* 합산 + 상품별 최종 할인율 표기 */
+  /* 합산 + 총 할인율 ('26.7 확정 — 상품별 나열이 아닌 공시가 합 대비 실판가 합의 실효 할인율) */
   const totalList = products.reduce((a, id) => a + calcOf(id).list, 0)
   const totalActual = products.reduce((a, id) => a + calcOf(id).actual, 0)
   const deposit = netAmount(totalActual, !!f.agency)
-  const discountNote = products.map(id => {
-    const c = calcOf(id)
-    return `${id} ${c.discount ? `${c.discount}%` : '0%'}`
-  }).join(' · ')
+  const totalRate = totalList > 0 ? Math.round((1 - totalActual / totalList) * 1000) / 10 : 0
 
   const firstStart = products
     .map(id => { const pr = rmnProduct(id); const L = lineOf(id); return pr.push ? L.send_date : L.start })
@@ -464,18 +469,23 @@ export default function RmnPage() {
     const rowOf = id => {
       const pr = rmnProduct(id); const L = lineOf(id); const c = calcOf(id)
       const push = !!pr?.push
-      const q = push ? 1 : Math.max(1, Number(L.qty) || 1)
+      const insta = !!pr?.insta
+      const q = push || insta ? 1 : Math.max(1, Number(L.qty) || 1)
+      /* 인스타 상단 고정(7일)만 기간형 — 나머지 구성은 게시일 하루 */
+      const instaEnd = insta ? (L.insta_prod.includes('7일') ? addDaysISO(L.start, 6) : L.start) : null
       const row = {
         ...shared, product: id,
         start_date: push ? L.send_date : L.start,
-        end_date: push ? L.send_date : (L.end || null),
+        end_date: push ? L.send_date : insta ? instaEnd : (L.end || null),
         send_at: push ? `${L.send_date}T${L.send_time}:00+09:00` : null,
         push_qty: push ? (Number(L.push_units) || 1) * pr.unitSize : null,
         discount_rate: Number(L.discount) || 0,
         list_price: c.list, actual_price: c.actual, net_amount: netAmount(c.actual, !!shared.agency),
       }
-      /* qty: 값 있을 때만 전송(컬럼 미설정 하위호환). 수정으로 1까지 낮추는 경우도 원본이 >1이면 명시 전송 */
+      /* qty·option: 값 있을 때만 전송(컬럼 미설정 하위호환) */
       if (q > 1 || (editId && origQty > 1)) row.qty = q
+      if (pr?.msg && L.target) row.option = '타겟팅'
+      if (insta) row.option = `${L.insta_prod} · ${L.insta_fmt}`
       return row
     }
     try {
@@ -503,6 +513,7 @@ export default function RmnPage() {
     setOrigQty(bookingQty(b))
     setPickGroup(null)
     setSel([b.product])
+    const opt = b.option || ''
     setLines({
       [b.product]: {
         start: b.start_date, end: b.end_date || '', segs: [],
@@ -510,6 +521,9 @@ export default function RmnPage() {
         price: String(b.actual_price || ''),   // 저장값 보존 — 할인·기간 바꾸면 재계산
         send_date: (b.send_at || '').slice(0, 10), send_time: (b.send_at || 'T10:00').slice(11, 16) || '10:00',
         push_units: b.push_qty ? Math.round(b.push_qty / 50000) : 1,
+        target: opt === '타겟팅',
+        insta_prod: INSTA_PRODUCTS.find(p => opt.includes(p)) || INSTA_PRODUCTS[0],
+        insta_fmt: INSTA_FORMATS.find(x => opt.includes(x)) || INSTA_FORMATS[0],
       },
     })
     setF({
@@ -589,11 +603,15 @@ export default function RmnPage() {
             <div className="rmn-avail rmn-avail-in">
               {RMN_PRODUCTS.map(pr => {
                 const on = products.includes(pr.id)
+                const sub = pr.insta ? '게시형 · 구성 4종'
+                  : pr.msg ? '발송형 (건당 100원 · 타겟팅 +10%)'
+                  : pr.push ? '발송형 (건당 50원)'
+                  : `구좌 ${pr.slots}개 · ${fmtWon(pr.price)}/7일`
                 return (
                   <button key={pr.id} type="button" className={'rmn-slot' + (on ? ' on' : '')}
                     disabled={editId && !on} onClick={() => toggleSel(pr.id)}>
                     <b>{pr.id}</b>
-                    <span>{pr.push ? '발송형 (건당 50원)' : `구좌 ${pr.slots}개 · ${fmtWon(pr.price)}/7일`}</span>
+                    <span>{sub}</span>
                   </button>
                 )
               })}
@@ -608,12 +626,28 @@ export default function RmnPage() {
                   <div key={id} className={'rmn-line' + (full ? ' full' : '')}>
                     <div className="rmn-line-head">
                       <span className="rmn-line-name"><Ini id={id} /> <b>{id}</b>
-                        {!pr.push && <span className="rmn-wk">{c.weeks}주{c.qty > 1 ? ` ×${c.qty}` : ''}</span>}
+                        {!pr.push && !pr.insta && <span className="rmn-wk">{c.weeks}주{c.qty > 1 ? ` ×${c.qty}` : ''}</span>}
+                        {pr.insta && <span className="rmn-wk">{L.insta_prod}</span>}
+                        {pr.msg && L.target && <span className="rmn-wk">타겟팅 +10%</span>}
                       </span>
                       {a && <span className={'mute rmn-line-av' + (full ? ' full' : '')}>{pr.push ? `잔여 ${a.left.toLocaleString('ko-KR')}건` : full ? '구좌 마감' : `잔여 ${a.left}/${a.total}`}</span>}
                       {!editId && products.length > 1 && <button type="button" className="rmn-line-x" onClick={() => toggleSel(id)}>제거</button>}
                     </div>
-                    {pr.push ? (
+                    {pr.insta ? (
+                      <div className="adm-row">
+                        <label>구성
+                          <select value={L.insta_prod} onChange={e => setLine(id, 'insta_prod', e.target.value)}>
+                            {INSTA_PRODUCTS.map(p2 => <option key={p2} value={p2}>{p2}</option>)}
+                          </select>
+                        </label>
+                        <label>형식
+                          <select value={L.insta_fmt} onChange={e => setLine(id, 'insta_fmt', e.target.value)}>
+                            {INSTA_FORMATS.map(x => <option key={x} value={x}>{x}</option>)}
+                          </select>
+                        </label>
+                        <label>게시일 *<input type="date" value={L.start} onChange={e => setLine(id, 'start', e.target.value)} /></label>
+                      </div>
+                    ) : pr.push ? (
                       <div className="adm-row">
                         <label>발송 일자 *<input type="date" value={L.send_date} onChange={e => setLine(id, 'send_date', e.target.value)} /></label>
                         <label>발송 시간 *<input type="time" value={L.send_time} onChange={e => setLine(id, 'send_time', e.target.value)} /></label>
@@ -623,6 +657,11 @@ export default function RmnPage() {
                               <option key={n} value={n}>{(n * 5).toLocaleString('ko-KR')}만 건</option>))}
                           </select>
                         </label>
+                        {pr.msg && (
+                          <label className="rmn-target">타겟팅 (+10%)
+                            <input type="checkbox" checked={!!L.target} onChange={e => setLine(id, 'target', e.target.checked)} />
+                          </label>
+                        )}
                       </div>
                     ) : (
                       <>
@@ -685,7 +724,7 @@ export default function RmnPage() {
               <div><span>총 공시가</span><b>{fmtWon(totalList)}</b></div>
               <div>
                 <span>총 광고비 (실판가 합)</span><b>{fmtWon(totalActual)}</b>
-                <small className="rmn-sum-disc">{discountNote}</small>
+                <small className="rmn-sum-disc">총 할인율 {totalRate}%</small>
               </div>
               <div><span>입금가{f.agency ? ' · 수수료 30% 차감' : ''}</span><b className={f.agency ? 'rmn-net' : ''}>{fmtWon(deposit)}</b></div>
             </div>

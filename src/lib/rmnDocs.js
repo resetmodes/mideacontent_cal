@@ -10,10 +10,10 @@ import { RMN_AGENCY_INFO, HD_TAX_EMAIL, RMN_BENCH } from '../data/rmnAgencies.js
 export const DOC_NAME = {
   '스플래시': '앱 스플래시', '메인배너': '앱 메인 배너', '하단배너': '앱 하단 배너',
   '팝업배너': '앱 오픈 팝업', '헤드라인 뉴스': '앱 헤드라인 뉴스', '이벤트 메뉴': '앱 이벤트 메뉴',
-  '푸쉬': '앱 푸시 발송',
+  '푸쉬': '앱 푸시 발송', '카카오톡': '카카오톡 메시지 발송', '인스타그램': '인스타그램 게시',
 }
-/* 청약서·제안서의 상품 나열 순서 (원본 양식 관례 — 구좌 상품 먼저, 푸시는 그 뒤) */
-export const DOC_ORDER = ['스플래시', '메인배너', '하단배너', '푸쉬', '팝업배너', '헤드라인 뉴스', '이벤트 메뉴']
+/* 청약서·제안서의 상품 나열 순서 (원본 양식 관례 — 구좌 상품 먼저, 발송·게시형은 그 뒤) */
+export const DOC_ORDER = ['스플래시', '메인배너', '하단배너', '푸쉬', '팝업배너', '헤드라인 뉴스', '이벤트 메뉴', '카카오톡', '인스타그램']
 
 const comma = n => Math.round(n).toLocaleString('ko-KR')
 const d2 = iso => `${iso.slice(2, 4)}.${iso.slice(5, 7)}.${iso.slice(8, 10)}`
@@ -108,10 +108,14 @@ export async function buildProposalXlsx({ advertiser, start, end, discount, prod
   const rows = [...products].sort((a, b) => DOC_ORDER.indexOf(a) - DOC_ORDER.indexOf(b)).map(id => {
     const p = rmnProduct(id)
     const bench = RMN_BENCH[id]
+    if (p.insta) {   // 인스타그램 — 게시형: 기본 구성(1회 업로드·이미지) 기준, 상세는 부킹에서
+      const an = 2_000_000
+      return { label: DOC_NAME[id], unit: an, guar: '1회 업로드 (구성별 상이)', an, av: an * (1 - d), imps: null, ctr: null }
+    }
     if (p.push) {
       const qty = (Number(pushUnits) || 1) * p.unitSize
       const an = qty * p.pricePer
-      return { label: DOC_NAME[id], unit: p.pricePer, guar: `${comma(qty / 10000)}만명/1회(타겟)`, an, av: an * (1 - d), imps: qty, ctr: bench?.ctr ?? null }
+      return { label: DOC_NAME[id], unit: p.pricePer, guar: `${comma(qty / 10000)}만명/1회${p.msg ? '' : '(타겟)'}`, an, av: an * (1 - d), imps: qty, ctr: bench?.ctr ?? null }
     }
     const an = p.price * p.slots * weeks
     return {
