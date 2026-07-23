@@ -589,6 +589,22 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .md-memo a{color:var(--green);text-decoration:underline;word-break:break-all;}
 .md-memo a:hover{background:var(--hl);}
 
+/* 일정 이미지 첨부 ('26.7) — 결과·시안 보고용. 썸네일 그리드 + 라이트박스(ref-lightbox 재사용) */
+.md-imgs{margin-top:10px;}
+.md-imgs-title{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--green);padding:4px 0;}
+.md-imgs-title small{font-weight:500;color:var(--g400);letter-spacing:0;margin-left:6px;}
+.md-img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:4px 0 2px;}
+.md-img{position:relative;margin:0;}
+.md-img img{width:100%;aspect-ratio:1;object-fit:cover;display:block;
+  border:1px solid var(--g200);cursor:zoom-in;background:var(--g50);}
+.md-img img:hover{border-color:var(--g400);}
+.md-img-x{position:absolute;top:4px;right:4px;font-family:inherit;font-size:11px;font-weight:700;
+  line-height:1;color:var(--g600);background:rgba(255,255,255,.92);border:1px solid var(--g200);
+  padding:3px 6px;cursor:pointer;}
+.md-img-x:hover{color:var(--ink);border-color:var(--g400);}
+.md-img-x.arm{color:#fff;background:var(--red);border-color:var(--red);}
+.md-imgs-err{font-size:12px;color:var(--red);margin-top:4px;}
+
 /* 모달 편집 폼 */
 /* 어드민 페이지 ('26.7) — 일괄 관리·삭제 복원·타겟APP 입력 */
 .adm-sec{margin-top:34px;}
