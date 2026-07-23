@@ -142,34 +142,32 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 @media print{.controls{position:static;} .media-body{display:block;}}
 
 /* ═══════════ 상단 탭 ═══════════ */
+/* '26.7 개편: 탭이 상위 1줄(가로 스크롤, 줄바꿈 없음), 세션 정보(계정·로그아웃)는 하위 줄 */
 .tabs{border-bottom:1px solid var(--g100);}
-.tabs-inner{max-width:880px;margin:0 auto;padding:0 20px;display:flex;gap:24px;align-items:center;}
-.tabs-scroll{display:flex;gap:24px;flex-wrap:wrap;align-items:center;min-width:0;}
+.tabs-inner{max-width:880px;margin:0 auto;padding:0;display:flex;flex-direction:column;gap:0;}
+.tabs-scroll{display:flex;gap:24px;align-items:center;min-width:0;
+  flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding:0 20px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  touch-action:pan-x;overscroll-behavior:contain;}
+.tabs-scroll::-webkit-scrollbar{display:none;}
 .tabs button{background:none;border:none;font-family:inherit;cursor:pointer;
   font-size:14px;font-weight:600;color:var(--g400);padding:14px 0 12px;
-  border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:-0.01em;}
+  border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:-0.01em;
+  flex-shrink:0;white-space:nowrap;}
 .tabs button.on{color:var(--ink);border-bottom-color:var(--green);font-weight:800;}
 .tabs button:hover{color:var(--g600);}
 .tabs button.on:hover{color:var(--ink);}
 .tab-link{margin-left:auto;font-size:13px;font-weight:600;color:var(--g400);
   text-decoration:none;padding:14px 0 12px;}
 .tab-link:hover{color:var(--ink);}
-.tabs-session{order:2;margin-left:auto;display:flex;align-items:center;gap:8px;
-  font-size:12px;color:var(--g400);flex-shrink:0;}
-.ts-email{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
-/* 모바일: 세션 정보는 상단 한 줄, 탭은 가로 스크롤 한 줄 (줄바꿈으로 지저분해지던 것 정리) */
+.tabs-session{order:2;display:flex;align-items:center;justify-content:flex-end;gap:9px;
+  font-size:12px;color:var(--g400);padding:6px 20px;border-top:1px solid var(--g50);}
+.ts-email{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
 @media (max-width:640px){
-  .tabs-inner{flex-direction:column;align-items:stretch;gap:0;padding:0;}
-  .tabs-session{order:-1;margin-left:0;justify-content:flex-end;gap:9px;
-    padding:8px 16px;border-bottom:1px solid var(--g50);}
+  .tabs-scroll{gap:20px;padding:0 16px;}
+  .tabs-scroll button{padding:12px 0 11px;}
+  .tabs-session{padding:6px 16px;}
   .ts-email{max-width:none;font-size:11.5px;}
-  /* touch-action:pan-x = 이 스트립 위 제스처를 가로 스크롤로만 처리 (세로 딸림 방지).
-     overscroll-behavior 로 끝까지 밀었을 때 페이지로 스크롤 전파 차단 */
-  .tabs-scroll{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:20px;padding:0 16px;
-    -webkit-overflow-scrolling:touch;scrollbar-width:none;
-    touch-action:pan-x;overscroll-behavior:contain;}
-  .tabs-scroll::-webkit-scrollbar{display:none;}
-  .tabs-scroll button{flex-shrink:0;white-space:nowrap;padding:12px 0 11px;}
 }
 .tabs-session button{font-family:inherit;font-size:11.5px;font-weight:600;color:var(--g600);
   background:none;border:1px solid var(--g200);border-radius:7px;padding:3px 10px;cursor:pointer;}
