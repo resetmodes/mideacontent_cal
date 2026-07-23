@@ -218,8 +218,11 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
           title={g.mixed ? '상품별 상태가 다름 — 선택 시 전체 통일' : '캠페인 전체 상태'}>
           {g.mixed && <option value="">상태 혼합…</option>}
           {RMN_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+          <option value="취소">취소</option>
         </select>
-        <button className="btn-ghost sm" onClick={onAdvance}>다음 → <small className="mute">{nextStatus(g.status)}</small></button>
+        {g.status !== '완료' && (
+          <button className="btn-ghost sm" onClick={onAdvance}>다음 → <small className="mute">{nextStatus(g.status)}</small></button>
+        )}
         <button className="btn-ghost sm" onClick={onOrder}>청약서</button>
       </div>
       {open && (
@@ -341,6 +344,7 @@ export default function RmnPage() {
   const [notices, setNotices] = useState(null)
   const [pickGroup, setPickGroup] = useState(null)   // 캘린더 캠페인 클릭 → 상품 선택 시트
   const [expanded, setExpanded] = useState(null)      // 진행중 목록에서 펼친 캠페인 key
+  const [doneQuery, setDoneQuery] = useState('')      // 완료·취소 검색
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
 
   const refresh = useCallback(() => listRmn().then(setRows), [])
@@ -598,6 +602,11 @@ export default function RmnPage() {
   const activeCamps = campaigns.filter(g => !g.done)
   const doneCamps = campaigns.filter(g => g.done)
   const canceled = bookings.filter(b => b.status === '취소')
+  /* 완료·취소 검색 (광고주·캠페인·상품) — 재적재로 완료 건이 많아 검색 필요 */
+  const dq = doneQuery.trim().toLowerCase()
+  const matchG = g => !dq || `${g.advertiser} ${g.campaign} ${g.items.map(b => b.product).join(' ')}`.toLowerCase().includes(dq)
+  const doneShown = dq ? doneCamps.filter(matchG) : doneCamps
+  const canceledShown = dq ? canceled.filter(b => `${b.advertiser} ${b.campaign || ''} ${b.product}`.toLowerCase().includes(dq)) : canceled
 
   /* 상태 일괄 — 캠페인 전체 상품을 함께 진행 (취소 건 제외) */
   const setCampaignStatus = async (g, s) => {
@@ -864,33 +873,29 @@ export default function RmnPage() {
           <SettleSummary bookings={bookings} />
 
           {(doneCamps.length > 0 || canceled.length > 0) && (
-            <details className="ta-office">
-              <summary><span className="ta-name">완료·취소</span><span className="ta-cnt">{doneCamps.length + canceled.length}건</span></summary>
-              <div className="mon-scroll">
-                <table className="mon-table adm-table">
-                  <tbody>
-                    {doneCamps.map(g => (
-                      <tr key={g.key}>
-                        <td className="mon-acc">{g.advertiser}{g.campaign ? <small className="mute"> · {g.campaign}</small> : ''}</td>
-                        <td className="mute">{g.items.map(b => b.product).join('·')}</td>
-                        <td className="mute">{fmtD(g.start)} ~ {fmtD(g.end)}</td>
-                        <td>{fmtWon(g.total)}</td>
-                        <td className="mute">완료</td>
-                        <td><button className="btn-ghost sm" onClick={() => makeOrderGroup(g)}>청약서</button></td>
-                      </tr>
-                    ))}
-                    {canceled.map(b => (
-                      <tr key={b.id}>
-                        <td className="mon-acc">{b.advertiser}{b.campaign ? <small className="mute"> · {b.campaign}</small> : ''}</td>
-                        <td className="mute">{b.product}</td>
-                        <td className="mute">{fmtRange(b)}</td>
-                        <td>{fmtWon(b.actual_price)}</td>
-                        <td className="mute">취소</td>
-                        <td><button className="btn-ghost sm" onClick={() => startEdit(b)}>수정</button></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            <details className="ta-office rmn-done">
+              <summary><span className="ta-name">완료·취소</span><span className="ta-cnt">{doneCamps.length}캠페인{canceled.length ? ` · 취소 ${canceled.length}` : ''}</span></summary>
+              <input className="rmn-done-q" placeholder="광고주·캠페인·상품 검색 (클릭하면 펼쳐서 상품 수정)"
+                value={doneQuery} onChange={e => setDoneQuery(e.target.value)} />
+              <div className="rmn-camps">
+                {doneShown.length === 0 && <div className="mute rmn-empty">검색 결과 없음</div>}
+                {doneShown.map(g => (
+                  <CampaignRow key={g.key} g={g} open={expanded === g.key}
+                    onToggle={() => setExpanded(x => x === g.key ? null : g.key)}
+                    editId={editId} confirmDel={confirmDel}
+                    onAdvance={() => setCampaignStatus(g, nextStatus(g.status))}
+                    onSetStatus={s => setCampaignStatus(g, s)}
+                    onOrder={() => makeOrderGroup(g)}
+                    onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))} />
+                ))}
+                {canceledShown.map(b => (
+                  <div key={b.id} className="rmn-cancel-row">
+                    <span className="rmn-line-name"><Ini id={b.product} /> <b>{b.advertiser}</b>{b.campaign ? <span className="mute"> · {b.campaign}</span> : ''} <span className="rmn-gtag">취소</span></span>
+                    <span className="mute rmn-camp-meta">{b.product} · {fmtRange(b)} · {fmtWon(b.actual_price)}</span>
+                    <button className="btn-ghost sm" onClick={() => startEdit(b)}>수정</button>
+                    <button className={'btn-ghost sm danger' + (confirmDel === b.id ? ' arm' : '')} onClick={() => del(b.id)}>{confirmDel === b.id ? '한 번 더' : '삭제'}</button>
+                  </div>
+                ))}
               </div>
             </details>
           )}
