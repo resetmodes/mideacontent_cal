@@ -848,6 +848,19 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .ta-sum{margin-left:auto;font-size:12.5px;color:var(--g600);font-variant-numeric:tabular-nums;white-space:nowrap;}
 .ta-note{margin:2px 0 14px;padding:10px 13px;background:var(--g50);font-size:12.5px;line-height:1.65;color:var(--g600);}
 .ta-basis{font-weight:400;color:var(--g400);margin-left:6px;letter-spacing:0;}
+/* 캠페인 클릭 → 세부 매체 열람 ('26.7) */
+.ta-camp-row{cursor:pointer;}
+.ta-camp-row:hover{background:var(--g50);}
+.ta-camp-row.open{background:var(--g50);}
+.ta-chev{color:var(--g400);font-size:11px;margin-right:5px;}
+.ta-detail > td{background:var(--g50);padding:2px 10px 10px 26px !important;}
+.ta-media-list{display:flex;flex-wrap:wrap;gap:7px;}
+.ta-media-item{display:inline-flex;align-items:center;gap:7px;background:var(--paper);
+  border:1px solid var(--g200);border-radius:8px;padding:5px 10px;font-size:12.5px;}
+.ta-media-grp{font-size:10.5px;font-weight:700;color:var(--g600);background:var(--g100);
+  border-radius:5px;padding:1px 6px;}
+.ta-media-name{font-weight:700;color:var(--ink);}
+.ta-media-role{font-size:11.5px;}
 
 /* 세부 다중 선택 체크박스 그리드 ('26.7 — 타겟APP 동시 등록) */
 .sub-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}

@@ -407,9 +407,16 @@ function UgcView() {
    데이터: Supabase targetapp_stats(캠페인 행)·targetapp_media(매체별 누적 스냅샷) —
    내부 전용(RLS: 로그인 계정만, anon 정책 없음 → 미러에서 접근 불가).
    API 자동 연동이 없어 매월 초 전월 실적을 수기 입력 (입력 폼은 어드민 2차) */
+/* 매체명 → 구분(그룹) 라벨 — 세부 매체 열람 시 분류 표기 */
+const MEDIA_GROUP = Object.fromEntries(TA_GROUPS.flatMap(g => g.media.map(m => [m, g.g])))
+
 function TargetAppView() {
   const [data, setData] = useState(undefined)   // undefined=로딩 · null=미설정/빈 데이터
   const [monFilter, setMonFilter] = useState('전체')
+  const [openCamp, setOpenCamp] = useState(() => new Set())   // 펼친 캠페인 id (세부 매체 열람)
+  const toggleCamp = id => setOpenCamp(prev => {
+    const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n
+  })
   useEffect(() => { listTargetApp().then(setData) }, [])
 
   if (data === undefined) return <div className="empty">불러오는 중…</div>
@@ -516,19 +523,43 @@ function TargetAppView() {
             <table className="mon-table">
               <thead><tr><th>월</th><th>캠페인</th><th>기간</th><th>매체</th><th>노출</th><th>클릭</th><th>클릭율</th><th>방문</th><th>앱설치</th></tr></thead>
               <tbody>
-                {g.list.map(r => (
-                  <tr key={r.id}>
-                    <td className="mute">{r.month}월</td>
-                    <td className="mon-acc">{r.name}</td>
-                    <td className="mute">{r.period}</td>
-                    <td className="mute">{(r.media || []).join('·')}</td>
-                    <td>{compact(r.exp)}</td>
-                    <td>{compact(r.clk)}</td>
-                    <td className="mute">{ctr(r.clk, r.exp)}</td>
-                    <td>{num(r.vis)}</td>
-                    <td className="strong">{num(r.inst)}</td>
-                  </tr>
-                ))}
+                {g.list.map(r => {
+                  const mediaList = r.media || []
+                  const open = openCamp.has(r.id)
+                  return (
+                    <React.Fragment key={r.id}>
+                      <tr className={'ta-camp-row' + (open ? ' open' : '')} onClick={() => mediaList.length && toggleCamp(r.id)}>
+                        <td className="mute">{r.month}월</td>
+                        <td className="mon-acc">
+                          {mediaList.length > 0 && <span className="ta-chev" aria-hidden>{open ? '▾' : '▸'}</span>}
+                          {r.name}
+                        </td>
+                        <td className="mute">{r.period}</td>
+                        <td className="mute">{mediaList.length ? `${mediaList.length}개 매체` : '—'}</td>
+                        <td>{compact(r.exp)}</td>
+                        <td>{compact(r.clk)}</td>
+                        <td className="mute">{ctr(r.clk, r.exp)}</td>
+                        <td>{num(r.vis)}</td>
+                        <td className="strong">{num(r.inst)}</td>
+                      </tr>
+                      {open && (
+                        <tr className="ta-detail">
+                          <td colSpan={9}>
+                            <div className="ta-media-list">
+                              {mediaList.map(name => (
+                                <div className="ta-media-item" key={name}>
+                                  <span className="ta-media-grp">{MEDIA_GROUP[name] || '기타'}</span>
+                                  <span className="ta-media-name">{name}</span>
+                                  {mediaByName[name]?.role && <span className="mute ta-media-role">{mediaByName[name].role}</span>}
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  )
+                })}
               </tbody>
             </table>
           </div>
