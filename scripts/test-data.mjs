@@ -311,5 +311,20 @@ for (const m of MEDIA) {
   }
 }
 
+/* 9. 일정 이미지 첨부 ('26.7) — store가 images를 조건부 전송하는지 감시.
+   무조건 전송으로 회귀하면 일반 수정·드래그 이동(images 미포함 patch)이 첨부를 지움 */
+{
+  const storeSrc = readFileSync(new URL('../src/lib/store.js', import.meta.url), 'utf8')
+  if (!storeSrc.includes('e.images !== undefined'))
+    bad('store.js: images 조건부 전송 누락 — 일반 수정·드래그가 이미지 첨부를 덮어씀')
+  if (!storeSrc.includes('updateEventImages'))
+    bad('store.js: updateEventImages 없음 — 이미지 첨부 저장 깨짐')
+  if (!existsSync(new URL('../src/lib/eventImages.js', import.meta.url)))
+    bad('src/lib/eventImages.js 없음 — 이미지 첨부 업로드 깨짐')
+  const setup = readFileSync(new URL('../data/supabase-setup.md', import.meta.url), 'utf8')
+  if (!/event-images/.test(setup) || !/images jsonb/.test(setup))
+    bad('supabase-setup.md: 10장(event-images 버킷·images 컬럼) SQL 누락')
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)

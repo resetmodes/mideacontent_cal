@@ -10,21 +10,22 @@ const API = `${SUPABASE_URL}/rest/v1/${TABLE}`
 
 export const storageMode = REMOTE ? 'supabase' : 'local'
 
-/* kind('촬영')·perf_url(실적 확정)은 조건부 전송 — 해당 컬럼이 아직 없는 DB에서도
-   일반 일정 등록·수정은 깨지지 않게 (촬영·실적확정만 setup.md 5장 SQL 필요)
-   perfUrl은 명시적으로 넘길 때만 포함 (null = 확정 해제) */
+/* kind('촬영')·perf_url(실적 확정)·images(이미지 첨부)는 조건부 전송 — 해당 컬럼이 아직
+   없는 DB에서도 일반 일정 등록·수정은 깨지지 않게 (촬영·실적확정은 setup.md 5장, 이미지는 10장)
+   perfUrl·images는 명시적으로 넘길 때만 포함 — 일반 수정·드래그 이동이 확정값·첨부를 안 덮음 */
 const toDb = e => ({
   title: e.title, date: e.date, end_date: e.endDate || null,
   channel: e.channel, sub: e.sub || null, campaign: e.campaign || null,
   owner: e.owner || null, memo: e.memo || null,
   ...(e.kind ? { kind: e.kind } : {}),
   ...(e.perfUrl !== undefined ? { perf_url: e.perfUrl } : {}),
+  ...(e.images !== undefined ? { images: e.images } : {}),
 })
 const fromDb = r => ({
   id: r.id, title: r.title, date: r.date, endDate: r.end_date,
   channel: r.channel, sub: r.sub, campaign: r.campaign,
   owner: r.owner, memo: r.memo, kind: r.kind || null,
-  perfUrl: r.perf_url ?? null, createdAt: r.created_at,
+  perfUrl: r.perf_url ?? null, images: r.images || null, createdAt: r.created_at,
 })
 
 const KEY = 'media-cal-events'
@@ -76,6 +77,28 @@ export async function updateEvent(id, patch) {
     return fromDb((await res.json())[0])
   }
   const next = load().map(e => (e.id === id ? { ...e, ...patch } : e))
+  save(next)
+  return next.find(e => e.id === id)
+}
+
+/* 이미지 첨부 메타만 갱신 ('26.7) — 다른 필드는 건드리지 않는 부분 PATCH.
+   images 컬럼 미설정 DB에서는 여기만 실패 (일반 등록·수정 무영향) */
+export async function updateEventImages(id, images) {
+  if (REMOTE) {
+    let res
+    try {
+      res = await req(`${API}?id=eq.${id}`, {
+        method: 'PATCH', headers: { Prefer: 'return=representation' },
+        body: JSON.stringify({ images }),
+      })
+    } catch (e) {
+      /* PGRST204(컬럼 없음)는 400으로 옴 — 설치 안내로 치환 */
+      if (/400/.test(e.message)) throw new Error('이미지 컬럼 미설정 — setup.md 10장 SQL 실행 필요')
+      throw e
+    }
+    return fromDb((await res.json())[0])
+  }
+  const next = load().map(e => (e.id === id ? { ...e, images } : e))
   save(next)
   return next.find(e => e.id === id)
 }

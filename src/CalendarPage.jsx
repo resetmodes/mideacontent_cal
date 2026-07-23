@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { CHANNELS, TEAM_TYPES, TEAM_KEYWORDS, channelById } from './data/channels.js'
 import { parseQuick, toISO, fromISO, displayTitle } from './lib/parse.js'
-import { listEvents, createEvent, updateEvent, deleteEvent, renameCampaign, listHistory, listDeleted, storageMode } from './lib/store.js'
+import { listEvents, createEvent, updateEvent, updateEventImages, deleteEvent, renameCampaign, listHistory, listDeleted, storageMode } from './lib/store.js'
+import { uploadEventImage, removeEventImage, imageUrl, MAX_IMAGES } from './lib/eventImages.js'
 import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
 import { findPerformance } from './lib/perf.js'
@@ -154,6 +155,9 @@ export function histDiff(cur, prev) {
     const a = prev[k] ?? '', b = cur[k] ?? ''
     if (a !== b) out.push(`${label}: ${a || '—'} → ${b || '—'}`)
   }
+  /* 이미지 첨부는 배열이라 장수 변화만 표기 ('26.7) */
+  const ai = (prev.images || []).length, bi = (cur.images || []).length
+  if (ai !== bi) out.push(`이미지: ${ai}장 → ${bi}장`)
   return out
 }
 
@@ -770,7 +774,79 @@ function CampaignView({
 
 /* isNew: 날짜 셀 클릭으로 열리는 신규 등록 모드 — 편집 폼으로 바로 시작, 저장 시 onCreate.
    상단 "한 줄 자동 작성" 입력에 치면 파싱해서 아래 폼을 자동으로 채움 */
-function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, readOnly = false, isNew = false, onOpenSpec }) {
+/* ── 일정 이미지 첨부 ('26.7) — 결과·시안 보고용. 업로드 시 자동 압축(긴 변 1600px JPEG),
+   썸네일 클릭 = 라이트박스 확대(스펙 레퍼런스와 동일 UX), 삭제는 2단계 확인.
+   읽기 전용(미러 포함)은 열람만 — 공개 버킷이라 로그인 없이도 표시됨 ── */
+function EventImages({ event, readOnly, onImages }) {
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState(null)
+  const [view, setView] = useState(null)      // 라이트박스로 보는 이미지
+  const [armDel, setArmDel] = useState(null)  // × 1회 클릭 = 확인 대기 상태 (path)
+  const fileRef = useRef(null)
+  const imgs = event.images || []
+  const canEdit = !readOnly && !!onImages && storageMode === 'supabase'
+  if (!imgs.length && !canEdit) return null
+
+  const onFiles = async e => {
+    const files = [...e.target.files].slice(0, MAX_IMAGES - imgs.length)
+    e.target.value = ''
+    if (!files.length) return
+    setBusy(true); setErr(null)
+    try {
+      const added = []
+      for (const file of files) added.push(await uploadEventImage(event.id, file))
+      await onImages(event.id, [...imgs, ...added])
+    } catch (ex) { setErr(ex.message) }
+    setBusy(false)
+  }
+  const remove = async img => {
+    if (armDel !== img.path) { setArmDel(img.path); return }
+    setArmDel(null); setBusy(true); setErr(null)
+    try {
+      await onImages(event.id, imgs.filter(i => i.path !== img.path))
+      removeEventImage(img.path).catch(() => {})   // 메타 먼저 제거 — 실파일 삭제는 best-effort
+    } catch (ex) { setErr(ex.message) }
+    setBusy(false)
+  }
+
+  return (
+    <div className="md-imgs">
+      {imgs.length > 0 && (
+        <>
+          <div className="md-imgs-title">첨부 이미지 <small>클릭하면 크게 보기</small></div>
+          <div className="md-img-grid">
+            {imgs.map(img => (
+              <figure key={img.path} className="md-img">
+                <img src={imageUrl(img.path)} alt={img.name} loading="lazy" onClick={() => setView(img)} />
+                {canEdit && (
+                  <button
+                    className={'md-img-x' + (armDel === img.path ? ' arm' : '')}
+                    onClick={() => remove(img)}
+                    title={armDel === img.path ? '한 번 더 클릭하면 삭제' : '삭제'}
+                  >{armDel === img.path ? '삭제?' : '×'}</button>
+                )}
+              </figure>
+            ))}
+          </div>
+        </>
+      )}
+      {canEdit && imgs.length < MAX_IMAGES && (
+        <button className="md-hist-link" onClick={() => fileRef.current?.click()} disabled={busy}>
+          {busy ? '업로드 중…' : `＋ 이미지 첨부${imgs.length ? ` (${imgs.length}/${MAX_IMAGES})` : ' — 시안·결과 보고용'}`}
+        </button>
+      )}
+      {err && <div className="md-imgs-err">{err}</div>}
+      {canEdit && <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={onFiles} />}
+      {view && (
+        <div className="ref-lightbox" onClick={() => setView(null)}>
+          <img src={imageUrl(view.path)} alt={view.name} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, readOnly = false, isNew = false, onOpenSpec, onImages }) {
   const [editing, setEditing] = useState(isNew)
   const [confirmDel, setConfirmDel] = useState(false)
   const [quick, setQuick] = useState('')
@@ -868,6 +944,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
               {event.owner && <><dt>작성자</dt><dd>{event.owner}</dd></>}
               {event.memo && <><dt>메모</dt><dd className="md-memo"><Memo text={event.memo} /></dd></>}
             </dl>
+            {!isNew && <EventImages event={event} readOnly={readOnly} onImages={onImages} />}
             {pinned ? (
               <div className="md-perf">
                 <div className="md-perf-title">
@@ -1102,6 +1179,12 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
       setSelected(sel => (sel?.id === id ? ev : sel))   // 열린 모달도 즉시 갱신 (실적 확정 등)
     } catch (err) { setError(err.message) }
   }
+  /* 이미지 첨부 메타만 부분 갱신 ('26.7) — 목록·열린 모달 즉시 반영 */
+  const onImages = async (id, images) => {
+    const ev = await updateEventImages(id, images)
+    setEvents(prev => prev.map(x => (x.id === id ? ev : x)))
+    setSelected(sel => (sel?.id === id ? ev : sel))
+  }
   const onDelete = async id => {
     try {
       await deleteEvent(id)
@@ -1330,7 +1413,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
       {selected && (
         <EventModal
           event={selected} campaigns={campaigns} readOnly={readOnly} onOpenSpec={onOpenSpec}
-          onClose={() => setSelected(null)} onSave={onSave} onDelete={onDelete}
+          onClose={() => setSelected(null)} onSave={onSave} onDelete={onDelete} onImages={onImages}
         />
       )}
 
