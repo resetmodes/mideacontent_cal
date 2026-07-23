@@ -10,6 +10,7 @@ import { listRmn, createRmn, updateRmn, deleteRmn } from './lib/rmnStore.js'
 import { buildOrderXlsx, buildProposalXlsx, buildLedgerXlsx, DOC_NAME, DOC_ORDER } from './lib/rmnDocs.js'
 import { toISO, fromISO } from './lib/parse.js'
 import { HOLIDAYS } from './data/holidays.js'
+import ImageAttach from './ImageAttach.jsx'
 
 /* RMN — 현대백화점 APP 광고 판매(부킹·재고·상태·정산) 관리 탭 ('26.7 1차, GA 연동 전).
    팀 전체 노출(내부 로그인) — 미러·외부 뷰에는 탭 자체가 없음.
@@ -242,8 +243,10 @@ function SettleSummary({ bookings, onMsg }) {
 }
 
 /* ── 진행 중 캠페인 행 ('26.7) — [광고주+캠페인명] 헤더, 펼치면 세부 상품 ── */
-function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onItemStatus, onEdit, onDel, onItemAdvance, showYear = false }) {
+function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onItemStatus, onEdit, onDel, onItemAdvance, onItemImages, showYear = false }) {
   const prods = g.items.map(b => b.product + (bookingQty(b) > 1 ? `×${bookingQty(b)}` : ''))
+  /* 상품별 이미지 패널 ('26.7) — 한 번에 하나만 열림 (붙여넣기 대상 명확화) */
+  const [imgFor, setImgFor] = useState(null)
   return (
     <div className={'rmn-camp-row' + (open ? ' open' : '')}>
       <div className="rmn-camp-head" onClick={onToggle}>
@@ -273,8 +276,10 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
         <div className="rmn-camp-items">
           {g.items.map(b => {
             const split = !b.actual_price && g.items.some(x => x.product === b.product && x.actual_price > 0)
+            const nImg = (b.images || []).length
             return (
-            <div key={b.id} className={'rmn-item' + (editId === b.id ? ' sel' : '')}>
+            <React.Fragment key={b.id}>
+            <div className={'rmn-item' + (editId === b.id ? ' sel' : '')}>
               <span className="rmn-item-p"><Ini id={b.product} /> {b.product}{bookingQty(b) > 1 ? ` ×${bookingQty(b)}` : ''}{b.push_qty ? ` ${(b.push_qty / 10000).toLocaleString('ko-KR')}만` : ''}{b.option ? <small className="mute"> · {b.option}</small> : ''}</span>
               <span className="mute rmn-item-d">{b.send_at ? `${fmtD(b.send_at)} ${b.send_at.slice(11, 16)}` : fmtRange(b)}</span>
               <span className="rmn-item-w">{split ? <span className="mute">분할 집행</span> : fmtWon(b.actual_price)}</span>
@@ -282,11 +287,21 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
                 {RMN_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
                 <option value="취소">취소</option>
               </select>
+              <button className={'btn-ghost sm' + (imgFor === b.id ? ' rmn-img-on' : '')} onClick={() => setImgFor(imgFor === b.id ? null : b.id)}>
+                이미지{nImg ? ` ${nImg}` : ''}
+              </button>
               <button className="btn-ghost sm" onClick={() => onEdit(b)}>수정</button>
               <button className={'btn-ghost sm danger' + (confirmDel === b.id ? ' arm' : '')} onClick={() => onDel(b.id)}>
                 {confirmDel === b.id ? '한 번 더' : '삭제'}
               </button>
             </div>
+            {imgFor === b.id && (
+              <div className="rmn-item-imgs">
+                <ImageAttach imgs={b.images || []} canEdit storeKey={`rmn/${b.id}`}
+                  onChange={next => onItemImages(b, next)} hint="집행 화면·결과 캡처" />
+              </div>
+            )}
+            </React.Fragment>
             )
           })}
         </div>
@@ -635,6 +650,11 @@ export default function RmnPage() {
   const setStatus = async (b, s) => {
     try { await updateRmn(b.id, { status: s }); refresh() } catch (e) { setMsg(e.message) }
   }
+  /* 상품(부킹)별 이미지 첨부 ('26.7) — 집행 화면·결과 캡처. images만 부분 PATCH */
+  const setItemImages = async (b, images) => {
+    try { await updateRmn(b.id, { images }); await refresh() }
+    catch (e) { throw /400/.test(e.message) ? new Error('이미지 컬럼 미설정 — setup.md 8-3 SQL 1줄 실행 필요') : e }
+  }
   const del = async id => {
     if (confirmDel !== id) { setConfirmDel(id); return }
     setConfirmDel(null)
@@ -906,7 +926,8 @@ export default function RmnPage() {
                 onAdvance={() => setCampaignStatus(g, nextStatus(g.status))}
                 onSetStatus={s => setCampaignStatus(g, s)}
                 onOrder={() => makeOrderGroup(g)}
-                onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))} />
+                onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))}
+                onItemImages={setItemImages} />
             ))}
           </div>
 
@@ -930,7 +951,8 @@ export default function RmnPage() {
                     onAdvance={() => setCampaignStatus(g, nextStatus(g.status))}
                     onSetStatus={s => setCampaignStatus(g, s)}
                     onOrder={() => makeOrderGroup(g)}
-                    onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))} />
+                    onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))}
+                    onItemImages={setItemImages} />
                 ))}
                 {canceledShown.map(b => (
                   <div key={b.id} className="rmn-cancel-row">
