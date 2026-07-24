@@ -1,4 +1,4 @@
-/* 팀즈 아침 브리핑 ('26.7 개편) — 매일 08:00 KST에 팀즈 채널로 요약 카드 발송.
+/* 팀즈 아침 브리핑 ('26.7 개편) — 평일 아침(08:52 KST, notify.yml cron)에 팀즈 채널로 요약 카드 발송.
    .github/workflows/notify.yml이 실행 (수동 실행도 가능 — Actions → Run workflow)
 
    내용 ('26.7 사용자 확정 — RMN·정산 등 기타 항목 제외, 아래 3개만):
