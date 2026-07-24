@@ -318,9 +318,15 @@
   (제목이 휴점/휴점일뿐일 때) → `kind='휴점'` 마커 저장 (media_events 재사용, 새 SQL 불필요).
   전 탭 셀 틴트 + 하루 시트 "휴점 해제"로 삭제 (정적 CLOSED_DAYS는 코드값이라 해제 버튼 없음).
   휴점 이벤트는 일정 행에서 제외(셀 마커 전용). CalendarApp closedDays/closedEvt 병합
-- **팀즈 아침 브리핑 ('26.7 확정)**: `.github/workflows/notify.yml` — 매일 08:00 KST 팀즈
+- **팀즈 아침 브리핑 ('26.7 확정)**: `.github/workflows/notify.yml` — 평일 08:52 KST 팀즈
   채널로 요약 카드 3섹션 (① 오늘 팀원 일정 = kind='팀', 기념일은 월-일 일치 ② 오늘 촬영 일정
-  ③ 오늘 업로드 일정) + 하단 "캘린더 보러가기" 버튼. **RMN·정산·휴점 등 기타 항목은 전부
+  ③ 오늘 업로드 일정) + 하단 "캘린더 보러가기" 버튼.
+  **미발송 사고 ('26.7.24)**: 09:00 KST = 00:00 UTC 정각 크론이 GitHub Actions 최대 혼잡
+  슬롯이라 7/24 금 예약 실행이 통째로 누락 (지연·누락은 공식 문서 인정 동작 — 정각 회피 권고).
+  → 크론 `52 23 * * 0-4`(= 평일 08:52 KST)로 이동. **UTC 23시대는 KST 다음날이라 요일도
+  하루 앞으로**(UTC 일~목 = KST 월~금) — 시각 변경 시 요일 이동 함께 계산.
+  daily-brief.mjs의 날짜는 KST 보정(kstNow)이라 시각 이동 무영향. 누락 시 복구 =
+  Actions에서 notify.yml Run workflow 수동 실행(ALWAYS_SEND 자동). **RMN·정산·휴점 등 기타 항목은 전부
   제외** ('26.7 사용자 확정 — 이전 RMN 섹션·버튼 구성을 대체).
   `scripts/notify/daily-brief.mjs` — 없는 섹션 숨김·전부 비면 발송 생략(ALWAYS_SEND=1로 강제).
   웹훅 = Power Automate 워크플로(docs/teams-webhook-setup.md, 구 Incoming Webhook 커넥터는
