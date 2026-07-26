@@ -425,19 +425,24 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
   )
 }
 
+/* 타겟APP 후순위 ('26.7) — 타겟APP은 한 날짜에 10종씩 등록돼 셀 표시 상한을 혼자 채우고
+   다른 매체를 "+N 더보기" 뒤로 밀어냈다. 안정 정렬로 타겟APP만 뒤로 (그 외 순서 불변) */
+const TARGET_CH = '타겟APP'
+const targetLast = list => [...list.filter(e => e.channel !== TARGET_CH), ...list.filter(e => e.channel === TARGET_CH)]
+
 /* 타겟APP 셀 묶음 ('26.7) — 같은 제목·기간의 타겟APP 형제 건(세부만 다름)을 셀에서
    한 줄 "×N"으로 합침 (10종 동시 등록 시 셀 도배 방지). 클릭하면 세부 선택 시트 */
 function groupCellEvents(list) {
   const out = [], gmap = {}
   for (const e of list) {
-    if (e.channel !== '타겟APP') { out.push(e); continue }
+    if (e.channel !== TARGET_CH) { out.push(e); continue }
     const key = [e.title, e.date, e.endDate || '', e.isEnd ? 'e' : e.isMid ? 'm' : ''].join('|')
     if (gmap[key]) { gmap[key].group.push(e); continue }
     const item = { ...e, group: [e] }
     gmap[key] = item
     out.push(item)
   }
-  return out
+  return targetLast(out)   // 다른 매체 먼저, 타겟APP은 아래로
 }
 
 function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove = null, onGroup = null, onDay = null, closedDays = CLOSED_DAYS }) {
@@ -560,7 +565,8 @@ function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister, closed
       const o = orderRange(e)
       return o.date <= iso && iso <= (o.endDate || o.date)
     }
-    const chOrder = e => CHANNELS.findIndex(c => c.id === e.channel)
+    /* 타겟APP은 건수가 많아 항상 맨 아래 ('26.7 — 셀·시트 공통 원칙) */
+    const chOrder = e => (e.channel === TARGET_CH ? 999 : CHANNELS.findIndex(c => c.id === e.channel))
     return events.filter(covers).sort((a, b) =>
       (chOrder(a) - chOrder(b)) || (a.sub || '').localeCompare(b.sub || '') || a.title.localeCompare(b.title))
   }, [events, iso])
