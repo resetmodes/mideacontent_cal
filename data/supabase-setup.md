@@ -304,19 +304,32 @@ alter table rmn_bookings add column if not exists images jsonb;
 파일 경로에 일정 UUID + 타임스탬프가 들어가 링크 소지자 외에는 사실상 열람 불가.
 업로드·삭제는 로그인 + team_writers 전용.
 
-1. Supabase 대시보드 → **SQL Editor** → **New query**
-2. 아래 전체 복사 → 붙여넣기 → **Run** (1회)
+**세 번에 나눠 실행할 것** — SQL Editor는 한 번의 Run이 통째로 한 트랜잭션이라, 뒤쪽
+정책문이 실패하면 **앞의 버킷 생성까지 함께 롤백**된다 (성공한 줄 알았는데 버킷이 없는
+상태가 됨 — '26.7.24 실제 발생). 나눠 실행하면 어디서 막혔는지 바로 보인다.
+
+**① 컬럼 추가** — SQL Editor → New query → 붙여넣기 → Run
 
 ```sql
--- 일정 테이블에 이미지 메타 컬럼 (경로·이름·크기 목록)
 alter table media_events add column if not exists images jsonb;
+alter table rmn_bookings add column if not exists images jsonb;
+```
 
--- 공개 버킷 (읽기 = 공개 URL, 미러에서도 표시)
+**② 버킷 생성** — 같은 창에서 지우고 다시 붙여넣기 → Run
+
+```sql
 insert into storage.buckets (id, name, public)
 values ('event-images', 'event-images', true)
-on conflict (id) do nothing;
+on conflict (id) do update set public = true;
+```
 
--- 업로드·삭제는 team_writers 등록 계정만
+확인: 좌측 **Storage** 메뉴에 `event-images` 버킷이 보이면 성공.
+SQL이 권한 오류로 막히면 Storage → **New bucket** → 이름 `event-images` →
+**Public bucket 켜기** → Create 로 대체 가능 (결과 동일).
+
+**③ 쓰기 정책** — 지우고 다시 붙여넣기 → Run
+
+```sql
 drop policy if exists "event-images write" on storage.objects;
 create policy "event-images write" on storage.objects
   for insert to authenticated
@@ -326,6 +339,23 @@ drop policy if exists "event-images delete" on storage.objects;
 create policy "event-images delete" on storage.objects
   for delete to authenticated
   using (bucket_id = 'event-images' and is_team_writer());
+```
+
+`must be owner of table objects` 오류가 나면 SQL로는 정책을 못 만드는 프로젝트다 —
+Storage → event-images → **Policies** → New policy → INSERT/DELETE 각각
+대상 `authenticated`, 조건 `is_team_writer()` 로 생성.
+
+**설치 확인** (셋 다 끝난 뒤 Run — 3행이 모두 true면 완료):
+
+```sql
+select 'images 컬럼' as 항목,
+       exists(select 1 from information_schema.columns
+              where table_name='media_events' and column_name='images') as ok
+union all
+select '버킷', exists(select 1 from storage.buckets where id='event-images')
+union all
+select '쓰기 정책', exists(select 1 from pg_policies
+       where tablename='objects' and policyname='event-images write');
 ```
 
 - 실행 전까지: 일정 상세의 "＋ 이미지 첨부" 저장만 실패(안내 문구) — 기존 기능 무영향
