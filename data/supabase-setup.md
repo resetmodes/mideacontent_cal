@@ -277,6 +277,7 @@ alter table rmn_bookings add column if not exists option text;
 alter table rmn_bookings add column if not exists images jsonb;
 ```
 
+- **10장 2단계 SQL을 실행했다면 이 컬럼도 이미 포함되어 있음** (아래는 단독 실행용)
 - 미실행 시: RMN "이미지" 버튼에서 저장만 실패(안내 문구) — 그 외 무영향
 - 파일은 event-images 공개 버킷의 `rmn/{부킹id}/` 경로 — 붙여넣기(Ctrl+V) 업로드 지원
 
@@ -304,32 +305,23 @@ alter table rmn_bookings add column if not exists images jsonb;
 파일 경로에 일정 UUID + 타임스탬프가 들어가 링크 소지자 외에는 사실상 열람 불가.
 업로드·삭제는 로그인 + team_writers 전용.
 
-**세 번에 나눠 실행할 것** — SQL Editor는 한 번의 Run이 통째로 한 트랜잭션이라, 뒤쪽
-정책문이 실패하면 **앞의 버킷 생성까지 함께 롤백**된다 (성공한 줄 알았는데 버킷이 없는
-상태가 됨 — '26.7.24 실제 발생). 나눠 실행하면 어디서 막혔는지 바로 보인다.
+**버킷은 클릭으로, SQL은 한 번만.** 버킷 생성까지 SQL로 하면 뒤쪽 정책문이 실패할 때
+**앞의 버킷 생성까지 함께 롤백**된다 (SQL Editor의 한 Run = 한 트랜잭션 — 성공한 줄 알았는데
+버킷이 없는 상태가 됨, '26.7.24 실제 발생). 버킷만 대시보드로 만들면 그 함정이 사라진다.
 
-**① 컬럼 추가** — SQL Editor → New query → 붙여넣기 → Run
+**1단계 — 버킷 만들기 (클릭)**
+
+1. 좌측 **Storage** → **New bucket**
+2. Name: `event-images`
+3. **Public bucket 토글 켜기** (미러에서 이미지가 보이려면 필수)
+4. **Create**
+
+**2단계 — SQL 1회** (SQL Editor → New query → 붙여넣기 → Run)
 
 ```sql
 alter table media_events add column if not exists images jsonb;
 alter table rmn_bookings add column if not exists images jsonb;
-```
 
-**② 버킷 생성** — 같은 창에서 지우고 다시 붙여넣기 → Run
-
-```sql
-insert into storage.buckets (id, name, public)
-values ('event-images', 'event-images', true)
-on conflict (id) do update set public = true;
-```
-
-확인: 좌측 **Storage** 메뉴에 `event-images` 버킷이 보이면 성공.
-SQL이 권한 오류로 막히면 Storage → **New bucket** → 이름 `event-images` →
-**Public bucket 켜기** → Create 로 대체 가능 (결과 동일).
-
-**③ 쓰기 정책** — 지우고 다시 붙여넣기 → Run
-
-```sql
 drop policy if exists "event-images write" on storage.objects;
 create policy "event-images write" on storage.objects
   for insert to authenticated
@@ -345,7 +337,7 @@ create policy "event-images delete" on storage.objects
 Storage → event-images → **Policies** → New policy → INSERT/DELETE 각각
 대상 `authenticated`, 조건 `is_team_writer()` 로 생성.
 
-**설치 확인** (셋 다 끝난 뒤 Run — 3행이 모두 true면 완료):
+**설치 확인** (Run — 3행이 모두 true면 완료):
 
 ```sql
 select 'images 컬럼' as 항목,
