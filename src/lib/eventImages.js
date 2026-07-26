@@ -30,10 +30,16 @@ async function req(url, options = {}) {
       ...options.headers,
     },
   })
-  if (res.status === 403) throw new Error('이 계정은 이미지 첨부 권한이 없습니다 (team_writers 미등록)')
-  if (res.status === 404 || res.status === 400) throw new Error('이미지 버킷 미설정 — setup.md 10장 SQL 실행 필요')
-  if (!res.ok) throw new Error(`이미지 업로드 실패 (${res.status})`)
-  return res
+  if (res.ok) return res
+  /* Storage는 실패 사유를 본문에 담아 줌 — 상태코드만으로 뭉뚱그리면 오진('26.7.24).
+     버킷 없음 / 권한(RLS) / 그 외를 구분하고, 서버 원문도 함께 노출해 진단이 바로 되게 */
+  let detail = ''
+  try { const j = await res.json(); detail = j.message || j.error || '' } catch { /* 본문 없음 */ }
+  if (res.status === 404 || /bucket not found/i.test(detail))
+    throw new Error('event-images 버킷이 없습니다 — Supabase Storage에 버킷 생성 필요 (setup.md 10장)')
+  if (res.status === 403 || /row-level security|unauthorized|violates/i.test(detail))
+    throw new Error(`업로드 권한 거부 — Storage 정책 미생성이거나 team_writers 미등록 (setup.md 10장)${detail ? ` · 서버: ${detail}` : ''}`)
+  throw new Error(`이미지 업로드 실패 (${res.status})${detail ? ` — ${detail}` : ''}`)
 }
 
 /* 업로드 — 반환 메타를 media_events.images에 추가해 저장할 것 (store.updateEventImages) */
@@ -43,9 +49,11 @@ export async function uploadEventImage(eventId, file) {
   if (f.size > MAX_FILE) throw new Error(`파일이 10MB를 넘습니다 (${(f.size / 1048576).toFixed(1)}MB)`)
   const safe = f.name.replace(/[^\w가-힣.\-]/g, '_')
   const path = `${eventId}/${Date.now()}_${safe}`
+  /* x-upsert 미사용 — 경로에 타임스탬프가 있어 충돌이 없고, upsert는 INSERT 외에
+     UPDATE 정책까지 요구해 RLS에 걸릴 수 있음 ('26.7.24) */
   await req(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': f.type || 'application/octet-stream', 'x-upsert': 'true' },
+    headers: { 'Content-Type': f.type || 'application/octet-stream' },
     body: f,
   })
   return { name: f.name, path, size: f.size }
