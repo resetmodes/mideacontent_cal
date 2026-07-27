@@ -68,8 +68,11 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
         </div>
       )}
       {editable && imgs.length < MAX_IMAGES && (
-        <button className="md-hist-link" onClick={() => fileRef.current?.click()} disabled={busy}>
-          {busy ? '업로드 중…' : `＋ 이미지 첨부${imgs.length ? ` (${imgs.length}/${MAX_IMAGES})` : ` — ${hint}`} · 붙여넣기(Ctrl+V) 가능`}
+        <button className="img-add-btn" onClick={() => fileRef.current?.click()} disabled={busy}>
+          {busy ? '업로드 중…' : (
+            <>＋ 이미지 첨부{imgs.length ? ` (${imgs.length}/${MAX_IMAGES})` : ` — ${hint}`}
+              <small>클릭해서 선택 · 붙여넣기(Ctrl+V)</small></>
+          )}
         </button>
       )}
       {err && <div className="md-imgs-err">{err}</div>}
