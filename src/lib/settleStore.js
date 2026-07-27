@@ -95,8 +95,10 @@ export async function compressImage(file) {
 export async function uploadSettleFile(settleId, file, slot) {
   const f = await compressImage(file)
   if (f.size > MAX_FILE) throw new Error(`파일이 10MB를 넘습니다 (${(f.size / 1048576).toFixed(1)}MB) — PDF 분할·이미지 변환 후 재시도`)
-  const safe = f.name.replace(/[^\w가-힣.\-]/g, '_')
-  const path = `${settleId}/${slot}_${Date.now()}_${safe}`
+  /* Storage 키는 ASCII만 허용 — 한글 파일명은 "Invalid key" 400 ('26.7.27 캘린더 첨부와
+     동일 사고). 경로는 슬롯+타임스탬프+난수, 원본 이름은 메타(name)에만 (ZIP 폴더링은 메타 사용) */
+  const ext = (f.name.match(/\.([A-Za-z0-9]+)$/)?.[1] || 'bin').toLowerCase()
+  const path = `${settleId}/${slot}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`
   await req(`${STORE()}/${BUCKET}/${path}`, {
     method: 'POST',
     headers: { 'Content-Type': f.type || 'application/octet-stream', 'x-upsert': 'true' },

@@ -47,8 +47,10 @@ export async function uploadEventImage(eventId, file) {
   if (!/^image\//i.test(file.type)) throw new Error('이미지 파일만 첨부할 수 있습니다 (JPG·PNG 등)')
   const f = await compressImage(file)
   if (f.size > MAX_FILE) throw new Error(`파일이 10MB를 넘습니다 (${(f.size / 1048576).toFixed(1)}MB)`)
-  const safe = f.name.replace(/[^\w가-힣.\-]/g, '_')
-  const path = `${eventId}/${Date.now()}_${safe}`
+  /* Storage 키는 ASCII만 허용 — 한글 파일명은 "Invalid key" 400 ('26.7.27 사고).
+     경로는 타임스탬프+난수로 만들고, 원본 이름(한글 포함)은 메타(name)에만 보존 */
+  const ext = (f.name.match(/\.([A-Za-z0-9]+)$/)?.[1] || 'jpg').toLowerCase()
+  const path = `${eventId}/${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`
   /* x-upsert 미사용 — 경로에 타임스탬프가 있어 충돌이 없고, upsert는 INSERT 외에
      UPDATE 정책까지 요구해 RLS에 걸릴 수 있음 ('26.7.24) */
   await req(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
