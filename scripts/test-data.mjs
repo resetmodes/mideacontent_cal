@@ -326,15 +326,21 @@ for (const m of MEDIA) {
     bad('supabase-setup.md: 10장(event-images 버킷·images 컬럼) SQL 누락')
 }
 
-/* 10. 노션 동기화 매핑 ('26.7) — 인스타 행만·날짜 필수·제목/기간/캠페인 매핑 회귀 */
+/* 10. 노션 동기화 매핑 ('26.7) — 업로드→매체 / 촬영→촬영탭 분리·날짜 없는 행 스킵 회귀 */
 {
   const { mapPage } = await import('./notion/sync-notion.mjs')
   const mock = JSON.parse(readFileSync(new URL('../data/notion-mock.json', import.meta.url), 'utf8'))
-  const mapped = mock.pages.map(mapPage).filter(Boolean)
-  if (mapped.length !== 2) bad(`notion 매핑: 인스타 2건이어야 하는데 ${mapped.length}건 (유튜브·날짜없음 행이 새어 들어옴)`)
-  const a = mapped.find(r => r.notion_id === 'nid-1')
-  if (!a || a.title !== '여름 룩북 릴스' || a.date !== '2026-08-05' || a.campaign !== '여름' || a.channel !== '인스타')
-    bad('notion 매핑: nid-1 제목/날짜/캠페인/채널 불일치')
+  const mapped = mock.pages.flatMap(mapPage)
+  if (mapped.length !== 4) bad(`notion 매핑: 4건이어야 하는데 ${mapped.length}건 (날짜 없는 행 스킵·2날짜 분리 확인)`)
+  const up = mapped.find(r => r.notion_id === 'nid-1')
+  if (!up || up.kind !== null || up.date !== '2026-08-05' || up.channel !== '인스타')
+    bad('notion 매핑: nid-1 업로드 건(매체 캘린더) 불일치')
+  const sh = mapped.find(r => r.notion_id === 'nid-1#shoot')
+  if (!sh || sh.kind !== '촬영' || sh.date !== '2026-08-01')
+    bad('notion 매핑: nid-1 촬영 건(#shoot 키·kind) 불일치')
+  const only = mapped.find(r => r.notion_id === 'nid-3#shoot')
+  if (!only || mapped.some(r => r.notion_id === 'nid-3'))
+    bad('notion 매핑: 촬영만 있는 행은 촬영 건 1건이어야 함')
   const b = mapped.find(r => r.notion_id === 'nid-2')
   if (!b || b.end_date !== '2026-08-12') bad('notion 매핑: nid-2 기간(end) 불일치')
 }
