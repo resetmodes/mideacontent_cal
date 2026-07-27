@@ -326,5 +326,18 @@ for (const m of MEDIA) {
     bad('supabase-setup.md: 10장(event-images 버킷·images 컬럼) SQL 누락')
 }
 
+/* 10. 노션 동기화 매핑 ('26.7) — 인스타 행만·날짜 필수·제목/기간/캠페인 매핑 회귀 */
+{
+  const { mapPage } = await import('./notion/sync-notion.mjs')
+  const mock = JSON.parse(readFileSync(new URL('../data/notion-mock.json', import.meta.url), 'utf8'))
+  const mapped = mock.pages.map(mapPage).filter(Boolean)
+  if (mapped.length !== 2) bad(`notion 매핑: 인스타 2건이어야 하는데 ${mapped.length}건 (유튜브·날짜없음 행이 새어 들어옴)`)
+  const a = mapped.find(r => r.notion_id === 'nid-1')
+  if (!a || a.title !== '여름 룩북 릴스' || a.date !== '2026-08-05' || a.campaign !== '여름' || a.channel !== '인스타')
+    bad('notion 매핑: nid-1 제목/날짜/캠페인/채널 불일치')
+  const b = mapped.find(r => r.notion_id === 'nid-2')
+  if (!b || b.end_date !== '2026-08-12') bad('notion 매핑: nid-2 기간(end) 불일치')
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)

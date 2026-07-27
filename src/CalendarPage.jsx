@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { CHANNELS, TEAM_TYPES, TEAM_KEYWORDS, channelById } from './data/channels.js'
 import { parseQuick, toISO, fromISO, displayTitle } from './lib/parse.js'
-import { listEvents, createEvent, updateEvent, updateEventImages, deleteEvent, renameCampaign, listHistory, listDeleted, storageMode } from './lib/store.js'
+import { listEvents, createEvent, updateEvent, updateEventImages, deleteEvent, renameCampaign, listHistory, listDeleted, resolveNotionGone, storageMode } from './lib/store.js'
 import ImageAttach from './ImageAttach.jsx'
 import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
 import { findPerformance } from './lib/perf.js'
 import { authorName, withAuthorName } from './data/team.js'
 import { HOLIDAYS, CLOSED_DAYS } from './data/holidays.js'
-import { MIRROR_URL } from './config.js'
+import { MIRROR_URL, NOTION_REVIEW_EMAILS } from './config.js'
 import ChannelIcon from './ChannelIcon.jsx'
 import ShareButton from './ShareButton.jsx'
 
@@ -1072,6 +1072,35 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
   )
 }
 
+/* ── 노션 삭제 검토 배너 ('26.7) — 노션에서 지워진 동기화 일정을 사람이 [삭제/유지]로
+   결정 (자동 삭제 안 함, 사용자 결정). NOTION_REVIEW_EMAILS 계정에만 노출.
+   유지 = 연동 분리(notion_id 제거 — 다시 안 뜸), 삭제 = 2단계 확인 후 실제 삭제 ── */
+function NotionReview({ list, onResolve }) {
+  const [open, setOpen] = useState(false)
+  const [arm, setArm] = useState(null)
+  return (
+    <div className="notion-review">
+      <button className="nr-head" onClick={() => setOpen(o => !o)}>
+        노션에서 삭제된 일정 <b>{list.length}건</b> — 우리 캘린더에서 지울지 확인 필요
+        <span className="nr-chev">{open ? '접기' : '확인'}</span>
+      </button>
+      {open && list.map(e => (
+        <div key={e.id} className="nr-row">
+          <ChannelIcon id={e.channel} />
+          <span className="nr-title">{displayTitle(e.title, e.channel)}</span>
+          <span className="mute">{fmtRange(e)}</span>
+          <span className="md-spacer" />
+          <button className="btn-ghost sm" onClick={() => onResolve(e.id, true)}>유지 (연동만 분리)</button>
+          <button className={'btn-ghost sm danger' + (arm === e.id ? ' arm' : '')}
+            onClick={() => { if (arm !== e.id) { setArm(e.id); return } setArm(null); onResolve(e.id, false) }}>
+            {arm === e.id ? '한 번 더' : '삭제'}
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, team = false }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -1131,6 +1160,20 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
       setSelected(sel => (sel?.id === id ? ev : sel))   // 열린 모달도 즉시 갱신 (실적 확정 등)
     } catch (err) { setError(err.message) }
   }
+  /* 노션 삭제 검토 ('26.7) — 규빈 계정 + 매체 캘린더 탭에서만. 유지 = 연동 분리, 삭제 = 실삭제 */
+  const notionGoneList = useMemo(() => (
+    readOnly || team || shoot || !NOTION_REVIEW_EMAILS.includes((session?.email || '').toLowerCase())
+      ? [] : events.filter(e => e.notionGone)
+  ), [events, readOnly, team, shoot, session])
+  const onNotionResolve = async (id, keep) => {
+    try {
+      await resolveNotionGone(id, keep)
+      setEvents(prev => keep
+        ? prev.map(x => (x.id === id ? { ...x, notionGone: false, notionId: null } : x))
+        : prev.filter(x => x.id !== id))
+    } catch (err) { setError(err.message) }
+  }
+
   /* 이미지 첨부 메타만 부분 갱신 ('26.7) — 목록·열린 모달 즉시 반영 */
   const onImages = async (id, images) => {
     const ev = await updateEventImages(id, images)
@@ -1290,6 +1333,10 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
         </div>
       )}
       {error && <div className="store-err">{error}</div>}
+
+      {notionGoneList.length > 0 && (
+        <NotionReview list={notionGoneList} onResolve={onNotionResolve} />
+      )}
 
       {!readOnly && (
         <QuickAdd onCreate={onCreate} campaigns={campaigns} shoot={shoot} team={team} />
