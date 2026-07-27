@@ -79,7 +79,9 @@
   자동 생성 파일, 직접 수정 금지
 - **수집 파이프라인 내장 ('26.7 이전 완료)**: `scripts/sns/` — accounts.mjs(계정 메타 단일 소스),
   scrape/clean × 인스타·유튜브. `npm run sns:collect` = 수집+정제 전체.
-  `.github/workflows/sns-collect.yml` — 매주 월 09:00 KST 자동('26.7 매주 전환, 비용 항목 참조) + 수동(Run workflow),
+  `.github/workflows/sns-collect.yml` — 매주 월 06:00 KST 자동('26.7.27 사용자 지정, `0 21 * * 0` — UTC 일요일 주의.
+  '26.7 매주 전환, 비용 항목 참조. **sns-collect도 '26.7.27 크론 무발화 사고** — notify.yml과 동일 원인,
+  크론 변경은 GitHub 웹에서 본인 커밋으로) + 수동(Run workflow),
   결과를 src/data/sns에 커밋 → Vercel 자동 재배포. APIFY_TOKEN은 GitHub Secret + 로컬 .env
   (.env는 gitignore — 절대 커밋 금지). raw는 data/sns-raw(미추적)
 - **UGC 모니터링 ('26.7 추가)**: 모니터링 탭 세 번째 세그먼트 "UGC" — 고객·인플루언서가
@@ -328,16 +330,17 @@
   (제목이 휴점/휴점일뿐일 때) → `kind='휴점'` 마커 저장 (media_events 재사용, 새 SQL 불필요).
   전 탭 셀 틴트 + 하루 시트 "휴점 해제"로 삭제 (정적 CLOSED_DAYS는 코드값이라 해제 버튼 없음).
   휴점 이벤트는 일정 행에서 제외(셀 마커 전용). CalendarApp closedDays/closedEvt 병합
-- **팀즈 아침 브리핑 ('26.7 확정)**: `.github/workflows/notify.yml` — 평일 08:52 KST 팀즈
+- **팀즈 아침 브리핑 ('26.7 확정)**: `.github/workflows/notify.yml` — 평일 09:00 KST 정각
+  ('26.7.27 사용자 지정) 팀즈
   채널로 요약 카드 3섹션 (① 오늘 팀원 일정 = kind='팀', 기념일은 월-일 일치 ② 오늘 촬영 일정
   ③ 오늘 업로드 일정) + 하단 "캘린더 보러가기" 버튼.
   **미발송 사고 ('26.7.24 → 7.27 재발, 진범 확정)**: 7/24는 "00:00 UTC 혼잡"으로 진단하고
   크론만 옮겼으나 7/27 또 미발송 → 실행 기록 전수 대조로 진범 발견: **앱 토큰(Claude 통합)
   push로는 GitHub이 크론 변경을 재등록하지 않는다.** 물증 = 최초 크론(`0 23`)은 지연 발화라도
   했고(7/22 23:57Z, 당시 파일은 이미 새 크론), 이후 변경한 크론('0 0'→'52 23')은 3슬롯 연속
-  무발화. **조치**: ① 크론 이중화 — 본편 `52 23 * * 0-4`(08:52 KST) + 백업 `25 0 * * 1-5`
-  (09:25 KST), 백업은 "오늘 KST 성공 schedule 발송 있으면 생략" 가드(gh api dedup,
-  permissions actions:read) ② **크론 변경은 반드시 GitHub 웹 UI에서 사용자 본인 커밋으로**
+  무발화. **조치**: ① 크론 이중화 — 본편 `0 0 * * 1-5`(09:00 KST 정각, '26.7.27 사용자 지정) +
+  백업 `25 0 * * 1-5`(09:25 KST), 백업은 "오늘 KST 성공 schedule 발송 있으면 생략" 가드
+  (gh api dedup, permissions actions:read) ② **크론 변경은 반드시 GitHub 웹 UI에서 사용자 본인 커밋으로**
   (재등록 트리거 — notify.yml 상단 주석에도 명기). UTC 23시대 = KST 다음날이라 요일 하루
   앞(일~목 = KST 월~금). daily-brief.mjs는 KST 보정(kstNow)이라 시각 무영향.
   누락 시 복구 = Actions에서 notify.yml Run workflow 수동 실행(ALWAYS_SEND 자동). **RMN·정산·휴점 등 기타 항목은 전부
