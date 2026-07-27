@@ -83,7 +83,10 @@ h1{font-size:clamp(30px,6vw,44px);font-weight:800;letter-spacing:-0.02em;line-he
 .ref-thumb img{width:100%;border:1px solid var(--g200);display:block;}
 .ref-thumb span{font-size:11px;font-weight:600;color:var(--g400);letter-spacing:.04em;}
 .ref-thumb:hover span{color:var(--green);}
-.media-visual{max-width:420px;margin:2px 0 16px;}
+/* 매체 대표 비주얼 — 본문 우측 열 ('26.7 변경: 상단 통짜 → 사이니지 지면 카드와 같은 우측 배치) */
+.media.open .media-body.has-visual{display:grid;grid-template-columns:minmax(0,1fr) 200px;gap:20px;align-items:start;}
+.media-body.has-visual .mb-main{min-width:0;}
+.media-visual{position:sticky;top:14px;margin:2px 0 0;}
 .ref-lightbox{position:fixed;inset:0;background:rgba(23,23,25,.72);z-index:120;cursor:zoom-out;
   display:flex;align-items:center;justify-content:center;padding:24px;}
 .ref-lightbox img{max-width:min(1100px,96vw);max-height:92vh;background:#fff;display:block;}
@@ -105,6 +108,9 @@ h1{font-size:clamp(30px,6vw,44px);font-weight:800;letter-spacing:-0.02em;line-he
   .slot2{grid-template-columns:1fr;}
   .ref-thumb{max-width:300px;margin-top:4px;}
   .cg-body{grid-template-columns:1fr;}
+  /* 모바일: 우측 열이 없으니 대표 비주얼을 본문 위로 (기존 모바일 경험 유지) */
+  .media.open .media-body.has-visual{display:flex;flex-direction:column;}
+  .media-body.has-visual .media-visual{order:-1;position:static;max-width:300px;margin:2px 0 14px;}
 }
 
 /* 진행 프로세스 — D-day 타임라인 (타이포 기반) */

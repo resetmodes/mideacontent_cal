@@ -195,37 +195,42 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRe
           <div className="m-due">요청 <b>{m.lead}</b></div>
         </div>
       </div>
-      <div className="media-body">
-        {m.target && <div className="m-target">{hl(m.target, query)}</div>}
-        {/* 매체 대표 비주얼 (채널 캡처·목업 등 — 자산 있으면 media.visual에 파일명 한 줄) */}
+      <div className={'media-body' + (m.visual ? ' has-visual' : '')}>
+        {/* 매체 대표 비주얼 ('26.7 레이아웃 변경) — 사이니지 지면 카드처럼 본문 우측 열에
+           고정 표시 (이전엔 본문 상단 통짜라 스펙이 밀려 보였음). 앞으로 어느 매체든
+           media.visual에 파일명 한 줄만 넣으면 자동으로 우측 배치 */}
+        <div className="mb-main">
+          {m.target && <div className="m-target">{hl(m.target, query)}</div>}
+          {m.slots.map((s, i) => <Slot key={i} s={s} query={query} onRef={onRef} />)}
+          {m.process && <Timeline process={m.process} query={query} />}
+          {Object.keys(extras).length > 0 && (
+            <dl className="spec-grid">
+              {Object.entries(extras).map(([k, v]) => {
+                const ban = k === '금지사항'
+                return (
+                  <React.Fragment key={k}>
+                    <dt className={ban ? 'ban' : ''}>{k}</dt>
+                    <dd className={ban ? 'ban' : ''}>{hl(v, query)}</dd>
+                  </React.Fragment>
+                )
+              })}
+            </dl>
+          )}
+          {!m.verified && (
+            <div className="src draft"><b>검증 전 가안</b> — 담당 파트 확인 필요</div>
+          )}
+          {!isExternal && !mirror && (
+            <div className="spec-share">
+              대행사·지점 전달용 — 로그인 없이 이 매체만 열림 (담당자·내부 지표 자동 숨김)
+              <CopyMediaLink name={m.name} />
+            </div>
+          )}
+        </div>
         {m.visual && (
           <button className="ref-thumb media-visual" onClick={() => onRef(m.visual)} title="크게 보기">
             <img loading="lazy" src={`${import.meta.env.BASE_URL}media-ref/${m.visual}`} alt={`${m.name} 레퍼런스`} />
+            <span>크게 보기</span>
           </button>
-        )}
-        {m.slots.map((s, i) => <Slot key={i} s={s} query={query} onRef={onRef} />)}
-        {m.process && <Timeline process={m.process} query={query} />}
-        {Object.keys(extras).length > 0 && (
-          <dl className="spec-grid">
-            {Object.entries(extras).map(([k, v]) => {
-              const ban = k === '금지사항'
-              return (
-                <React.Fragment key={k}>
-                  <dt className={ban ? 'ban' : ''}>{k}</dt>
-                  <dd className={ban ? 'ban' : ''}>{hl(v, query)}</dd>
-                </React.Fragment>
-              )
-            })}
-          </dl>
-        )}
-        {!m.verified && (
-          <div className="src draft"><b>검증 전 가안</b> — 담당 파트 확인 필요</div>
-        )}
-        {!isExternal && !mirror && (
-          <div className="spec-share">
-            대행사·지점 전달용 — 로그인 없이 이 매체만 열림 (담당자·내부 지표 자동 숨김)
-            <CopyMediaLink name={m.name} />
-          </div>
         )}
       </div>
     </div>
