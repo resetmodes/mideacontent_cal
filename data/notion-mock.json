@@ -1,41 +1,37 @@
 {
-  "_설명": "sync-notion.mjs --mock 검증용 — 노션 API 응답 축약본. 기대 결과: 인스타 2건(릴스=신규, 피드=제목 갱신), 유튜브·날짜없음 행 제외, nid-gone 행 gone 마킹",
+  "_설명": "sync-notion.mjs --mock 검증용 — '업무 요청 현황' DB 축약본 (업로드 일정·촬영 일정 2날짜). 기대: 일정 4건(신규 3·갱신 1), 날짜 없는 행 스킵, nid-gone 행 gone 마킹",
   "pages": [
     {
       "id": "nid-1", "url": "https://notion.so/p1",
       "properties": {
-        "이름": { "type": "title", "title": [{ "plain_text": "여름 룩북 릴스" }] },
-        "일정": { "type": "date", "date": { "start": "2026-08-05", "end": null } },
-        "매체": { "type": "select", "select": { "name": "인스타그램" } },
-        "캠페인": { "type": "select", "select": { "name": "여름" } }
+        "이름": { "type": "title", "title": [{ "plain_text": "목동 흰디테마 현장 스케치" }] },
+        "업로드 일정": { "type": "date", "date": { "start": "2026-08-05", "end": null } },
+        "촬영 일정": { "type": "date", "date": { "start": "2026-08-01", "end": null } }
       }
     },
     {
       "id": "nid-2", "url": "https://notion.so/p2",
       "properties": {
-        "이름": { "type": "title", "title": [{ "plain_text": "신상 피드 (수정본)" }] },
-        "일정": { "type": "date", "date": { "start": "2026-08-10", "end": "2026-08-12" } },
-        "매체": { "type": "multi_select", "multi_select": [{ "name": "인스타" }, { "name": "카톡" }] }
+        "이름": { "type": "title", "title": [{ "plain_text": "샤넬 뷰티 코코 (수정본)" }] },
+        "업로드 일정": { "type": "date", "date": { "start": "2026-08-10", "end": "2026-08-12" } }
       }
     },
     {
       "id": "nid-3", "url": "https://notion.so/p3",
       "properties": {
-        "이름": { "type": "title", "title": [{ "plain_text": "유튜브 언박싱" }] },
-        "일정": { "type": "date", "date": { "start": "2026-08-07", "end": null } },
-        "매체": { "type": "select", "select": { "name": "유튜브" } }
+        "이름": { "type": "title", "title": [{ "plain_text": "더현서 축구팝업 스케치" }] },
+        "촬영 일정": { "type": "date", "date": { "start": "2026-08-07", "end": null } }
       }
     },
     {
       "id": "nid-4", "url": "https://notion.so/p4",
       "properties": {
-        "이름": { "type": "title", "title": [{ "plain_text": "날짜 없는 행" }] },
-        "매체": { "type": "select", "select": { "name": "인스타그램" } }
+        "이름": { "type": "title", "title": [{ "plain_text": "날짜 미정 요청 건" }] }
       }
     }
   ],
   "existing": [
-    { "id": "e-2", "notion_id": "nid-2", "title": "신상 피드", "date": "2026-08-10", "end_date": "2026-08-12", "notion_gone": false },
+    { "id": "e-2", "notion_id": "nid-2", "title": "샤넬 뷰티 코코", "date": "2026-08-10", "end_date": "2026-08-12", "notion_gone": false },
     { "id": "e-9", "notion_id": "nid-gone", "title": "지워진 일정", "date": "2026-08-01", "end_date": null, "notion_gone": false }
   ]
 }
