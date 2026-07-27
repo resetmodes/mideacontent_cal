@@ -11,6 +11,7 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
   const [err, setErr] = useState(null)
   const [view, setView] = useState(null)      // 라이트박스로 보는 이미지
   const [armDel, setArmDel] = useState(null)  // × 1회 클릭 = 확인 대기 상태 (path)
+  const [dragOver, setDragOver] = useState(false)  // 드래그앤드롭 하이라이트
   const fileRef = useRef(null)
 
   const addFiles = async fileList => {
@@ -68,10 +69,19 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
         </div>
       )}
       {editable && imgs.length < MAX_IMAGES && (
-        <button className="img-add-btn" onClick={() => fileRef.current?.click()} disabled={busy}>
-          {busy ? '업로드 중…' : (
+        <button
+          className={'img-add-btn' + (dragOver ? ' drag' : '')}
+          onClick={() => fileRef.current?.click()} disabled={busy}
+          onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={e => {
+            e.preventDefault(); setDragOver(false)
+            if (!busy) addFiles(e.dataTransfer.files)   // 이미지 외 파일은 addFiles가 걸러냄
+          }}
+        >
+          {busy ? '업로드 중…' : dragOver ? '여기에 놓으면 업로드됩니다' : (
             <>＋ 이미지 첨부{imgs.length ? ` (${imgs.length}/${MAX_IMAGES})` : ` — ${hint}`}
-              <small>클릭해서 선택 · 붙여넣기(Ctrl+V)</small></>
+              <small>클릭해서 선택 · 드래그앤드롭 · 붙여넣기(Ctrl+V)</small></>
           )}
         </button>
       )}
