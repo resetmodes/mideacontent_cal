@@ -7,10 +7,13 @@ name: SNS 데이터 수집
 #
 # ⚠ cron에 날짜+요일을 함께 쓰면 안 됨: '0 0 1-7,15-21 * 1' 같은 표현은
 # 표준 cron OR 규칙 때문에 "해당 날짜 매일 + 모든 월요일"로 동작 ('26.7 사고 3)
+# ⚠ 크론 변경은 GitHub 웹 UI에서 사용자 본인 커밋으로 — 앱 토큰(Claude 통합) push는
+#   스케줄 재등록이 안 됨 ('26.7.27 미발화 사고, notify.yml과 동일 원인)
 on:
   schedule:
-    # 매주 월요일 00:00 UTC = 09:00 KST
-    - cron: '0 0 * * 1'
+    # 매주 월요일 06:00 KST = 일요일 21:00 UTC ('26.7.27 사용자 지정 — 요일이 UTC 기준
+    # 하루 앞(일)인 것에 주의)
+    - cron: '0 21 * * 0'
   workflow_dispatch: {}   # Actions 탭 'Run workflow' 버튼으로 수동 실행
 
 permissions:
