@@ -8,8 +8,13 @@ const NAMES = new Set(MEDIA.map(m => m.name))
 /* 키 형식: `${channel}|${sub}` (세부 없으면 `${channel}|`)
    export는 정합성 테스트(scripts/test-data.mjs)용 — 값이 MEDIA 이름과 어긋나면 테스트가 잡음 */
 export const SPEC_LINK_MAP = {
-  '인스타|': '인스타그램 대표계정 (the_hyundai)',
-  '유튜브|': '유튜브 (현대백화점 THE HYUNDAI)',
+  '인스타|': '인스타그램 · 공식 (the_hyundai)',
+  '인스타|공식': '인스타그램 · 공식 (the_hyundai)',
+  '인스타|도시': '인스타그램 · 도시매뉴얼 (dosi.manual)',
+  '유튜브|': '유튜브 · 공식 (THE HYUNDAI)',
+  '유튜브|공식': '유튜브 · 공식 (THE HYUNDAI)',
+  '유튜브|룸넘버': '유튜브 · 룸넘버 (ROOMNUMBER)',
+  '유튜브|이야호': '유튜브 · 이야호 (이야호스튜디오)',
   '유튜브|와지트': '와지트',
   '카카오톡|': '카카오톡 대표계정',
   '카카오톡|친구톡': '친구톡 와이드',
