@@ -358,3 +358,41 @@ select '쓰기 정책', exists(select 1 from pg_policies
   일정당 최대 5장, 파일당 상한 10MB. 무료 플랜 Storage 1GB ≈ 3,000장 이상
 - 일정을 삭제해도 실파일은 남습니다(어드민 "삭제 복원"이 이미지까지 살리기 위함) —
   이미지 개별 × 버튼으로 지울 때만 실파일 삭제. 대량 정리는 Storage 대시보드에서
+
+## 11. 노션 캘린더 동기화 ('26.7 — 인스타 전용, 단방향)
+
+대행사 공용 노션 캘린더 DB의 "인스타" 일정을 매체 캘린더로 끌어옵니다
+(매시 자동, `.github/workflows/notion-sync.yml`). 노션에서 지운 일정은 자동 삭제하지
+않고 규빈 계정 검토 배너에서 [삭제/유지]로 결정.
+
+### 11-1. SQL 1회 (컬럼 2개)
+
+```sql
+alter table media_events add column if not exists notion_id text;
+alter table media_events add column if not exists notion_gone boolean default false;
+create unique index if not exists media_events_notion_id
+  on media_events (notion_id) where notion_id is not null;
+```
+
+### 11-2. 노션 통합 만들기 + DB 연결 (각 2분)
+
+1. notion.so/my-integrations → **New integration** → 이름 `media-cal-sync`
+   → 대행사 공용 워크스페이스 선택 → 만들기 → **Internal Integration Secret 복사**
+2. 노션에서 대상 캘린더 DB 열기 → 우측 상단 **⋯** → **연결(Connections)** →
+   `media-cal-sync` 선택 — **이 DB 하나만** 연결 (통합은 연결된 페이지만 읽을 수 있음)
+
+### 11-3. GitHub Secret 등록
+
+github.com/resetmodes/mideacontent_cal → Settings → Secrets and variables → Actions:
+- `NOTION_TOKEN` = 11-2의 시크릿
+- (통합에 DB를 2개 이상 연결한 경우만) `NOTION_DB` = 대상 DB ID
+
+### 11-4. 크론 활성화 — GitHub 웹에서 본인 커밋 1회 (필수)
+
+앱 토큰 push로는 스케줄이 등록되지 않으므로 (notify.yml 사고와 동일),
+웹에서 `.github/workflows/notion-sync.yml` 열어 주석 한 글자 수정 → main 직접 커밋.
+즉시 1회 실행은 Actions → "노션 캘린더 동기화" → Run workflow.
+
+- 동기화 규칙: 제목·기간만 갱신 — 우리 쪽에서 붙인 캠페인 변경·메모·이미지는 보존.
+  노션발 일정은 작성자 "노션" + 메모에 원본 페이지 링크
+- 미실행 시: 아무 영향 없음 (기존 캘린더 그대로)

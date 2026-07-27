@@ -25,7 +25,9 @@ const fromDb = r => ({
   id: r.id, title: r.title, date: r.date, endDate: r.end_date,
   channel: r.channel, sub: r.sub, campaign: r.campaign,
   owner: r.owner, memo: r.memo, kind: r.kind || null,
-  perfUrl: r.perf_url ?? null, images: r.images || null, createdAt: r.created_at,
+  perfUrl: r.perf_url ?? null, images: r.images || null,
+  notionId: r.notion_id ?? null, notionGone: !!r.notion_gone,   // 노션 동기화 ('26.7)
+  createdAt: r.created_at,
 })
 
 const KEY = 'media-cal-events'
@@ -101,6 +103,19 @@ export async function updateEventImages(id, images) {
   const next = load().map(e => (e.id === id ? { ...e, images } : e))
   save(next)
   return next.find(e => e.id === id)
+}
+
+/* 노션 삭제 검토 해소 ('26.7) — keep=true: 일정은 유지하고 연동만 분리(다시 안 뜸) /
+   keep=false: 우리 쪽도 삭제. 규빈 계정 검토 배너 전용 */
+export async function resolveNotionGone(id, keep) {
+  if (!REMOTE) return
+  if (keep) {
+    await req(`${API}?id=eq.${id}`, {
+      method: 'PATCH', body: JSON.stringify({ notion_gone: false, notion_id: null }),
+    })
+  } else {
+    await req(`${API}?id=eq.${id}`, { method: 'DELETE' })
+  }
 }
 
 export async function deleteEvent(id) {

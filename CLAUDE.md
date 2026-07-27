@@ -515,6 +515,17 @@
   (HomePage SettleBadge, 동적 import라 비대상 계정 비용 0) ⑧ 팀즈 아침 브리핑에
   "정산 증빙 미첨부" 섹션 추가(daily-brief — 테이블 미설정 시 조용히 생략).
   계정과목 목록(SETTLE_ACCOUNTS)은 임시 5종 — 실목록 사용자 전달 대기
+- **노션 캘린더 동기화 ('26.7 — 인스타 전용, 단방향)**: 대행사 공용 노션 캘린더 DB의
+  "인스타" 행만 매체 캘린더로 (`scripts/notion/sync-notion.mjs` + `.github/workflows/
+  notion-sync.yml` 매시 17분). 행 필터 = select/status/multi-select 값에 "인스타" 포함,
+  매핑 = 제목·기간·캠페인(속성명에 '캠페인' 포함 시), 작성자 "노션" + 메모에 원본 링크.
+  upsert 키 = media_events.notion_id — **갱신은 제목·기간만** (우리 쪽에서 붙인 캠페인
+  변경·메모·이미지 보존). **노션에서 지운 일정은 자동 삭제 안 함** ('26.7 사용자 결정) —
+  notion_gone 마킹 → 매체 캘린더 상단 검토 배너(config.js NOTION_REVIEW_EMAILS = 규빈만)
+  에서 건별 [삭제(2단계)/유지(연동 분리 = notion_id 제거)]. store.resolveNotionGone.
+  **사용자 액션: setup.md 11장** (SQL 컬럼 2개 + 노션 통합 생성·DB 연결 + NOTION_TOKEN
+  시크릿 + 크론 웹 커밋). 검증 = --mock --dry-run (data/notion-mock.json, test-data 10 회귀).
+  매체가 인스타→타 값으로 바뀐 행도 gone 처리됨(필터 이탈) — 정상 동작
 - 캘린더 디자인: Wanted DS 참고 — 뉴트럴 그레이 스케일(--g50~--g900), 정돈된 컴포넌트.
   포인트 컬러는 현대그린 유지 (Wanted 블루 미사용)
 

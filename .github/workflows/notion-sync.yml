@@ -1,0 +1,40 @@
+name: 노션 캘린더 동기화
+
+# 대행사 공용 노션 캘린더의 "인스타" 일정을 매체 캘린더로 단방향 동기화 ('26.7).
+# 매시 17분(정각 혼잡 회피). 노션에서 지운 일정은 삭제하지 않고 gone 마킹만 —
+# 캘린더에서 규빈 계정 검토 배너로 [삭제/유지] 결정.
+# 시크릿: NOTION_TOKEN(필수) · SUPABASE_SERVICE_KEY(필수) · NOTION_DB(선택 — DB 여러 개 연결 시)
+#
+# ⚠ 크론 변경은 GitHub 웹 UI에서 사용자 본인 커밋으로 — 앱 토큰 push는 스케줄
+#   재등록이 안 됨 ('26.7.27 notify.yml 사고와 동일. 최초 활성화도 웹 커밋 필요)
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: notion-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node 설치
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 동기화 실행
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          NOTION_DB: ${{ secrets.NOTION_DB }}
+        run: node scripts/notion/sync-notion.mjs

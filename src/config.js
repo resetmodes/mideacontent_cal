@@ -17,6 +17,11 @@ export const ADMIN_EMAILS = [
   'jykim84@thehyundai.com',  // 김자영 책임 ('26.7 추가 — 타겟형 매체 운영)
 ]
 
+/* 노션 동기화 삭제 검토 배너를 보는 계정 ('26.7 — 노션에서 지워진 일정의 삭제/유지 결정) */
+export const NOTION_REVIEW_EMAILS = [
+  'kyuvin@thehyundai.com',   // 노규빈 선임
+]
+
 /* 정산 탭('#settle') 접근 계정 ('26.7 테스트 — 3인. 전 팀 오픈 시 목록 확장 또는 게이트 제거) */
 export const SETTLE_EMAILS = [
   'kyuvin@thehyundai.com',    // 노규빈 선임
