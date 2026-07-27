@@ -41,7 +41,6 @@ export const COMMON_GUIDE = {
 /* 인스타·유튜브 서브 계정 공통 제작 지면 ('26.7 — 계정별 규격 동일, 단일 소스로 재사용) */
 const IG_SLOTS = [
   {name:"스토리", size:"1080 × 1920", cap:"—", kind:"이미지", img:"JPG · PNG"},
-  {name:"캐러셀 정방형", size:"1080 × 1080", cap:"—", kind:"이미지", img:"JPG · PNG"},
   {name:"캐러셀 세로형", size:"1080 × 1350", cap:"—", kind:"이미지", img:"JPG · PNG"},
   {name:"릴스", size:"1080 × 1920", cap:"—", kind:"영상", vid:"MP4 · AVI", vlen:"라이트 30~40초 · 오리지널 60초 이내"},
 ]
@@ -198,7 +197,7 @@ export const MEDIA = [
      "참고 지표":"더현대 대구 '22 — 인스타 팔로워 8.5천 · 도달 월 20만 · 페이지 방문 월 2만"}},
 
   /* ── 자사 매체 · 언드 ───────────────── */
-  {group:"자사 매체", cat:"언드 미디어", name:"인스타그램 대표계정 (the_hyundai)", lead:"D-20", verified:true,
+  {group:"자사 매체", cat:"언드 미디어", name:"인스타그램 · 공식 (the_hyundai)", lead:"D-20", verified:true,
    target:"이슈를 가장 빠르게 전달하는 바이럴 특화 채널. 34세 이하 팔로워 40%.",
    visual:"insta-thehyundai.jpg",
    slots:IG_SLOTS,
@@ -226,7 +225,7 @@ export const MEDIA = [
    visual:"insta-wazit.jpg",
    slots:IG_SLOTS,
    extra:{"담당":"엄혜원 선임 (정) · 김상수 책임 (부)","금지사항":"주류 관련 표현·이미지 검수 필수 (brand-guard 기준)","비고":"인스타그램·스포티파이 동시 운영 · 세부 지표는 매체 모니터링 탭 참조"}},
-  {group:"자사 매체", cat:"언드 미디어", name:"유튜브 (현대백화점 THE HYUNDAI)", lead:"D-30", verified:true,
+  {group:"자사 매체", cat:"언드 미디어", name:"유튜브 · 공식 (THE HYUNDAI)", lead:"D-30", verified:true,
    target:"브랜딩 영상 아카이빙·스토리텔링. 35세 이하 70%. SNS·LCD 미러링 가능.",
    slots:YT_SLOTS,
    process:[
