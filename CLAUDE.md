@@ -331,12 +331,16 @@
 - **팀즈 아침 브리핑 ('26.7 확정)**: `.github/workflows/notify.yml` — 평일 08:52 KST 팀즈
   채널로 요약 카드 3섹션 (① 오늘 팀원 일정 = kind='팀', 기념일은 월-일 일치 ② 오늘 촬영 일정
   ③ 오늘 업로드 일정) + 하단 "캘린더 보러가기" 버튼.
-  **미발송 사고 ('26.7.24)**: 09:00 KST = 00:00 UTC 정각 크론이 GitHub Actions 최대 혼잡
-  슬롯이라 7/24 금 예약 실행이 통째로 누락 (지연·누락은 공식 문서 인정 동작 — 정각 회피 권고).
-  → 크론 `52 23 * * 0-4`(= 평일 08:52 KST)로 이동. **UTC 23시대는 KST 다음날이라 요일도
-  하루 앞으로**(UTC 일~목 = KST 월~금) — 시각 변경 시 요일 이동 함께 계산.
-  daily-brief.mjs의 날짜는 KST 보정(kstNow)이라 시각 이동 무영향. 누락 시 복구 =
-  Actions에서 notify.yml Run workflow 수동 실행(ALWAYS_SEND 자동). **RMN·정산·휴점 등 기타 항목은 전부
+  **미발송 사고 ('26.7.24 → 7.27 재발, 진범 확정)**: 7/24는 "00:00 UTC 혼잡"으로 진단하고
+  크론만 옮겼으나 7/27 또 미발송 → 실행 기록 전수 대조로 진범 발견: **앱 토큰(Claude 통합)
+  push로는 GitHub이 크론 변경을 재등록하지 않는다.** 물증 = 최초 크론(`0 23`)은 지연 발화라도
+  했고(7/22 23:57Z, 당시 파일은 이미 새 크론), 이후 변경한 크론('0 0'→'52 23')은 3슬롯 연속
+  무발화. **조치**: ① 크론 이중화 — 본편 `52 23 * * 0-4`(08:52 KST) + 백업 `25 0 * * 1-5`
+  (09:25 KST), 백업은 "오늘 KST 성공 schedule 발송 있으면 생략" 가드(gh api dedup,
+  permissions actions:read) ② **크론 변경은 반드시 GitHub 웹 UI에서 사용자 본인 커밋으로**
+  (재등록 트리거 — notify.yml 상단 주석에도 명기). UTC 23시대 = KST 다음날이라 요일 하루
+  앞(일~목 = KST 월~금). daily-brief.mjs는 KST 보정(kstNow)이라 시각 무영향.
+  누락 시 복구 = Actions에서 notify.yml Run workflow 수동 실행(ALWAYS_SEND 자동). **RMN·정산·휴점 등 기타 항목은 전부
   제외** ('26.7 사용자 확정 — 이전 RMN 섹션·버튼 구성을 대체).
   `scripts/notify/daily-brief.mjs` — 없는 섹션 숨김·전부 비면 발송 생략(ALWAYS_SEND=1로 강제).
   웹훅 = Power Automate 워크플로(docs/teams-webhook-setup.md, 구 Incoming Webhook 커넥터는

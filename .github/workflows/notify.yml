@@ -1,22 +1,27 @@
 name: 팀즈 아침 브리핑
 
-# 평일(월~금) 아침 08:52 KST (= 전날 23:52 UTC) 팀즈 채널로 요약 발송 + 수동 실행(Run workflow).
+# 평일 아침 팀즈 채널로 요약 발송 + 수동 실행(Run workflow).
 # 공휴일은 스크립트가 HOLIDAYS(src/data/holidays.js) 대조로 발송 생략.
 # 내용 ('26.7 확정): ① 오늘 팀원 일정(업무 제외) ② 오늘 촬영 일정 ③ 오늘 매체 일정
 #   — 비는 섹션은 "일정 없음" 표기, 카드는 평일 매일 발송.
 # 시크릿: TEAMS_WEBHOOK_URL(필수) · SUPABASE_SERVICE_KEY(권장 — 일정 조회용)
 #
-# 크론 주의 ('26.7.24 미발송 사고): 00:00 UTC(=09:00 KST)는 GitHub Actions 최대 혼잡
-# 슬롯이라 예약 실행이 지연·누락됨 (7/24 금요일 실행이 통째로 누락 — 공식 문서도 정시
-# 슬롯 회피 권고). 23:52 UTC로 이동 = KST 다음날 08:52이므로 **요일도 하루 앞으로**
-# (UTC 일~목 0-4 = KST 월~금). 시각 바꿀 때 이 요일 이동을 함께 계산할 것.
+# 스케줄 이중화 ('26.7.27 미발송 사고 2차): 크론 2개 = 본편 08:52 KST + 백업 09:25 KST.
+# 둘 다 돌면 "오늘 이미 성공 발송" 가드가 백업을 생략시킴 (중복 카드 방지).
+# UTC 23시대는 KST 다음날 아침이라 요일이 하루 앞(일~목 = KST 월~금) — 시각 변경 시 함께 계산.
+#
+# ⚠ 크론 변경은 GitHub 웹 UI에서 직접 커밋할 것: 앱 토큰(Claude 통합) push로는
+#   스케줄 재등록이 안 되는 현상 확인 ('26.7.22~27 — 옛 크론만 발화, 새 크론 3슬롯 무발화).
+#   웹에서 이 파일을 열어 사소한 수정이라도 본인 계정으로 커밋하면 재등록됨.
 on:
   schedule:
-    - cron: '52 23 * * 0-4'
+    - cron: '52 23 * * 0-4'   # 본편 — 평일 08:52 KST
+    - cron: '25 0 * * 1-5'    # 백업 — 평일 09:25 KST (본편 성공 시 자동 생략)
   workflow_dispatch: {}
 
 permissions:
   contents: read
+  actions: read   # 오늘 발송 여부 조회(중복 방지 가드)
 
 concurrency:
   group: teams-brief
@@ -30,12 +35,27 @@ jobs:
       - name: 저장소 체크아웃
         uses: actions/checkout@v4
 
+      - name: 오늘 이미 발송했으면 생략 (백업 크론 중복 방지)
+        id: dedup
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TODAY_KST=$(TZ=Asia/Seoul date +%F)
+          # 오늘(KST) 성공한 schedule 실행 수 — 자기 자신(run_id) 제외
+          N=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/notify.yml/runs?event=schedule&status=success&per_page=10" \
+            --jq "[.workflow_runs[] | select(.id != ${GITHUB_RUN_ID}) | select((.created_at | fromdate + 32400 | strftime(\"%Y-%m-%d\")) == \"$TODAY_KST\")] | length")
+          echo "오늘($TODAY_KST KST) 기존 성공 발송: ${N}건"
+          if [ "$N" -gt 0 ]; then echo "skip=1" >> "$GITHUB_OUTPUT"; fi
+
       - name: Node 설치
+        if: steps.dedup.outputs.skip != '1'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
       - name: 브리핑 발송
+        if: steps.dedup.outputs.skip != '1'
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
