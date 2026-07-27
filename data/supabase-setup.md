@@ -322,15 +322,18 @@ alter table rmn_bookings add column if not exists images jsonb;
 alter table media_events add column if not exists images jsonb;
 alter table rmn_bookings add column if not exists images jsonb;
 
+-- 업로드·삭제 = 로그인 계정 전체 ('26.7.27 완화 — team_writers 한정이 팀원 계정을 막던
+-- 문제. 계정 발급 자체가 팀 내부 전용이라 로그인 = 팀원. 메타 저장(일정 수정)은 여전히
+-- team_writers RLS라 뷰어 계정은 최종 저장 단계에서 차단됨)
 drop policy if exists "event-images write" on storage.objects;
 create policy "event-images write" on storage.objects
   for insert to authenticated
-  with check (bucket_id = 'event-images' and is_team_writer());
+  with check (bucket_id = 'event-images');
 
 drop policy if exists "event-images delete" on storage.objects;
 create policy "event-images delete" on storage.objects
   for delete to authenticated
-  using (bucket_id = 'event-images' and is_team_writer());
+  using (bucket_id = 'event-images');
 ```
 
 `must be owner of table objects` 오류가 나면 SQL로는 정책을 못 만드는 프로젝트다 —
