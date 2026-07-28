@@ -49,3 +49,5 @@ jobs:
             backfill) node scripts/rmn/ga4-collect.mjs --backfill ;;
             *)        node scripts/rmn/ga4-collect.mjs ;;
           esac
+
+          매일 06:40 자동 수집 등록
