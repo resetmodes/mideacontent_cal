@@ -86,7 +86,8 @@ async function processList(list, postRows = null) {
       summaries.push({
         handle: acc.handle, name: acc.name, group: acc.group,
         profileUrl: `https://www.instagram.com/${acc.handle}/`, isMain: acc.isMain,
-        followers: null, postCount: 0, likesVisible: 0, avgLikes: null, avgComments: 0,
+        followers: prevByHandle.get(acc.handle)?.followers ?? null,   // 휴면이어도 팔로워는 직전 값 유지
+        postCount: 0, likesVisible: 0, avgLikes: null, avgComments: 0,
         reelsCount: 0, reelsShare: 0, avgReelViews: 0, avgEngagement: null,
         lastPostDate: null, daysSinceLastPost: null, spanDays: 0, postsLast30: 0,
         dormant: true, commentsPer1k: null, engagementPer1k: null,
@@ -94,7 +95,22 @@ async function processList(list, postRows = null) {
       continue
     }
 
-    const followers = raw[0]?.followersCount ?? null
+    /* 팔로워 수 ('26.7.28 보강): Apify가 '26.7.15 수집부터 post 아이템에 followersCount를
+       안 실어줌 → 전 계정 팔로워·참여/1k가 비는 사고. ① 후보 필드명을 전 아이템에서 탐색
+       ② 그래도 없으면 직전 수집값 유지 (팔로워는 완만히 변해 이전 값이 공백보다 낫다) */
+    let followers = null
+    outer: for (const item of raw) {
+      for (const k of ['followersCount', 'ownerFollowersCount', 'userFollowersCount']) {
+        if (item?.[k] != null) { followers = item[k]; break outer }
+      }
+    }
+    if (followers == null) {
+      const prevF = prevByHandle.get(acc.handle)?.followers
+      if (prevF != null) {
+        followers = prevF
+        console.warn(`· ${acc.handle}: 팔로워 필드 없음 — 직전 값(${prevF}) 유지`)
+      }
+    }
 
     const posts = raw.map(p => ({
       format: classify(p),

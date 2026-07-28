@@ -5,7 +5,7 @@ export const IG = {
  "generatedAt": "2026-07-20T01:34:50.499Z",
  "windowMonths": 1,
  "windowSince": "2026-06-20",
- "note": "모든 지표는 최근 1개월(2026-06-20 이후) 게시물 기준. likes=null 은 비공개(좋아요 평균은 공개분만).",
+ "note": "모든 지표는 최근 1개월(2026-06-20 이후) 게시물 기준. likes=null 은 비공개(좋아요 평균은 공개분만). 팔로워는 7/7 수집값 복원(7/15~ Apify 필드 누락 — clean 보강, 다음 수집부터 재시도).",
  "accounts": [
   {
    "handle": "the_hyundai",
@@ -13,7 +13,7 @@ export const IG = {
    "group": "본사",
    "profileUrl": "https://www.instagram.com/the_hyundai/",
    "isMain": true,
-   "followers": null,
+   "followers": 304198,
    "postCount": 22,
    "likesVisible": 22,
    "avgLikes": 15658,
@@ -27,8 +27,8 @@ export const IG = {
    "spanDays": 25,
    "postsLast30": 22,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.16,
+   "engagementPer1k": 51.63
   },
   {
    "handle": "dosi.manual",
@@ -36,7 +36,7 @@ export const IG = {
    "group": "본사",
    "profileUrl": "https://www.instagram.com/dosi.manual/",
    "isMain": false,
-   "followers": null,
+   "followers": 820,
    "postCount": 18,
    "likesVisible": 18,
    "avgLikes": 123,
@@ -50,8 +50,8 @@ export const IG = {
    "spanDays": 24,
    "postsLast30": 18,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 1.22,
+   "engagementPer1k": 151.22
   },
   {
    "handle": "edit.dept",
@@ -59,7 +59,7 @@ export const IG = {
    "group": "본사",
    "profileUrl": "https://www.instagram.com/edit.dept/",
    "isMain": false,
-   "followers": null,
+   "followers": 11305,
    "postCount": 2,
    "likesVisible": 2,
    "avgLikes": 1043,
@@ -73,8 +73,8 @@ export const IG = {
    "spanDays": 6,
    "postsLast30": 2,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.53,
+   "engagementPer1k": 92.79
   },
   {
    "handle": "wazit_wine",
@@ -82,7 +82,7 @@ export const IG = {
    "group": "본사",
    "profileUrl": "https://www.instagram.com/wazit_wine/",
    "isMain": false,
-   "followers": null,
+   "followers": 5713,
    "postCount": 3,
    "likesVisible": 3,
    "avgLikes": 28,
@@ -96,8 +96,8 @@ export const IG = {
    "spanDays": 4,
    "postsLast30": 3,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.18,
+   "engagementPer1k": 5.08
   },
   {
    "handle": "thehyundai_seoul",
@@ -105,7 +105,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/thehyundai_seoul/",
    "isMain": false,
-   "followers": null,
+   "followers": 207687,
    "postCount": 20,
    "likesVisible": 20,
    "avgLikes": 4655,
@@ -119,8 +119,8 @@ export const IG = {
    "spanDays": 26,
    "postsLast30": 20,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.15,
+   "engagementPer1k": 22.57
   },
   {
    "handle": "thehyundai_jungdong",
@@ -128,7 +128,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/thehyundai_jungdong/",
    "isMain": false,
-   "followers": null,
+   "followers": 20473,
    "postCount": 15,
    "likesVisible": 15,
    "avgLikes": 100,
@@ -142,8 +142,8 @@ export const IG = {
    "spanDays": 23,
    "postsLast30": 15,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.15,
+   "engagementPer1k": 5.03
   },
   {
    "handle": "thehyundai_mokdong",
@@ -151,7 +151,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/thehyundai_mokdong/",
    "isMain": false,
-   "followers": null,
+   "followers": 11330,
    "postCount": 7,
    "likesVisible": 7,
    "avgLikes": 15,
@@ -165,8 +165,8 @@ export const IG = {
    "spanDays": 15,
    "postsLast30": 7,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.09,
+   "engagementPer1k": 1.41
   },
   {
    "handle": "mokdong.now",
@@ -174,7 +174,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/mokdong.now/",
    "isMain": false,
-   "followers": null,
+   "followers": 21862,
    "postCount": 7,
    "likesVisible": 7,
    "avgLikes": 15,
@@ -188,8 +188,8 @@ export const IG = {
    "spanDays": 15,
    "postsLast30": 7,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.05,
+   "engagementPer1k": 0.73
   },
   {
    "handle": "thehyundai_daegu",
@@ -197,7 +197,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/thehyundai_daegu/",
    "isMain": false,
-   "followers": null,
+   "followers": 70305,
    "postCount": 22,
    "likesVisible": 22,
    "avgLikes": 754,
@@ -211,8 +211,8 @@ export const IG = {
    "spanDays": 28,
    "postsLast30": 22,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.1,
+   "engagementPer1k": 10.82
   },
   {
    "handle": "thehyundai_tradecenter",
@@ -220,7 +220,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/thehyundai_tradecenter/",
    "isMain": false,
-   "followers": null,
+   "followers": 22896,
    "postCount": 14,
    "likesVisible": 14,
    "avgLikes": 9,
@@ -234,8 +234,8 @@ export const IG = {
    "spanDays": 27,
    "postsLast30": 14,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0,
+   "engagementPer1k": 0.39
   },
   {
    "handle": "thehyundai_pangyo",
@@ -243,7 +243,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/thehyundai_pangyo/",
    "isMain": false,
-   "followers": null,
+   "followers": 23299,
    "postCount": 8,
    "likesVisible": 8,
    "avgLikes": 1611,
@@ -257,8 +257,8 @@ export const IG = {
    "spanDays": 22,
    "postsLast30": 8,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 1.03,
+   "engagementPer1k": 70.17
   },
   {
    "handle": "thehyundai_cheonho",
@@ -289,7 +289,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/thehyundai_mia/",
    "isMain": false,
-   "followers": null,
+   "followers": 11860,
    "postCount": 15,
    "likesVisible": 15,
    "avgLikes": 42,
@@ -303,8 +303,8 @@ export const IG = {
    "spanDays": 29,
    "postsLast30": 15,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.93,
+   "engagementPer1k": 4.47
   },
   {
    "handle": "thehyundai_kintex",
@@ -312,7 +312,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/thehyundai_kintex/",
    "isMain": false,
-   "followers": null,
+   "followers": 16891,
    "postCount": 25,
    "likesVisible": 25,
    "avgLikes": 37,
@@ -326,8 +326,8 @@ export const IG = {
    "spanDays": 27,
    "postsLast30": 25,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.12,
+   "engagementPer1k": 2.31
   },
   {
    "handle": "thehyundai_ulsan",
@@ -335,7 +335,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/thehyundai_ulsan/",
    "isMain": false,
-   "followers": null,
+   "followers": 48278,
    "postCount": 14,
    "likesVisible": 14,
    "avgLikes": 152,
@@ -349,8 +349,8 @@ export const IG = {
    "spanDays": 23,
    "postsLast30": 14,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.21,
+   "engagementPer1k": 3.36
   },
   {
    "handle": "thehyundai_chungcheong",
@@ -358,7 +358,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/thehyundai_chungcheong/",
    "isMain": false,
-   "followers": null,
+   "followers": 14680,
    "postCount": 24,
    "likesVisible": 24,
    "avgLikes": 38,
@@ -372,8 +372,8 @@ export const IG = {
    "spanDays": 28,
    "postsLast30": 24,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.07,
+   "engagementPer1k": 2.66
   },
   {
    "handle": "sinchoonja",
@@ -381,7 +381,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/sinchoonja/",
    "isMain": false,
-   "followers": null,
+   "followers": 9704,
    "postCount": 30,
    "likesVisible": 30,
    "avgLikes": 144,
@@ -395,8 +395,8 @@ export const IG = {
    "spanDays": 28,
    "postsLast30": 30,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 6.08,
+   "engagementPer1k": 20.92
   },
   {
    "handle": "connect_hyundai_busan",
@@ -404,7 +404,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/connect_hyundai_busan/",
    "isMain": false,
-   "followers": null,
+   "followers": 9813,
    "postCount": 13,
    "likesVisible": 13,
    "avgLikes": 132,
@@ -418,8 +418,8 @@ export const IG = {
    "spanDays": 28,
    "postsLast30": 13,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 3.16,
+   "engagementPer1k": 16.61
   },
   {
    "handle": "connect_hyundai_cheongju",
@@ -427,7 +427,7 @@ export const IG = {
    "group": "사업소",
    "profileUrl": "https://www.instagram.com/connect_hyundai_cheongju/",
    "isMain": false,
-   "followers": null,
+   "followers": 17874,
    "postCount": 22,
    "likesVisible": 22,
    "avgLikes": 114,
@@ -441,8 +441,8 @@ export const IG = {
    "spanDays": 27,
    "postsLast30": 22,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 1.57,
+   "engagementPer1k": 7.94
   },
   {
    "handle": "hyundaioutlets",
@@ -450,7 +450,7 @@ export const IG = {
    "group": "아울렛",
    "profileUrl": "https://www.instagram.com/hyundaioutlets/",
    "isMain": false,
-   "followers": null,
+   "followers": 280031,
    "postCount": 15,
    "likesVisible": 15,
    "avgLikes": 115,
@@ -464,8 +464,8 @@ export const IG = {
    "spanDays": 23,
    "postsLast30": 15,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.27,
+   "engagementPer1k": 0.68
   },
   {
    "handle": "hyundaioutlets_space1",
@@ -473,7 +473,7 @@ export const IG = {
    "group": "아울렛",
    "profileUrl": "https://www.instagram.com/hyundaioutlets_space1/",
    "isMain": false,
-   "followers": null,
+   "followers": 103912,
    "postCount": 12,
    "likesVisible": 12,
    "avgLikes": 202,
@@ -487,8 +487,8 @@ export const IG = {
    "spanDays": 25,
    "postsLast30": 12,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 1.84,
+   "engagementPer1k": 3.78
   },
   {
    "handle": "hyundaioutlets_gimpo",
@@ -496,7 +496,7 @@ export const IG = {
    "group": "아울렛",
    "profileUrl": "https://www.instagram.com/hyundaioutlets_gimpo/",
    "isMain": false,
-   "followers": null,
+   "followers": 70837,
    "postCount": 11,
    "likesVisible": 11,
    "avgLikes": 156,
@@ -510,8 +510,8 @@ export const IG = {
    "spanDays": 22,
    "postsLast30": 11,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.59,
+   "engagementPer1k": 2.8
   },
   {
    "handle": "hyundaioutlets_daejeon",
@@ -519,7 +519,7 @@ export const IG = {
    "group": "아울렛",
    "profileUrl": "https://www.instagram.com/hyundaioutlets_daejeon/",
    "isMain": false,
-   "followers": null,
+   "followers": 24422,
    "postCount": 9,
    "likesVisible": 9,
    "avgLikes": 56,
@@ -533,8 +533,8 @@ export const IG = {
    "spanDays": 26,
    "postsLast30": 9,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.86,
+   "engagementPer1k": 3.15
   },
   {
    "handle": "hyundaioutlets_songdo",
@@ -542,7 +542,7 @@ export const IG = {
    "group": "아울렛",
    "profileUrl": "https://www.instagram.com/hyundaioutlets_songdo/",
    "isMain": false,
-   "followers": null,
+   "followers": 125121,
    "postCount": 11,
    "likesVisible": 11,
    "avgLikes": 129,
@@ -556,8 +556,8 @@ export const IG = {
    "spanDays": 22,
    "postsLast30": 11,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.98,
+   "engagementPer1k": 2.01
   },
   {
    "handle": "thehyundaiculture",
@@ -565,7 +565,7 @@ export const IG = {
    "group": "콘텐츠·IP",
    "profileUrl": "https://www.instagram.com/thehyundaiculture/",
    "isMain": false,
-   "followers": null,
+   "followers": 32401,
    "postCount": 7,
    "likesVisible": 7,
    "avgLikes": 11,
@@ -579,8 +579,8 @@ export const IG = {
    "spanDays": 20,
    "postsLast30": 7,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0,
+   "engagementPer1k": 0.34
   },
   {
    "handle": "hmoka3700",
@@ -588,7 +588,7 @@ export const IG = {
    "group": "콘텐츠·IP",
    "profileUrl": "https://www.instagram.com/hmoka3700/",
    "isMain": false,
-   "followers": null,
+   "followers": 21960,
    "postCount": 8,
    "likesVisible": 8,
    "avgLikes": 82,
@@ -602,8 +602,8 @@ export const IG = {
    "spanDays": 23,
    "postsLast30": 8,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.46,
+   "engagementPer1k": 4.19
   },
   {
    "handle": "peer_official",
@@ -611,7 +611,7 @@ export const IG = {
    "group": "콘텐츠·IP",
    "profileUrl": "https://www.instagram.com/peer_official/",
    "isMain": false,
-   "followers": null,
+   "followers": 67929,
    "postCount": 1,
    "likesVisible": 1,
    "avgLikes": 36,
@@ -625,8 +625,8 @@ export const IG = {
    "spanDays": 0,
    "postsLast30": 1,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0,
+   "engagementPer1k": 0.53
   },
   {
    "handle": "heendy.life",
@@ -634,7 +634,7 @@ export const IG = {
    "group": "콘텐츠·IP",
    "profileUrl": "https://www.instagram.com/heendy.life/",
    "isMain": false,
-   "followers": null,
+   "followers": 95565,
    "postCount": 12,
    "likesVisible": 12,
    "avgLikes": 2233,
@@ -648,8 +648,8 @@ export const IG = {
    "spanDays": 23,
    "postsLast30": 12,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.17,
+   "engagementPer1k": 23.53
   },
   {
    "handle": "thehyundai_beclean",
@@ -657,7 +657,7 @@ export const IG = {
    "group": "콘텐츠·IP",
    "profileUrl": "https://www.instagram.com/thehyundai_beclean/",
    "isMain": false,
-   "followers": null,
+   "followers": 13746,
    "postCount": 2,
    "likesVisible": 2,
    "avgLikes": 3,
@@ -671,8 +671,8 @@ export const IG = {
    "spanDays": 0,
    "postsLast30": 2,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0,
+   "engagementPer1k": 0.22
   },
   {
    "handle": "till_white",
@@ -680,7 +680,7 @@ export const IG = {
    "group": "콘텐츠·IP",
    "profileUrl": "https://www.instagram.com/till_white/",
    "isMain": false,
-   "followers": null,
+   "followers": 749,
    "postCount": 0,
    "likesVisible": 0,
    "avgLikes": null,
@@ -694,7 +694,7 @@ export const IG = {
    "spanDays": 0,
    "postsLast30": 0,
    "dormant": true,
-   "commentsPer1k": null,
+   "commentsPer1k": 0,
    "engagementPer1k": null
   },
   {
@@ -703,7 +703,7 @@ export const IG = {
    "group": "해외",
    "profileUrl": "https://www.instagram.com/the_hyundai_tw/",
    "isMain": false,
-   "followers": null,
+   "followers": 13613,
    "postCount": 15,
    "likesVisible": 15,
    "avgLikes": 81,
@@ -717,8 +717,8 @@ export const IG = {
    "spanDays": 24,
    "postsLast30": 15,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.81,
+   "engagementPer1k": 6.76
   },
   {
    "handle": "the_hyundai_jp",
@@ -726,7 +726,7 @@ export const IG = {
    "group": "해외",
    "profileUrl": "https://www.instagram.com/the_hyundai_jp/",
    "isMain": false,
-   "followers": null,
+   "followers": 10948,
    "postCount": 35,
    "likesVisible": 35,
    "avgLikes": 760,
@@ -740,8 +740,8 @@ export const IG = {
    "spanDays": 27,
    "postsLast30": 35,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.37,
+   "engagementPer1k": 69.78
   }
  ],
  "competitors": [
@@ -751,7 +751,7 @@ export const IG = {
    "group": "경쟁사",
    "profileUrl": "https://www.instagram.com/only_shinsegae/",
    "isMain": false,
-   "followers": null,
+   "followers": 640290,
    "postCount": 26,
    "likesVisible": 26,
    "avgLikes": 1183,
@@ -765,8 +765,8 @@ export const IG = {
    "spanDays": 25,
    "postsLast30": 26,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.27,
+   "engagementPer1k": 2.12
   },
   {
    "handle": "lotteshopping",
@@ -774,7 +774,7 @@ export const IG = {
    "group": "경쟁사",
    "profileUrl": "https://www.instagram.com/lotteshopping/",
    "isMain": false,
-   "followers": null,
+   "followers": 576867,
    "postCount": 14,
    "likesVisible": 14,
    "avgLikes": 591,
@@ -788,8 +788,8 @@ export const IG = {
    "spanDays": 27,
    "postsLast30": 14,
    "dormant": false,
-   "commentsPer1k": null,
-   "engagementPer1k": null
+   "commentsPer1k": 0.07,
+   "engagementPer1k": 1.1
   }
  ],
  "posts": [
