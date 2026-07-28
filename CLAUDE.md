@@ -478,8 +478,13 @@
   구좌 `customEvent:ep_ad_location`(통합앱_스플래시 등) · 광고주 `customEvent:ep_ad_agency` ·
   view_ad/click_ad. 부킹별 [광고주×기간×구좌] runReport → impressions/clicks PATCH
   (**setup.md 8-4 ALTER 2줄** 필요). 일일 수집은 최근 30일 창, 과거분은 backfill 1회.
-  dry-run 검증 '26.7.28: 대상 94건 중 60건 실데이터 매칭. RMN 상품 행에 노출·클릭·CTR
-  그린 표기(rmn-item-ga). 공개 리포라 Actions 로그에 실적 수치 미출력 원칙.
+  dry-run 검증 '26.7.28: 대상 94건 중 60건 실데이터 매칭, backfill로 실적재 완료.
+  RMN 상품 행에 노출·클릭·CTR 그린 표기(rmn-item-ga). 공개 리포라 Actions 로그에 실적
+  수치 미출력 원칙 — **audit 모드**(광고주명 대장↔GA 표기 대조)는 결과를 팀즈로만 발송.
+  **일별 적재 + 결과보고서 ('26.7.28)**: collect가 rmn_ga_daily(setup.md 8-5, 광고주×구좌×일)
+  upsert(테이블 미설정 시 스킵) → RMN 캠페인 행 "결과보고서" 버튼(GA 데이터 있는 캠페인만)
+  = rmnDocs.buildResultXlsx가 부쉐론 양식(public/templates/rmn-report.xlsx — BT/BU/BV 입력존
+  실데이터 소거본, 14일 이내 캠페인 전용)에 일별 채움, CTR·CPM·CPC는 Excel 수식 자동.
   크론 활성화 = 웹 커밋 필요(notify.yml 사고 참조). 상세 = docs/rmn-ga4-plan.md.
   **RMN 문서 자동 생성 ('26.7 3차)**: ① **청약서** — 진행/완료 목록 행 "청약서" 버튼 →
   같은 광고주·기간 겹침 형제 부킹(≤6행)을 한 장으로 다운로드. 판매사 회사 정보는

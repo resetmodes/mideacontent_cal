@@ -15,7 +15,7 @@ on:
         description: '실행 모드'
         type: choice
         default: collect
-        options: [collect, discover, dry-run, backfill]
+        options: [collect, discover, dry-run, backfill, audit]
 
 permissions:
   contents: read
@@ -41,11 +41,15 @@ jobs:
         env:
           GA4_KEY_JSON: ${{ secrets.GA4_KEY_JSON }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}   # audit 결과 발송용 (공개 로그 대신 팀즈)
           MODE: ${{ inputs.mode || 'collect' }}
         run: |
           case "$MODE" in
             discover) node scripts/rmn/ga4-collect.mjs --discover ;;
             dry-run)  node scripts/rmn/ga4-collect.mjs --dry-run --backfill ;;
             backfill) node scripts/rmn/ga4-collect.mjs --backfill ;;
+            audit)    node scripts/rmn/ga4-collect.mjs --audit ;;
             *)        node scripts/rmn/ga4-collect.mjs ;;
           esac
+
+          매일 06:40 자동 수집 등록

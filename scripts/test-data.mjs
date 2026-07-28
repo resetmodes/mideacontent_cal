@@ -224,7 +224,7 @@ for (const [id, b] of Object.entries(RMN_BENCH)) {
 for (const p of RMN_PRODUCTS) {
   if (!DOC_NAME[p.id]) bad(`rmnDocs DOC_NAME: "${p.id}" 양식 표기 누락`)
 }
-for (const f of ['rmn-order.xlsx', 'rmn-proposal.xlsx']) {
+for (const f of ['rmn-order.xlsx', 'rmn-proposal.xlsx', 'rmn-report.xlsx']) {
   if (!existsSync(new URL(`../public/templates/${f}`, import.meta.url)))
     bad(`public/templates/${f} 없음 — 청약서·제안서 다운로드가 깨짐`)
 }
