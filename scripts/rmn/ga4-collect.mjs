@@ -16,10 +16,11 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../src/config.js'
 
 const PROPERTY = 'properties/404178718'
 /* ── CONFIG — discover 실행 결과로 확정하는 값 (API 실명) ── */
+/* '26.7.28 discover 실행으로 확정 (Actions run #1 로그) */
 const EV_VIEW = 'view_ad'
-const EV_CLICK = 'click_ad'                       // discover로 확인 — 다르면 교체
-const DIM_SLOT = 'customEvent:ad_posit'           // "광고_광고게시위치"의 API 실명 — discover로 확정
-const DIM_ADVERTISER = 'customEvent:ad_advtiser'  // "광고_광고주명"의 API 실명 — discover로 확정
+const EV_CLICK = 'click_ad'
+const DIM_SLOT = 'customEvent:ep_ad_location'      // "광고_광고게시위치"
+const DIM_ADVERTISER = 'customEvent:ep_ad_agency'  // "광고_광고주명" (표시명과 달리 param은 ad_agency)
 const SLOT_MAP = {                                // GA 게시위치 값 → RMN 상품명
   '통합앱_스플래시': '스플래시',
   '통합앱_메인배너': '메인배너',
