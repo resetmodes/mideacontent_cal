@@ -301,8 +301,9 @@ for (const m of MEDIA) {
   if (!m.group || !m.cat || !m.name || !m.lead) bad(`media.js "${m.name || '?'}": group/cat/name/lead 누락`)
   if (!Array.isArray(m.slots) || m.slots.length === 0) bad(`media.js "${m.name}": slots 비어 있음`)
   if (typeof m.verified !== 'boolean') bad(`media.js "${m.name}": verified는 boolean`)
-  if (m.visual && !existsSync(new URL(`../public/media-ref/${m.visual}`, import.meta.url)))
-    bad(`media.js "${m.name}": 대표 비주얼 이미지 없음 (public/media-ref/${m.visual})`)
+  for (const v of m.visual ? (Array.isArray(m.visual) ? m.visual : [m.visual]) : [])
+    if (!existsSync(new URL(`../public/media-ref/${v}`, import.meta.url)))
+      bad(`media.js "${m.name}": 대표 비주얼 이미지 없음 (public/media-ref/${v})`)
   for (const s of m.slots) {
     if (s.ref && !existsSync(new URL(`../public/media-ref/${s.ref}`, import.meta.url)))
       bad(`media.js "${m.name}" 지면 "${s.name}": 레퍼런스 이미지 없음 (public/media-ref/${s.ref})`)

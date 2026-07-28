@@ -227,10 +227,15 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRe
           )}
         </div>
         {m.visual && (
-          <button className="ref-thumb media-visual" onClick={() => onRef(m.visual)} title="크게 보기">
-            <img loading="lazy" src={`${import.meta.env.BASE_URL}media-ref/${m.visual}`} alt={`${m.name} 레퍼런스`} />
-            <span>크게 보기</span>
-          </button>
+          /* visual: 파일명 1개 또는 배열 — 배열이면 우측 열에 세로로 쌓임 (와지트 인스타+유튜브) */
+          <div className="media-visual-col">
+            {(Array.isArray(m.visual) ? m.visual : [m.visual]).map(v => (
+              <button key={v} className="ref-thumb media-visual" onClick={() => onRef(v)} title="크게 보기">
+                <img loading="lazy" src={`${import.meta.env.BASE_URL}media-ref/${v}`} alt={`${m.name} 레퍼런스`} />
+                <span>크게 보기</span>
+              </button>
+            ))}
+          </div>
         )}
       </div>
     </div>
