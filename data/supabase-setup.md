@@ -281,6 +281,17 @@ alter table rmn_bookings add column if not exists images jsonb;
 - 미실행 시: RMN "이미지" 버튼에서 저장만 실패(안내 문구) — 그 외 무영향
 - 파일은 event-images 공개 버킷의 `rmn/{부킹id}/` 경로 — 붙여넣기(Ctrl+V) 업로드 지원
 
+### 8-4. GA 노출·클릭 컬럼 ('26.7 — GA4 자동 수집용)
+
+GA4 파이프라인(ga4-collect.yml)이 매일 부킹에 노출·클릭을 채우려면:
+
+```sql
+alter table rmn_bookings add column if not exists impressions bigint;
+alter table rmn_bookings add column if not exists clicks bigint;
+```
+
+- 미실행 시: GA 수집만 실패(다른 기능 무영향). 실행 후 다음 수집부터 자동 반영
+
 ## 9. 정산 탭 ('26.7 테스트 — 노규빈·박준영·한은비 3인)
 
 "정산" 탭용 테이블 + 증빙 파일 저장소(Storage). 금액·증빙 정보라 **팀 내부 전용**
