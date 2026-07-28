@@ -1,0 +1,50 @@
+name: GA4 광고 실적 수집
+
+# 현대백화점 통합앱 GA4에서 구좌별 노출(view_ad)·클릭을 매일 수집해 RMN 부킹에 첨부 ('26.7).
+# 수동 실행(Run workflow)에서 mode=discover 선택 시 스키마 탐색만 (수치 미출력 — 공개 리포 로그 주의).
+# 시크릿: GA4_KEY_JSON(서비스 계정 키) · SUPABASE_SERVICE_KEY
+# SQL 선행: setup.md 8-4 (impressions·clicks 컬럼) — 미실행 시 수집만 실패, 무영향
+#
+# ⚠ 크론 변경·활성화는 GitHub 웹 UI에서 사용자 본인 커밋으로 (notify.yml 사고와 동일)
+on:
+  schedule:
+    - cron: '40 21 * * *'   # 매일 06:40 KST (전일분 반영)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '실행 모드'
+        type: choice
+        default: collect
+        options: [collect, discover, dry-run]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ga4-collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node 설치
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: GA4 수집
+        env:
+          GA4_KEY_JSON: ${{ secrets.GA4_KEY_JSON }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          MODE: ${{ inputs.mode || 'collect' }}
+        run: |
+          case "$MODE" in
+            discover) node scripts/rmn/ga4-collect.mjs --discover ;;
+            dry-run)  node scripts/rmn/ga4-collect.mjs --dry-run ;;
+            *)        node scripts/rmn/ga4-collect.mjs ;;
+          esac
