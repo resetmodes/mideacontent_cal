@@ -282,6 +282,13 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
             <div className={'rmn-item' + (editId === b.id ? ' sel' : '')}>
               <span className="rmn-item-p"><Ini id={b.product} /> {b.product}{bookingQty(b) > 1 ? ` ×${bookingQty(b)}` : ''}{b.push_qty ? ` ${(b.push_qty / 10000).toLocaleString('ko-KR')}만` : ''}{b.option ? <small className="mute"> · {b.option}</small> : ''}</span>
               <span className="mute rmn-item-d">{b.send_at ? `${fmtD(b.send_at)} ${b.send_at.slice(11, 16)}` : fmtRange(b)}</span>
+              {/* GA4 자동 수집 실적 ('26.7) — impressions 채워진 부킹만 표시 */}
+              {b.impressions != null && b.impressions > 0 && (
+                <span className="rmn-item-ga">
+                  노출 {Number(b.impressions).toLocaleString('ko-KR')} · 클릭 {Number(b.clicks || 0).toLocaleString('ko-KR')}
+                  {b.clicks > 0 && <> · CTR {((b.clicks / b.impressions) * 100).toFixed(2)}%</>}
+                </span>
+              )}
               <span className="rmn-item-w">{split ? <span className="mute">분할 집행</span> : fmtWon(b.actual_price)}</span>
               <select className="rmn-status" value={b.status} onChange={e => onItemStatus(b, e.target.value)}>
                 {RMN_STATUS.map(s => <option key={s} value={s}>{s}</option>)}

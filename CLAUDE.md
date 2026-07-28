@@ -469,10 +469,15 @@
   →푸시·카카오), 카탈로그 외(사이니지 등)는 원문 유지. 준비중→부킹, 그 외 완료.
   구버전 rmn-seed-2025.sql·rmn-fix-2025-status.sql은 이 통합 시드로 대체·삭제. 행 수·delete
   선행·날짜 형식은 test-data 6e가 회귀 감시.
-  GA4 연동(3차) = **`docs/rmn-ga4-plan.md`** ('26.7 정리 — 규빈 액션: GA 관리자 권한
-  요청문 전달 → GCP Data API·JSON 키 5분 작업 → creative_slot 파라미터 확인. 이후
-  Actions cron으로 노출·클릭을 부킹에 자동 첨부 + 부쉐론 양식 xlsx 자동 생성,
-  Property 404178718).
+  **GA4 연동 가동 ('26.7.28)**: 권한·키 확보 완료 → `scripts/rmn/ga4-collect.mjs` +
+  `.github/workflows/ga4-collect.yml`(매일 06:40 KST + 수동 mode: collect/discover/dry-run/
+  backfill). 서비스 계정 JWT 직접 인증(의존성 0), 파라미터 실명 discover로 확정 —
+  구좌 `customEvent:ep_ad_location`(통합앱_스플래시 등) · 광고주 `customEvent:ep_ad_agency` ·
+  view_ad/click_ad. 부킹별 [광고주×기간×구좌] runReport → impressions/clicks PATCH
+  (**setup.md 8-4 ALTER 2줄** 필요). 일일 수집은 최근 30일 창, 과거분은 backfill 1회.
+  dry-run 검증 '26.7.28: 대상 94건 중 60건 실데이터 매칭. RMN 상품 행에 노출·클릭·CTR
+  그린 표기(rmn-item-ga). 공개 리포라 Actions 로그에 실적 수치 미출력 원칙.
+  크론 활성화 = 웹 커밋 필요(notify.yml 사고 참조). 상세 = docs/rmn-ga4-plan.md.
   **RMN 문서 자동 생성 ('26.7 3차)**: ① **청약서** — 진행/완료 목록 행 "청약서" 버튼 →
   같은 광고주·기간 겹침 형제 부킹(≤6행)을 한 장으로 다운로드. 판매사 회사 정보는
   `src/data/rmnAgencies.js` RMN_AGENCY_INFO(법인 공적 정보만 — 담당자 연락처는 부킹

@@ -15,7 +15,7 @@ on:
         description: '실행 모드'
         type: choice
         default: collect
-        options: [collect, discover, dry-run]
+        options: [collect, discover, dry-run, backfill]
 
 permissions:
   contents: read
@@ -45,6 +45,7 @@ jobs:
         run: |
           case "$MODE" in
             discover) node scripts/rmn/ga4-collect.mjs --discover ;;
-            dry-run)  node scripts/rmn/ga4-collect.mjs --dry-run ;;
+            dry-run)  node scripts/rmn/ga4-collect.mjs --dry-run --backfill ;;
+            backfill) node scripts/rmn/ga4-collect.mjs --backfill ;;
             *)        node scripts/rmn/ga4-collect.mjs ;;
           esac
