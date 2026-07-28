@@ -279,3 +279,59 @@ export async function buildLedgerXlsx(bookings, todayISO) {
   }
   await downloadWb(wb, `RMN_판매실적대장_${(todayISO || '').replace(/-/g, '')}.xlsx`)
 }
+
+/* ── 결과보고서 ('26.7 — GA4 파이프라인 출력, 부쉐론 양식) ──────────────
+   템플릿(public/templates/rmn-report.xlsx — 실데이터 소거본)이 수식 엔진:
+   BT(날짜)/BU(노출)/BV(클릭) 입력존만 채우면 CTR·CPM·CPC·합계 전부 Excel 자동 계산.
+   일별 데이터는 rmn_ga_daily(setup.md 8-5, GA 수집이 매일 적재).
+   양식의 Daily 블록이 14행 고정 — 14일 초과 캠페인은 미지원(행 확장 = 3차 과제) */
+const REP_SLOT_ROWS = { splash: 60, popup: 80, main: 99, bottom: 118, headline: 137 }
+const REP_SLOT_KEY = { '스플래시': 'splash', '팝업배너': 'popup', '메인배너': 'main', '하단배너': 'bottom', '헤드라인 뉴스': 'headline' }
+const REP_SUMMARY_DATE_START = 39
+const xlSerial = iso => Math.round((new Date(iso + 'T00:00:00Z') - new Date('1899-12-30T00:00:00Z')) / 86400000)
+
+export async function buildResultXlsx(group, dailyRows) {
+  const days = dayCount(group.start, group.end)
+  if (days > 14) throw new Error(`캠페인 기간 ${days}일 — 현재 결과보고서 양식은 14일 이내 전용입니다`)
+  if (!dailyRows || dailyRows.length === 0)
+    throw new Error('GA 일별 데이터가 없습니다 — 수집 전이거나 rmn_ga_daily 미설정 (setup.md 8-5)')
+
+  const wb = await loadWb('rmn-report.xlsx')
+  const ws = wb.worksheets[0]
+  wb.calcProperties = { ...(wb.calcProperties || {}), fullCalcOnLoad: true }
+
+  /* 개요 */
+  ws.getCell('P6').value = group.campaign ? `${group.advertiser} (${group.campaign})` : group.advertiser
+  const period = `${group.start} ~ ${group.end} (${days}일)`
+  ws.getCell('P7').value = period
+  ws.getCell('P8').value = period
+  const prods = [...new Set(group.items.map(b => DOC_NAME[b.product] || b.product))]
+  ws.getCell('P11').value = prods.join(', ')
+  ws.getCell('P12').value = `${comma(group.total)}원`
+
+  /* 일자별 Summary 날짜 + 입력존 — 14행 고정, 기간 이후 날짜는 이어 채우고 값 0 */
+  const dates = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(group.start + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + i)
+    return d.toISOString().slice(0, 10)
+  })
+  dates.forEach((iso, i) => { ws.getCell(`E${REP_SUMMARY_DATE_START + i}`).value = xlSerial(iso) })
+
+  const byKey = {}   // slotKey → {YYYY-MM-DD: {imps, clicks}}
+  for (const r of dailyRows) {
+    const key = REP_SLOT_KEY[r.slot]
+    if (!key) continue
+    ;(byKey[key] = byKey[key] || {})[r.date] = { imps: r.impressions || 0, clicks: r.clicks || 0 }
+  }
+  let filled = 0
+  for (const [key, startRow] of Object.entries(REP_SLOT_ROWS)) {
+    dates.forEach((iso, i) => {
+      const v = (i < days && byKey[key]?.[iso]) || { imps: 0, clicks: 0 }
+      ws.getCell(`BT${startRow + i}`).value = Number(iso.replace(/-/g, ''))
+      ws.getCell(`BU${startRow + i}`).value = v.imps
+      ws.getCell(`BV${startRow + i}`).value = v.clicks
+      if (v.imps || v.clicks) filled++
+    })
+  }
+  if (!filled) throw new Error('이 캠페인 구좌의 일별 데이터가 없습니다 (수집 대상 상품: 스플래시·팝업·메인·하단·헤드라인)')
+  await downloadWb(wb, `결과보고서_${group.advertiser}_${group.start.replace(/-/g, '')}.xlsx`)
+}

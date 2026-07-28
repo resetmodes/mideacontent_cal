@@ -99,6 +99,48 @@ async function discover(token) {
   for (const n of names) console.log(`  ${n}${/ad|광고/i.test(n) ? '   ← 광고 관련' : ''}`)
 }
 
+/* ── audit: 대장 광고주명 ↔ GA 광고주명 표기 대조 ('26.7.28) —
+   결과는 팀즈 채널로만 (공개 리포 Actions 로그에 광고주 목록 금지) ── */
+async function audit(token) {
+  const rows = await (await sb('rmn_bookings?select=advertiser,product,impressions&status=not.in.(가부킹,취소)')).json()
+  const target = rows.filter(b => Object.values(SLOT_MAP).includes(b.product))
+  const dbAdv = [...new Set(target.map(b => b.advertiser))]
+  const noData = [...new Set(target.filter(b => !b.impressions).map(b => b.advertiser))]
+    .filter(a => !target.some(b => b.advertiser === a && b.impressions > 0))   // 한 건이라도 잡힌 광고주는 제외
+  const rep = await ga(`${PROPERTY}:runReport`, {
+    dateRanges: [{ startDate: '2025-01-01', endDate: todayKST() }],
+    dimensions: [{ name: DIM_ADVERTISER }],
+    metrics: [{ name: 'eventCount' }],
+    limit: 1000,
+  }, token)
+  const gaAdv = (rep.rows || []).map(r => r.dimensionValues[0].value).filter(v => v && v !== '(not set)')
+  const norm = s => s.replace(/[\s()·._-]/g, '').toLowerCase()
+  const lines = noData.map(a => {
+    const cand = gaAdv.filter(g => norm(g).includes(norm(a)) || norm(a).includes(norm(g)))
+    return `**${a}** → ${cand.length ? `후보: ${cand.join(', ')}` : 'GA에 유사 표기 없음'}`
+  })
+  const body = [
+    { type: 'TextBlock', text: 'GA 광고주명 표기 대조 결과', weight: 'Bolder', size: 'Medium' },
+    { type: 'TextBlock', text: `대장 광고주 ${dbAdv.length}곳 중 GA 미매칭 ${noData.length}곳 (GA 표기 ${gaAdv.length}종)`, wrap: true },
+    ...lines.map(t => ({ type: 'TextBlock', text: `- ${t}`, wrap: true, spacing: 'Small' })),
+    { type: 'TextBlock', text: '후보가 있는 건은 SLOT/광고주 매핑 추가로 살릴 수 있음 — 목록을 검토해 알려주세요. 후보 없음 = GA 집계 시작(고도화) 전 캠페인일 가능성.', wrap: true, isSubtle: true },
+  ]
+  const webhook = process.env.TEAMS_WEBHOOK_URL
+  if (!webhook) { console.error('TEAMS_WEBHOOK_URL 없음 — audit 결과를 보낼 수 없음'); process.exit(1) }
+  const res = await fetch(webhook, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'message',
+      attachments: [{
+        contentType: 'application/vnd.microsoft.card.adaptive',
+        content: { type: 'AdaptiveCard', $schema: 'http://adaptivecards.io/schemas/adaptive-card.json', version: '1.4', body },
+      }],
+    }),
+  })
+  if (!res.ok) throw new Error(`팀즈 발송 실패 ${res.status}`)
+  console.log(`✓ 대조 완료 — 미매칭 ${noData.length}건, 결과는 팀즈로 발송 (로그 미출력)`)
+}
+
 /* ── collect: 캠페인(광고주+기간) 단위 조회 → 부킹별 노출·클릭 갱신 ── */
 async function collect(token) {
   const today = todayKST()
@@ -112,12 +154,12 @@ async function collect(token) {
   const target = rows.filter(b => Object.values(SLOT_MAP).includes(b.product))
     .filter(b => BACKFILL || (b.end_date || b.start_date) >= cutoff)
   /* 캠페인 = 광고주+기간 겹침 묶음 대신, 부킹별로 [광고주 × 자기 기간] 조회 (단순·정확) */
-  let updated = 0, noData = 0
+  let updated = 0, noData = 0, dailySaved = 0, dailyTableMissing = false
   for (const b of target) {
     const end = (b.end_date || b.start_date) < today ? (b.end_date || b.start_date) : today
     const rep = await ga(`${PROPERTY}:runReport`, {
       dateRanges: [{ startDate: b.start_date, endDate: end }],
-      dimensions: [{ name: DIM_SLOT }, { name: 'eventName' }],
+      dimensions: [{ name: 'date' }, { name: DIM_SLOT }, { name: 'eventName' }],
       metrics: [{ name: 'eventCount' }],
       dimensionFilter: {
         andGroup: { expressions: [
@@ -125,30 +167,55 @@ async function collect(token) {
           { filter: { fieldName: DIM_ADVERTISER, stringFilter: { matchType: 'CONTAINS', value: b.advertiser } } },
         ] },
       },
-      limit: 1000,
+      limit: 5000,
     }, token)
     let imp = 0, clk = 0
+    const daily = {}   // date|slot → {imps, clicks} — 결과보고서용 일별 적재
     for (const r of rep.rows || []) {
-      const slot = SLOT_MAP[r.dimensionValues[0].value]
+      const slot = SLOT_MAP[r.dimensionValues[1].value]
       if (slot !== b.product) continue
       const n = Number(r.metricValues[0].value) || 0
-      if (r.dimensionValues[1].value === EV_VIEW) imp += n
-      else clk += n
+      const d = r.dimensionValues[0].value   // YYYYMMDD
+      const key = `${d}`
+      daily[key] = daily[key] || { imps: 0, clicks: 0 }
+      if (r.dimensionValues[2].value === EV_VIEW) { imp += n; daily[key].imps += n }
+      else { clk += n; daily[key].clicks += n }
     }
     if (imp === 0 && clk === 0) { noData++; continue }
-    if (!DRY) await sb(`rmn_bookings?id=eq.${b.id}`, {
-      method: 'PATCH', body: JSON.stringify({ impressions: imp, clicks: clk }),
-    })
+    if (!DRY) {
+      await sb(`rmn_bookings?id=eq.${b.id}`, {
+        method: 'PATCH', body: JSON.stringify({ impressions: imp, clicks: clk }),
+      })
+      /* 일별 적재 (결과보고서용) — 테이블 미설정(setup.md 8-5 전)이면 건너뛰고 계속 */
+      if (!dailyTableMissing) {
+        const rows = Object.entries(daily).map(([d, v]) => ({
+          advertiser: b.advertiser, slot: b.product,
+          date: `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`,
+          impressions: v.imps, clicks: v.clicks,
+        }))
+        try {
+          if (rows.length) {
+            await sb('rmn_ga_daily?on_conflict=advertiser,slot,date', {
+              method: 'POST',
+              headers: { Prefer: 'resolution=merge-duplicates' },
+              body: JSON.stringify(rows),
+            })
+            dailySaved += rows.length
+          }
+        } catch { dailyTableMissing = true }
+      }
+    }
     updated++
   }
   /* 수치는 로그에 안 남김 (공개 리포) — 건수만 */
-  console.log(`✓ GA 수집 완료 — 대상 ${target.length}건 중 갱신 ${updated} · 데이터 없음 ${noData}${DRY ? ' (dry-run)' : ''}`)
+  console.log(`✓ GA 수집 완료 — 대상 ${target.length}건 중 갱신 ${updated} · 데이터 없음 ${noData} · 일별 ${dailySaved}행${dailyTableMissing ? ' (rmn_ga_daily 미설정 — setup.md 8-5)' : ''}${DRY ? ' (dry-run)' : ''}`)
 }
 
 async function main() {
   if (!KEY) { console.error('GA4_KEY_JSON 없음'); process.exit(1) }
   const token = await getToken()
   if (DISCOVER) return discover(token)
+  if (process.argv.includes('--audit')) return audit(token)
   return collect(token)
 }
 

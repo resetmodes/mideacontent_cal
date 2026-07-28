@@ -6,8 +6,8 @@ import {
   groupCampaigns, campaignOn, periodDays, priceWeeks, PRICE_DAYS, bookingQty,
   INSTA_PRODUCTS, INSTA_FORMATS, instaPrice, kakaoPrice,
 } from './data/rmn.js'
-import { listRmn, createRmn, updateRmn, deleteRmn } from './lib/rmnStore.js'
-import { buildOrderXlsx, buildProposalXlsx, buildLedgerXlsx, DOC_NAME, DOC_ORDER } from './lib/rmnDocs.js'
+import { listRmn, createRmn, updateRmn, deleteRmn, listGaDaily } from './lib/rmnStore.js'
+import { buildOrderXlsx, buildProposalXlsx, buildLedgerXlsx, buildResultXlsx, DOC_NAME, DOC_ORDER } from './lib/rmnDocs.js'
 import { toISO, fromISO } from './lib/parse.js'
 import { HOLIDAYS } from './data/holidays.js'
 import ImageAttach from './ImageAttach.jsx'
@@ -243,7 +243,8 @@ function SettleSummary({ bookings, onMsg }) {
 }
 
 /* ── 진행 중 캠페인 행 ('26.7) — [광고주+캠페인명] 헤더, 펼치면 세부 상품 ── */
-function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onItemStatus, onEdit, onDel, onItemAdvance, onItemImages, showYear = false }) {
+function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onReport, onItemStatus, onEdit, onDel, onItemAdvance, onItemImages, showYear = false }) {
+  const hasGa = g.items.some(b => b.impressions > 0)
   const prods = g.items.map(b => b.product + (bookingQty(b) > 1 ? `×${bookingQty(b)}` : ''))
   /* 상품별 이미지 패널 ('26.7) — 한 번에 하나만 열림 (붙여넣기 대상 명확화) */
   const [imgFor, setImgFor] = useState(null)
@@ -271,6 +272,7 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
           <button className="btn-ghost sm" onClick={onAdvance}>다음 → <small className="mute">{nextStatus(g.status)}</small></button>
         )}
         <button className="btn-ghost sm" onClick={onOrder}>청약서</button>
+        {hasGa && <button className="btn-ghost sm" onClick={onReport}>결과보고서</button>}
       </div>
       {open && (
         <div className="rmn-camp-items">
@@ -687,6 +689,15 @@ export default function RmnPage() {
     } catch (e) { setMsg(e.message) }
   }
 
+  /* 결과보고서 — GA 일별 데이터(rmn_ga_daily)로 부쉐론 양식 xlsx ('26.7) */
+  const makeReport = async g => {
+    try {
+      const daily = await listGaDaily(g.advertiser, g.start, g.end)
+      await buildResultXlsx(g, daily)
+      setMsg(`"${g.advertiser}" 결과보고서 다운로드`)
+    } catch (err) { setMsg(err.message) }
+  }
+
   /* 청약서 — 캠페인 상품 전체를 한 장으로 (상품 순서 = DOC_ORDER) */
   const makeOrderGroup = async g => {
     const group = [...g.items].filter(b => b.status !== '취소')
@@ -932,7 +943,7 @@ export default function RmnPage() {
                 editId={editId} confirmDel={confirmDel}
                 onAdvance={() => setCampaignStatus(g, nextStatus(g.status))}
                 onSetStatus={s => setCampaignStatus(g, s)}
-                onOrder={() => makeOrderGroup(g)}
+                onOrder={() => makeOrderGroup(g)} onReport={() => makeReport(g)}
                 onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))}
                 onItemImages={setItemImages} />
             ))}
@@ -957,7 +968,7 @@ export default function RmnPage() {
                     editId={editId} confirmDel={confirmDel}
                     onAdvance={() => setCampaignStatus(g, nextStatus(g.status))}
                     onSetStatus={s => setCampaignStatus(g, s)}
-                    onOrder={() => makeOrderGroup(g)}
+                    onOrder={() => makeOrderGroup(g)} onReport={() => makeReport(g)}
                     onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))}
                     onItemImages={setItemImages} />
                 ))}

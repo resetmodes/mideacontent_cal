@@ -68,3 +68,12 @@ export async function updateRmn(id, patch) {
 export async function deleteRmn(id) {
   await req(`${API()}?id=eq.${id}`, { method: 'DELETE' })
 }
+
+/* GA 일별 실적 조회 ('26.7 — 결과보고서용, rmn_ga_daily는 setup.md 8-5) */
+export async function listGaDaily(advertiser, start, end) {
+  const res = await req(
+    `${SUPABASE_URL}/rest/v1/rmn_ga_daily?advertiser=eq.${encodeURIComponent(advertiser)}` +
+    `&date=gte.${start}&date=lte.${end}&order=date.asc`
+  )
+  return res.json()
+}

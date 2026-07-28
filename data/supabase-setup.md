@@ -409,3 +409,25 @@ github.com/resetmodes/mideacontent_cal → Settings → Secrets and variables �
 - 동기화 규칙: 제목·기간만 갱신 — 우리 쪽에서 붙인 캠페인 변경·메모·이미지는 보존.
   노션발 일정은 작성자 "노션" + 메모에 원본 페이지 링크
 - 미실행 시: 아무 영향 없음 (기존 캘린더 그대로)
+
+### 8-5. GA 일별 실적 테이블 ('26.7 — 결과보고서 자동 생성용)
+
+캠페인 결과보고서(부쉐론 양식 xlsx)의 일자별 노출·클릭을 채우려면:
+
+```sql
+create table if not exists rmn_ga_daily (
+  id bigserial primary key,
+  advertiser text not null,
+  slot text not null,
+  date date not null,
+  impressions bigint default 0,
+  clicks bigint default 0,
+  unique (advertiser, slot, date)
+);
+alter table rmn_ga_daily enable row level security;
+create policy "ga_daily_read" on rmn_ga_daily
+  for select to authenticated using (true);
+```
+
+- 쓰기는 GA 수집 워크플로(service key — RLS 우회)만, 읽기는 로그인 계정
+- 미실행 시: 부킹 합계(노출·클릭)는 정상, **결과보고서 다운로드만** 데이터 없음으로 실패
