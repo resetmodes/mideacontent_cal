@@ -51,5 +51,4 @@ jobs:
             audit)    node scripts/rmn/ga4-collect.mjs --audit ;;
             *)        node scripts/rmn/ga4-collect.mjs ;;
           esac
-
-          매일 06:40 자동 수집 등록
+# 스케줄 재등록 커밋 ('26.7.28) — 매일 06:40 자동 수집
