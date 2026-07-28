@@ -105,7 +105,12 @@ async function collect(token) {
   const rows = await (await sb(
     `rmn_bookings?select=id,advertiser,product,start_date,end_date,status&status=not.in.(가부킹,취소)&start_date=lte.${today}`
   )).json()
-  const target = rows.filter(b => SLOT_MAP && Object.values(SLOT_MAP).includes(b.product))
+  /* 일일 수집은 최근 종료(30일)·진행 중 부킹만 — 과거 완료분은 --backfill 1회로.
+     GA 데이터는 종료 후 변하지 않아 매일 전체 재조회는 낭비 */
+  const BACKFILL = process.argv.includes('--backfill')
+  const cutoff = iso(new Date(Date.now() - 30 * 86400000))
+  const target = rows.filter(b => Object.values(SLOT_MAP).includes(b.product))
+    .filter(b => BACKFILL || (b.end_date || b.start_date) >= cutoff)
   /* 캠페인 = 광고주+기간 겹침 묶음 대신, 부킹별로 [광고주 × 자기 기간] 조회 (단순·정확) */
   let updated = 0, noData = 0
   for (const b of target) {
