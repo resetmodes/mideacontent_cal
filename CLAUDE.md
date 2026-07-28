@@ -353,8 +353,11 @@
   push로는 GitHub이 크론 변경을 재등록하지 않는다.** 물증 = 최초 크론(`0 23`)은 지연 발화라도
   했고(7/22 23:57Z, 당시 파일은 이미 새 크론), 이후 변경한 크론('0 0'→'52 23')은 3슬롯 연속
   무발화. **조치**: ① 크론 이중화 — 본편 `0 0 * * 1-5`(09:00 KST 정각, '26.7.27 사용자 지정) +
-  백업 `25 0 * * 1-5`(09:25 KST), 백업은 "오늘 KST 성공 schedule 발송 있으면 생략" 가드
-  (gh api dedup, permissions actions:read) ② **크론 변경은 반드시 GitHub 웹 UI에서 사용자 본인 커밋으로**
+  백업 `25 0 * * 1-5`(09:25 KST), 백업은 "오늘 KST 성공 발송(이벤트 무관) 있으면 생략" 가드
+  (gh api dedup, permissions actions:read. '26.7.28 확장 — 지연 크론이 안전망 dispatch 뒤에
+  와도 중복 방지) ③ **Anthropic 루틴 안전망 ('26.7.28)** — 평일 09:06 KST에 이 세션이
+  자동으로 깨어나 오늘 발송 여부 확인, 없으면 workflow_dispatch (GitHub 크론 불신 대응 —
+  크론이 2주 연속 정상이면 루틴 제거 검토) ② **크론 변경은 반드시 GitHub 웹 UI에서 사용자 본인 커밋으로**
   (재등록 트리거 — notify.yml 상단 주석에도 명기). UTC 23시대 = KST 다음날이라 요일 하루
   앞(일~목 = KST 월~금). daily-brief.mjs는 KST 보정(kstNow)이라 시각 무영향.
   누락 시 복구 = Actions에서 notify.yml Run workflow 수동 실행(ALWAYS_SEND 자동). **RMN·정산·휴점 등 기타 항목은 전부
