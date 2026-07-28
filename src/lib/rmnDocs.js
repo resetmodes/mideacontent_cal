@@ -176,7 +176,7 @@ const LED_PCT = '0.0%;[Red]\\ \\-0.0%\\ ;"- "'
 const LED_DATE = 'm/d(aaa)'
 const thin = { style: 'thin', color: { argb: 'FFBFBFBF' } }
 const BORDER = { top: thin, left: thin, bottom: thin, right: thin }
-const won千 = n => Math.round((n || 0) / 1000)   // 원 → 천원
+const won千 = n => (n || 0) / 1000   // 원 → 천원 (소수 유지 — 반올림하면 소계가 원본과 1천원 어긋남, 표시는 서식이 반올림)
 /* 수익 수식 — 원본 대장('0723 v1')과 자구까지 동일한 열 참조 형태(행 무관 암시 교차) */
 const PROFIT_ON = 'IF($D:$D="직거래", $M:$M*1, $M:$M*0.7)'
 const PROFIT_OFF = 'IF($D:$D="직거래", $N:$N*1, $N:$N*0.7)'
@@ -212,13 +212,20 @@ function writeLedgerYear(ws, groups, year, prevName) {
   set('K6', { formula: 'IFERROR(L6/J6-1,"- ")' }, { fmt: LED_PCT, bold: true })
   for (const c of 'LMNOPQ') set(`${c}6`, { formula: `SUMIFS($${c}:$${c},$F:$F,"소 계")` }, { fmt: LED_ACC, bold: true })
 
+  /* 상세 상품 표기 — 원본 대장 관례: 복수 구좌 "(3구좌)", 발송형 "20만명" 병기 */
+  const ledName = b => {
+    let n = DOC_NAME[b.product] || b.product
+    if (b.qty > 1) n += `(${b.qty}구좌)`
+    if (b.push_qty) n += ` ${Math.round(b.push_qty / 10000)}만명`
+    return n
+  }
   let r = 7
   for (const g of groups) {
-    const items = [...g.items].sort((a, b) => DOC_ORDER.indexOf(a.product) - DOC_ORDER.indexOf(b.product))
+    const items = g.items   // 등록순 유지 = 원본 대장의 상세 행 순서
     const sub = r, d1 = r + 1, dn = r + items.length
     const mon = `${year}.${g.start.slice(5, 7)}`
     const agency = g.agency || '직거래'
-    const eNames = items.map(b => DOC_NAME[b.product] || b.product).join('\n')
+    const eNames = items.map(ledName).join('\n')
     /* 소계 행 */
     set(`B${sub}`, mon, { center: true })
     set(`C${sub}`, g.campaign ? `${g.advertiser}\n${g.campaign}` : g.advertiser, { wrap: true })
@@ -238,7 +245,7 @@ function writeLedgerYear(ws, groups, year, prevName) {
     items.forEach((b, i) => {
       const row = d1 + i
       set(`D${row}`, agency)
-      set(`F${row}`, DOC_NAME[b.product] || b.product)
+      set(`F${row}`, ledName(b))
       set(`G${row}`, b.option === '타겟팅' ? 'Y' : 'N', { center: true })
       if (b.send_at || b.start_date) { const c = set(`H${row}`, new Date((b.send_at || b.start_date).slice(0, 10) + 'T00:00:00'), { fmt: LED_DATE, center: true }) }
       const e = b.end_date || b.start_date
@@ -263,6 +270,39 @@ function writeLedgerYear(ws, groups, year, prevName) {
   ws.views = [{ state: 'frozen', ySplit: 6 }]
 }
 
+/* 대장 내보내기 전용 그룹핑 ('26.7.28) — 원본 대장의 블록 구조·순서는 "입력 순서" 그대로다
+   (시드가 원본을 위→아래로 이관했으므로 created_at 순 = 원본 순). RMN 화면용
+   groupCampaigns(이름 병합·기간 정렬)를 쓰면 블록 수·순서가 원본과 어긋난다
+   (한섬 2회차 병합, 벨라 연속 회차 병합 사고). 등록순으로 훑으며 인접한
+   같은 [광고주+캠페인]만 한 블록 — 신규 부킹도 저장 순서가 곧 블록이 되어 자연 일치.
+   회차 분리: 같은 키가 연속돼도 새 항목의 시작일이 현재 블록 종료일보다 뒤면 별도 블록
+   (원본 대장이 같은 캠페인명을 회차별 별도 블록으로 적는 관례 — '26 벨라 1~3월 3블록.
+   블록 기간 안에서 시작일만 다른 건, 예: 팝업 7/15 + 푸쉬 7/19,은 그대로 한 블록) */
+function ledgerGroups(bookings) {
+  const hasCt = bookings.every(b => b.created_at)
+  const arr = [...bookings].sort((a, b) => (hasCt
+    ? String(a.created_at).localeCompare(String(b.created_at))
+    : a.start_date.localeCompare(b.start_date)))
+  const out = []
+  let cur = null
+  for (const b of arr) {
+    const key = `${b.advertiser}|${b.campaign || ''}`
+    const end = b.end_date || b.start_date
+    const gapOk = hasCt || !cur
+      || Math.round((new Date(b.start_date + 'T00:00:00') - new Date(cur.end + 'T00:00:00')) / 86400000) <= 3
+    const sameRun = !cur || b.start_date <= cur.end
+    if (cur && cur.key === key && gapOk && sameRun) {
+      cur.items.push(b)
+      if (b.start_date < cur.start) cur.start = b.start_date
+      if (end > cur.end) cur.end = end
+    } else {
+      cur = { key, advertiser: b.advertiser, campaign: b.campaign || '', agency: b.agency, status: b.status, start: b.start_date, end, items: [b] }
+      out.push(cur)
+    }
+  }
+  return out
+}
+
 export async function buildLedgerXlsx(bookings, todayISO) {
   if (!bookings || bookings.length === 0) throw new Error('내보낼 부킹이 없습니다')
   const ExcelJS = (await import('exceljs')).default
@@ -272,7 +312,7 @@ export async function buildLedgerXlsx(bookings, todayISO) {
   let prev = null
   for (const y of years) {
     const yb = held.filter(b => (b.start_date || '').slice(0, 4) === y)
-    const groups = groupCampaigns(yb).sort((a, b) => a.start.localeCompare(b.start))
+    const groups = ledgerGroups(yb)
     const ws = wb.addWorksheet(y)
     writeLedgerYear(ws, groups, y, prev)
     prev = y

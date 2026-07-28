@@ -99,46 +99,39 @@ async function discover(token) {
   for (const n of names) console.log(`  ${n}${/ad|광고/i.test(n) ? '   ← 광고 관련' : ''}`)
 }
 
-/* ── audit: 대장 광고주명 ↔ GA 광고주명 표기 대조 ('26.7.28) —
-   결과는 팀즈 채널로만 (공개 리포 Actions 로그에 광고주 목록 금지) ── */
-async function audit(token) {
-  const rows = await (await sb('rmn_bookings?select=advertiser,product,impressions&status=not.in.(가부킹,취소)')).json()
-  const target = rows.filter(b => Object.values(SLOT_MAP).includes(b.product))
-  const dbAdv = [...new Set(target.map(b => b.advertiser))]
-  const noData = [...new Set(target.filter(b => !b.impressions).map(b => b.advertiser))]
-    .filter(a => !target.some(b => b.advertiser === a && b.impressions > 0))   // 한 건이라도 잡힌 광고주는 제외
+/* ── 광고주명 유사 매칭 ('26.7.28 사용자 승인 — "유사어도 확인, 나머지는 후보랑 매칭") —
+   대장과 GA의 표기가 다른 광고주를 자동으로 잇는다. 로베에↔로에베(글자 순서 뒤바뀜),
+   까르띠에↔카르티에·까르디에(경음·격음 차이). 공개 리포라 로그에는 건수만.
+   (구 --audit 모드는 폐기 — 팀즈 공식 채널 작업 산출물 발송 금지, '26.7.28 사용자 지시) */
+const normAdv = s => s.replace(/[\s()·._-]/g, '').toLowerCase()
+/* 한글 자모 분해 후 경음·격음 → 평음 (ㄲㅋ→ㄱ · ㄸㅌ→ㄷ · ㅃㅍ→ㅂ · ㅆ→ㅅ · ㅉㅊ→ㅈ) */
+const phon = s => s.normalize('NFD')
+  .replace(/[ᄁᄏ]/g, 'ᄀ')
+  .replace(/[ᄄᄐ]/g, 'ᄃ')
+  .replace(/[ᄈᄑ]/g, 'ᄇ')
+  .replace(/ᄊ/g, 'ᄉ')
+  .replace(/[ᄍᄎ]/g, 'ᄌ')
+  .normalize('NFC')
+function gaNamesFor(adv, gaAdv) {
+  const a = phon(normAdv(adv))
+  /* 1) 발음 정규화 후 상호 포함 (까르띠에 → 카르티에) */
+  let hits = gaAdv.filter(g => { const p = phon(normAdv(g)); return p.includes(a) || a.includes(p) })
+  if (hits.length) return hits
+  /* 2) 같은 글자 구성·다른 순서 (로베에 → 로에베) */
+  hits = gaAdv.filter(g => {
+    const p = phon(normAdv(g))
+    return p.length === a.length && [...p].sort().join('') === [...a].sort().join('')
+  })
+  return hits
+}
+async function loadGaAdvertisers(token) {
   const rep = await ga(`${PROPERTY}:runReport`, {
     dateRanges: [{ startDate: '2025-01-01', endDate: todayKST() }],
     dimensions: [{ name: DIM_ADVERTISER }],
     metrics: [{ name: 'eventCount' }],
     limit: 1000,
   }, token)
-  const gaAdv = (rep.rows || []).map(r => r.dimensionValues[0].value).filter(v => v && v !== '(not set)')
-  const norm = s => s.replace(/[\s()·._-]/g, '').toLowerCase()
-  const lines = noData.map(a => {
-    const cand = gaAdv.filter(g => norm(g).includes(norm(a)) || norm(a).includes(norm(g)))
-    return `**${a}** → ${cand.length ? `후보: ${cand.join(', ')}` : 'GA에 유사 표기 없음'}`
-  })
-  const body = [
-    { type: 'TextBlock', text: 'GA 광고주명 표기 대조 결과', weight: 'Bolder', size: 'Medium' },
-    { type: 'TextBlock', text: `대장 광고주 ${dbAdv.length}곳 중 GA 미매칭 ${noData.length}곳 (GA 표기 ${gaAdv.length}종)`, wrap: true },
-    ...lines.map(t => ({ type: 'TextBlock', text: `- ${t}`, wrap: true, spacing: 'Small' })),
-    { type: 'TextBlock', text: '후보가 있는 건은 SLOT/광고주 매핑 추가로 살릴 수 있음 — 목록을 검토해 알려주세요. 후보 없음 = GA 집계 시작(고도화) 전 캠페인일 가능성.', wrap: true, isSubtle: true },
-  ]
-  const webhook = process.env.TEAMS_WEBHOOK_URL
-  if (!webhook) { console.error('TEAMS_WEBHOOK_URL 없음 — audit 결과를 보낼 수 없음'); process.exit(1) }
-  const res = await fetch(webhook, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      type: 'message',
-      attachments: [{
-        contentType: 'application/vnd.microsoft.card.adaptive',
-        content: { type: 'AdaptiveCard', $schema: 'http://adaptivecards.io/schemas/adaptive-card.json', version: '1.4', body },
-      }],
-    }),
-  })
-  if (!res.ok) throw new Error(`팀즈 발송 실패 ${res.status}`)
-  console.log(`✓ 대조 완료 — 미매칭 ${noData.length}건, 결과는 팀즈로 발송 (로그 미출력)`)
+  return (rep.rows || []).map(r => r.dimensionValues[0].value).filter(v => v && v !== '(not set)')
 }
 
 /* ── collect: 캠페인(광고주+기간) 단위 조회 → 부킹별 노출·클릭 갱신 ── */
@@ -154,9 +147,17 @@ async function collect(token) {
   const target = rows.filter(b => Object.values(SLOT_MAP).includes(b.product))
     .filter(b => BACKFILL || (b.end_date || b.start_date) >= cutoff)
   /* 캠페인 = 광고주+기간 겹침 묶음 대신, 부킹별로 [광고주 × 자기 기간] 조회 (단순·정확) */
-  let updated = 0, noData = 0, dailySaved = 0, dailyTableMissing = false
+  const gaAdv = await loadGaAdvertisers(token)   // 유사어 매칭용 GA 표기 전체 (1회 조회)
+  let updated = 0, noData = 0, dailySaved = 0, aliased = 0, dailyTableMissing = false
   for (const b of target) {
     const end = (b.end_date || b.start_date) < today ? (b.end_date || b.start_date) : today
+    /* 광고주 필터: GA 표기 목록에서 유사어까지 매칭되면 그 실표기들로 정확 조회,
+       못 찾으면 기존 CONTAINS 폴백 (GA 집계 전 캠페인 등) */
+    const names = gaNamesFor(b.advertiser, gaAdv)
+    if (names.length && !names.some(n => n.includes(b.advertiser))) aliased++
+    const advFilter = names.length
+      ? { filter: { fieldName: DIM_ADVERTISER, inListFilter: { values: names } } }
+      : { filter: { fieldName: DIM_ADVERTISER, stringFilter: { matchType: 'CONTAINS', value: b.advertiser } } }
     const rep = await ga(`${PROPERTY}:runReport`, {
       dateRanges: [{ startDate: b.start_date, endDate: end }],
       dimensions: [{ name: 'date' }, { name: DIM_SLOT }, { name: 'eventName' }],
@@ -164,7 +165,7 @@ async function collect(token) {
       dimensionFilter: {
         andGroup: { expressions: [
           { filter: { fieldName: 'eventName', inListFilter: { values: [EV_VIEW, EV_CLICK] } } },
-          { filter: { fieldName: DIM_ADVERTISER, stringFilter: { matchType: 'CONTAINS', value: b.advertiser } } },
+          advFilter,
         ] },
       },
       limit: 5000,
@@ -208,14 +209,13 @@ async function collect(token) {
     updated++
   }
   /* 수치는 로그에 안 남김 (공개 리포) — 건수만 */
-  console.log(`✓ GA 수집 완료 — 대상 ${target.length}건 중 갱신 ${updated} · 데이터 없음 ${noData} · 일별 ${dailySaved}행${dailyTableMissing ? ' (rmn_ga_daily 미설정 — setup.md 8-5)' : ''}${DRY ? ' (dry-run)' : ''}`)
+  console.log(`✓ GA 수집 완료 — 대상 ${target.length}건 중 갱신 ${updated} · 데이터 없음 ${noData} · 유사어 매칭 ${aliased} · 일별 ${dailySaved}행${dailyTableMissing ? ' (rmn_ga_daily 미설정 — setup.md 8-5)' : ''}${DRY ? ' (dry-run)' : ''}`)
 }
 
 async function main() {
   if (!KEY) { console.error('GA4_KEY_JSON 없음'); process.exit(1) }
   const token = await getToken()
   if (DISCOVER) return discover(token)
-  if (process.argv.includes('--audit')) return audit(token)
   return collect(token)
 }
 
