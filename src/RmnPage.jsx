@@ -7,7 +7,7 @@ import {
   INSTA_PRODUCTS, INSTA_FORMATS, instaPrice, kakaoPrice, MANUAL_PERF,
 } from './data/rmn.js'
 import { listRmn, createRmn, updateRmn, deleteRmn, listGaDaily } from './lib/rmnStore.js'
-import { buildOrderXlsx, buildProposalXlsx, buildLedgerXlsx, buildResultXlsx, DOC_NAME, DOC_ORDER } from './lib/rmnDocs.js'
+import { buildOrderXlsx, buildProposalXlsx, buildLedgerXlsx, DOC_NAME, DOC_ORDER } from './lib/rmnDocs.js'
 import { toISO, fromISO } from './lib/parse.js'
 import { HOLIDAYS } from './data/holidays.js'
 import ImageAttach from './ImageAttach.jsx'
@@ -246,7 +246,7 @@ function SettleSummary({ bookings, onMsg }) {
 }
 
 /* ── 진행 중 캠페인 행 ('26.7) — [광고주+캠페인명] 헤더, 펼치면 세부 상품 ── */
-function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onReport, onShare, onItemStatus, onEdit, onDel, onItemAdvance, onItemImages, showYear = false }) {
+function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onShare, onItemStatus, onEdit, onDel, onItemAdvance, onItemImages, showYear = false }) {
   const hasGa = g.items.some(b => b.impressions > 0)
   /* 광고주 공유는 GA 실적이 없어도 집행 시작한 캠페인이면 가능 ('26.7.29) —
      카카오톡·인스타 등 매체사 미제공 매체만으로 구성된 캠페인도 집행 내역을 공유 */
@@ -278,7 +278,6 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
           <button className="btn-ghost sm" onClick={onAdvance}>다음 단계 <small className="mute">{nextStatus(g.status)}</small></button>
         )}
         <button className="btn-ghost sm" onClick={onOrder}>청약서</button>
-        {hasGa && <button className="btn-ghost sm" onClick={onReport}>결과보고서</button>}
         {canShare && <button className="btn-ghost sm" onClick={onShare}>광고주 공유</button>}
       </div>
       {open && (
@@ -703,14 +702,8 @@ export default function RmnPage() {
     } catch (e) { setMsg(e.message) }
   }
 
-  /* 결과보고서 — GA 일별 데이터(rmn_ga_daily)로 부쉐론 양식 xlsx ('26.7) */
-  const makeReport = async g => {
-    try {
-      const daily = await listGaDaily(g.advertiser, g.start, g.end)
-      await buildResultXlsx(g, daily)
-      setMsg(`"${g.advertiser}" 결과보고서 다운로드`)
-    } catch (err) { setMsg(err.message) }
-  }
+  /* 결과보고서 엑셀 버튼은 '26.7.29 제거 — 광고주 공유 대시보드가 대체.
+     생성 함수(rmnDocs.buildResultXlsx)는 보존, 필요해지면 버튼만 되살리면 됨 */
 
   /* 광고주 공유 리포트 발급 모달 ('26.7.29) — 스냅샷·토큰·30일·임시 비밀번호 */
   const [shareFor, setShareFor] = useState(null)
@@ -1048,7 +1041,7 @@ export default function RmnPage() {
                 editId={editId} confirmDel={confirmDel}
                 onAdvance={() => setCampaignStatus(g, nextStatus(g.status))}
                 onSetStatus={s => setCampaignStatus(g, s)}
-                onOrder={() => makeOrderGroup(g)} onReport={() => makeReport(g)} onShare={() => setShareFor(g)}
+                onOrder={() => makeOrderGroup(g)} onShare={() => setShareFor(g)}
                 onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))}
                 onItemImages={setItemImages} />
             ))}
@@ -1073,7 +1066,7 @@ export default function RmnPage() {
                     editId={editId} confirmDel={confirmDel}
                     onAdvance={() => setCampaignStatus(g, nextStatus(g.status))}
                     onSetStatus={s => setCampaignStatus(g, s)}
-                    onOrder={() => makeOrderGroup(g)} onReport={() => makeReport(g)} onShare={() => setShareFor(g)}
+                    onOrder={() => makeOrderGroup(g)} onShare={() => setShareFor(g)}
                     onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))}
                     onItemImages={setItemImages} />
                 ))}
