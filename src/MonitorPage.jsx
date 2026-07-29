@@ -592,7 +592,7 @@ export default function MonitorPage() {
         <div className="masthead-sub">
           {platform === 'targetapp'
             ? '타겟형 매체 캠페인 실적 — 수기 입력 (매월 갱신, 팀 내부 전용)'
-            : `자사 인스타그램·유튜브 계정 성과 지표 — 데이터 기준 ${fmtDate(generatedAt)}`}
+            : `SNS 채널 성과 지표 및 모니터링 (기준: 최근 1개월 · ${fmtDate(generatedAt)} 수집)`}
         </div>
       </header>
 

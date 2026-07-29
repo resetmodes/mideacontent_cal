@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { MEDIA, TARGET_COMMON, GROUP_NOTES, COMMON_GUIDE } from './data/media.js'
 import { MIRROR_URL } from './config.js'
+import { withLiveMetrics } from './lib/specMetrics.js'
 import ShareButton from './ShareButton.jsx'
 
 /* 개별 스펙 외부 링크 ('26.7 거버넌스: 개별 스펙 = 외부용) — 미러 사이트의
@@ -172,7 +173,8 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRe
   const ref = useRef(null)
   const first = m.slots[0]
   const rawExtras = m.group === '타겟형 매체' ? { ...(m.extra || {}), ...TARGET_COMMON } : (m.extra || {})
-  const extras = sanitizeExtras(rawExtras, isExternal)
+  /* 언드 미디어 참고 지표는 모니터링 수집분으로 자동 최신화 ('26.7.29) */
+  const extras = sanitizeExtras(withLiveMetrics(m.name, rawExtras), isExternal)
 
   /* 캘린더에서 딥링크로 넘어오면 해당 매체를 펼치고 화면 중앙으로 스크롤 */
   useEffect(() => {

@@ -642,6 +642,11 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 /* 어드민 페이지 ('26.7) — 일괄 관리·삭제 복원·타겟APP 입력 */
 .adm-sec{margin-top:34px;}
 .adm-count{font-weight:400;color:var(--g400);margin-left:6px;letter-spacing:0;}
+/* 항목별 접기 ('26.7.29) — 제목 줄 전체가 토글 버튼 */
+.adm-toggle{display:flex;align-items:baseline;width:100%;text-align:left;cursor:pointer;
+  background:none;border:0;border-bottom:2px solid var(--ink);font-family:inherit;}
+.adm-toggle:hover .adm-caret{color:var(--green);}
+.adm-caret{margin-left:auto;font-size:11.5px;font-weight:600;letter-spacing:0;color:var(--g400);}
 .adm-filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
 .adm-q{flex:1;min-width:220px;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);
   border:1px solid var(--g200);border-radius:9px;padding:9px 12px;outline:none;background:var(--paper);}

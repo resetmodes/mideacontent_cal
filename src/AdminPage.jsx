@@ -12,6 +12,22 @@ import ChannelIcon from './ChannelIcon.jsx'
 const fmtD = iso => (iso ? iso.slice(2).replace(/-/g, '.') : '')
 const kindLabel = e => (e.kind === '팀' ? '팀' : e.kind === '촬영' ? '촬영' : '매체')
 
+/* 항목별 접기 ('26.7.29) — 제목 줄 클릭으로 접기·펼치기.
+   광고 소재 공통 가이드(.cg)와 같은 타이포 어포던스, 상태는 열림 여부만 */
+function AdmSection({ title, count, defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <section className={'adm-sec' + (open ? ' open' : '')}>
+      <button className="group-label adm-toggle" onClick={() => setOpen(o => !o)} aria-expanded={open}>
+        {title}
+        {count != null && <small className="adm-count">{count}</small>}
+        <span className="adm-caret">{open ? '접기 −' : '펼치기 +'}</span>
+      </button>
+      {open && children}
+    </section>
+  )
+}
+
 /* 전체 필드 패치 (updateEvent의 toDb가 전체 행을 만들므로 기존 값 유지) */
 const fullFields = (e, patch = {}) => ({
   title: e.title, date: e.date, endDate: e.endDate || null, channel: e.channel,
@@ -78,8 +94,7 @@ function BulkEvents() {
   }
 
   return (
-    <section className="adm-sec">
-      <div className="group-label">일정 일괄 관리 <small className="adm-count">{filtered.length}건 표시</small></div>
+    <AdmSection title="일정 일괄 관리" count={`${filtered.length}건 표시`} defaultOpen>
       <div className="adm-filters">
         <input className="adm-q" type="search" placeholder="검색 — 제목·캠페인·작성자·매체·메모"
           value={q} onChange={e => setQ(e.target.value)} />
@@ -132,7 +147,7 @@ function BulkEvents() {
       </div>
       {filtered.length > 200 && <div className="adm-note">상위 200건만 표시 — 필터로 좁혀주세요</div>}
       {msg && <div className="adm-msg">{msg}</div>}
-    </section>
+    </AdmSection>
   )
 }
 
@@ -160,8 +175,7 @@ function RestoreDeleted() {
   }
 
   return (
-    <section className="adm-sec">
-      <div className="group-label">최근 90일 삭제 기록 — 원클릭 복원 <small className="adm-count">{rows.length}건</small></div>
+    <AdmSection title="최근 90일 삭제 기록 — 원클릭 복원" count={`${rows.length}건`}>
       {rows.length === 0 ? (
         <div className="adm-note">삭제 기록 없음 (이력 테이블 미설정이면 setup.md 6장)</div>
       ) : (
@@ -184,7 +198,7 @@ function RestoreDeleted() {
         </div>
       )}
       {msg && <div className="adm-msg">{msg}</div>}
-    </section>
+    </AdmSection>
   )
 }
 
@@ -367,8 +381,7 @@ function TargetAppAdmin() {
   const recent = [...rows].sort((a, b) => (b.year - a.year) || (b.month - a.month)).slice(0, 30)
 
   return (
-    <section className="adm-sec">
-      <div className="group-label">타겟APP 실적 입력 <small className="adm-count">엑셀 업로드 또는 직접 입력</small></div>
+    <AdmSection title="타겟APP 실적 입력" count="엑셀 업로드 또는 직접 입력">
       {!data && (
         <div className="adm-note">
           targetapp_stats 테이블 미설정 — data/targetapp-seed.sql 실행 후 입력 가능 (setup.md 7장)
@@ -435,7 +448,7 @@ function TargetAppAdmin() {
         </div>
       )}
       {msg && <div className="adm-msg">{msg}</div>}
-    </section>
+    </AdmSection>
   )
 }
 

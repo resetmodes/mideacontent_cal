@@ -712,7 +712,7 @@ export default function RmnPage() {
         <div className="eyebrow">Media Content Team · Retail Media Network</div>
         <h1>RMN</h1>
         <div className="masthead-sub">
-          현대백화점 APP 광고 판매 — 부킹·재고·정산 관리 (팀 내부 전용 · 노출/클릭 리포트는 GA 연동 후)
+          부킹·재고·정산 관리
         </div>
       </header>
 
