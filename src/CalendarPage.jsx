@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { CHANNELS, TEAM_TYPES, TEAM_KEYWORDS, channelById } from './data/channels.js'
+import { CHANNELS, TEAM_TYPES, TEAM_KEYWORDS, channelById, TARGET_CH, targetLast } from './data/channels.js'
 import { parseQuick, toISO, fromISO, displayTitle } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, updateEventImages, deleteEvent, renameCampaign, listHistory, listDeleted, resolveNotionGone, storageMode } from './lib/store.js'
 import ImageAttach from './ImageAttach.jsx'
@@ -426,10 +426,7 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
   )
 }
 
-/* 타겟APP 후순위 ('26.7) — 타겟APP은 한 날짜에 10종씩 등록돼 셀 표시 상한을 혼자 채우고
-   다른 매체를 "+N 더보기" 뒤로 밀어냈다. 안정 정렬로 타겟APP만 뒤로 (그 외 순서 불변) */
-const TARGET_CH = '타겟APP'
-const targetLast = list => [...list.filter(e => e.channel !== TARGET_CH), ...list.filter(e => e.channel === TARGET_CH)]
+/* 타겟APP 후순위는 channels.js 단일 소스 (홈·시트·셀 공유) */
 
 /* 타겟APP 셀 묶음 ('26.7) — 같은 제목·기간의 타겟APP 형제 건(세부만 다름)을 셀에서
    한 줄 "×N"으로 합침 (10종 동시 등록 시 셀 도배 방지). 클릭하면 세부 선택 시트 */
