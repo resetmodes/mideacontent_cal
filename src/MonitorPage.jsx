@@ -5,6 +5,7 @@ import { UGC } from './data/sns/ugc.js'
 import { TREND } from './data/sns/trend.js'
 import { TA_GROUPS } from './data/targetapp.js'
 import { listTargetApp } from './lib/targetappStore.js'
+import ChannelDashboard from './ChannelDashboard.jsx'
 
 /* 직전 수집 스냅샷 (현재 수집일보다 앞선 것 중 최신) — 없으면 증감 미표시 */
 const prevSnapshot = cur => {
@@ -212,6 +213,7 @@ function AccountTable({ list, prev = null }) {
 
 function YoutubeView() {
   const [chFilter, setChFilter] = useState('전체')
+  const [detail, setDetail] = useState(null)   // 채널 대시보드 ('26.7.29)
   const main = YT.channels.find(c => c.isMain)
   const prev = prevSnapshot((YT.generatedAt || '').slice(0, 10))?.yt || null
   const chName = key => YT.channels.find(c => c.key === key)?.name || key
@@ -220,6 +222,8 @@ function YoutubeView() {
     const list = chFilter === '전체' ? YT.videos : YT.videos.filter(v => v.channel === chFilter)
     return [...list].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 20)
   }, [chFilter])
+
+  if (detail) return <ChannelDashboard channelKey={detail} onBack={() => setDetail(null)} />
 
   return (
     <>
@@ -230,7 +234,7 @@ function YoutubeView() {
         { label: '평균 조회 (대표)', value: compact(main?.avgViews), sub: '최근 수집분' },
       ]} />
 
-      <div className="group-label">채널 지표</div>
+      <div className="group-label">채널 지표 <small className="cd-note-inline">채널명을 누르면 성과 대시보드</small></div>
       <div className="mon-scroll">
         <table className="mon-table">
           <thead>
@@ -243,7 +247,7 @@ function YoutubeView() {
             {[...YT.channels].sort((a, b) => b.subscribers - a.subscribers).map(c => (
               <tr key={c.key}>
                 <td className="mon-acc">
-                  <b>{c.name}</b>
+                  <button className="cd-open" onClick={() => setDetail(c.key)}>{c.name} <span>→</span></button>
                   <a href={c.url} target="_blank" rel="noreferrer">{c.channelName}</a>
                 </td>
                 <td className="strong">

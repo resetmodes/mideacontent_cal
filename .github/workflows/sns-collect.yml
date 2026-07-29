@@ -51,6 +51,21 @@ jobs:
           node scripts/sns/clean-youtube.mjs
           node scripts/sns/append-trend.mjs
 
+      # 유튜브 스튜디오 지표 (Analytics API) — 시크릿 미설정이면 스킵.
+      # 채널 대시보드의 시청시간·구독자 증감·월별 추이 섹션에 쓰임 (docs/yt-analytics-setup.md)
+      - name: 유튜브 스튜디오 지표 수집
+        continue-on-error: true
+        env:
+          YT_OAUTH_CLIENT_ID: ${{ secrets.YT_OAUTH_CLIENT_ID }}
+          YT_OAUTH_CLIENT_SECRET: ${{ secrets.YT_OAUTH_CLIENT_SECRET }}
+          YT_OAUTH_REFRESH_TOKEN: ${{ secrets.YT_OAUTH_REFRESH_TOKEN }}
+        run: |
+          if [ -z "$YT_OAUTH_REFRESH_TOKEN" ]; then
+            echo "YT_OAUTH_* 시크릿 미설정 — 스튜디오 지표 수집 생략 (docs/yt-analytics-setup.md)"
+            exit 0
+          fi
+          node scripts/sns/yt-analytics.mjs
+
       # UGC는 계정 수집과 분리 — 여기가 실패해도 계정 데이터 커밋은 진행.
       # ANTHROPIC_API_KEY 미설정 시 감정·주제·요약 없이 정량 지표만 저장됨 (동작엔 문제 없음)
       - name: UGC 수집 + 분석 (해시태그)
@@ -70,7 +85,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add src/data/sns/instagram.js src/data/sns/youtube.js src/data/sns/trend.js src/data/sns/ugc.js
+          git add src/data/sns/instagram.js src/data/sns/youtube.js src/data/sns/trend.js src/data/sns/ugc.js src/data/sns/ytAnalytics.js
           if git diff --staged --quiet; then
             echo "변경 사항 없음 — 커밋 생략"
             exit 0

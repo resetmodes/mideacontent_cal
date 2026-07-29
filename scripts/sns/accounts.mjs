@@ -54,9 +54,11 @@ export const IG_COMPETITORS = [
   { handle: 'lotteshopping',  file: 'lotteshopping',  name: '롯데백화점',   group: '경쟁사', isMain: false },
 ]
 
+/* channelId: YouTube Analytics API(스튜디오 지표) 조회용 UC… 형식 채널 ID.
+   스튜디오 > 설정 > 채널 > 고급 설정에서 확인 — 채우면 yt-analytics.mjs가 해당 채널도 수집 */
 export const YT_CHANNELS = [
-  { key: 'the_hyundai',   name: 'THE HYUNDAI',        url: 'https://www.youtube.com/@the_hyundai',   isMain: true  },
-  { key: 'wazitwine',     name: '와지트 WAZIT',       url: 'https://www.youtube.com/@wazitwine',     isMain: false },
-  { key: 'roomnumber',    name: '룸넘버 ROOM NUMBER', url: 'https://www.youtube.com/@%EB%A3%B8%EB%84%98%EB%B2%84ROOMNUMBER', isMain: false },
-  { key: 'yiyaho_studio', name: '이야호스튜디오',     url: 'https://www.youtube.com/@yiyaho_studio', isMain: false },
+  { key: 'the_hyundai',   name: 'THE HYUNDAI',        url: 'https://www.youtube.com/@the_hyundai',   isMain: true,  channelId: '' },
+  { key: 'wazitwine',     name: '와지트 WAZIT',       url: 'https://www.youtube.com/@wazitwine',     isMain: false, channelId: '' },
+  { key: 'roomnumber',    name: '룸넘버 ROOM NUMBER', url: 'https://www.youtube.com/@%EB%A3%B8%EB%84%98%EB%B2%84ROOMNUMBER', isMain: false, channelId: '' },
+  { key: 'yiyaho_studio', name: '이야호스튜디오',     url: 'https://www.youtube.com/@yiyaho_studio', isMain: false, channelId: '' },
 ]
