@@ -473,6 +473,7 @@
   누락 시 복구 = Actions에서 notify.yml Run workflow 수동 실행(ALWAYS_SEND 자동). **RMN·정산·휴점 등 기타 항목은 전부
   제외** ('26.7 사용자 확정 — 이전 RMN 섹션·버튼 구성을 대체).
   `scripts/notify/daily-brief.mjs` — 없는 섹션 숨김·전부 비면 발송 생략(ALWAYS_SEND=1로 강제).
+  카드 문구도 문자열 규칙 적용('26.7.29 — 중점·em dash 제거, 매체는 괄호 표기).
   웹훅 = Power Automate 워크플로(docs/teams-webhook-setup.md, 구 Incoming Webhook 커넥터는
   MS 폐지 — 워크플로 재생성 시 TEAMS_WEBHOOK_URL 시크릿 값만 교체하면 됨).
   **시크릿: TEAMS_WEBHOOK_URL(필수) · SUPABASE_SERVICE_KEY(권장 — 일정 조회용)**.
@@ -727,7 +728,9 @@
 - 배치: 로그인 화면 = 가로 조합 52px / **사이드바 = 심볼 22px + 사이트명**(사이드바 폭에서는
   가로 조합이 최소 크기 48px를 못 맞춰 가이드대로 심볼 단독) / 미러 상단 필 바 = 심볼 18px /
   채널 덱 표지 = 화이트 가로 조합 30px. 광고주 공유 리포트는 THE HYUNDAI 표기 유지
-  (미콘룸은 내부 도구 브랜드)
+  (미콘룸은 내부 도구 브랜드). **광고주 공유 리포트 헤더 = THE HYUNDAI 워드마크**
+  (`public/logo/the-hyundai.svg` — 사용자 제공 PDF를 pdftocairo로 SVG 변환 후 여백 트림,
+  잉크색 고정. img 참조라 번들 영향 0)
 - 금지: 그라데이션·그림자, 비율 변경, 획 두께 조정, 심볼 개방부 폐쇄, 그린 외 임의 컬러,
   48px 미만에서 가로 조합 사용
 
