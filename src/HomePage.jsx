@@ -118,11 +118,26 @@ function MediaToday({ events, today, onGo }) {
   const tomorrow = addDays(today, 1)
   const covers = (e, iso) => e.date <= iso && iso <= (e.endDate || e.date)
   const media = events.filter(e => (!e.kind || e.kind === '촬영') && e.channel !== '휴점')
+  /* 타겟APP 주제 묶음 ('26.7.29) — 같은 제목·기간이면 한 줄로 접고 매체 수만 표기.
+     펼치면 어떤 매체로 나가는지 보여준다 (10종 동시 집행이 목록을 덮던 문제) */
+  const group = list => {
+    const out = [], gmap = {}
+    for (const e of list) {
+      if (e.channel !== '타겟APP') { out.push({ e }); continue }
+      const key = [e.title, e.date, e.endDate || ''].join('|')
+      if (gmap[key]) { gmap[key].items.push(e); continue }
+      const g = { key, e, items: [e] }
+      gmap[key] = g
+      out.push({ e, group: g })
+    }
+    return out
+  }
   const rows = [
-    { label: '오늘', iso: today, list: media.filter(e => covers(e, today)) },
-    { label: '내일', iso: tomorrow, list: media.filter(e => covers(e, tomorrow)) },
+    { label: '오늘', iso: today, list: group(media.filter(e => covers(e, today))) },
+    { label: '내일', iso: tomorrow, list: group(media.filter(e => covers(e, tomorrow))) },
   ]
   const empty = rows.every(r => r.list.length === 0)
+  const [openGrp, setOpenGrp] = useState(null)
 
   return (
     <section className="home-sec">
@@ -137,16 +152,32 @@ function MediaToday({ events, today, onGo }) {
         <div key={r.label} className={'home-day' + (r.label === '내일' ? ' next' : '')}>
           <span className="home-daylabel">{r.label}<small>{fmtK(r.iso)}</small></span>
           <div className="home-dayrows">
-            {r.list.slice(0, 6).map(e => (
-              <div key={e.id + r.label} className="home-trow">
-                <ChannelIcon id={e.channel} />
-                <span className="home-ttl">{displayTitle(e.title, e.channel)}</span>
-                <span className="home-sub">
-                  {e.kind === '촬영' ? '촬영' : e.date === r.iso ? '게시' : '진행중'}
-                  {e.campaign ? ` #${e.campaign}` : ''}
-                </span>
-              </div>
-            ))}
+            {r.list.slice(0, 6).map(({ e, group: g }) => {
+              const many = g && g.items.length > 1
+              const key = r.label + (many ? g.key : e.id)
+              const open = many && openGrp === key
+              return (
+                <div key={key}>
+                  <div className={'home-trow' + (many ? ' tap' : '')}
+                    onClick={many ? () => setOpenGrp(open ? null : key) : undefined}>
+                    <ChannelIcon id={e.channel} />
+                    <span className="home-ttl">{displayTitle(e.title, e.channel)}</span>
+                    <span className="home-sub">
+                      {many ? `${g.items.length}개 매체 ${open ? '접기' : '펼치기'}`
+                        : e.kind === '촬영' ? '촬영' : e.date === r.iso ? '게시' : '진행중'}
+                      {e.campaign ? ` #${e.campaign}` : ''}
+                    </span>
+                  </div>
+                  {open && (
+                    <div className="home-grp">
+                      {g.items.map(it => (
+                        <span key={it.id} className="home-grp-item">{it.sub || '세부 미지정'}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
             {r.list.length > 6 && <div className="home-allin">외 {r.list.length - 6}건, 매체 캘린더에서 확인</div>}
           </div>
         </div>

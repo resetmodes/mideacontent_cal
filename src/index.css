@@ -1862,18 +1862,71 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 }
 
 
-/* ═══════════ 곡률 통일 ('26.7.29) ═══════════
-   패널·캘린더 22px, 사이드바 26px, 상세 24px 대비 버튼·입력이 8~10px로 각져 있었음.
-   컨트롤은 14px(패널 곡률의 컨트롤 대응값), 작은 칩은 11px로 계열을 맞춤 */
-.btn-solid,.btn-ghost,.qa-btn,.qa-input,.qa-owner,.md-quick,
-.md-form input,.md-form select,.md-form textarea,
-.ch-pick button,.cs-camps button,.camp-rename,.camp-rename-form input,
-.rmn-manual-fields input,.rmn-line input,.rmn-line select,.rmn-ro,
-.stl-preset,.stl-file,.adm-search,.adm-camp,.mon-note,
-.cal-search-clear,.notify-btn,.home-more,.cd-report,.cd-open,.dk-btn,.dk-back,
-.ta-month button,.stl-filter button,.adm-filter button,.rmn-status,
-.img-add,.img-thumb,.shr-print{border-radius:14px;}
-.seg,.qa-status .st,.rmn-gtag,.mon-flag,.m-chip,.stl-warn,.rmn-year,
-.day-hol,.day-closed,.ev-chip{border-radius:11px;}
-.seg button{border-radius:9px;}
-.cal-nav button,.camp-arrow{border-radius:12px;}
+/* ═══════════ 곡률 통일 ('26.7.29 2차) ═══════════
+   패널·캘린더 22px, 사이드바 26px, 상세 24px 대비 컨트롤이 7~10px로 각져 있었음.
+   버튼·입력은 18px(알약 직전), 작은 칩은 12px, 세그 내부는 14px로 계열을 맞춤 */
+.btn-solid,.btn-ghost,.qa-btn,.qa-input,.qa-owner,.qa-suggest button,.qa-suggest.big button,
+.md-quick,.md-form input,.md-form select,.md-form textarea,.md-expand,.sub-pick button,
+.login-card input,.ch-pick button,.cs-camps button,.camp-chips button,.camp-rename,
+.camp-rename-form input,.cal-search-clear,.cal-big-btn,.share-btn,.notify-btn,
+.side-nav button,.side-session button,.session-bar button,.side-filter button,.spec-rail button,
+.home-more,.cd-report,.cd-open,.dk-btn,.dk-back,.shr-print,.pf-pin,.pf-unpin,
+.adm-q,.adm-bulk input,.adm-filters input[type=date],.adm-taform input,.adm-taform textarea,.xu-pick,
+.rmn-done-q,.rmn-status,.rmn-seg input,.rmn-snap,.rmn-line-x,.rmn-seg-x,.rmn-manual-fields input,
+.rmn-ro,.rmn-line input,.rmn-line select,.rmn-form-side .btn-solid,
+.stl-sum-item,.stl-preset,.stl-file,.stl-up,.stl-zipbar select,
+.img-add,.img-thumb,.ta-month button{border-radius:18px;}
+/* 작은 상태 칩·배지 */
+.st,.rmn-gtag,.mon-flag,.m-chip,.stl-warn,.stl-badge,.rmn-year,.day-hol,.day-closed,
+.ev-chip,.rmn-qtys{border-radius:12px;}
+/* 세그먼트 컨테이너와 알약 */
+.seg{border-radius:20px;padding:4px;}
+.seg button{border-radius:16px;}
+.cal-nav button,.camp-arrow{border-radius:14px;}
+/* 넓은 면 요소 */
+.undo-bar,.rmn-sumbar,.stl-alloc,.rmn-slot,.mon-note,.store-note,.store-err,
+.rsum-miss,.camp-block.focused,.rmn-camp-row.open,.stl-row.open,.rmn-propmaker>summary,
+.rmn-propmaker[open]>summary{border-radius:18px;}
+
+/* 세그먼트 글래스모피즘 ('26.7.29) — 인스타·유튜브 같은 구분 탭이 평면 회색이라
+   패널·사이드바의 글래스 언어와 따로 놀았음. 컨테이너는 반투명+블러, 선택 알약은
+   흰 유리에 그린 틴트 그림자 */
+.seg{background:rgba(255,255,255,.30);border:1px solid var(--glass-border);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55), var(--glass-shadow);}
+.seg button{color:var(--g500);transition:color .18s ease,background .18s ease;}
+.seg button:hover{color:var(--ink);}
+.seg button.on{background:rgba(255,255,255,.86);color:var(--green);font-weight:800;
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:0 2px 8px rgba(11,67,54,.10), inset 0 1px 0 rgba(255,255,255,.9);}
+
+/* 타겟APP 주제 묶음 ('26.7.29) — 하루 시트·홈에서 같은 소재의 매체를 접어 보여줌 */
+.day-grp{border-bottom:1px solid var(--g100);}
+.day-grp:last-child{border-bottom:none;}
+.day-grp .day-row{border-bottom:none;}
+.day-grp-list{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0 12px 34px;}
+.day-subrow{display:flex;align-items:center;gap:8px;font-family:inherit;font-size:13.5px;
+  font-weight:600;color:var(--ink);background:rgba(255,255,255,.6);
+  border:1px solid var(--glass-border);border-radius:14px;padding:7px 13px;cursor:pointer;}
+.day-subrow:hover{border-color:var(--green);color:var(--green);}
+.day-subname{font-weight:700;}
+.home-trow.tap{cursor:pointer;}
+.home-trow.tap:hover .home-ttl{color:var(--green);}
+.home-grp{display:flex;flex-wrap:wrap;gap:5px;padding:2px 0 8px 26px;}
+.home-grp-item{font-size:12.5px;font-weight:600;color:var(--g500);
+  background:rgba(255,255,255,.62);border:1px solid var(--glass-border);
+  border-radius:12px;padding:4px 10px;}
+@media (max-width:560px){
+  .day-grp-list{padding-left:8px;}
+  .home-grp{padding-left:8px;}
+}
+
+/* 곡률 전수 보정 ('26.7.29 2차) — 감사에서 남은 각진 컨트롤 */
+.filters button,.stl-filters button,.stl-form select,.stl-form input,
+.rmn-form select,.rmn-line-grid select,.rmn-line-grid input,
+.md-form select,.adm-taform select,select{border-radius:18px;}
+.cal-daynum{border-radius:10px;}
+.mini-head button,.mini-cal button{border-radius:10px;}
+.ref-thumb,.cg>summary,.adm-toggle,.rmn-camp-head,.stl-row-head{border-radius:12px;}
+/* 검색은 밑줄 스타일 유지 (박스 없음 = 등록 입력과 구분, '26.7 확정) */
+.cal-search,.spec-search input,.search{border-radius:0;}
