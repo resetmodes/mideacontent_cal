@@ -13,6 +13,7 @@ import { HOLIDAYS } from './data/holidays.js'
 import ImageAttach from './ImageAttach.jsx'
 import { Kpi, Donut, HBars, DuoBars, Gauge, Pipeline } from './Charts.jsx'
 import { toast } from './lib/toast.js'
+import { createShare, listShares, deleteShare, genPw, shareUrl } from './lib/shareStore.js'
 
 /* RMN — 현대백화점 APP 광고 판매(부킹·재고·상태·정산) 관리 탭 ('26.7 1차, GA 연동 전).
    팀 전체 노출(내부 로그인) — 미러·외부 뷰에는 탭 자체가 없음.
@@ -245,7 +246,7 @@ function SettleSummary({ bookings, onMsg }) {
 }
 
 /* ── 진행 중 캠페인 행 ('26.7) — [광고주+캠페인명] 헤더, 펼치면 세부 상품 ── */
-function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onReport, onItemStatus, onEdit, onDel, onItemAdvance, onItemImages, showYear = false }) {
+function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onReport, onShare, onItemStatus, onEdit, onDel, onItemAdvance, onItemImages, showYear = false }) {
   const hasGa = g.items.some(b => b.impressions > 0)
   const prods = g.items.map(b => b.product + (bookingQty(b) > 1 ? `×${bookingQty(b)}` : ''))
   /* 상품별 이미지 패널 ('26.7) — 한 번에 하나만 열림 (붙여넣기 대상 명확화) */
@@ -275,6 +276,7 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
         )}
         <button className="btn-ghost sm" onClick={onOrder}>청약서</button>
         {hasGa && <button className="btn-ghost sm" onClick={onReport}>결과보고서</button>}
+        {hasGa && <button className="btn-ghost sm" onClick={onShare}>광고주 공유</button>}
       </div>
       {open && (
         <div className="rmn-camp-items">
@@ -707,6 +709,9 @@ export default function RmnPage() {
     } catch (err) { setMsg(err.message) }
   }
 
+  /* 광고주 공유 리포트 발급 모달 ('26.7.29) — 스냅샷·토큰·30일·임시 비밀번호 */
+  const [shareFor, setShareFor] = useState(null)
+
   /* 청약서 — 캠페인 상품 전체를 한 장으로 (상품 순서 = DOC_ORDER) */
   const makeOrderGroup = async g => {
     const group = [...g.items].filter(b => b.status !== '취소')
@@ -1040,7 +1045,7 @@ export default function RmnPage() {
                 editId={editId} confirmDel={confirmDel}
                 onAdvance={() => setCampaignStatus(g, nextStatus(g.status))}
                 onSetStatus={s => setCampaignStatus(g, s)}
-                onOrder={() => makeOrderGroup(g)} onReport={() => makeReport(g)}
+                onOrder={() => makeOrderGroup(g)} onReport={() => makeReport(g)} onShare={() => setShareFor(g)}
                 onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))}
                 onItemImages={setItemImages} />
             ))}
@@ -1065,7 +1070,7 @@ export default function RmnPage() {
                     editId={editId} confirmDel={confirmDel}
                     onAdvance={() => setCampaignStatus(g, nextStatus(g.status))}
                     onSetStatus={s => setCampaignStatus(g, s)}
-                    onOrder={() => makeOrderGroup(g)} onReport={() => makeReport(g)}
+                    onOrder={() => makeOrderGroup(g)} onReport={() => makeReport(g)} onShare={() => setShareFor(g)}
                     onItemStatus={setStatus} onEdit={startEdit} onDel={del} onItemAdvance={b => setStatus(b, nextStatus(b.status))}
                     onItemImages={setItemImages} />
                 ))}
@@ -1086,6 +1091,8 @@ export default function RmnPage() {
       )}
 
       {pickGroup && <CampaignPicker g={pickGroup} onEdit={startEdit} onOrder={() => makeOrderGroup(pickGroup)} onClose={() => setPickGroup(null)} />}
+
+      {shareFor && <ShareModal g={shareFor} onClose={() => setShareFor(null)} />}
 
       {notices && <RmnNotice notices={notices} onClose={closeNotice}
         onConvert={async b => { await setStatus(b, '부킹'); setNotices(n => ({ ...n, tentative: n.tentative.filter(x => x.id !== b.id) })) }} />}
@@ -1220,5 +1227,118 @@ function RmnAnalytics({ rows, activeCamps }) {
         </div>
       )}
     </>
+  )
+}
+
+/* ── 광고주 공유 리포트 발급 ('26.7.29) — 스냅샷 저장 후 링크+임시 비밀번호 표시.
+   데이터 = 이 캠페인의 GA 일별(rmn_ga_daily) + 상품 구성. 30일 만료, 회수 가능.
+   금액(광고비·CPM·CPC)은 기본 미포함 — 체크 시에만 스냅샷에 실림 */
+function ShareModal({ g, onClose }) {
+  const [usePw, setUsePw] = useState(true)
+  const [withMoney, setWithMoney] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [made, setMade] = useState(null)      // { url, pw }
+  const [err, setErr] = useState(null)
+  const [existing, setExisting] = useState([])
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    listShares(g.advertiser, g.campaign).then(setExisting).catch(() => {})
+  }, [g])
+
+  const issue = async () => {
+    setBusy(true); setErr(null)
+    try {
+      const dailyRaw = await listGaDaily(g.advertiser, g.start, g.end)
+      const daily = (dailyRaw || []).map(r => ({ date: r.date, slot: r.slot, imp: r.impressions || 0, clk: r.clicks || 0 }))
+      if (daily.length === 0) throw new Error('GA 일별 데이터가 없습니다 — 수집 전이거나 rmn_ga_daily 미설정 (setup.md 8-5)')
+      const items = g.items.filter(b => b.status !== '취소')
+      const data = {
+        advertiser: g.advertiser, campaign: g.campaign || null,
+        start: g.start, end: g.end,
+        products: items.map(b => ({ product: b.product, start: b.start_date, end: b.end_date, qty: bookingQty(b) })),
+        spend: withMoney ? items.reduce((a, b) => a + (b.actual_price || 0), 0) : null,
+        daily, createdAt: new Date().toISOString(),
+      }
+      const pw = usePw ? genPw() : null
+      const row = await createShare({ advertiser: g.advertiser, campaign: g.campaign, data, pw, days: 30 })
+      setMade({ url: shareUrl(row.token), pw })
+      toast('공유 링크 발급됨')
+      listShares(g.advertiser, g.campaign).then(setExisting).catch(() => {})
+    } catch (e) { setErr(e.message) } finally { setBusy(false) }
+  }
+
+  const copyAll = async () => {
+    const text = made.pw
+      ? `[${g.advertiser}${g.campaign ? ` ${g.campaign}` : ''} 캠페인 결과 리포트]\n${made.url}\n비밀번호: ${made.pw}\n(30일간 열람 가능합니다)`
+      : `[${g.advertiser}${g.campaign ? ` ${g.campaign}` : ''} 캠페인 결과 리포트]\n${made.url}\n(30일간 열람 가능합니다)`
+    try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000) }
+    catch { window.prompt('아래 내용을 복사하세요', text) }
+  }
+
+  const revoke = async id => {
+    try { await deleteShare(id); setExisting(list => list.filter(x => x.id !== id)); toast('링크 회수됨', { danger: true }) }
+    catch (e) { setErr(e.message) }
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="md-ch">광고주 공유 리포트</div>
+        <div className="md-title">{g.advertiser}{g.campaign ? ` — ${g.campaign}` : ''}</div>
+        <div className="mute" style={{ fontSize: 13, lineHeight: 1.6 }}>
+          이 캠페인의 결과(일별 노출·클릭·CTR·구좌별 성과)만 담은 열람 전용 페이지를 발급합니다.
+          다른 캠페인·광고주 데이터는 포함되지 않으며, <b>30일 후 자동 만료</b>됩니다.
+        </div>
+
+        {!made ? (
+          <>
+            <div className="md-form" style={{ marginTop: 14 }}>
+              <label className="rmn-target" style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                임시 비밀번호 걸기 <small className="mute">해제 시 링크만으로 열람</small>
+                <input type="checkbox" checked={usePw} onChange={e => setUsePw(e.target.checked)} />
+              </label>
+              <label className="rmn-target" style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                광고비·CPM·CPC 포함 <small className="mute">기본 미포함 — 성과 지표만</small>
+                <input type="checkbox" checked={withMoney} onChange={e => setWithMoney(e.target.checked)} />
+              </label>
+            </div>
+            {err && <div className="qa-err">{err}</div>}
+            <div className="md-actions">
+              <div className="md-spacer" />
+              <button className="btn-ghost" onClick={onClose}>닫기</button>
+              <button className="btn-solid" disabled={busy} onClick={issue}>{busy ? '발급 중…' : '공유 링크 발급'}</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <dl className="md-grid" style={{ marginTop: 14 }}>
+              <dt>링크</dt><dd style={{ wordBreak: 'break-all' }}>{made.url}</dd>
+              {made.pw && <><dt>비밀번호</dt><dd className="strong">{made.pw}</dd></>}
+              <dt>기한</dt><dd>발급일로부터 30일</dd>
+            </dl>
+            <div className="md-actions">
+              <div className="md-spacer" />
+              <button className="btn-ghost" onClick={onClose}>닫기</button>
+              <button className={'btn-solid' + (copied ? '' : '')} onClick={copyAll}>{copied ? '복사됨 ✓' : '링크+비밀번호 복사'}</button>
+            </div>
+          </>
+        )}
+
+        {existing.length > 0 && (
+          <div className="md-hist" style={{ marginTop: 16 }}>
+            <div className="md-perf-title">발급된 링크 {existing.length}건 <small>회수하면 즉시 열람 불가</small></div>
+            {existing.map(x => (
+              <div key={x.id} className="md-hist-row">
+                <span className="mh-when">~{(x.expires_at || '').slice(0, 10)}</span>
+                <span className="mh-who">{x.pw ? '비밀번호 있음' : '링크만'}</span>
+                <span className="mh-diff mute">{x.created_by || ''}</span>
+                <button className="btn-ghost sm danger" onClick={() => revoke(x.id)}>회수</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
