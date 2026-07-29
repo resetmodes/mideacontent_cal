@@ -630,7 +630,14 @@
   비번 게이트 → 대시보드). 내용 = 엑셀 결과보고서 항목(일별 노출·클릭·CTR) + KPI 4장 +
   하이라이트 자동 문장(최고 노출일·최고 CTR일·구좌 비중) + 일별 막대·구좌 도넛·구좌별
   성과·요일 평균 + 일별 상세 표 — 전부 스냅샷 실데이터 계산, 날조 없음. 엑셀 양식의 14일
-  제한과 달리 기간 제한 없음. 파일: src/lib/shareStore.js·ShareReport.jsx·RmnPage ShareModal·
+  제한과 달리 기간 제한 없음.
+  **GA 미측정 매체 표기 ('26.7.29)**: 카카오톡·푸쉬·인스타그램은 매체사가 노출·클릭을 주지
+  않음 → 추정치를 만들지 않고 **"그 외 집행 매체"** 표로 집행 사실만 표기 (발송 건수·발송
+  일시·게시 구성·일자 + "오픈·클릭률은 카카오 정책상 미제공" 등 비고). 스냅샷 products에
+  measured/sendQty/sendAt/option 필드 추가(구 스냅샷은 measured 없음 = 종전 렌더 유지).
+  **발송·게시형만 집행한 캠페인도 공유 가능** — 공유 버튼 조건이 GA 실적 → "집행 이후 상태"로
+  완화(canShare), 이 경우 KPI는 집행 매체 수·총 발송·(옵트인)광고비로 대체하고 성과 차트·
+  일별 표는 숨김, 푸터 출처도 "집행 내역 기준"으로 전환. 파일: src/lib/shareStore.js·ShareReport.jsx·RmnPage ShareModal·
   data/rmn-share-setup.sql (**사용자 액션: SQL 1회 — setup.md 12장**, 미실행 시 발급만 실패)
 - **정산 탭 ('26.7 테스트 — 3인)**: `#settle`, `src/SettlePage.jsx` — 법인카드/세금계산서
   정산 관리. **config.js `SETTLE_EMAILS` 게이트**(노규빈·박준영·한은비만 탭 노출, 전 팀
