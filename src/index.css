@@ -192,7 +192,8 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
   border:1px solid var(--glass-border);border-radius:26px;box-shadow:var(--glass-shadow);
   padding:20px 13px 13px;z-index:40;scrollbar-width:none;}
 .side::-webkit-scrollbar{display:none;}
-.side-brand{padding:0 9px 16px;}
+.side-brand{display:flex;align-items:flex-start;gap:9px;padding:0 9px 16px;}
+.side-brand svg{flex:none;margin-top:3px;}
 .side-brand b{display:block;font-size:17px;font-weight:800;letter-spacing:-0.02em;color:var(--ink);line-height:1.3;}
 .side-brand span{display:block;font-size:10.5px;font-weight:600;color:var(--g400);margin-top:3px;letter-spacing:.01em;}
 .side-nav{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--hairline);padding-top:11px;}
@@ -1981,4 +1982,12 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   .home-head{flex-direction:column;gap:12px;}
   .gs{flex:1 1 auto;max-width:none;width:100%;}
   .gs-panel{right:auto;left:0;width:100%;}
+}
+
+/* 로고 ('26.7.29) — 가로 조합은 높이 48px 이상, 여백은 획 두께의 2배(비율상 약 0.22em) */
+.login-logo{display:block;margin-bottom:20px;}
+.dk-logo{display:block;margin-bottom:26px;opacity:.9;}
+.mini-logo{flex:none;margin:0 4px 0 6px;}
+@media (max-width:560px){
+  .login-logo{height:42px;width:auto;}
 }

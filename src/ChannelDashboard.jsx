@@ -11,6 +11,7 @@
    ② 스튜디오 지표(선택) — ytAnalytics.js (YouTube Analytics API 연동 시 슬라이드 자동 추가)
    노출수·CTR은 API 미제공이라 표기하지 않는다 (수치 날조 금지) */
 import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
+import { LogoLockup } from './Logo.jsx'
 import { YT } from './data/sns/youtube.js'
 import { YTA } from './data/sns/ytAnalytics.js'
 import { TREND } from './data/sns/trend.js'
@@ -330,6 +331,7 @@ export default function ChannelDashboard({ channelKey, onBack }) {
     key: 'cover', label: '표지',
     node: (
       <div className="dk-cover">
+        <LogoLockup height={30} color="#fff" className="dk-logo" />
         <div className="dk-eyebrow">채널 성과 리포트</div>
         <h2 className="dk-title">{rp?.title || ch?.name}</h2>
         {rp && <div className="dk-cover-tag">{rp.tag}</div>}

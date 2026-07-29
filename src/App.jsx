@@ -10,6 +10,7 @@ import AdminPage from './AdminPage.jsx'
 import RmnPage from './RmnPage.jsx'
 import SettlePage from './SettlePage.jsx'
 import ShareReport from './ShareReport.jsx'
+import { LogoMark } from './Logo.jsx'
 import { getSession, onAuthChange, signOut } from './lib/auth.js'
 import { storageMode } from './lib/store.js'
 import { ADMIN_EMAILS, SETTLE_EMAILS } from './config.js'
@@ -78,10 +79,14 @@ export default function App() {
   return (
     <div className="shell">
       <aside className="side">
-        {/* 사이트명 "미디어콘텐츠룸" (약칭 미콘룸) — '26.7.29 사용자 확정 */}
+        {/* 브랜드 ('26.7.29 로고 적용) — 사이드바 폭에서는 가로 조합이 최소 크기 48px를
+            못 맞추므로 가이드대로 심볼 단독 + 사이트명 조합 */}
         <div className="side-brand">
-          <b>미디어콘텐츠룸</b>
-          <span>매체 운영</span>
+          <LogoMark size={22} color="var(--green)" />
+          <div>
+            <b>미디어콘텐츠룸</b>
+            <span>매체 운영</span>
+          </div>
         </div>
         <nav className="side-nav">
           <button className={tab === 'home' ? 'on' : ''} onClick={() => go('home')}>홈</button>

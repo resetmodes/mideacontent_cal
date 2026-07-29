@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { LogoMark } from './Logo.jsx'
 import SpecLibrary from './SpecLibrary.jsx'
 import CalendarPage from './CalendarPage.jsx'
 
@@ -43,6 +44,7 @@ export default function MirrorApp() {
     <>
       <nav className="mini-tabs">
         <div className="mini-tabs-inner">
+          <LogoMark size={18} color="var(--green)" className="mini-logo" />
           <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
           <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
           <span className="mini-ro">읽기 전용 공유 뷰</span>

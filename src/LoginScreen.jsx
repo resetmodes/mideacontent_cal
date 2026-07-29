@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { LogoLockup } from './Logo.jsx'
 import { signIn } from './lib/auth.js'
 
 /* 사이트 전체 로그인 게이트 — App.jsx에서 세션 없을 때 렌더 (캘린더·스펙·모니터링 공통) */
@@ -19,6 +20,7 @@ export default function LoginScreen({ viewer = false }) {
   return (
     <div className="wrap cal-wrap">
       <header>
+        <LogoLockup height={52} color="var(--green)" className="login-logo" />
         <h1>로그인</h1>
         <div className="masthead-sub">
           {viewer
