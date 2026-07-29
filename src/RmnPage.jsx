@@ -248,6 +248,9 @@ function SettleSummary({ bookings, onMsg }) {
 /* ── 진행 중 캠페인 행 ('26.7) — [광고주+캠페인명] 헤더, 펼치면 세부 상품 ── */
 function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetStatus, onOrder, onReport, onShare, onItemStatus, onEdit, onDel, onItemAdvance, onItemImages, showYear = false }) {
   const hasGa = g.items.some(b => b.impressions > 0)
+  /* 광고주 공유는 GA 실적이 없어도 집행 시작한 캠페인이면 가능 ('26.7.29) —
+     카카오톡·인스타 등 매체사 미제공 매체만으로 구성된 캠페인도 집행 내역을 공유 */
+  const canShare = hasGa || g.items.some(b => statusIdx(b.status) >= statusIdx('집행'))
   const prods = g.items.map(b => b.product + (bookingQty(b) > 1 ? `×${bookingQty(b)}` : ''))
   /* 상품별 이미지 패널 ('26.7) — 한 번에 하나만 열림 (붙여넣기 대상 명확화) */
   const [imgFor, setImgFor] = useState(null)
@@ -276,7 +279,7 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
         )}
         <button className="btn-ghost sm" onClick={onOrder}>청약서</button>
         {hasGa && <button className="btn-ghost sm" onClick={onReport}>결과보고서</button>}
-        {hasGa && <button className="btn-ghost sm" onClick={onShare}>광고주 공유</button>}
+        {canShare && <button className="btn-ghost sm" onClick={onShare}>광고주 공유</button>}
       </div>
       {open && (
         <div className="rmn-camp-items">
@@ -1246,17 +1249,32 @@ function ShareModal({ g, onClose }) {
     listShares(g.advertiser, g.campaign).then(setExisting).catch(() => {})
   }, [g])
 
+  /* 발송형(푸쉬·카카오톡)·게시형(인스타)은 GA 측정 대상이 아님 */
+  const unmeasured = [...new Set(g.items.filter(b => {
+    const p = rmnProduct(b.product)
+    return p && (p.push || p.insta)
+  }).map(b => b.product))]
+
   const issue = async () => {
     setBusy(true); setErr(null)
     try {
       const dailyRaw = await listGaDaily(g.advertiser, g.start, g.end)
       const daily = (dailyRaw || []).map(r => ({ date: r.date, slot: r.slot, imp: r.impressions || 0, clk: r.clicks || 0 }))
-      if (daily.length === 0) throw new Error('GA 일별 데이터가 없습니다 — 수집 전이거나 rmn_ga_daily 미설정 (setup.md 8-5)')
       const items = g.items.filter(b => b.status !== '취소')
+      if (items.length === 0) throw new Error('공유할 집행 건이 없습니다 (전부 취소)')
+      /* GA 측정 여부 — 앱 구좌는 일별 데이터가 있고, 카카오톡·푸쉬·인스타는 매체사 미제공.
+         측정 안 되는 매체도 "집행 내역"으로 표기 (빈칸 대신 사실만, 수치 추정 금지) */
+      const measured = new Set(daily.map(r => r.slot))
       const data = {
         advertiser: g.advertiser, campaign: g.campaign || null,
         start: g.start, end: g.end,
-        products: items.map(b => ({ product: b.product, start: b.start_date, end: b.end_date, qty: bookingQty(b) })),
+        products: items.map(b => ({
+          product: b.product, start: b.start_date, end: b.end_date, qty: bookingQty(b),
+          measured: measured.has(b.product),
+          option: b.option || null,
+          sendQty: b.push_qty || null,
+          sendAt: b.send_at || null,
+        })),
         spend: withMoney ? items.reduce((a, b) => a + (b.actual_price || 0), 0) : null,
         daily, createdAt: new Date().toISOString(),
       }
@@ -1290,6 +1308,13 @@ function ShareModal({ g, onClose }) {
           이 캠페인의 결과(일별 노출·클릭·CTR·구좌별 성과)만 담은 열람 전용 페이지를 발급합니다.
           다른 캠페인·광고주 데이터는 포함되지 않으며, <b>30일 후 자동 만료</b>됩니다.
         </div>
+        {/* GA 미측정 매체 안내 ('26.7.29) — 카카오톡·푸쉬·인스타는 매체사가 지표를 주지 않음 */}
+        {unmeasured.length > 0 && (
+          <div className="mute" style={{ fontSize: 12.5, lineHeight: 1.6, marginTop: 8 }}>
+            <b>{unmeasured.join(' · ')}</b>는 매체사에서 노출·클릭 데이터를 제공하지 않아,
+            리포트에 <b>집행 내역</b>(발송 건수·게시 구성·일자)으로만 표기됩니다.
+          </div>
+        )}
 
         {!made ? (
           <>
