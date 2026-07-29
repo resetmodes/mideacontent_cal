@@ -234,7 +234,10 @@ function YoutubeView() {
         { label: '평균 조회 (대표)', value: compact(main?.avgViews), sub: '최근 수집분' },
       ]} />
 
-      <div className="group-label">채널 지표 <small className="cd-note-inline">채널명을 누르면 성과 대시보드</small></div>
+      <div className="group-label">
+        채널 지표 <small className="cd-note-inline">채널명을 누르면 성과 대시보드</small>
+        <button className="cd-report" onClick={() => setDetail('__overview')}>종합 리포트 →</button>
+      </div>
       <div className="mon-scroll">
         <table className="mon-table">
           <thead>

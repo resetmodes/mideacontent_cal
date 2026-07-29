@@ -14,6 +14,7 @@ import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { YT } from './data/sns/youtube.js'
 import { YTA } from './data/sns/ytAnalytics.js'
 import { TREND } from './data/sns/trend.js'
+import { REPORT } from './data/sns/channelReport.js'
 
 const num = n => (n == null ? '—' : Math.round(n).toLocaleString('ko-KR'))
 const compact = n => {
@@ -22,6 +23,7 @@ const compact = n => {
   if (n >= 10000) return `${(n / 10000).toFixed(1).replace(/\.0$/, '')}만`
   return Math.round(n).toLocaleString('ko-KR')
 }
+const manWon = n => `${Math.round(n / 10000).toLocaleString('ko-KR')}만원`
 const hours = min => (min == null ? '—' : `${Math.round(min / 60).toLocaleString('ko-KR')}h`)
 const ymd = s => (s ? s.slice(0, 10).replace(/-/g, '.') : '—')
 const monthLabel = m => `${Number(m.slice(5, 7))}월`
@@ -35,17 +37,30 @@ const postDate = s => {
   return m ? `${m[1]}${UNIT_KO[m[2]]} 전` : s
 }
 
+/* **강조** 마크업 → <b> (리포트 문구용) */
+const em = t => t.split('**').map((seg, i) => (i % 2 ? <b key={i}>{seg}</b> : seg))
+
 /* ── 막대 (그린 단색 · 축 가로선만) ─────────────────────────── */
-function BarChart({ rows, unit = '회' }) {
-  const max = Math.max(...rows.map(r => r.v), 1)
+function BarChart({ rows, unit = '회', series = null }) {
+  const max = Math.max(...rows.flatMap(r => [r.v, r.v2 || 0]), 1)
   return (
     <div className="dk-chart">
+      {series && (
+        <div className="dk-legend">
+          {series.map((s, i) => <span key={s} className={'dk-lg' + (i ? ' alt' : '')}>{s}</span>)}
+        </div>
+      )}
       <div className="dk-bars">
         {rows.map((r, i) => (
           <div className="dk-bar-col" key={i}>
-            <div className="dk-bar-v">{compact(r.v)}</div>
+            <div className="dk-bar-v">
+              {compact(r.v)}{r.v2 != null && <em>{compact(r.v2)}</em>}
+            </div>
             <div className="dk-bar-track">
               <div className="dk-bar-fill" style={{ height: `${Math.max((r.v / max) * 100, r.v > 0 ? 1.5 : 0)}%`, animationDelay: `${i * 70}ms` }} />
+              {r.v2 != null && (
+                <div className="dk-bar-fill alt" style={{ height: `${Math.max((r.v2 / max) * 100, r.v2 > 0 ? 1.5 : 0)}%`, animationDelay: `${i * 70 + 40}ms` }} />
+              )}
             </div>
             <div className="dk-bar-l">{r.label}</div>
           </div>
@@ -95,7 +110,103 @@ function Kpi({ label, value, unit, sub }) {
   )
 }
 
+
+/* ── 종합 리포트 덱 (개요) — 채널 4개를 한 화면에서 비교 ───────────────── */
+function overviewSlides() {
+  const chs = Object.entries(REPORT.channels)
+  const maxM = Math.max(...chs.flatMap(([, c]) => c.monthly))
+  const maxV = Math.max(...REPORT.adValue.rows.map(r => r.v))
+  return [
+    {
+      key: 'ov-cover', label: '표지',
+      node: (
+        <div className="dk-cover">
+          <div className="dk-eyebrow">Channel Performance · {REPORT.period}</div>
+          <h2 className="dk-title">{REPORT.headline}</h2>
+          <div className="dk-lede">{REPORT.lede}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'ov-kpi', label: '종합 지표',
+      node: (
+        <>
+          <div className="dk-h">종합 성과 <small>{REPORT.period}</small></div>
+          <div className="dk-kpis">
+            {REPORT.kpis.map((k, i) => <Kpi key={i} label={k.l} value={k.v} sub={k.s} />)}
+          </div>
+        </>
+      ),
+    },
+    {
+      key: 'ov-compare', label: '채널 비교',
+      node: (
+        <>
+          <div className="dk-h">개월 차별 조회수 추이 <small>{REPORT.compareNote}</small></div>
+          <div className="dk-cmp">
+            {chs.map(([k, c]) => (
+              <div className="dk-cmp-row" key={k}>
+                <div className="dk-cmp-name">{c.title}</div>
+                <div className="dk-cmp-bars">
+                  {c.monthly.map((v, i) => (
+                    <div className="dk-cmp-cell" key={i}>
+                      <div className="dk-cmp-bar" style={{ width: `${(v / maxM) * 100}%`, animationDelay: `${i * 60}ms` }} />
+                      <span>{compact(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="dk-cmp-legend">{REPORT.monthLabels.join(' · ')} 순</div>
+        </>
+      ),
+    },
+    {
+      key: 'ov-value', label: '광고가치',
+      node: (
+        <>
+          <div className="dk-h">광고비 없이 만든 조회 효과 <small>{REPORT.adValue.note}</small></div>
+          <div className="dk-hbars">
+            {REPORT.adValue.rows.map((r, i) => (
+              <div className="dk-hbar-row" key={r.k} style={{ animationDelay: `${i * 80}ms` }}>
+                <span className="dk-hbar-l">{r.label}</span>
+                <span className="dk-hbar-track">
+                  <span className={'dk-hbar-fill' + (r.actual ? ' alt' : '')} style={{ width: `${(r.v / maxV) * 100}%` }} />
+                </span>
+                <span className="dk-hbar-v">{manWon(r.v)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="dk-total">{REPORT.adValue.total}</div>
+        </>
+      ),
+    },
+    {
+      key: 'ov-plan', label: '향후 계획',
+      node: (
+        <>
+          <div className="dk-h">3분기 이후 채널별 운영 방향 <small>{REPORT.planNote}</small></div>
+          <div className="dk-plans">
+            {REPORT.plan.map((p, i) => (
+              <div className="dk-plan-card" key={p.k} style={{ animationDelay: `${i * 90}ms` }}>
+                <div className="dk-plan-brand">{p.brand}</div>
+                <div className="dk-plan-k sm">{p.title}</div>
+                <div className="dk-plan-goal sm">{p.goal}</div>
+                <ul className="dk-plan-acts">
+                  {p.actions.map(([when, what], j) => <li key={j}><b>{when}</b> {what}</li>)}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </>
+      ),
+    },
+  ]
+}
+
 export default function ChannelDashboard({ channelKey, onBack }) {
+  const overview = channelKey === '__overview'
   const ch = YT.channels.find(c => c.key === channelKey)
   const sa = YTA?.channels?.[channelKey] || null
   const [idx, setIdx] = useState(0)
@@ -135,7 +246,7 @@ export default function ChannelDashboard({ channelKey, onBack }) {
     if (mine.length) {
       out.push([`수집분의 ${Math.round((shorts.length / mine.length) * 100)}%가 쇼츠`, `쇼츠 ${shorts.length}편 · 롱폼 ${mine.length - shorts.length}편`])
     }
-    if (ch.avgViewsVideo && ch.avgViewsShorts) {
+    if (ch?.avgViewsVideo && ch?.avgViewsShorts) {
       const hi = ch.avgViewsVideo >= ch.avgViewsShorts
       out.push([`${hi ? '롱폼이' : '쇼츠가'} 평균 조회 우위`, `롱폼 ${compact(ch.avgViewsVideo)} · 쇼츠 ${compact(ch.avgViewsShorts)}`])
     }
@@ -149,31 +260,188 @@ export default function ChannelDashboard({ channelKey, onBack }) {
     return out.slice(0, 4)
   }, [mine, topVideos, ch, subTrend, sa])
 
-  /* ── 슬라이드 구성 (데이터 있는 것만) ── */
-  const slides = []
-  slides.push({
+  /* ── 슬라이드 구성 ──
+     리포트(REPORT: 스튜디오·인사이트 기준 수기 값)가 있으면 분석 슬라이드를 먼저 싣고,
+     그 뒤에 주간 자동 수집 지표를 붙인다. 기간·기준이 다르므로 각 슬라이드에 병기 */
+  const slides = overview ? overviewSlides() : []
+  const rp = overview ? null : (REPORT.channels[channelKey] || null)
+  const plan = REPORT.plan.find(p => p.k === channelKey) || null
+
+  if (!overview) slides.push({
     key: 'cover', label: '표지',
     node: (
       <div className="dk-cover">
         <div className="dk-eyebrow">Channel Performance</div>
-        <h2 className="dk-title">{ch?.name}</h2>
+        <h2 className="dk-title">{rp?.title || ch?.name}</h2>
+        {rp && <div className="dk-cover-tag">{rp.tag}</div>}
         <div className="dk-cover-meta">
-          유튜브 · {ch?.channelName} · {ymd(YT.generatedAt)} 수집
-          {sa && ` · 스튜디오 ${ymd(YTA.range.start)}~${ymd(YTA.range.end)}`}
+          유튜브 · {ch?.channelName} · {rp ? `리포트 ${rp.period}` : `${ymd(YT.generatedAt)} 수집`}
         </div>
         <div className="dk-cover-nums">
-          <div><b>{compact(ch?.subscribers)}</b><span>구독자</span></div>
-          <div><b>{compact(ch?.totalViews)}</b><span>총 조회수</span></div>
-          <div><b>{num(ch?.totalVideos)}</b><span>영상</span></div>
+          {(rp ? rp.stats.slice(0, 3) : [
+            { v: compact(ch?.subscribers), l: '구독자' },
+            { v: compact(ch?.totalViews), l: '총 조회수' },
+            { v: num(ch?.totalVideos), l: '영상' },
+          ]).map((s, i) => <div key={i}><b>{s.v}</b><span>{s.l}</span></div>)}
         </div>
       </div>
     ),
   })
-  slides.push({
-    key: 'kpi', label: '핵심 지표',
+
+  if (rp) {
+    slides.push({
+      key: 'rp-stats', label: '기간 성과',
+      node: (
+        <>
+          <div className="dk-h">기간 성과 <small>{rp.period} · 유튜브 스튜디오 기준</small></div>
+          <div className="dk-kpis five">
+            {rp.stats.map((s, i) => <Kpi key={i} label={s.l} value={s.v} />)}
+          </div>
+        </>
+      ),
+    })
+    slides.push({
+      key: 'rp-monthly', label: '월별 조회수',
+      node: (
+        <>
+          <div className="dk-h">월별 조회수 <small>{rp.period} · 개월차 기준</small></div>
+          <BarChart rows={rp.monthly.map((v, i) => ({ label: REPORT.monthLabels[i], v }))} />
+        </>
+      ),
+    })
+    slides.push({
+      key: 'rp-top', label: 'TOP 5',
+      node: (
+        <>
+          <div className="dk-h">TOP 5 인기 영상 <small>{rp.period}</small></div>
+          <div className="dk-top">
+            {rp.top5.map(([t, v, id], i) => (
+              <a key={id} className="dk-top-row" href={`https://www.youtube.com/watch?v=${id}`}
+                target="_blank" rel="noreferrer" style={{ animationDelay: `${i * 60}ms` }}>
+                <span className="dk-rank">{i + 1}</span>
+                <img className="dk-thumb" loading="lazy" src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" />
+                <span className="dk-top-t">{t}</span>
+                <span className="dk-top-v">{num(v)}</span>
+              </a>
+            ))}
+          </div>
+        </>
+      ),
+    })
+    slides.push({
+      key: 'rp-insight', label: 'Insight',
+      node: (
+        <>
+          <div className="dk-h">Insight <small>{rp.period} 성과 해석</small></div>
+          <ul className="dk-insight big">
+            {rp.insights.map((t, i) => <li key={i} style={{ animationDelay: `${i * 90}ms` }}>{em(t)}</li>)}
+          </ul>
+        </>
+      ),
+    })
+    if (rp.ppl) {
+      slides.push({
+        key: 'rp-ppl', label: 'PPL·오프라인',
+        node: (
+          <>
+            <div className="dk-h">PPL · 오프라인 연계 현황</div>
+            <div className="dk-ppl">
+              {rp.ppl.map((p, i) => (
+                <div className="dk-ppl-row" key={i} style={{ animationDelay: `${i * 70}ms` }}>
+                  <span className={'dk-ppl-s' + (p.s === '예정' ? ' next' : '')}>{p.s}</span>
+                  <span className="dk-ppl-t">{p.t}</span>
+                  <span className="dk-ppl-d">{p.d}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        ),
+      })
+    }
+    if (rp.ig) {
+      slides.push({
+        key: 'ig-stats', label: '인스타 성과',
+        node: (
+          <>
+            <div className="dk-h">인스타그램 성과 <small>{rp.period} · 인사이트 기준</small></div>
+            <div className="dk-kpis five">
+              {rp.ig.stats.map((s, i) => <Kpi key={i} label={s.l} value={s.v} />)}
+            </div>
+          </>
+        ),
+      })
+      slides.push({
+        key: 'ig-trend', label: '인스타 추이',
+        node: (
+          <>
+            <div className="dk-h">월별 도달 · 조회수 <small>인스타그램</small></div>
+            <BarChart
+              rows={rp.ig.reach.map((v, i) => ({ label: REPORT.monthLabels[i], v, v2: rp.ig.views[i] }))}
+              series={['도달', '조회수']} unit="회" />
+          </>
+        ),
+      })
+      slides.push({
+        key: 'ig-funnel', label: '전환 퍼널',
+        node: (
+          <>
+            <div className="dk-h">도달 → 방문 → 팔로우 전환 퍼널 <small>인스타그램</small></div>
+            <div className="dk-funnel">
+              {rp.ig.funnel.map((f, i) => (
+                <React.Fragment key={f.l}>
+                  {i > 0 && <span className="dk-funnel-ar">→</span>}
+                  <div className="dk-funnel-step" style={{ animationDelay: `${i * 110}ms` }}>
+                    <b>{f.v}</b><span>{f.l}</span>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+            <div className="dk-kpis three tight">
+              {rp.ig.extra.map((s, i) => <Kpi key={i} label={s.l} value={s.v} />)}
+            </div>
+          </>
+        ),
+      })
+      slides.push({
+        key: 'ig-insight', label: '인스타 Insight',
+        node: (
+          <>
+            <div className="dk-h">Insight <small>인스타그램</small></div>
+            <ul className="dk-insight big">
+              {rp.ig.insights.map((t, i) => <li key={i} style={{ animationDelay: `${i * 90}ms` }}>{em(t)}</li>)}
+            </ul>
+          </>
+        ),
+      })
+    }
+    if (plan) {
+      slides.push({
+        key: 'plan', label: '향후 계획',
+        node: (
+          <>
+            <div className="dk-h">향후 운영 방향 <small>3분기 이후</small></div>
+            <div className="dk-plan">
+              <div className="dk-plan-k">{plan.title}</div>
+              <div className="dk-plan-goal">{plan.goal}</div>
+              <div className="dk-plan-label">주요 실행 과제</div>
+              <ul className="dk-plan-acts">
+                {plan.actions.map(([when, what], i) => (
+                  <li key={i} style={{ animationDelay: `${i * 80}ms` }}><b>{when}</b> {what}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        ),
+      })
+    }
+  }
+
+  /* ── 주간 자동 수집 지표 (리포트와 기간이 다름) ── */
+  if (!overview) slides.push({
+    key: 'kpi', label: '수집 지표',
     node: (
       <>
-        <div className="dk-h">핵심 지표 <small>주간 수집 기준</small></div>
+        <div className="dk-h">최근 수집 지표 <small>{ymd(YT.generatedAt)} 주간 자동 수집 · 리포트 기간과 별개</small></div>
         <div className="dk-kpis">
           <Kpi label="구독자" value={compact(ch?.subscribers)} sub={`${num(ch?.subscribers)}명`} />
           <Kpi label="총 조회수" value={compact(ch?.totalViews)} sub="채널 누적" />
@@ -185,12 +453,12 @@ export default function ChannelDashboard({ channelKey, onBack }) {
       </>
     ),
   })
-  if (sa) {
+  if (sa && !overview) {
     slides.push({
       key: 'studio', label: '스튜디오 지표',
       node: (
         <>
-          <div className="dk-h">스튜디오 지표 <small>{ymd(YTA.range.start)} ~ {ymd(YTA.range.end)}</small></div>
+          <div className="dk-h">스튜디오 지표 (API) <small>{ymd(YTA.range.start)} ~ {ymd(YTA.range.end)}</small></div>
           <div className="dk-kpis">
             <Kpi label="기간 조회수" value={compact(sa.totals.views)} sub={`${num(sa.totals.views)}회`} />
             <Kpi label="시청시간" value={hours(sa.totals.minutes)} sub="추정" />
@@ -203,10 +471,10 @@ export default function ChannelDashboard({ channelKey, onBack }) {
       ),
     })
     slides.push({
-      key: 'studio-monthly', label: '월별 추이',
+      key: 'studio-monthly', label: 'API 월별',
       node: (
         <>
-          <div className="dk-h">월별 조회수 <small>스튜디오 기준</small></div>
+          <div className="dk-h">월별 조회수 <small>스튜디오 API</small></div>
           <BarChart rows={sa.monthly.map(m => ({ label: monthLabel(m.month), v: m.views }))} />
           <table className="dk-table">
             <thead><tr><th>월</th><th>조회수</th><th>시청시간</th><th>구독자 증감</th><th>평균 시청</th></tr></thead>
@@ -226,7 +494,7 @@ export default function ChannelDashboard({ channelKey, onBack }) {
       ),
     })
   }
-  if (subTrend.length >= 2) {
+  if (subTrend.length >= 2 && !overview) {
     slides.push({
       key: 'subs', label: '구독자 추이',
       node: (
@@ -237,22 +505,11 @@ export default function ChannelDashboard({ channelKey, onBack }) {
       ),
     })
   }
-  if (byMonth.length > 1) {
-    slides.push({
-      key: 'months', label: '게시월별',
-      node: (
-        <>
-          <div className="dk-h">게시월별 조회수 <small>수집 영상의 게시일 기준 · 채널 전체 조회수 아님</small></div>
-          <BarChart rows={byMonth} />
-        </>
-      ),
-    })
-  }
-  slides.push({
-    key: 'top', label: '상위 영상',
+  if (!overview) slides.push({
+    key: 'top', label: '최근 상위 영상',
     node: (
       <>
-        <div className="dk-h">조회수 상위 영상 <small>최근 수집분</small></div>
+        <div className="dk-h">최근 수집분 상위 영상 <small>{ymd(YT.generatedAt)} 기준</small></div>
         <div className="dk-top">
           {topVideos.map((v, i) => (
             <a key={v.url} className="dk-top-row" href={v.url} target="_blank" rel="noreferrer" style={{ animationDelay: `${i * 60}ms` }}>
@@ -264,33 +521,15 @@ export default function ChannelDashboard({ channelKey, onBack }) {
             </a>
           ))}
         </div>
+        {!sa && !rp && (
+          <div className="dk-foot-note">
+            시청시간·구독자 증감은 YouTube Analytics 연동 후 표시됩니다 (docs/yt-analytics-setup.md).
+            노출수·노출 클릭률은 API 미제공이라 스튜디오에서 확인해야 합니다.
+          </div>
+        )}
       </>
     ),
   })
-  if (insights.length) {
-    slides.push({
-      key: 'insight', label: '요약',
-      node: (
-        <>
-          <div className="dk-h">요약 <small>수집 데이터에서 계산된 값</small></div>
-          <ul className="dk-insight">
-            {insights.map(([head, sub], i) => (
-              <li key={i} style={{ animationDelay: `${i * 90}ms` }}>
-                <b>{head}</b>
-                <span>{sub}</span>
-              </li>
-            ))}
-          </ul>
-          {!sa && (
-            <div className="dk-foot-note">
-              시청시간·구독자 증감·월별 추이는 YouTube Analytics 연동 후 슬라이드가 자동 추가됩니다
-              (docs/yt-analytics-setup.md). 노출수·노출 클릭률은 API 미제공이라 스튜디오에서 확인해야 합니다.
-            </div>
-          )}
-        </>
-      ),
-    })
-  }
 
   const total = slides.length
   const go = useCallback(d => {
@@ -318,7 +557,7 @@ export default function ChannelDashboard({ channelKey, onBack }) {
     else el.requestFullscreen?.()
   }
 
-  if (!ch) return null
+  if (!ch && !overview) return null
   const cur = slides[Math.min(idx, total - 1)]
 
   return (
