@@ -32,6 +32,19 @@
   RMN·정산·어드민이 CSS 레벨에서 자동 공유 ⑨ **타이포 전면 확대**: 본문 15.5px,
   KPI 값 최대 46px, 테이블 14.5px, 사이드바 14.5px (폰트는 document.fonts 실검증 —
   Wanted Sans Variable loaded 확인)
+- **v2 3차 ('26.7.29 — 대시보드 확장, 시안 승인 후)**: ⑩ **공용 차트 `src/Charts.jsx`**
+  (의존성 0 인라인 SVG — Spark·Donut·HBars·DuoBars·TrendLines·Gauge·Pipeline·Kpi.
+  시리즈 = 그린 명도 계단 SERIES 5단, 비교군 = 라일락, 형광 = 최대값 1개 전용,
+  이상치는 sqrt 스케일 + 표기 명시) ⑪ **RMN 세그먼트 3분할** — [진행 현황 | 부킹 등록 | 분석],
+  **기본 진입 = 진행 현황** (사용자 확정). RmnPage `mode` state (기존 분할일정 setSeg와
+  이름 충돌 주의). 등록 = 2열(rmn-form-cols — 좌 폼 / 우 sticky 부킹 요약·선택 기간
+  재고(rinv, 이번 부킹 몫 병기)·최근 등록 3건), 상품 카드에 기간 재고 미니 게이지(pc-bar).
+  수정 버튼(startEdit)은 자동으로 등록 세그 진입. 분석 = RmnAnalytics(부킹 실데이터 —
+  KPI+월별 스파크·월별 매출 올해vs작년·상품 믹스 도넛·이번 달 재고 게이지·상태 파이프라인·
+  GA 실적 랭킹, 전부 rows 계산·날조 없음) ⑫ **모니터링 4세그 차트**: 인스타(참여도 sqrt 랭킹·
+  그룹 팔로워 도넛·30일 게시·릴스 비중), 유튜브(**구독자 순증 TrendLines** — trend.js 4스냅샷,
+  구성 도넛·평균 조회 sqrt 랭킹 — 인스타 순증은 trend에 1스냅샷뿐이라 미구현·팔로워 사고 여파),
+  UGC(감정 도넛·주제 랭킹 — 분석분 있을 때만), 타겟APP(월별 노출 막대·구분별 노출 도넛)
   팀 일정 `#team` / `CalendarPage.jsx`(매체 캘린더 `#calendar`) / `SpecLibrary.jsx` / `MonitorPage.jsx`. 뷰:
   기본(팀용) · `?view=mirror`(타 팀 공유 읽기 전용) · `?view=external`(대행사·지점용
   스펙만, 캘린더·모니터링 완전 숨김). `#spec` / `#monitor` = 탭 딥링크.
@@ -650,7 +663,9 @@
   index.css @font-face — jsdelivr CDN은 프록시 403 이력으로 셀프호스트 확정). Pretendard는 폴백만
 - 컬러: **THE HYUNDAI 카드 그린 #0B4336 앵커** + 그린 틴트 그레이 스케일(--g50~--g900,
   --ink:#132019 — 순수 블랙·순수 그레이 미사용). 형광 #EDFF5B는 강조·검색 매치 전용(불변).
-  **골드 #C9A96A(--gold)는 채널 성과 덱 전용** 액센트
+  **HYUNDAI Lilac(Pantone 9023U · #F0E4ED) 계열이 세컨더리 액센트** ('26.7.29 골드 전면 대체 —
+  브랜드 컬러 스킴 기준, 사용자 지시): --lilac(공식·덱 다크 무대용) / --lilac-bar(#CFA3BD —
+  밝은 배경 차트 비교군·할인율 바) / --lilac-ink(#96637F — 텍스트). 골드 #C9A96A 폐기
 - **글래스모피즘**: --glass 토큰(반투명 백 + blur + --glass-border + 그린 틴트 --glass-shadow) —
   사이드바·캘린더 패널·그리드·모달·로그인 카드 공통. body = 앰비언트 라디얼 그라데이션 캔버스
   (fixed). **그라데이션 허용은 이 body 배경과 덱 무대뿐** — 컴포넌트 그라데이션은 여전히 금지

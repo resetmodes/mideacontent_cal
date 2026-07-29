@@ -11,6 +11,7 @@ import { buildOrderXlsx, buildProposalXlsx, buildLedgerXlsx, buildResultXlsx, DO
 import { toISO, fromISO } from './lib/parse.js'
 import { HOLIDAYS } from './data/holidays.js'
 import ImageAttach from './ImageAttach.jsx'
+import { Kpi, Donut, HBars, DuoBars, Gauge, Pipeline } from './Charts.jsx'
 
 /* RMN — 현대백화점 APP 광고 판매(부킹·재고·상태·정산) 관리 탭 ('26.7 1차, GA 연동 전).
    팀 전체 노출(내부 로그인) — 미러·외부 뷰에는 탭 자체가 없음.
@@ -413,6 +414,8 @@ export default function RmnPage() {
   const [pickGroup, setPickGroup] = useState(null)   // 캘린더 캠페인 클릭 → 상품 선택 시트
   const [expanded, setExpanded] = useState(null)      // 진행중 목록에서 펼친 캠페인 key
   const [doneQuery, setDoneQuery] = useState('')      // 완료·취소 검색
+  /* 세그먼트 (v2 3차 '26.7.29) — 등록·현황·분석 분리, 기본 진입 = 진행 현황 (사용자 확정) */
+  const [mode, setMode] = useState('현황')
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
 
   const refresh = useCallback(() => listRmn().then(setRows), [])
@@ -627,6 +630,7 @@ export default function RmnPage() {
   }
 
   const startEdit = b => {
+    setMode('등록')   // 수정은 등록 세그의 폼에서
     setEditId(b.id)
     setOrigQty(bookingQty(b))
     setPickGroup(null)
@@ -673,6 +677,10 @@ export default function RmnPage() {
   /* 캠페인 그룹핑 ('26.7) — [광고주+캠페인명] 기준. 진행중 = 미완료 캠페인 / 완료·취소 별도 */
   const campaigns = useMemo(() => groupCampaigns(bookings), [bookings])
   const activeCamps = campaigns.filter(g => !g.done)
+  /* 등록 세그 우측 "최근 등록" 3건 (v2 3차) */
+  const recent = useMemo(() =>
+    [...bookings].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || ''))).slice(0, 3),
+  [bookings])
   const doneCamps = campaigns.filter(g => g.done)
   const canceled = bookings.filter(b => b.status === '취소')
   /* 완료·취소 검색 (광고주·캠페인·상품) — 재적재로 완료 건이 많아 검색 필요 */
@@ -725,10 +733,29 @@ export default function RmnPage() {
 
       {Array.isArray(rows) && (
         <>
-          {/* ── 부킹 캘린더 ('26.7 최상단 이동) — 캠페인 칩, 클릭 시 상품 시트 ── */}
-          <div className="group-label">부킹 캘린더 <small className="adm-count">칩 = 광고주·캠페인 · 클릭 시 상품</small></div>
-          <RmnMonth campaigns={campaigns} onPick={setPickGroup} />
+          {/* 세그먼트 (v2 3차) — 매체 캘린더의 월간/캠페인과 같은 문법 */}
+          <div className="cal-controls">
+            <div className="seg">
+              {[['현황', '진행 현황'], ['등록', '부킹 등록'], ['분석', '분석']].map(([k, label]) => (
+                <button key={k} className={mode === k ? 'on' : ''} onClick={() => setMode(k)}>{label}</button>
+              ))}
+            </div>
+          </div>
 
+          {mode === '분석' && <RmnAnalytics rows={rows} activeCamps={activeCamps} />}
+
+          {mode === '현황' && (
+            <>
+              {/* ── 부킹 캘린더 ('26.7 최상단 이동) — 캠페인 칩, 클릭 시 상품 시트 ── */}
+              <div className="group-label">부킹 캘린더 <small className="adm-count">칩 = 광고주·캠페인 · 클릭 시 상품</small></div>
+              <RmnMonth campaigns={campaigns} onPick={setPickGroup} />
+            </>
+          )}
+
+          {mode === '등록' && (
+          <div className="rmn-form-cols">
+          <div className="rmn-form-main">
+          <div className="dash-panel">
           {/* ── 신규 부킹 (상품 선택 포함 — '26.7 통합) ── */}
           <div className="group-label">{editId ? '부킹 수정' : '신규 부킹'} <small className="adm-count">{editId ? '단일 상품' : products.length > 1 ? `${products.length}개 상품 묶음` : '상품을 골라 여러 개 묶음 판매 가능'}</small></div>
           <div className="adm-taform">
@@ -754,11 +781,24 @@ export default function RmnPage() {
                   : pr.msg ? '발송형 (건당 100원 · 타겟팅 +10%)'
                   : pr.push ? '발송형 (건당 50원)'
                   : `구좌 ${pr.slots}개 · ${fmtWon(pr.price)}/7일`
+                /* 카드 내 재고 미니 게이지 (v2 3차) — 캠페인 기간 기준, 구좌 상품만 */
+                const av = pr.slots ? slotAvailability(bookings, pr.id, camp.start, camp.end, editId) : null
                 return (
                   <button key={pr.id} type="button" className={'rmn-slot' + (on ? ' on' : '')}
                     disabled={editId && !on} onClick={() => toggleSel(pr.id)}>
                     <b>{pr.id}</b>
                     <span>{sub}</span>
+                    {av && (
+                      <>
+                        <span className="pc-bar">
+                          <span className={av.left === 0 ? 'full' : ''}
+                            style={{ width: (av.left === 0 ? 100 : Math.max(5, av.left / av.total * 100)) + '%' }} />
+                        </span>
+                        <span className={'pc-av' + (av.left === 0 ? ' full' : '')}>
+                          {av.left === 0 ? '구좌 마감 (선택 기간)' : `잔여 ${av.left}/${av.total} 구좌`}
+                        </span>
+                      </>
+                    )}
                   </button>
                 )
               })}
@@ -879,16 +919,7 @@ export default function RmnPage() {
               </div>
             )}
 
-            {/* ── 합산 ('26.7) — 상품별 가격을 마지막에 합쳐서 + 상품별 최종 할인율 병기 ── */}
-            <div className="rmn-sumbar">
-              <div><span>총 공시가</span><b>{fmtWon(totalList)}</b></div>
-              <div>
-                <span>총 광고비 (실판가 합)</span><b>{fmtWon(totalActual)}</b>
-                <small className="rmn-sum-disc">총 할인율 {totalRate}%</small>
-              </div>
-              <div><span>입금가{f.agency ? ' · 수수료 30% 차감' : ''}</span><b className={f.agency ? 'rmn-net' : ''}>{fmtWon(deposit)}</b></div>
-            </div>
-
+            {/* 합산·등록 버튼은 우측 고정 요약 패널로 이동 (v2 3차) */}
             <div className="adm-row">
               <label>판매사
                 <select value={f.agency} onChange={e => set('agency', e.target.value)}>
@@ -917,21 +948,87 @@ export default function RmnPage() {
             )}
             <label>메모<textarea rows={2} value={f.memo} onChange={e => set('memo', e.target.value)}
               placeholder="사업자등록번호·주소는 판매사 연동값 확보 후 자동 입력 예정" /></label>
-            <div className="adm-actions">
-              {missing.length > 0 && (
-                <span className="rmn-missing">미입력: {missing.map(m => m.label).join(' · ')}</span>
-              )}
-              {soldOut && missing.length === 0 && (
-                <span className="rmn-missing">{soldOutIds.join('·')} 구좌 마감 — 기간·수량 조정</span>
-              )}
-              {editId && <button className="btn-ghost sm" onClick={() => { setF(EMPTY); setEditId(null); setOrigQty(1); setSel(['메인배너']); setLines({ 메인배너: defaultLine() }); setCamp({ start: todayISO(), end: addDaysISO(todayISO(), PRICE_DAYS - 1) }) }}>수정 취소</button>}
-              <button className="btn-solid sm" disabled={!valid} onClick={submit}>
-                {editId ? '수정 저장' : products.length > 1 ? `${products.length}건 동시 부킹` : '부킹 등록'}
-              </button>
-            </div>
-            {msg && <div className="adm-msg">{msg}</div>}
+          </div>
+          </div>
           </div>
 
+          {/* ── 우측 고정 요약 (v2 3차 시안) — 입력하면서 금액·미입력·재고를 실시간 확인 ── */}
+          <div className="rmn-form-side">
+            <section className="dash-panel">
+              <div className="group-label">부킹 요약 <small className="adm-count">{products.length}개 상품</small></div>
+              <div className="rsum-row"><span>총 공시가</span><b>{fmtWon(totalList)}</b></div>
+              <div className="rsum-row"><span>총 광고비 (실판가 합)</span><b>{fmtWon(totalActual)}</b></div>
+              <div className="rsum-disc">
+                <span>총 할인율</span>
+                <span className="disc-t"><span className="disc-f" style={{ width: Math.min(100, Math.max(0, totalRate)) + '%' }} /></span>
+                <b>{totalRate}%</b>
+              </div>
+              <div className="rsum-tot"><span>입금가{f.agency && <small>수수료 30% 차감</small>}</span></div>
+              <div className="rsum-tot-v">{fmtWon(deposit)}</div>
+              {missing.length > 0 && (
+                <div className="rsum-miss"><b>미입력 {missing.length}건</b>{missing.map(m => m.label).join(' · ')}</div>
+              )}
+              {soldOut && missing.length === 0 && (
+                <div className="rsum-miss"><b>구좌 마감</b>{soldOutIds.join('·')} — 기간·수량을 조정하세요</div>
+              )}
+              <button className="btn-solid" disabled={!valid} onClick={submit}>
+                {editId ? '수정 저장' : products.length > 1 ? `${products.length}건 동시 부킹` : '부킹 등록'}
+              </button>
+              {!valid && (
+                <div className="rsum-cta-s">
+                  {soldOut && missing.length === 0 ? '마감 구좌를 조정하면 활성화됩니다' : '미입력 항목을 채우면 활성화됩니다'}
+                </div>
+              )}
+              {editId && (
+                <button className="btn-ghost sm" style={{ width: '100%', marginTop: 10 }}
+                  onClick={() => { setF(EMPTY); setEditId(null); setOrigQty(1); setSel(['메인배너']); setLines({ 메인배너: defaultLine() }); setCamp({ start: todayISO(), end: addDaysISO(todayISO(), PRICE_DAYS - 1) }) }}>
+                  수정 취소
+                </button>
+              )}
+              {msg && <div className="adm-msg">{msg}</div>}
+            </section>
+
+            <section className="dash-panel">
+              <div className="group-label">선택 기간 재고</div>
+              <div className="dash-d">{fmtD(camp.start)} ~ {fmtD(camp.end)} · 이번 부킹 반영</div>
+              <div className="rinv">
+                {RMN_PRODUCTS.filter(pr => pr.slots).map(pr => {
+                  const a = slotAvailability(bookings, pr.id, camp.start, camp.end, editId)
+                  const mine = products.includes(pr.id) ? Math.max(1, Number(lineOf(pr.id).qty) || 1) : 0
+                  const used = a.total - a.left
+                  const over = mine > a.left
+                  return (
+                    <div key={pr.id} className="rinv-row">
+                      <span className="rinv-n">{pr.id}</span>
+                      <span className="rinv-t">
+                        <span className="rinv-f" style={{ width: (used / a.total * 100) + '%' }} />
+                        <span className={'rinv-f mine' + (over ? ' over' : '')} style={{ width: (Math.min(mine, a.total - used) / a.total * 100) + '%' }} />
+                      </span>
+                      <span className="rinv-v">{Math.max(0, a.left - mine)}/{a.total}</span>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="rinv-note">연한 = 기존 부킹 · 진한 그린 = 이번 부킹 · 숫자 = 등록 후 잔여</div>
+            </section>
+
+            <section className="dash-panel">
+              <div className="group-label">최근 등록</div>
+              {recent.map(b => (
+                <div key={b.id} className="rrec">
+                  <Ini id={b.product} />
+                  <b>{b.advertiser}{b.campaign ? ` — ${b.campaign}` : ''}</b>
+                  <span>{fmtRange(b)}</span>
+                </div>
+              ))}
+              {recent.length === 0 && <div className="mute rmn-empty">등록된 부킹이 없습니다</div>}
+            </section>
+          </div>
+          </div>
+          )}
+
+          {mode === '현황' && (
+          <>
           {/* ── 진행 중 캠페인 ('26.7 — [광고주+캠페인명] 그룹, 클릭 시 세부 상품 펼침) ── */}
           <div className="group-label">진행 중 <small className="adm-count">{activeCamps.length}캠페인 · {activeCamps.reduce((a, g) => a + g.items.length, 0)}건</small></div>
           <div className="rmn-camps">
@@ -982,6 +1079,8 @@ export default function RmnPage() {
               </div>
             </details>
           )}
+          </>
+          )}
         </>
       )}
 
@@ -990,5 +1089,135 @@ export default function RmnPage() {
       {notices && <RmnNotice notices={notices} onClose={closeNotice}
         onConvert={async b => { await setStatus(b, '부킹'); setNotices(n => ({ ...n, tentative: n.tentative.filter(x => x.id !== b.id) })) }} />}
     </div>
+  )
+}
+
+/* ── 분석 세그 (v2 3차 '26.7.29) — 부킹 데이터 기반 대시보드.
+   전부 rows(부킹) 실데이터 계산 — 취소 제외, 금액은 actual_price/net_amount 기준 */
+function RmnAnalytics({ rows, activeCamps }) {
+  const year = new Date().getFullYear()
+  const live = useMemo(() => rows.filter(b => b.status !== '취소'), [rows])
+  const yearRows = useMemo(() => live.filter(b => String(b.start_date || '').startsWith(String(year))), [live, year])
+  const prevRows = useMemo(() => live.filter(b => String(b.start_date || '').startsWith(String(year - 1))), [live, year])
+
+  const s = useMemo(() => {
+    const md = todayISO().slice(5)
+    const cur = yearRows.reduce((a, b) => a + (b.actual_price || 0), 0)
+    const prevSame = prevRows.filter(b => (b.start_date || '').slice(5) <= md)
+      .reduce((a, b) => a + (b.actual_price || 0), 0)
+    const growth = prevSame > 0 ? Math.round((cur - prevSame) / prevSame * 100) : null
+    const unpaidRows = live.filter(b => statusIdx(b.status) > -1 && statusIdx(b.status) < statusIdx('입금 확인'))
+    const unpaid = unpaidRows.reduce((a, b) => a + (b.net_amount || 0), 0)
+    const list = yearRows.reduce((a, b) => a + (b.list_price || 0), 0)
+    const rate = list > 0 ? Math.round((1 - cur / list) * 1000) / 10 : 0
+    const spark = []
+    for (let m = 1; m <= 12; m++) {
+      spark.push(yearRows.filter(b => Number((b.start_date || '').slice(5, 7)) === m)
+        .reduce((a, b) => a + (b.actual_price || 0), 0))
+    }
+    const lastM = Math.max(1, ...yearRows.map(b => Number((b.start_date || '').slice(5, 7)) || 1))
+    return { cur, growth, unpaid, unpaidN: unpaidRows.length, rate, spark: spark.slice(0, lastM), items: yearRows.length }
+  }, [yearRows, prevRows, live])
+
+  /* 월별 매출 — 올해(그린) vs 작년(라일락), 뒤쪽 빈 달은 잘라냄 */
+  const monthly = useMemo(() => {
+    const sum = (list, m) => list.filter(b => Number((b.start_date || '').slice(5, 7)) === m)
+      .reduce((a, b) => a + (b.actual_price || 0), 0)
+    const arr = []
+    for (let m = 1; m <= 12; m++) arr.push([`${m}월`, sum(yearRows, m), sum(prevRows, m)])
+    while (arr.length > 1 && arr.at(-1)[1] === 0 && arr.at(-1)[2] === 0) arr.pop()
+    return arr
+  }, [yearRows, prevRows])
+
+  /* 상품 믹스 — 올해 매출 비중 상위 4 + 기타 */
+  const mix = useMemo(() => {
+    const by = {}
+    for (const b of yearRows) by[b.product] = (by[b.product] || 0) + (b.actual_price || 0)
+    const sorted = Object.entries(by).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
+    const top = sorted.slice(0, 4)
+    const rest = sorted.slice(4).reduce((a, [, v]) => a + v, 0)
+    if (rest > 0) top.push([`기타 ${sorted.length - 4}종`, rest])
+    return top
+  }, [yearRows])
+
+  /* 이번 달 재고 — 구좌 상품 점유율 (기간 내 최대 동시 점유 기준) */
+  const t = todayISO()
+  const mStart = t.slice(0, 8) + '01'
+  const mEnd = toISO(new Date(Number(t.slice(0, 4)), Number(t.slice(5, 7)), 0))
+  const gauges = RMN_PRODUCTS.filter(pr => pr.slots).map(pr => {
+    const a = slotAvailability(rows, pr.id, mStart, mEnd, null)
+    return { id: pr.id, pct: (a.total - a.left) / a.total * 100, sub: `${pr.slots}구좌 · ${a.left === 0 ? '마감' : `잔여 ${a.left}`}` }
+  })
+
+  /* 상태 파이프라인 — 취소 제외 전 부킹의 상태 분포 */
+  const pipe = RMN_STATUS.map(st => [st, live.filter(b => b.status === st).length])
+
+  /* GA4 실적 — 노출 수집된 부킹만 구좌별 합산 (없으면 섹션 숨김) */
+  const ga = useMemo(() => {
+    const by = {}
+    for (const b of live) {
+      if (!b.impressions) continue
+      const v = (by[b.product] = by[b.product] || { imp: 0, clk: 0 })
+      v.imp += b.impressions || 0
+      v.clk += b.clicks || 0
+    }
+    return Object.entries(by).sort((a, b) => b[1].imp - a[1].imp).map(([k, v]) => ({
+      name: k, sub: `노출 ${Math.round(v.imp / 10000).toLocaleString('ko-KR')}만`, value: v.imp,
+      disp: v.imp > 0 ? (v.clk / v.imp * 100).toFixed(2) + '%' : '—', unit: 'CTR',
+    }))
+  }, [live])
+
+  const fmtM = v => v >= 1e8 ? (v / 1e8).toFixed(1) + '억'
+    : v >= 1e4 ? Math.round(v / 1e4).toLocaleString('ko-KR') + '만' : (v || 0).toLocaleString('ko-KR')
+
+  return (
+    <>
+      <div className="mon-hero">
+        <Kpi label={`${year} 누적 매출`} value={fmtM(s.cur)}
+          delta={s.growth != null ? (s.growth >= 0 ? `▲ ${s.growth}%` : `▼ ${Math.abs(s.growth)}%`) : null}
+          deltaUp={s.growth > 0} sub={s.growth != null ? `전년 동기 대비 · ${s.items}건` : `${s.items}건`} spark={s.spark} />
+        <Kpi label="진행 중 캠페인" value={activeCamps.length} unit="건"
+          sub={`상품 ${activeCamps.reduce((a, g) => a + g.items.length, 0)}건`} />
+        <Kpi label="미수금" value={fmtM(s.unpaid)} sub={`입금 확인 전 · ${s.unpaidN}건`} />
+        <Kpi label="평균 실효 할인율" value={s.rate} unit="%" sub="공시가 대비 실판가 (올해)" />
+      </div>
+
+      <div className="dash-grid g23">
+        <div className="dash-panel">
+          <div className="group-label">월별 매출</div>
+          <div className="dash-d">천원 · 시작월 기준 · 취소 제외</div>
+          <DuoBars data={monthly} fmt={v => Math.round(v / 1000).toLocaleString('ko-KR')}
+            legendA={String(year)} legendB={String(year - 1)} />
+        </div>
+        <div className="dash-panel">
+          <div className="group-label">상품 믹스</div>
+          <div className="dash-d">{year} 매출 비중</div>
+          <Donut data={mix} center={fmtM(s.cur)} fmt={fmtM} />
+        </div>
+      </div>
+
+      <div className="dash-grid g32">
+        <div className="dash-panel">
+          <div className="group-label">이번 달 재고</div>
+          <div className="dash-d">구좌 점유율 · {Number(t.slice(5, 7))}월 기준</div>
+          <div className="gauges">
+            {gauges.map(g => <Gauge key={g.id} pct={g.pct} label={g.id} sub={g.sub} />)}
+          </div>
+        </div>
+        <div className="dash-panel">
+          <div className="group-label">진행 상태</div>
+          <div className="dash-d">취소 제외 전체 부킹 · 가부킹 → 완료</div>
+          <Pipeline steps={pipe} />
+        </div>
+      </div>
+
+      {ga.length > 0 && (
+        <div className="dash-panel" style={{ marginTop: 16 }}>
+          <div className="group-label">GA4 집행 실적</div>
+          <div className="dash-d">구좌별 노출 합계 · CTR (GA 수집된 부킹만)</div>
+          <HBars rows={ga} />
+        </div>
+      )}
+    </>
   )
 }
