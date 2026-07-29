@@ -24,26 +24,31 @@ const compact = n => {
   return n.toLocaleString('ko-KR')
 }
 
-/* ── ⓪ 이번 주 요약 히어로 — 큰 숫자 4개 (모니터링 탭 Hero와 동일 톤).
-   각 지표 클릭 시 해당 탭으로 이동 (게시 예정·캠페인→매체 캘린더, 촬영→촬영 캘린더, 부재→팀 일정) */
-function WeekHero({ events, today, onGo }) {
-  const s = useMemo(() => {
+/* ── 이번 주 요약 계산 — 히어로 카드·인사 헤드라인이 공유 (v2 2차) ── */
+function useWeekStats(events, today) {
+  return useMemo(() => {
     const end7 = addDays(today, 7)
     const media = events.filter(e => !e.kind)
     const posts = media.filter(e => e.date >= today && e.date <= end7).length
+    const todayPosts = media.filter(e => e.date === today).length
     const campaigns = new Set(
       media.filter(e => e.campaign && (e.endDate || e.date) >= today && e.date <= addDays(today, 21))
         .map(e => e.campaign)
     ).size
     const shoots = events.filter(e => e.kind === '촬영' && e.date >= today && e.date <= end7).length
+    const todayShoots = events.filter(e => e.kind === '촬영' && e.date === today).length
     /* 부재는 "오늘" 기준 ('26.7 변경) — 오늘이 기간에 포함되는 근태만 (기념일·업무 일정 제외) */
     const away = events.filter(e =>
       e.kind === '팀' && e.channel !== '기념일' && e.channel !== '업무' &&
       e.date <= today && (e.endDate || e.date) >= today
     ).length
-    return { posts, campaigns, shoots, away }
+    return { posts, todayPosts, campaigns, shoots, todayShoots, away }
   }, [events, today])
+}
 
+/* ── ⓪ 이번 주 요약 히어로 — KPI 글래스 카드 4개 (모니터링 탭과 동일 카드 언어).
+   각 지표 클릭 시 해당 탭으로 이동 (게시 예정·캠페인→매체 캘린더, 촬영→촬영 캘린더, 부재→팀 일정) */
+function WeekHero({ s, onGo }) {
   const stats = [
     { label: '이번 주 게시 예정', value: s.posts, unit: '건', sub: '오늘부터 7일', to: 'calendar' },
     { label: '진행·예정 캠페인', value: s.campaigns, unit: '개', sub: '3주 내 기준', to: 'calendar' },
@@ -64,7 +69,8 @@ function WeekHero({ events, today, onGo }) {
   )
 }
 
-/* ── ① 오늘·내일 팀원 근태 ─────────────────────────────────── */
+/* ── ① 오늘의 팀 — 근태·부재 (kind='팀', 업무 제외). 매체 일정과 패널 분리 (v2 2차 —
+   시안에서 팀·매체가 한 리스트에 섞여 보인다는 지적 → 전용 패널 2개로 구분) ── */
 function TeamStatus({ events, today, onGo }) {
   const tomorrow = addDays(today, 1)
   const covers = (e, iso) => (e.channel === '기념일'
@@ -78,11 +84,12 @@ function TeamStatus({ events, today, onGo }) {
   const empty = rows.every(r => r.list.length === 0)
 
   return (
-    <section>
+    <section className="home-sec">
       <div className="group-label home-gl">
         오늘의 팀
         <button className="home-more" onClick={() => onGo('team')}>팀 일정 전체 →</button>
       </div>
+      <div className="home-sec-d">근태·부재 — 연차·반차·외근·출장·교육 (팀 일정 기준)</div>
       {empty ? (
         <div className="home-allin">오늘·내일 부재 일정 없음 — 전원 근무</div>
       ) : rows.map(r => r.list.length > 0 && (
@@ -98,6 +105,49 @@ function TeamStatus({ events, today, onGo }) {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      ))}
+    </section>
+  )
+}
+
+/* ── ①-a 오늘·내일 게시·촬영 — 매체 캘린더(kind 없음) + 촬영(kind='촬영')만.
+   팀 근태와 명확히 분리된 매체 실행 패널 (v2 2차) ── */
+function MediaToday({ events, today, onGo }) {
+  const tomorrow = addDays(today, 1)
+  const covers = (e, iso) => e.date <= iso && iso <= (e.endDate || e.date)
+  const media = events.filter(e => (!e.kind || e.kind === '촬영') && e.channel !== '휴점')
+  const rows = [
+    { label: '오늘', iso: today, list: media.filter(e => covers(e, today)) },
+    { label: '내일', iso: tomorrow, list: media.filter(e => covers(e, tomorrow)) },
+  ]
+  const empty = rows.every(r => r.list.length === 0)
+
+  return (
+    <section className="home-sec">
+      <div className="group-label home-gl">
+        오늘·내일 게시
+        <button className="home-more" onClick={() => onGo('calendar')}>매체 캘린더 →</button>
+      </div>
+      <div className="home-sec-d">매체 집행·촬영 일정 (매체 캘린더·촬영일정 탭 기준)</div>
+      {empty ? (
+        <div className="home-allin">오늘·내일 예정된 게시·촬영 없음</div>
+      ) : rows.map(r => r.list.length > 0 && (
+        <div key={r.label} className="home-day">
+          <span className="home-daylabel">{r.label} <small>{fmtK(r.iso)}</small></span>
+          <div className="home-dayrows">
+            {r.list.slice(0, 6).map(e => (
+              <div key={e.id + r.label} className="home-trow">
+                <ChannelIcon id={e.channel} />
+                <span className="home-ttl">{displayTitle(e.title, e.channel)}</span>
+                <span className="home-sub">
+                  {e.kind === '촬영' ? '촬영' : e.date === r.iso ? '게시' : '진행중'}
+                  {e.campaign ? ` · #${e.campaign}` : ''}
+                </span>
+              </div>
+            ))}
+            {r.list.length > 6 && <div className="home-allin">외 {r.list.length - 6}건 — 매체 캘린더에서 확인</div>}
           </div>
         </div>
       ))}
@@ -125,11 +175,12 @@ function WorkDeadlines({ events, today, onGo }) {
 
   if (list.length === 0) return null
   return (
-    <section>
+    <section className="home-sec">
       <div className="group-label home-gl">
         주요 업무·마감
         <button className="home-more" onClick={() => onGo('team')}>팀 일정 전체 →</button>
       </div>
+      <div className="home-sec-d">팀 공용 업무 D-day — 회의·보고·자료 마감 (3주 내)</div>
       {list.map(e => (
         <div key={e.id} className="home-trow">
           <span className={'home-dday' + (e.dday === 0 ? ' run' : '')}>
@@ -165,11 +216,12 @@ function CampaignDday({ events, today, onGo }) {
 
   if (groups.length === 0) return null
   return (
-    <section>
+    <section className="home-sec">
       <div className="group-label home-gl">
         주요 콘텐츠
         <button className="home-more" onClick={() => onGo('calendar')}>매체 캘린더 →</button>
       </div>
+      <div className="home-sec-d">캠페인 단위 D-day — 다음 게시 기준 (3주 내)</div>
       {groups.map(g => (
         <div key={g.name} className="home-trow camp">
           <span className={'home-dday' + (g.ongoing && (g.dday == null || g.dday > 0) ? ' run' : '')}>
@@ -200,11 +252,12 @@ function ShootWeek({ events, today, onGo }) {
 
   if (list.length === 0) return null
   return (
-    <section>
+    <section className="home-sec">
       <div className="group-label home-gl">
         이번 주 촬영
         <button className="home-more" onClick={() => onGo('shoot')}>촬영일정 전체 →</button>
       </div>
+      <div className="home-sec-d">유튜브·인스타 촬영 스케줄 (오늘부터 7일)</div>
       {list.map(e => (
         <div key={e.id} className="home-trow">
           <span className="home-dday">{e.date === today ? '오늘' : fmtK(e.date)}</span>
@@ -225,11 +278,12 @@ function ChannelSignals({ onGo }) {
   const items = useMemo(() => buildHighlights().filter(it => !it.url).slice(0, 3), [])
   if (items.length === 0) return null
   return (
-    <section>
+    <section className="home-sec">
       <div className="group-label home-gl">
         채널 이슈
         <button className="home-more" onClick={() => onGo('monitor')}>매체 모니터링 →</button>
       </div>
+      <div className="home-sec-d">자사 계정 신호 — 팔로워 급증·급감, 새 휴면 진입</div>
       {items.map((it, i) => (
         <div key={i} className="home-trow">
           <span className={'hl-mark' + (it.up ? ' up' : '')}>{it.mark}</span>
@@ -271,11 +325,12 @@ function Highlight({ onGo }) {
 
   if (yt.length === 0 && ig.length === 0) return null
   return (
-    <section>
+    <section className="home-sec">
       <div className="group-label home-gl">
         이번 주 하이라이트
         <button className="home-more" onClick={() => onGo('monitor')}>매체 모니터링 →</button>
       </div>
+      <div className="home-sec-d">최근 7일 반응 상위 콘텐츠 — 유튜브 조회·인스타 반응 (수집분)</div>
       {yt.length > 0 && (
         <div className="home-vids">
           {yt.map(v => (
@@ -336,26 +391,49 @@ export default function HomePage({ onGo, canSettle }) {
   const today = toISO(new Date())
   const d = fromISO(today)
   const hol = HOLIDAYS[today]
+  const s = useWeekStats(events, today)
+
+  /* 인사 헤드라인 (v2 2차 시안): "M월 D일 X요일, 오늘 게시 N건 · 촬영 N건이 있습니다" */
+  const todayBits = [
+    s.todayPosts > 0 && `게시 ${s.todayPosts}건`,
+    s.todayShoots > 0 && `촬영 ${s.todayShoots}건`,
+  ].filter(Boolean)
+  const greetLine = todayBits.length > 0
+    ? `오늘 ${todayBits.join(' · ')}이 있습니다`
+    : '오늘 예정된 게시·촬영이 없습니다'
+  const subBits = [
+    `팀원 부재 ${s.away}명`,
+    `진행 중 캠페인 ${s.campaigns}개`,
+    hol && `공휴일 · ${hol}`,
+  ].filter(Boolean)
 
   return (
     <div className="wrap home-wrap">
       <header>
-        <h1>미디어콘텐츠팀</h1>
-        <div className="masthead-sub">
-          {d.getFullYear()}년 {d.getMonth() + 1}월 {d.getDate()}일 {DOW_KO[d.getDay()]}요일{hol ? ` · ${hol}` : ''} — 오늘의 팀과 이번 주 콘텐츠
-        </div>
+        <h1 className="home-greet">
+          {d.getMonth() + 1}월 {d.getDate()}일 {DOW_KO[d.getDay()]}요일,<br />
+          {greetLine}
+        </h1>
+        <div className="masthead-sub">{subBits.join(' · ')}</div>
       </header>
 
       {canSettle && <SettleBadge onGo={onGo} />}
-      <WeekHero events={events} today={today} onGo={onGo} />
-      <TeamStatus events={events} today={today} onGo={onGo} />
-      <WorkDeadlines events={events} today={today} onGo={onGo} />
-      <CampaignDday events={events} today={today} onGo={onGo} />
-      <ShootWeek events={events} today={today} onGo={onGo} />
-      <ChannelSignals onGo={onGo} />
-      <Highlight onGo={onGo} />
+      <WeekHero s={s} onGo={onGo} />
+      <div className="home-cols">
+        <div className="home-main">
+          <TeamStatus events={events} today={today} onGo={onGo} />
+          <MediaToday events={events} today={today} onGo={onGo} />
+          <WorkDeadlines events={events} today={today} onGo={onGo} />
+          <CampaignDday events={events} today={today} onGo={onGo} />
+          <ShootWeek events={events} today={today} onGo={onGo} />
+        </div>
+        <div className="home-side">
+          <Highlight onGo={onGo} />
+          <ChannelSignals onGo={onGo} />
+        </div>
+      </div>
 
-      {/* ── 추후 섹션 자리 ── 여기 아래로 컴포넌트를 추가하면 됨
+      {/* ── 추후 섹션 자리 ── home-main / home-side 안에 컴포넌트를 추가하면 됨
           (예: 소재 요청 D-day 레이더 / 작년 이맘때 / UGC 협업 후보 / 채널 공백 경보) */}
     </div>
   )
