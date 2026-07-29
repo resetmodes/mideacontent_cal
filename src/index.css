@@ -1601,3 +1601,107 @@ tr.dormant .mon-acc b{color:var(--g400);}
   .dk-plan-card,.dk-plan-acts li,.dk-hbar-row,.dk-cmp-bar,.dk-hbar-fill,.dk-line,.dk-pt{animation:none;}
   .dk-prog span{transition:none;}
 }
+
+/* ═══════════ 폴리시 팩 ('26.7.29 — SnowUI 킷 참고, 애플식 절제) ═══════════
+   색·레이아웃 불변 — 인터랙션 반응과 마감 디테일만. 전부 오버라이드(추가 CSS) */
+
+/* 포커스 링 — 모든 입력이 같은 호흡: 그린 보더 + 옅은 그린 헤일로 */
+input:not([type=checkbox]):not([type=radio]), select, textarea{
+  transition:border-color .16s ease, box-shadow .16s ease, background-color .16s ease;}
+input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus{
+  border-color:var(--green) !important;
+  box-shadow:0 0 0 3.5px rgba(11,67,54,.13);
+  outline:none;}
+.rmn-err:focus{box-shadow:0 0 0 3.5px rgba(196,55,44,.14) !important;}
+
+/* 셀렉트 — 네이티브 화살표를 커스텀 셰브론으로 (폼 셀렉트만, 크기 유지) */
+.md-form select, .adm-taform select, .rmn-status, .stl-zipbar select{
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%2361736A' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:30px !important;}
+
+/* 버튼 — 호버 리프트 · 프레스 다운 (애플식: 이동은 1px, 스케일은 미세하게) */
+.btn-solid, .btn-ghost, .qa-btn, .share-btn, .cal-big-btn, .dk-btn, .notify-btn,
+.side-session button, .stl-preset, .xu-pick, .rmn-snap, .cd-report{
+  transition:transform .14s ease, box-shadow .14s ease, background-color .14s ease,
+    border-color .14s ease, color .14s ease;}
+.btn-solid:hover:not(:disabled), .qa-btn:hover:not(:disabled){
+  transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(11,67,54,.5);}
+.btn-solid:active:not(:disabled), .qa-btn:active:not(:disabled){
+  transform:translateY(0) scale(.985);box-shadow:none;}
+.btn-ghost:hover:not(:disabled), .share-btn:hover, .cal-big-btn:hover{
+  transform:translateY(-1px);background:rgba(255,255,255,.7);}
+.btn-ghost:active:not(:disabled), .share-btn:active, .cal-big-btn:active{transform:translateY(0) scale(.985);}
+
+/* 세그·탭·필터 — 전환을 부드럽게 */
+.seg button, .side-nav button, .mini-tabs button, .filters button, .side-filter button,
+.spec-rail button, .camp-chips button, .stl-filters button, .rmn-yf button{
+  transition:background-color .15s ease, color .15s ease, box-shadow .15s ease;}
+.seg button.on{box-shadow:0 2px 8px -3px rgba(11,67,54,.25);}
+.side-nav button.on{box-shadow:0 5px 14px -6px rgba(11,67,54,.45);}
+
+/* 카드·행 — 조용한 호버 (클릭 가능한 것만 반응) */
+.home-stat{transition:transform .16s ease, box-shadow .16s ease;}
+.home-stat:hover{transform:translateY(-2px);box-shadow:0 14px 30px -16px rgba(11,67,54,.4);}
+.home-stat:active{transform:translateY(0);}
+.mon-table tbody tr{transition:background-color .12s ease;}
+.mon-table tbody tr:hover td{background:rgba(255,255,255,.45);}
+.rmn-slot{transition:border-color .15s ease, background-color .15s ease, transform .14s ease;}
+.rmn-slot:hover:not(:disabled){transform:translateY(-1px);}
+.cal-ev, .day-row, .camp-ev, .srch-ev, .home-trow{transition:background-color .12s ease;}
+.md-spec-link, .home-more, .cd-open, .dk-back{transition:color .14s ease, box-shadow .14s ease;}
+.ref-thumb img{transition:transform .2s ease;}
+.ref-thumb:hover img{transform:scale(1.015);}
+
+/* 모달·시트 — 들어올 때 살짝 떠오름 */
+@keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.985);}to{opacity:1;transform:none;}}
+@keyframes overlayIn{from{opacity:0;}to{opacity:1;}}
+.modal-overlay{animation:overlayIn .18s ease-out both;}
+.modal{animation:modalIn .22s cubic-bezier(.22,.61,.36,1) both;}
+
+/* 스크롤바 — 얇고 조용하게 */
+*{scrollbar-width:thin;scrollbar-color:rgba(19,32,25,.18) transparent;}
+*::-webkit-scrollbar{width:8px;height:8px;}
+*::-webkit-scrollbar-thumb{background:rgba(19,32,25,.16);border-radius:8px;}
+*::-webkit-scrollbar-thumb:hover{background:rgba(19,32,25,.28);}
+*::-webkit-scrollbar-track{background:transparent;}
+
+/* 선택 영역 틴트 */
+::selection{background:rgba(11,67,54,.16);}
+
+/* 토스트 — 하단 중앙 잉크 필, 자동 소멸 (src/lib/toast.js) */
+.toast{position:fixed;left:50%;bottom:max(26px, env(safe-area-inset-bottom, 0px));z-index:300;
+  transform:translateX(-50%) translateY(16px);opacity:0;pointer-events:none;
+  display:flex;align-items:center;gap:9px;
+  background:rgba(19,32,25,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:#fff;font-size:14px;font-weight:700;letter-spacing:-0.01em;
+  border-radius:999px;padding:11px 20px 11px 15px;box-shadow:0 14px 34px -14px rgba(11,30,24,.55);
+  transition:transform .24s cubic-bezier(.22,.61,.36,1), opacity .24s ease;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast-ic{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;
+  border-radius:50%;background:var(--hl);color:var(--ink);font-size:11px;font-weight:800;flex:none;}
+.toast.danger .toast-ic{background:var(--red);color:#fff;}
+
+/* 모바일 보정 ('26.7.29) — 카드 2열·랭킹 폭·차트 여백 */
+@media (max-width:560px){
+  .mon-hero{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .mon-stat{padding:14px 15px 12px;border-radius:18px;}
+  .mon-value{font-size:27px;}
+  .mon-label{font-size:12px;}
+  .dash-panel{padding:14px 16px 15px;border-radius:18px;}
+  .hb-n{width:96px;font-size:13px;}
+  .hb-v{width:78px;font-size:14px;}
+  .duo-bars{gap:6px;height:150px;}
+  .duo-v{font-size:10.5px;}
+  .donut-wrap{gap:14px;}
+  .home-greet{font-size:24px;}
+  .gauges{grid-template-columns:repeat(3,1fr);}
+  .pipe-lab{font-size:10px;}
+  .toast{width:max-content;max-width:calc(100vw - 32px);font-size:13.5px;}
+}
+
+/* 모션 최소화 설정 존중 */
+@media (prefers-reduced-motion:reduce){
+  .btn-solid, .btn-ghost, .qa-btn, .home-stat, .rmn-slot, .modal, .modal-overlay, .toast,
+  .ref-thumb img{transition:none;animation:none;}
+}
