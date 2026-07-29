@@ -174,7 +174,7 @@ function InstagramView() {
           <div className="dash-d">참여/1k — 팔로워 1천 명당 반응 · 막대는 제곱근 스케일(이상치 완화) · 휴면 제외</div>
           <HBars sqrt rows={engRank} />
         </div>
-        <div className="dash-panel">
+        <div className="dash-panel flat">
           <div className="group-label">팔로워 구성</div>
           <div className="dash-d">그룹별 합계 — 자사 계정만</div>
           <Donut data={groupMix} center={compact(totalFollowers)} fmt={compact} />
@@ -290,7 +290,7 @@ function YoutubeView() {
           <div className="dash-d">수집 시점별 스냅샷 — 첫 수집({ytDates[0]}) 대비 누적 증가 (명)</div>
           <TrendLines dates={ytDates} series={ytSeries} />
         </div>
-        <div className="dash-panel">
+        <div className="dash-panel flat">
           <div className="group-label">구독자 구성</div>
           <div className="dash-d">채널별 비중</div>
           <Donut data={subMix} center={compact(totalSubs)} fmt={compact} />
@@ -559,7 +559,7 @@ function TargetAppView() {
           <DuoBars data={byMonth.map(m => [m.k, m.exp])} fmt={compact} />
         </div>
         {media.length > 0 && (
-          <div className="dash-panel">
+          <div className="dash-panel flat">
             <div className="group-label">매체 구분별 노출</div>
             <div className="dash-d">누적 · {media[0]?.basis || ''}</div>
             <Donut

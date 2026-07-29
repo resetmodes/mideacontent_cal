@@ -45,6 +45,15 @@
   그룹 팔로워 도넛·30일 게시·릴스 비중), 유튜브(**구독자 순증 TrendLines** — trend.js 4스냅샷,
   구성 도넛·평균 조회 sqrt 랭킹 — 인스타 순증은 trend에 1스냅샷뿐이라 미구현·팔로워 사고 여파),
   UGC(감정 도넛·주제 랭킹 — 분석분 있을 때만), 타겟APP(월별 노출 막대·구분별 노출 도넛)
+- **v2 3차 보정 ('26.7.29 — 사용자 5개 지시)**: ⑬ **overflow-x hidden → clip** (html/body —
+  hidden은 스크롤 컨테이너를 만들어 사이드바·캘린더 패널·스펙 rail·RMN 요약의 sticky를
+  전부 무력화했음. clip은 클리핑만 하고 sticky 보존 — 재발 주의) ⑭ 본문 폭 .wrap 1240→1400px
+  (크게 보기 1600px) ⑮ **차트 시리즈 파스텔 확장** — 그린 단색 계단은 구분이 안 됨:
+  SERIES = 그린 #0B4336 · 라일락 #C9A0BE · 세이지 #7FA795 · 샌드 #D9C6A5 · 슬레이트 #9BA8C4
+  (Charts.jsx 단일 소스, 랭킹 바는 그린 단색 유지) ⑯ **flat 패널** (.dash-panel.flat) —
+  도넛·게이지류는 박스 없이 배경에 띄움 (전부 박스면 답답) ⑰ 곡률 확대: 패널 22px ·
+  사이드바 26px · 상세 24px · 모달 20px (레퍼런스 곡률 — 사용자 지시라 "과잉 라운딩 금지"
+  원칙의 의도적 예외)
   팀 일정 `#team` / `CalendarPage.jsx`(매체 캘린더 `#calendar`) / `SpecLibrary.jsx` / `MonitorPage.jsx`. 뷰:
   기본(팀용) · `?view=mirror`(타 팀 공유 읽기 전용) · `?view=external`(대행사·지점용
   스펙만, 캘린더·모니터링 완전 숨김). `#spec` / `#monitor` = 탭 딥링크.
