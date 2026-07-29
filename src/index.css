@@ -1725,3 +1725,56 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   .btn-solid, .btn-ghost, .qa-btn, .home-stat, .rmn-slot, .modal, .modal-overlay, .toast,
   .ref-thumb img{transition:none;animation:none;}
 }
+
+/* ═══════════ 매체 스펙 — 모바일 v2 ('26.7.29) ═══════════
+   ≤840px는 마스터-디테일 대신 아코디언인데 v1 톤(가로선·평면)이 그대로 남아 있었음.
+   목록을 글래스 카드로 올리고 펼침 어포던스를 명시 */
+@media (max-width:840px){
+  .wrap #list{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+  .media{border-bottom:none;padding:0 16px;overflow:hidden;
+    background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--glass-border);border-radius:20px;box-shadow:var(--glass-shadow);
+    transition:border-color .16s ease;}
+  .media.open{border-bottom:none;border-color:rgba(11,67,54,.24);}
+  .media-head{padding:15px 0;align-items:center;gap:10px;}
+  .media-head::after{content:'＋';flex:none;font-size:15px;font-weight:700;color:var(--g400);
+    line-height:1;transition:color .14s ease;}
+  .media.open .media-head::after{content:'−';color:var(--green);}
+  .m-cat{font-size:11.5px;font-weight:700;letter-spacing:.02em;color:var(--g500);}
+  .m-cat .reg{color:var(--green);}
+  .m-name{font-size:17.5px;line-height:1.32;margin-top:2px;}
+  .m-preview{text-align:right;}
+  .m-size{font-size:13px;}
+  .media-body{padding:2px 0 18px;}
+  .m-target{padding:0 0 12px;font-size:14px;}
+  /* 지면 카드 — 잉크 굵은 선 대신 헤어라인 + 여백 */
+  .slot{border-top:1px solid var(--g200);padding:14px 0 16px;}
+  .slot-hero{font-size:30px;padding:3px 0 5px;}
+  .slot-spec{grid-template-columns:76px 1fr;}
+  .tl-section, .spec-grid{border-top:1px solid var(--g200);}
+  .spec-grid{grid-template-columns:76px 1fr;}
+  /* 그룹 라벨 — 카드 사이 섹션 제목 */
+  .wrap #list + .empty, .group-label{padding:22px 0 8px;}
+  /* 공통 가이드도 카드로 */
+  .cg{border-top:none;margin:8px 0 16px;padding:0 16px;
+    background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--glass-border);border-radius:20px;box-shadow:var(--glass-shadow);}
+  /* 좁은 폭에서 3열(제목·설명·펼치기)이 뭉개져 세로 스택으로 */
+  .cg summary{padding:14px 0;flex-wrap:wrap;gap:2px 10px;}
+  .cg summary small{flex:1 1 100%;order:2;}
+  .cg summary::after{order:1;margin-left:auto;}
+  .cg-body{padding:2px 0 16px;}
+  /* 검색 — 밑줄 입력 → 라운드 글래스 필드 */
+  .controls{padding:12px 0 0;border-bottom:none;}
+  .search{background:rgba(255,255,255,.62);border:1px solid var(--glass-border);
+    border-radius:14px;padding:12px 14px;font-size:16px;}
+  .search:focus{border-color:var(--green);}
+  .search::placeholder{font-size:13px;}
+  .filters{gap:8px;padding:12px 14px 2px 0;}
+  .filters button{background:rgba(255,255,255,.5);border:1px solid var(--glass-border);
+    border-radius:999px;padding:7px 13px;font-size:13.5px;}
+  .filters button.on{background:var(--green);color:#fff;box-shadow:none;}
+  .count{padding:8px 0 4px;}
+  .spec-share{border-top:1px solid var(--g200);}
+  footer{border-top:1px solid var(--g200);}
+}

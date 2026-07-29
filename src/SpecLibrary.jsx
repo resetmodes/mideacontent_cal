@@ -325,9 +325,9 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
                   return (
                     <React.Fragment key={m.name}>
                       {showGroup && <div className="spec-rail-group">{m.group}</div>}
+                      {/* 목록은 매체명만 ('26.7.29 사용자 지시 — 카테고리·납기 설명줄 삭제) */}
                       <button className={current && current.name === m.name ? 'on' : ''} onClick={() => setSel(m.name)}>
                         {hl(m.name, query)}
-                        <small>{m.cat}{m.reg ? ` · ${m.reg}` : ''} · 요청 {m.lead}</small>
                       </button>
                     </React.Fragment>
                   )
