@@ -1189,7 +1189,7 @@ function RmnAnalytics({ rows, activeCamps }) {
           <DuoBars data={monthly} fmt={v => Math.round(v / 1000).toLocaleString('ko-KR')}
             legendA={String(year)} legendB={String(year - 1)} />
         </div>
-        <div className="dash-panel">
+        <div className="dash-panel flat">
           <div className="group-label">상품 믹스</div>
           <div className="dash-d">{year} 매출 비중</div>
           <Donut data={mix} center={fmtM(s.cur)} fmt={fmtM} />
@@ -1197,7 +1197,7 @@ function RmnAnalytics({ rows, activeCamps }) {
       </div>
 
       <div className="dash-grid g32">
-        <div className="dash-panel">
+        <div className="dash-panel flat">
           <div className="group-label">이번 달 재고</div>
           <div className="dash-d">구좌 점유율 · {Number(t.slice(5, 7))}월 기준</div>
           <div className="gauges">

@@ -4,7 +4,9 @@ import React from 'react'
    컬러 원칙: 시리즈는 그린 명도 계단(--s1~--s5)만, 비교군(작년 등)은 라일락(--lilac-bar),
    형광은 최대값 1개 전용. 스타일은 index.css "공용 차트" 섹션 */
 
-export const SERIES = ['#0B4336', '#2E6B58', '#5C8C7B', '#8FB3A6', '#C2D6CC']
+/* 시리즈 팔레트 ('26.7.29 확장) — 그린 앵커 + 라일락·세이지·샌드·슬레이트 파스텔.
+   그린 단색 계단은 인접 조각 구분이 안 된다는 지적으로 교체 (브랜드 그린·라일락 우선) */
+export const SERIES = ['#0B4336', '#C9A0BE', '#7FA795', '#D9C6A5', '#9BA8C4']
 
 const nf = n => (n == null ? '—' : Number(n).toLocaleString('ko-KR'))
 
