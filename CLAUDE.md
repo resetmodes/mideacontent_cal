@@ -153,6 +153,20 @@
 - 표기 원칙: 좋아요 비공개 계정은 "비공개", 계정 간 비교는 참여/1k(팔로워 1천 명당 반응) 기준,
   휴면(60일+ 미게시) 계정은 회색 + 휴면 플래그
 - hyundai-monitor(구 리포)는 이제 수집 불필요 — 파이프라인이 이 리포로 이전됨
+- **채널 성과 대시보드 ('26.7.29)**: 모니터링 탭 유튜브 세그 → **채널명 클릭** → 채널별 상세
+  (`src/ChannelDashboard.jsx`). 사용자 제공 외부 HTML 리포트의 정보 구조를 디자인 기준으로
+  재구성 — 채널별 컬러 코딩·글로우·그라데이션·Chart.js 제거, 흑백+그린 1색 · 가로선 표 ·
+  대형 tabular-nums · **의존성 0 인라인 SVG 차트**(BarChart·LineChart). 데이터 2층:
+  ① 수집 지표(구독자·총 조회·영상·평균·구독자 추이·게시월별 조회·상위 영상 — 항상 표시)
+  ② **스튜디오 지표**(시청시간·구독자 증감·월별 추이·평균 시청 — `src/data/sns/ytAnalytics.js`
+  있을 때만). carry-forward 데이터의 상대 표기("3 months ago")는 월 버킷에서 제외·게시일은 한글 변환.
+- **유튜브 스튜디오 지표 연동 ('26.7.29 — 사용자 액션 대기)**: `scripts/sns/yt-analytics.mjs`
+  (YouTube Analytics API v2, 주간 수집 워크플로에 스텝 추가 — 시크릿 없으면 조용히 스킵).
+  **GA4와 달리 유튜브는 서비스 계정 미지원** → 채널 관리 계정이 1회 OAuth 동의 후
+  refresh token을 시크릿(`YT_OAUTH_CLIENT_ID`·`_SECRET`·`_REFRESH_TOKEN`)으로 저장.
+  채널 ID는 accounts.mjs `YT_CHANNELS[].channelId`에 기입. 절차 = `docs/yt-analytics-setup.md`.
+  **노출수·노출 클릭률(CTR)은 Analytics API가 제공하지 않음**(스튜디오 전용) — 대시보드에
+  표기하지 않고 안내만 (수치 날조 금지). 수익은 수익화 채널 + 별도 스코프 필요
 - **유튜브 제목 한글화 ('26.7)**: 채널 스크레이퍼는 러너 IP(미국) 기준 자동번역 영문 제목을
   줌 → clean-youtube.mjs가 oEmbed(원본 크리에이터 제목, 로케일 무관)로 보정. 비용 0(무료
   공개 엔드포인트), 실패 시 기존 제목 유지(파이프라인 안전), 동시성 6. videoId·thumb(썸네일
