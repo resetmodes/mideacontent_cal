@@ -82,14 +82,14 @@ function buildCard({ team, shoots, uploads }) {
     if (rows.length > 8) tb(`외 ${rows.length - 8}건`, { isSubtle: true, spacing: 'Small' })
   }
 
-  tb(`미디어콘텐츠팀 아침 브리핑 · ${fmtD(todayISO)}`, { size: 'Medium', weight: 'Bolder' })
+  tb(`미디어콘텐츠팀 아침 브리핑 ${fmtD(todayISO)}`, { size: 'Medium', weight: 'Bolder' })
 
   section(`오늘 팀원 일정${team.length ? ` ${team.length}건` : ''}`,
-    team.map(e => `${e.title} — ${chLabel(e.channel)}${e.end_date && e.end_date !== e.date ? ` (${fmtRange(e)})` : ''}`))
+    team.map(e => `${e.title} (${chLabel(e.channel)}${e.end_date && e.end_date !== e.date ? `, ${fmtRange(e)}` : ''})`))
   section(`오늘 촬영 일정${shoots.length ? ` ${shoots.length}건` : ''}`,
-    shoots.map(e => `${e.title} — ${chLabel(e.channel)}${e.sub ? ` (${e.sub})` : ''}`))
+    shoots.map(e => `${e.title} (${chLabel(e.channel)}${e.sub ? `, ${e.sub}` : ''})`))
   section(`오늘 매체 일정${uploads.length ? ` ${uploads.length}건` : ''}`,
-    uploads.map(e => `${chLabel(e.channel)}${e.sub ? ` (${e.sub})` : ''} — ${e.title}`))
+    uploads.map(e => `${e.title} (${chLabel(e.channel)}${e.sub ? `, ${e.sub}` : ''})`))
 
   return {
     type: 'message',

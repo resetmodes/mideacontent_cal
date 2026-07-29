@@ -92,7 +92,10 @@ function Report({ d }) {
     <div className="wrap shr-wrap">
       <header>
         <div className="shr-top">
-          <div className="shr-brand">THE HYUNDAI 미디어콘텐츠팀<span>캠페인 결과 리포트</span></div>
+          <div className="shr-brand">
+            <img className="shr-logo" src={`${import.meta.env.BASE_URL}logo/the-hyundai.svg`} alt="THE HYUNDAI" />
+            <span>미디어콘텐츠팀 캠페인 결과 리포트</span>
+          </div>
           {/* PDF 저장 ('26.7.29) — 인쇄 대화상자의 "PDF로 저장" (별도 라이브러리 없이 한글 그대로) */}
           <button className="btn-ghost sm shr-print" onClick={() => window.print()}>PDF로 저장</button>
         </div>
@@ -279,7 +282,10 @@ export default function ShareReport({ token }) {
   return (
     <div className="wrap shr-wrap">
       <header>
-        <div className="shr-brand">THE HYUNDAI 미디어콘텐츠팀<span>캠페인 결과 리포트</span></div>
+        <div className="shr-brand">
+          <img className="shr-logo" src={`${import.meta.env.BASE_URL}logo/the-hyundai.svg`} alt="THE HYUNDAI" />
+          <span>미디어콘텐츠팀 캠페인 결과 리포트</span>
+        </div>
         <h1>{meta === undefined ? '리포트 확인 중' : meta === null ? '리포트를 찾을 수 없음'
           : meta.advertiser}</h1>
         {meta?.campaign && <div className="shr-camp">{meta.campaign}</div>}

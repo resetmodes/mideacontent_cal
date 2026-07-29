@@ -1806,7 +1806,8 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 /* ═══════════ 광고주 공유 리포트 ('26.7.29 — ?share=) ═══════════ */
 .shr-wrap{max-width:1080px;padding-top:34px;}
 .shr-brand{font-size:12.5px;font-weight:800;color:var(--green);letter-spacing:.02em;margin-bottom:10px;}
-.shr-brand span{display:block;margin-top:3px;font-weight:600;color:var(--g400);letter-spacing:0;}
+.shr-brand span{display:block;margin-top:6px;font-weight:600;color:var(--g400);letter-spacing:0;}
+.shr-logo{display:block;height:22px;width:auto;}
 .shr-camp{font-size:17px;font-weight:700;color:var(--g500);margin:-2px 0 8px;}
 .shr-meta{display:flex;flex-wrap:wrap;gap:4px 22px;}
 .shr-hl{margin-top:16px;}
