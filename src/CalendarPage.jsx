@@ -572,6 +572,23 @@ function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister, closed
       (chOrder(a) - chOrder(b)) || (a.sub || '').localeCompare(b.sub || '') || a.title.localeCompare(b.title))
   }, [events, iso])
 
+  /* 타겟APP 주제 묶음 ('26.7.29) — 같은 제목·기간의 타겟APP은 한 줄로 접고,
+     펼치면 어떤 매체로 나가는지 보여준다 (10종 동시 집행 시 시트가 도배되던 문제) */
+  const rows = useMemo(() => {
+    const out = [], gmap = {}
+    for (const e of list) {
+      if (e.channel !== TARGET_CH) { out.push({ solo: e }); continue }
+      const o = orderRange(e)
+      const key = [e.title, o.date, o.endDate || ''].join('|')
+      if (gmap[key]) { gmap[key].items.push(e); continue }
+      const g = { key, items: [e] }
+      gmap[key] = g
+      out.push({ group: g })
+    }
+    return out
+  }, [list])
+  const [openGrp, setOpenGrp] = useState(null)
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal day-sheet" onClick={e => e.stopPropagation()}>
@@ -580,12 +597,39 @@ function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister, closed
           {closed && <small className="day-closed"> {closed}</small>}
           {hol && <small className="day-hol"> {hol}</small>}</div>
         <div className="day-list">
-          {list.map(e => {
+          {rows.map((r, i) => {
+            const e = r.solo || r.items?.[0] || r.group.items[0]
             const o = orderRange(e)
             const ranged = o.endDate && o.endDate !== o.date
             const tag = ranged ? (o.date === iso ? '시작' : o.endDate === iso ? '종료' : '진행중') : null
+            /* 타겟APP 묶음 = 주제 한 줄, 클릭하면 매체 목록 펼침 */
+            if (r.group && r.group.items.length > 1) {
+              const g = r.group
+              const open = openGrp === g.key
+              return (
+                <div key={g.key} className={'day-grp' + (open ? ' open' : '')}>
+                  <button className="day-row" onClick={() => setOpenGrp(open ? null : g.key)}>
+                    <ChannelIcon id={TARGET_CH} />
+                    <span className="day-ch">타겟APP</span>
+                    <span className="day-ttl">{displayTitle(e.title, e.channel)}</span>
+                    {e.campaign && <span className="day-camp">#{e.campaign}</span>}
+                    {tag && <span className="day-sub">{tag} {fmtRange(o)}</span>}
+                    <span className="day-sub">{g.items.length}개 매체 {open ? '접기' : '펼치기'}</span>
+                  </button>
+                  {open && (
+                    <div className="day-grp-list">
+                      {g.items.map(it => (
+                        <button key={it.id} className="day-subrow" onClick={() => onSelect(it)}>
+                          {it.sub || '세부 미지정'}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            }
             return (
-              <button key={e.id} className="day-row" onClick={() => onSelect(e)}>
+              <button key={e.id + i} className="day-row" onClick={() => onSelect(e)}>
                 <ChannelIcon id={e.channel} />
                 <span className="day-ch">{channelById(e.channel)?.label || e.channel}{e.sub ? ` ${e.sub}` : ''}</span>
                 <span className="day-ttl">{displayTitle(e.title, e.channel)}</span>

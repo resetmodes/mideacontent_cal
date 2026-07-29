@@ -697,7 +697,7 @@ export default function MonitorPage() {
   const generatedAt =
     platform === 'instagram' ? IG.generatedAt : platform === 'youtube' ? YT.generatedAt : UGC?.generatedAt
 
-  const segments = [['instagram', '인스타그램'], ['youtube', '유튜브'], ...(UGC ? [['ugc', 'UGC']] : []), ['targetapp', '타겟APP']]
+  const segments = [['instagram', '인스타그램'], ['youtube', '유튜브'], ...(UGC ? [['ugc', '고객 게시물']] : []), ['targetapp', '타겟APP']]
 
   return (
     <div className="wrap cal-wrap">
