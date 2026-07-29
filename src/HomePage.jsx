@@ -18,7 +18,7 @@ const DOW_KO = ['일', '월', '화', '수', '목', '금', '토']
 const addDays = (iso, n) => { const d = fromISO(iso); d.setDate(d.getDate() + n); return toISO(d) }
 const fmtK = iso => { const d = fromISO(iso); return `${d.getMonth() + 1}.${d.getDate()} (${DOW_KO[d.getDay()]})` }
 const compact = n => {
-  if (n == null) return '—'
+  if (n == null) return ''
   if (n >= 100000000) return (n / 100000000).toFixed(1) + '억'
   if (n >= 10000) return (n / 10000).toFixed(1) + '만'
   return n.toLocaleString('ko-KR')
@@ -51,9 +51,9 @@ function useWeekStats(events, today) {
 function WeekHero({ s, onGo }) {
   const stats = [
     { label: '이번 주 게시 예정', value: s.posts, unit: '건', sub: '오늘부터 7일', to: 'calendar' },
-    { label: '진행·예정 캠페인', value: s.campaigns, unit: '개', sub: '3주 내 기준', to: 'calendar' },
-    { label: '이번 주 촬영', value: s.shoots, unit: '건', sub: '유튜브·인스타', to: 'shoot' },
-    { label: '오늘 팀원 부재', value: s.away, unit: '건', sub: '연차·외근·출장·교육', to: 'team' },
+    { label: '진행 중인 캠페인', value: s.campaigns, unit: '개', sub: '3주 내 기준', to: 'calendar' },
+    { label: '이번 주 촬영', value: s.shoots, unit: '건', sub: '유튜브와 인스타', to: 'shoot' },
+    { label: '오늘 팀원 부재', value: s.away, unit: '건', sub: '연차, 외근, 출장, 교육', to: 'team' },
   ]
 
   return (
@@ -62,7 +62,7 @@ function WeekHero({ s, onGo }) {
         <button key={st.label} className="mon-stat home-stat" onClick={() => onGo(st.to)}>
           <div className="mon-label">{st.label}</div>
           <div className="mon-value">{st.value}<small>{st.unit}</small></div>
-          <div className="mon-sub">{st.sub} <span className="home-stat-go">→</span></div>
+          <div className="mon-sub">{st.sub}</div>
         </button>
       ))}
     </div>
@@ -87,11 +87,11 @@ function TeamStatus({ events, today, onGo }) {
     <section className="home-sec">
       <div className="group-label home-gl">
         오늘의 팀
-        <button className="home-more" onClick={() => onGo('team')}>팀 일정 전체 →</button>
+        <button className="home-more" onClick={() => onGo('team')}>팀 일정 전체</button>
       </div>
-      <div className="home-sec-d">근태·부재 — 연차·반차·외근·출장·교육 (팀 일정 기준)</div>
+      <div className="home-sec-d">연차, 반차, 외근, 출장, 교육 일정</div>
       {empty ? (
-        <div className="home-allin">오늘·내일 부재 일정 없음 — 전원 근무</div>
+        <div className="home-allin">오늘과 내일 전원 근무</div>
       ) : rows.map(r => r.list.length > 0 && (
         <div key={r.label} className={'home-day' + (r.label === '내일' ? ' next' : '')}>
           <span className="home-daylabel">{r.label}<small>{fmtK(r.iso)}</small></span>
@@ -127,12 +127,12 @@ function MediaToday({ events, today, onGo }) {
   return (
     <section className="home-sec">
       <div className="group-label home-gl">
-        오늘·내일 게시
-        <button className="home-more" onClick={() => onGo('calendar')}>매체 캘린더 →</button>
+        오늘과 내일 게시
+        <button className="home-more" onClick={() => onGo('calendar')}>매체 캘린더</button>
       </div>
-      <div className="home-sec-d">매체 집행·촬영 일정 (매체 캘린더·촬영일정 탭 기준)</div>
+      <div className="home-sec-d">매체 집행과 촬영 일정</div>
       {empty ? (
-        <div className="home-allin">오늘·내일 예정된 게시·촬영 없음</div>
+        <div className="home-allin">오늘과 내일 예정된 게시나 촬영 없음</div>
       ) : rows.map(r => r.list.length > 0 && (
         <div key={r.label} className={'home-day' + (r.label === '내일' ? ' next' : '')}>
           <span className="home-daylabel">{r.label}<small>{fmtK(r.iso)}</small></span>
@@ -143,11 +143,11 @@ function MediaToday({ events, today, onGo }) {
                 <span className="home-ttl">{displayTitle(e.title, e.channel)}</span>
                 <span className="home-sub">
                   {e.kind === '촬영' ? '촬영' : e.date === r.iso ? '게시' : '진행중'}
-                  {e.campaign ? ` · #${e.campaign}` : ''}
+                  {e.campaign ? ` #${e.campaign}` : ''}
                 </span>
               </div>
             ))}
-            {r.list.length > 6 && <div className="home-allin">외 {r.list.length - 6}건 — 매체 캘린더에서 확인</div>}
+            {r.list.length > 6 && <div className="home-allin">외 {r.list.length - 6}건, 매체 캘린더에서 확인</div>}
           </div>
         </div>
       ))}
@@ -177,10 +177,10 @@ function WorkDeadlines({ events, today, onGo }) {
   return (
     <section className="home-sec">
       <div className="group-label home-gl">
-        주요 업무·마감
-        <button className="home-more" onClick={() => onGo('team')}>팀 일정 전체 →</button>
+        주요 업무와 마감
+        <button className="home-more" onClick={() => onGo('team')}>팀 일정 전체</button>
       </div>
-      <div className="home-sec-d">팀 공용 업무 D-day — 회의·보고·자료 마감 (3주 내)</div>
+      <div className="home-sec-d">회의와 보고, 자료 마감 (3주 내)</div>
       {list.map(e => (
         <div key={e.id} className="home-trow">
           <span className={'home-dday' + (e.dday === 0 ? ' run' : '')}>
@@ -219,9 +219,9 @@ function CampaignDday({ events, today, onGo }) {
     <section className="home-sec">
       <div className="group-label home-gl">
         주요 콘텐츠
-        <button className="home-more" onClick={() => onGo('calendar')}>매체 캘린더 →</button>
+        <button className="home-more" onClick={() => onGo('calendar')}>매체 캘린더</button>
       </div>
-      <div className="home-sec-d">캠페인 단위 D-day — 다음 게시 기준 (3주 내)</div>
+      <div className="home-sec-d">캠페인 단위 다음 게시 기준 (3주 내)</div>
       {groups.map(g => (
         <div key={g.name} className="home-trow camp">
           <span className={'home-dday' + (g.ongoing && (g.dday == null || g.dday > 0) ? ' run' : '')}>
@@ -261,9 +261,9 @@ function ShootWeek({ events, today, onGo }) {
     <section className="home-sec">
       <div className="group-label home-gl">
         이번 주 촬영
-        <button className="home-more" onClick={() => onGo('shoot')}>촬영일정 전체 →</button>
+        <button className="home-more" onClick={() => onGo('shoot')}>촬영일정 전체</button>
       </div>
-      <div className="home-sec-d">유튜브·인스타 촬영 스케줄 (오늘부터 7일)</div>
+      <div className="home-sec-d">유튜브와 인스타 촬영 스케줄 (오늘부터 7일)</div>
       {list.map(e => (
         <div key={e.id} className="home-trow">
           <span className="home-dday">{e.date === today ? '오늘' : fmtK(e.date)}</span>
@@ -287,9 +287,9 @@ function ChannelSignals({ onGo }) {
     <section className="home-sec">
       <div className="group-label home-gl">
         채널 이슈
-        <button className="home-more" onClick={() => onGo('monitor')}>매체 모니터링 →</button>
+        <button className="home-more" onClick={() => onGo('monitor')}>매체 모니터링</button>
       </div>
-      <div className="home-sec-d">자사 계정 신호 — 팔로워 급증·급감, 새 휴면 진입</div>
+      <div className="home-sec-d">팔로워 급증과 급감, 새 휴면 진입</div>
       {items.map((it, i) => (
         <div key={i} className="home-trow">
           <span className={'hl-mark' + (it.up ? ' up' : '')}>{it.mark}</span>
@@ -334,9 +334,9 @@ function Highlight({ onGo }) {
     <section className="home-sec">
       <div className="group-label home-gl">
         이번 주 하이라이트
-        <button className="home-more" onClick={() => onGo('monitor')}>매체 모니터링 →</button>
+        <button className="home-more" onClick={() => onGo('monitor')}>매체 모니터링</button>
       </div>
-      <div className="home-sec-d">최근 7일 반응 상위 콘텐츠 — 유튜브 조회·인스타 반응 (수집분)</div>
+      <div className="home-sec-d">최근 7일 반응 상위 콘텐츠 (수집분 기준)</div>
       {yt.length > 0 && (
         <div className="home-vids">
           {yt.map(v => (
@@ -347,8 +347,8 @@ function Highlight({ onGo }) {
               <span className="home-vid-body">
                 <b>{v.title}</b>
                 <small>
-                  {v.chName} · 조회 {compact(v.views)}
-                  {v.ratio >= 2 && ` · 평균의 ${Math.round(v.ratio)}배`}
+                  {v.chName} 조회 {compact(v.views)}
+                  {v.ratio >= 2 && ` 평균의 ${Math.round(v.ratio)}배`}
                 </small>
               </span>
             </a>
@@ -359,7 +359,7 @@ function Highlight({ onGo }) {
         <a key={p.url} className="home-trow link" href={p.url} target="_blank" rel="noreferrer">
           <ChannelIcon id="인스타" />
           <span className="home-ttl">{p.caption || '(캡션 없음)'}</span>
-          <span className="home-sub">{p.likes == null ? '좋아요 비공개' : `좋아요 ${compact(p.likes)}`} · 댓글 {p.comments}</span>
+          <span className="home-sub">{p.likes == null ? '좋아요 비공개' : `좋아요 ${compact(p.likes)}`}, 댓글 {p.comments}</span>
         </a>
       ))}
     </section>
@@ -383,7 +383,7 @@ function SettleBadge({ onGo }) {
   if (!count) return null
   return (
     <button className="stl-badge" onClick={() => onGo('settle')}>
-      정산 증빙 첨부 필요 <b>{count}건</b> — 정산 탭에서 첨부 →
+      정산 증빙 첨부 필요 <b>{count}건</b>
     </button>
   )
 }
@@ -405,12 +405,12 @@ export default function HomePage({ onGo, canSettle }) {
     s.todayShoots > 0 && `촬영 ${s.todayShoots}건`,
   ].filter(Boolean)
   const greetLine = todayBits.length > 0
-    ? `오늘 ${todayBits.join(' · ')}이 있습니다`
-    : '오늘 예정된 게시·촬영이 없습니다'
+    ? `오늘 ${todayBits.join(', ')}이 있습니다`
+    : '오늘 예정된 게시나 촬영이 없습니다'
   const subBits = [
     `팀원 부재 ${s.away}명`,
     `진행 중 캠페인 ${s.campaigns}개`,
-    hol && `공휴일 · ${hol}`,
+    hol && `공휴일 ${hol}`,
   ].filter(Boolean)
 
   return (
@@ -420,7 +420,7 @@ export default function HomePage({ onGo, canSettle }) {
           {d.getMonth() + 1}월 {d.getDate()}일 {DOW_KO[d.getDay()]}요일,<br />
           {greetLine}
         </h1>
-        <div className="masthead-sub">{subBits.join(' · ')}</div>
+        <div className="masthead-sub">{subBits.join(', ')}</div>
       </header>
 
       {canSettle && <SettleBadge onGo={onGo} />}

@@ -307,7 +307,7 @@ for (const m of MEDIA) {
   for (const s of m.slots) {
     if (s.ref && !existsSync(new URL(`../public/media-ref/${s.ref}`, import.meta.url)))
       bad(`media.js "${m.name}" 지면 "${s.name}": 레퍼런스 이미지 없음 (public/media-ref/${s.ref})`)
-    if (s.kind && !['이미지', '영상', '이미지·영상', '텍스트'].includes(s.kind))
+    if (s.kind && !['이미지', '영상', '이미지, 영상', '텍스트'].includes(s.kind))
       bad(`media.js "${m.name}" 지면 "${s.name}": kind "${s.kind}" 비표준`)
   }
 }

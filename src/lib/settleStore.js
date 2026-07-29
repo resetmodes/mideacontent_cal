@@ -26,7 +26,7 @@ async function req(path, options = {}) {
     },
   })
   if (res.status === 403) throw new Error('이 계정은 쓰기 권한이 없습니다 (team_writers 미등록)')
-  if (!res.ok) throw new Error(`정산 ${res.status} — 테이블·버킷 설정 확인 (setup.md 9장)`)
+  if (!res.ok) throw new Error(`정산 ${res.status}, 테이블과 버킷 설정 확인 (setup.md 9장)`)
   return res
 }
 
@@ -94,7 +94,7 @@ export async function compressImage(file) {
 /* 업로드 — 반환 메타를 settlements.files에 추가해 저장할 것 */
 export async function uploadSettleFile(settleId, file, slot) {
   const f = await compressImage(file)
-  if (f.size > MAX_FILE) throw new Error(`파일이 10MB를 넘습니다 (${(f.size / 1048576).toFixed(1)}MB) — PDF 분할·이미지 변환 후 재시도`)
+  if (f.size > MAX_FILE) throw new Error(`파일이 10MB를 넘습니다 (${(f.size / 1048576).toFixed(1)}MB), PDF 분할이나 이미지 변환 후 재시도`)
   /* Storage 키는 ASCII만 허용 — 한글 파일명은 "Invalid key" 400 ('26.7.27 캘린더 첨부와
      동일 사고). 경로는 슬롯+타임스탬프+난수, 원본 이름은 메타(name)에만 (ZIP 폴더링은 메타 사용) */
   const ext = (f.name.match(/\.([A-Za-z0-9]+)$/)?.[1] || 'bin').toLowerCase()

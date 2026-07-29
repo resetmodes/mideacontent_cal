@@ -81,7 +81,7 @@ export default function App() {
         {/* 사이트명 "미디어콘텐츠룸" (약칭 미콘룸) — '26.7.29 사용자 확정 */}
         <div className="side-brand">
           <b>미디어콘텐츠룸</b>
-          <span>미콘룸 · 매체 운영</span>
+          <span>매체 운영</span>
         </div>
         <nav className="side-nav">
           <button className={tab === 'home' ? 'on' : ''} onClick={() => go('home')}>홈</button>

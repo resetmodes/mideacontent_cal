@@ -49,12 +49,12 @@ function hl(text, query) {
    원본 name은 딥링크·specLink·지표 매핑 키라 그대로 둔다 (표시만 바꿈) */
 const NAME_CH = { 인스타그램: '인스타', 유튜브: '유튜브', 카카오톡: '카카오톡' }
 export function splitMediaName(name) {
-  const i = name.indexOf(' · ')
+  const i = name.indexOf(', ')
   if (i < 0) return { chips: [], label: name }
   const parts = name.slice(0, i).split('+').map(s => s.trim())
   /* 채널 계정 항목일 때만 분해 — "홈페이지 (WEB)"·"고지물 (PMS)"의 괄호는 구분자라 보존 */
   if (!parts.every(p => NAME_CH[p])) return { chips: [], label: name }
-  return { chips: parts.map(p => NAME_CH[p]), label: name.slice(i + 3).replace(/\s*\([^)]*\)\s*$/, '').trim() }
+  return { chips: parts.map(p => NAME_CH[p]), label: name.slice(i + 2).replace(/\s*\([^)]*\)\s*$/, '').trim() }
 }
 
 /* 채널 배지 — 아이콘 + 짧은 이름, 테두리로 구분 */
@@ -117,7 +117,7 @@ function Slot({ s, query, onRef }) {
       <div className="slot">
         <div className="slot-name">{hl(s.name, query)}</div>
         {hero}
-        <div className="slot-meta"><b>{s.cap}</b> · {hl(s.fmt, query)}</div>
+        <div className="slot-meta"><b>{s.cap}</b> {hl(s.fmt, query)}</div>
         {s.note && <div className="slot-note">{hl(s.note, query)}</div>}
       </div>
     )
@@ -126,7 +126,7 @@ function Slot({ s, query, onRef }) {
     ['유형', s.kind],
     ['이미지 형식', s.img],
     ['영상 형식', s.vid],
-    ['용량 제한', s.cap && s.cap !== '—' ? s.cap : null],
+    ['용량 제한', s.cap && s.cap !== '-' && s.cap !== '—' ? s.cap : null],
     ['영상 길이', s.vlen],
     ['영상 사양', s.vspec],
     ['텍스트 소재', s.text],
@@ -155,7 +155,7 @@ function Slot({ s, query, onRef }) {
       </div>
       {s.ref && (
         <button className="ref-thumb" onClick={() => onRef(s.ref)} title="크게 보기">
-          <img loading="lazy" src={`${import.meta.env.BASE_URL}media-ref/${s.ref}`} alt={`${s.name} 목업·레퍼런스`} />
+          <img loading="lazy" src={`${import.meta.env.BASE_URL}media-ref/${s.ref}`} alt={`${s.name} 레퍼런스`} />
           <span>크게 보기</span>
         </button>
       )}
@@ -167,7 +167,7 @@ function Slot({ s, query, onRef }) {
 function CommonGuide() {
   return (
     <details className="cg">
-      <summary>광고 소재 공통 가이드 <small>텍스트·이미지 공통 작성 원칙</small></summary>
+      <summary>광고 소재 공통 가이드 <small>텍스트와 이미지 작성 원칙</small></summary>
       <div className="cg-body">
         {Object.entries(COMMON_GUIDE).map(([k, items]) => (
           <div key={k} className="cg-col">
@@ -218,7 +218,7 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRe
       <div className="media-head" onClick={forceOpen ? undefined : () => setOpen(o => !o)}>
         <div className="m-id">
           <div className="m-cat">
-            {m.cat}{m.reg && <> · <span className="reg">{m.reg}</span></>}
+            {m.cat}{m.reg && <> <span className="reg">{m.reg}</span></>}
           </div>
           <div className="m-name"><MediaName name={m.name} query={query} /></div>
         </div>
@@ -249,11 +249,11 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRe
             </dl>
           )}
           {!m.verified && (
-            <div className="src draft"><b>검증 전 가안</b> — 담당 파트 확인 필요</div>
+            <div className="src draft"><b>검증 전 가안</b> 담당 파트 확인 필요</div>
           )}
           {!isExternal && !mirror && (
             <div className="spec-share">
-              대행사·지점 전달용 — 로그인 없이 이 매체만 열림 (담당자·내부 지표 자동 숨김)
+              대행사와 지점 전달용, 로그인 없이 이 매체만 열립니다
               <CopyMediaLink name={m.name} />
             </div>
           )}
@@ -312,10 +312,10 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
     <div className="wrap">
       <header>
         <h1>매체 스펙 라이브러리</h1>
-        <div className="masthead-sub">미디어콘텐츠팀 운영 매체 소재 규격 · 납기 · 진행 프로세스 · 심의 기준</div>
+        <div className="masthead-sub">소재 규격과 납기, 진행 프로세스, 심의 기준</div>
         {!isExternal && !mirror && (
           <div className="session-bar">
-            지점·대행사 전달용 (담당자·내부 지표 자동 숨김)
+            지점과 대행사 전달용 (내부 지표 자동 숨김)
             <ShareButton query="?view=external" url={MIRROR_URL ? `${MIRROR_URL}/?view=external` : undefined} label="외부 공유 링크 복사" />
           </div>
         )}
@@ -324,7 +324,7 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
       <div className="controls">
         <input
           className="search" type="search" autoComplete="off"
-          placeholder="매체·지면·키워드 검색 (예: 스플래시, 키즈, 릴스, PUSH)"
+          placeholder="매체, 지면, 키워드 검색 (예: 스플래시, 키즈, 릴스)"
           value={query} onChange={e => setQuery(e.target.value.trim())}
         />
         <div className="filters">
@@ -399,11 +399,11 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
       {refImg && (
         <div className="ref-lightbox" onClick={() => setRefImg(null)}>
           <img src={`${import.meta.env.BASE_URL}media-ref/${refImg}`} alt="제작 가이드 원본" />
-          <div className="ref-close">닫기 ✕</div>
+          <div className="ref-close">닫기</div>
         </div>
       )}
 
-      <footer>문의: 미디어콘텐츠팀</footer>
+      <footer>문의 미디어콘텐츠팀</footer>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 /* 캘린더 채널/세부 → 매체 스펙 라이브러리 항목 매핑
-   일정 모달의 "이 매체 규격·납기 보기" 딥링크에 사용.
+   일정 모달의 "이 매체 규격과 납기 보기" 딥링크에 사용.
    MEDIA에 실제 존재하는 이름만 반환 — 매체명이 바뀌면 링크는 조용히 숨김(막다른 길 방지) */
 import { MEDIA } from '../data/media.js'
 
@@ -8,14 +8,14 @@ const NAMES = new Set(MEDIA.map(m => m.name))
 /* 키 형식: `${channel}|${sub}` (세부 없으면 `${channel}|`)
    export는 정합성 테스트(scripts/test-data.mjs)용 — 값이 MEDIA 이름과 어긋나면 테스트가 잡음 */
 export const SPEC_LINK_MAP = {
-  '인스타|': '인스타그램 · 공식 (the_hyundai)',
-  '인스타|공식': '인스타그램 · 공식 (the_hyundai)',
-  '인스타|도시': '인스타그램 · 도시매뉴얼 (dosi.manual)',
-  '유튜브|': '유튜브 · 공식 (THE HYUNDAI)',
-  '유튜브|공식': '유튜브 · 공식 (THE HYUNDAI)',
-  '유튜브|룸넘버': '유튜브 · 룸넘버 (ROOMNUMBER)',
-  '유튜브|이야호': '유튜브 · 이야호 (이야호스튜디오)',
-  '유튜브|와지트': '인스타+유튜브 · 와지트 (wazit_wine · WAZIT)',
+  '인스타|': '인스타그램, 공식 (the_hyundai)',
+  '인스타|공식': '인스타그램, 공식 (the_hyundai)',
+  '인스타|도시': '인스타그램, 도시매뉴얼 (dosi.manual)',
+  '유튜브|': '유튜브, 공식 (THE HYUNDAI)',
+  '유튜브|공식': '유튜브, 공식 (THE HYUNDAI)',
+  '유튜브|룸넘버': '유튜브, 룸넘버 (ROOMNUMBER)',
+  '유튜브|이야호': '유튜브, 이야호 (이야호스튜디오)',
+  '유튜브|와지트': '인스타+유튜브, 와지트 (wazit_wine, WAZIT)',
   '카카오톡|': '카카오톡 대표계정',
   '카카오톡|친구톡': '친구톡 와이드',
   '아파트LCD|': '아파트 LCD',
@@ -26,7 +26,7 @@ export const SPEC_LINK_MAP = {
   '기타|신문': '신문광고',
   '기타|H.Point': 'H.Point 메인 배너',
   '기타|고지물': '고지물 (PMS)',
-  '기타|TVCF·라디오': 'TVCF / 라디오',
+  '기타|TVCF 라디오': 'TVCF 라디오',
 }
 
 /* 매핑되는 스펙 매체명 반환 (없으면 null) */

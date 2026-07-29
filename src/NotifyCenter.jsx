@@ -63,20 +63,20 @@ export default function NotifyCenter({ session }) {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="md-ch">알림센터</div>
             <div className="md-title sm">지난 확인 이후 변경 {rows.length}건</div>
-            {seenAt && <div className="notify-sub">마지막 확인 {fmtTs(seenAt)} · 열람하면 확인 처리됩니다</div>}
+            {seenAt && <div className="notify-sub">마지막 확인 {fmtTs(seenAt)}<br />열람하면 확인 처리됩니다</div>}
             <div className="md-hist notify-list">
               {rows.map((r, i) => {
                 const diffs = diffFor(i)
                 return (
                   <div key={r.id} className="md-hist-row">
                     <span className="mh-when">{fmtTs(r.changed_at)}</span>
-                    <span className="mh-who">{r.actor ? authorName(r.actor) : '—'}</span>
+                    <span className="mh-who">{r.actor ? authorName(r.actor) : ''}</span>
                     <span className="mh-act">{ACTION_KO[r.action] || r.action}</span>
                     <span className="mh-diff">
                       {r.data?.kind === '촬영' && '[촬영] '}
                       {r.data?.date} {displayTitle(r.data?.title, r.data?.channel)}
                       {r.data?.channel ? ` (${r.data.channel})` : ''}
-                      {diffs.length > 0 && ` — ${diffs.join(' · ')}`}
+                      {diffs.length > 0 && ` ${diffs.join(', ')}`}
                     </span>
                   </div>
                 )

@@ -18,8 +18,8 @@ export default function MirrorApp() {
   const [tab, setTab] = useState(() => (window.location.hash === '#spec' ? 'spec' : 'calendar'))
   useEffect(() => {
     document.title = isExternal
-      ? '매체 스펙 — 미디어콘텐츠팀'
-      : '매체 캘린더 · 스펙 — 공유용 (읽기 전용)'
+      ? '매체 스펙'
+      : '매체 캘린더와 스펙 (읽기 전용)'
   }, [isExternal])
 
   if (isExternal) {

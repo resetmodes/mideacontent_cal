@@ -715,6 +715,23 @@
   페이지에서 아이디어 참고용으로만 호출할 것
 - 갱신: `npx skills add https://github.com/Leonxlnx/taste-skill` (로컬) 또는 리포 재복사
 
+## 문자열 규칙 ('26.7.29 사용자 지시 — 전 화면 적용 완료, 신규 문구도 반드시 준수)
+- UI 문자열(버튼·라벨·탭·헤더·배지·빈 상태·1문장 설명)에 **마침표 없음**
+- **2문장 이상 서술 문단만** 마침표 사용, 한 화면에서 혼용 금지
+- **em dash(—) 금지** — 부제는 줄 분리(`<br>`·별도 요소), 부연은 별도 요소, 접속은 문장 분리·쉼표
+- **중점(·)·화살표(→)·말줄임표(…)·나열 슬래시·라벨 뒤 콜론 금지**
+  (나열은 쉼표 또는 "A와 B", 빈 값은 `'—'`이 아니라 빈 문자열)
+- 정보 위계는 기호가 아니라 **크기·굵기·줄바꿈**으로 (예: 모달 채널 뒤 세부 = `.md-ch-sub`
+  별도 span / 공유 리포트 하이라이트 = 라벨·값 3열 구조 `.shr-pt-k`·`.shr-pt-v`)
+- 적용 범위: src 전체 jsx·lib·data + media.js 스펙 텍스트. **구분자 변경 파급 주의** —
+  매체명 "인스타그램 · 공식" → "인스타그램, 공식"으로 바뀌며 specLink.js·specMetrics.js
+  매핑 키와 SpecLibrary splitMediaName 구분자를 함께 갱신했고, slot.kind "이미지·영상" →
+  "이미지, 영상"이라 test-data 화이트리스트도 갱신함. 계정 그룹 '콘텐츠·IP' → '콘텐츠 IP'
+  (accounts.mjs·MonitorPage·수집 데이터 동시). 구형 DB 저장분(rmn option 등)은 표시 시점에
+  정규화(`plain()`)
+- 검사: `document.body.innerText`에 · — → … 가 하나도 없어야 함 (전 탭·미러·외부·공유 리포트
+  런타임 스캔으로 검증)
+
 ## 디자인 규칙 (v2 '26.7.29 전면 개편 — 위반 시 재작업, 반드시 준수)
 - 폰트: **Wanted Sans Variable 단일** (`public/fonts/WantedSansVariable.woff2` 셀프호스트,
   index.css @font-face — jsdelivr CDN은 프록시 403 이력으로 셀프호스트 확정). Pretendard는 폴백만

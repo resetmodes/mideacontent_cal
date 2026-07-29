@@ -103,7 +103,7 @@ export default function Celebration() {
               <Art sub={e.sub} bg={bg} />
               <div className="cele-title">{e.title}</div>
               <div className="cele-date">
-                {fmtK(e.anniv)}{early && ' — 쉬는 날이라 미리 축하해요'}
+                {fmtK(e.anniv)}{early && ' 쉬는 날이라 미리 축하해요'}
               </div>
               <div className="cele-brand">MEDIA CONTENT TEAM</div>
             </div>

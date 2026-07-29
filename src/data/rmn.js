@@ -134,7 +134,7 @@ export const rmnListPrice = (productId, pushUnits = 1) => {
 export const applyDiscount = (price, rate) => Math.round(price * (1 - (Number(rate) || 0) / 100))
 export const netAmount = (total, hasAgency) => (hasAgency ? Math.round(total * (1 - RMN_COMMISSION)) : total)
 
-export const fmtWon = n => (n == null ? '—' : Number(n).toLocaleString('ko-KR') + '원')
+export const fmtWon = n => (n == null ? '' : Number(n).toLocaleString('ko-KR') + '원')
 
 /* ── 7일 기준 ('26.7) — 모든 구좌 캠페인 단가는 7일 기준. 대부분 7일 연속,
    불가피하게 3·4일로 끊는 경우가 있어 기간이 7일인지 체크(푸쉬 제외) ── */

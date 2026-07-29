@@ -36,15 +36,15 @@ async function req(url, options = {}) {
   let detail = ''
   try { const j = await res.json(); detail = j.message || j.error || '' } catch { /* 본문 없음 */ }
   if (res.status === 404 || /bucket not found/i.test(detail))
-    throw new Error('event-images 버킷이 없습니다 — Supabase Storage에 버킷 생성 필요 (setup.md 10장)')
+    throw new Error('event-images 버킷이 없습니다, Supabase Storage에 버킷 생성 필요 (setup.md 10장)')
   if (res.status === 403 || /row-level security|unauthorized|violates/i.test(detail))
-    throw new Error(`업로드 권한 거부 — Storage 정책 미생성이거나 team_writers 미등록 (setup.md 10장)${detail ? ` · 서버: ${detail}` : ''}`)
-  throw new Error(`이미지 업로드 실패 (${res.status})${detail ? ` — ${detail}` : ''}`)
+    throw new Error(`업로드 권한 거부, Storage 정책 미생성이거나 team_writers 미등록 (setup.md 10장)${detail ? `, 서버: ${detail}` : ''}`)
+  throw new Error(`이미지 업로드 실패 (${res.status})${detail ? `, ${detail}` : ''}`)
 }
 
 /* 업로드 — 반환 메타를 media_events.images에 추가해 저장할 것 (store.updateEventImages) */
 export async function uploadEventImage(eventId, file) {
-  if (!/^image\//i.test(file.type)) throw new Error('이미지 파일만 첨부할 수 있습니다 (JPG·PNG 등)')
+  if (!/^image\//i.test(file.type)) throw new Error('이미지 파일만 첨부할 수 있습니다 (JPG, PNG 등)')
   const f = await compressImage(file)
   if (f.size > MAX_FILE) throw new Error(`파일이 10MB를 넘습니다 (${(f.size / 1048576).toFixed(1)}MB)`)
   /* Storage 키는 ASCII만 허용 — 한글 파일명은 "Invalid key" 400 ('26.7.27 사고).

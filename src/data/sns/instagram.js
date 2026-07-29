@@ -5,7 +5,7 @@ export const IG = {
  "generatedAt": "2026-07-27T01:43:01.901Z",
  "windowMonths": 1,
  "windowSince": "2026-06-27",
- "note": "모든 지표는 최근 1개월(2026-06-27 이후) 게시물 기준. likes=null 은 비공개(좋아요 평균은 공개분만). 팔로워는 7/7 수집값 복원(7/15~ Apify 필드 누락 — clean 보강, 다음 수집부터 재시도).",
+ "note": "모든 지표는 최근 1개월(2026-06-27 이후) 게시물 기준. likes=null 은 비공개(좋아요 평균은 공개분만). 팔로워는 7/7 수집값을 복원한 값입니다.",
  "accounts": [
   {
    "handle": "the_hyundai",
@@ -562,7 +562,7 @@ export const IG = {
   {
    "handle": "thehyundaiculture",
    "name": "더현대컬처",
-   "group": "콘텐츠·IP",
+   "group": "콘텐츠 IP",
    "profileUrl": "https://www.instagram.com/thehyundaiculture/",
    "isMain": false,
    "followers": 32401,
@@ -585,7 +585,7 @@ export const IG = {
   {
    "handle": "hmoka3700",
    "name": "현대어린이책미술관",
-   "group": "콘텐츠·IP",
+   "group": "콘텐츠 IP",
    "profileUrl": "https://www.instagram.com/hmoka3700/",
    "isMain": false,
    "followers": 21960,
@@ -608,7 +608,7 @@ export const IG = {
   {
    "handle": "peer_official",
    "name": "피어 PEER",
-   "group": "콘텐츠·IP",
+   "group": "콘텐츠 IP",
    "profileUrl": "https://www.instagram.com/peer_official/",
    "isMain": false,
    "followers": 67929,
@@ -631,7 +631,7 @@ export const IG = {
   {
    "handle": "heendy.life",
    "name": "흰디 Heendy",
-   "group": "콘텐츠·IP",
+   "group": "콘텐츠 IP",
    "profileUrl": "https://www.instagram.com/heendy.life/",
    "isMain": false,
    "followers": 95565,
@@ -654,7 +654,7 @@ export const IG = {
   {
    "handle": "thehyundai_beclean",
    "name": "비클린(인디뷰티)",
-   "group": "콘텐츠·IP",
+   "group": "콘텐츠 IP",
    "profileUrl": "https://www.instagram.com/thehyundai_beclean/",
    "isMain": false,
    "followers": 13746,
@@ -677,7 +677,7 @@ export const IG = {
   {
    "handle": "till_white",
    "name": "틸화이트",
-   "group": "콘텐츠·IP",
+   "group": "콘텐츠 IP",
    "profileUrl": "https://www.instagram.com/till_white/",
    "isMain": false,
    "followers": 749,

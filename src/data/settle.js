@@ -80,7 +80,7 @@ export const FILE_SLOTS = {
     { key: 'easy', label: '간편결재 첨부 (별도 정산 건)' },
   ],
   세금계산서: [
-    { key: 'ev1', label: '견적서·계약서' },
+    { key: 'ev1', label: '견적서와 계약서' },
     { key: 'ev2', label: '내부 품의' },
   ],
 }
