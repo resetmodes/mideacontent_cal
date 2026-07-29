@@ -330,7 +330,6 @@ export default function SettlePage() {
   return (
     <div className="wrap cal-wrap">
       <header>
-        <div className="eyebrow">Media Content Team · Settlement</div>
         <h1>정산</h1>
         <div className="masthead-sub">
           법인카드·세금계산서 정산 관리 — 증빙 첨부(자동 압축)·점 배분·반복 정산 (테스트: 3인 공유)

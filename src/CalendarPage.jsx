@@ -1101,6 +1101,53 @@ function NotionReview({ list, onResolve }) {
   )
 }
 
+/* 좌측 패널 미니 먼스 (v2 '26.7.29) — 내비 전용: 화살표로 월 이동, 오늘·일정 있는 날 표시.
+   주 시작은 본 그리드와 동일(일요일). 크게 보기 토글 시 패널째 숨김 */
+function MiniMonth({ cursor, onCursor, events }) {
+  const y = cursor.getFullYear(), m = cursor.getMonth()
+  const first = new Date(y, m, 1)
+  const last = new Date(y, m + 1, 0)
+  const start = new Date(first)
+  start.setDate(first.getDate() - first.getDay())
+  const cells = []
+  const d = new Date(start)
+  while (d <= last || d.getDay() !== 0) {
+    cells.push({ iso: toISO(d), day: d.getDate(), inMonth: d.getMonth() === m })
+    d.setDate(d.getDate() + 1)
+  }
+  const has = useMemo(() => {
+    const s = new Set()
+    for (const e of events) {
+      if (e.kind === '휴점') continue
+      const a = fromISO(e.date), b = fromISO(e.endDate || e.date)
+      for (let x = new Date(a); x <= b; x.setDate(x.getDate() + 1)) {
+        if (x.getFullYear() === y && x.getMonth() === m) s.add(toISO(x))
+      }
+    }
+    return s
+  }, [events, y, m])
+  const todayIso = toISO(new Date())
+  return (
+    <div className="mini-cal">
+      <div className="mini-head">
+        <button onClick={() => onCursor(new Date(y, m - 1, 1))} aria-label="이전 달">‹</button>
+        <span className="mini-title">{y}.{String(m + 1).padStart(2, '0')}</span>
+        <button onClick={() => onCursor(new Date(y, m + 1, 1))} aria-label="다음 달">›</button>
+      </div>
+      <div className="mini-grid">
+        {DOW.map(w => <span key={w} className="mini-dow">{w}</span>)}
+        {cells.map(c => (
+          <span key={c.iso}
+            className={'mini-d' + (c.inMonth ? '' : ' out')
+              + (c.iso === todayIso ? ' today' : c.inMonth && has.has(c.iso) ? ' has' : '')}>
+            {c.day}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, team = false }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -1114,6 +1161,13 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
   const [dayDraft, setDayDraft] = useState(null)   // 날짜 셀 클릭 → 신규 등록 모달
   const [daySel, setDaySel] = useState(null)       // 일자 숫자·더보기 클릭 → 하루 일정 시트
   const [campFocus, setCampFocus] = useState(null) // 캠페인 뷰에서 선택한 캠페인 (null = 전체)
+  /* 크게 보기 (v2 '26.7.29) — 좌측 패널(미니 먼스·필터) 숨김 + 본문 폭 확장. 브라우저별 기억 */
+  const [big, setBig] = useState(() => { try { return localStorage.getItem('calBig') === '1' } catch { return false } })
+  const toggleBig = () => setBig(b => {
+    const v = !b
+    try { localStorage.setItem('calBig', v ? '1' : '0') } catch { /* 프라이빗 모드 등 */ }
+    return v
+  })
   const me = authorName(session?.email)            // 작성자 = 로그인 계정 (자동)
 
   const refresh = useCallback(async () => {
@@ -1304,9 +1358,8 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
   useEffect(() => { if (campFocus && !campNames.has(campFocus)) setCampFocus(null) }, [campFocus, campNames])
 
   return (
-    <div className={'wrap cal-wrap' + (readOnly ? ' wide' : '')}>
+    <div className={'wrap cal-wrap' + (readOnly ? ' wide' : '') + (!readOnly && big ? ' big' : '')}>
       <header>
-        <div className="eyebrow">Media Content Team · {team ? 'Team' : shoot ? 'Shooting' : 'Schedule'}{readOnly && ' · Read Only'}</div>
         <h1>{team ? '팀 일정' : shoot ? '촬영 일정 캘린더' : '매체 일정 캘린더'}</h1>
         <div className="masthead-sub">
           {team
@@ -1371,10 +1424,17 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
               <button className="cal-today" onClick={() => { const d = new Date(); setCursor(new Date(d.getFullYear(), d.getMonth(), 1)) }}>오늘</button>
             </div>
           )}
+          {!readOnly && (
+            /* 크게 보기 (v2) — 좌측 패널을 접고 그리드를 넓게 */
+            <button className={'cal-big-btn' + (big ? ' on' : '')} onClick={toggleBig}>
+              {big ? '기본 보기' : '크게 보기'}
+            </button>
+          )}
         </div>
       )}
 
-      {!searching && (
+      {/* 미러(readOnly)는 기존 가로 필터 유지 — 좌측 패널은 팀용 화면 전용 */}
+      {!searching && readOnly && (
         <div className="filters cal-filters">
           {['전체', ...chipChannels.map(c => c.id)].map(id => (
             <button key={id} className={id === filter ? 'on' : ''} onClick={() => setFilter(id)}>
@@ -1389,20 +1449,57 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
         <div className="empty">불러오는 중…</div>
       ) : searching ? (
         <SearchResults events={kindEvents} query={search} onSelect={setSelected} />
-      ) : view === '월간' || team ? (
-        <MonthGrid
-          cursor={cursor} events={monthEvents} onSelect={e => setSelected(e.orig || e)}
-          onDayClick={readOnly ? null : setDayDraft} wide={readOnly}
-          onMove={readOnly ? null : onMove} onGroup={setGroupSel} onDay={setDaySel}
-          closedDays={closedDays}
-        />
+      ) : readOnly ? (
+        view === '월간' || team ? (
+          <MonthGrid
+            cursor={cursor} events={monthEvents} onSelect={e => setSelected(e.orig || e)}
+            onDayClick={null} wide
+            onMove={null} onGroup={setGroupSel} onDay={setDaySel}
+            closedDays={closedDays}
+          />
+        ) : (
+          <CampaignView
+            events={filtered} focus={campFocus} onFocus={setCampFocus}
+            onSelect={e => setSelected(e.orig || e)} onRename={null}
+            cursor={cursor} onDayClick={null} wide
+            onMove={null} onGroup={setGroupSel} onDay={setDaySel}
+            closedDays={closedDays} />
+        )
       ) : (
-        <CampaignView
-          events={filtered} focus={campFocus} onFocus={setCampFocus}
-          onSelect={e => setSelected(e.orig || e)} onRename={readOnly ? null : onRename}
-          cursor={cursor} onDayClick={readOnly ? null : setDayDraft} wide={readOnly}
-          onMove={readOnly ? null : onMove} onGroup={setGroupSel} onDay={setDaySel}
-          closedDays={closedDays} />
+        /* v2 레이아웃 — 좌측 패널(미니 먼스 + 필터) + 본문. 크게 보기 시 패널 숨김 */
+        <div className="cal-layout">
+          {!big && (
+            <aside className="cal-side">
+              <MiniMonth cursor={cursor} onCursor={setCursor} events={monthEvents} />
+              <div className="side-filter">
+                <div className="side-filter-t">{team ? '유형' : '매체'}</div>
+                {['전체', ...chipChannels.map(c => c.id)].map(id => (
+                  <button key={id} className={id === filter ? 'on' : ''} onClick={() => setFilter(id)}>
+                    {id !== '전체' && <ChannelIcon id={id} />}
+                    {id === '전체' ? '전체' : channelById(id).label}
+                  </button>
+                ))}
+              </div>
+            </aside>
+          )}
+          <div className="cal-main">
+            {view === '월간' || team ? (
+              <MonthGrid
+                cursor={cursor} events={monthEvents} onSelect={e => setSelected(e.orig || e)}
+                onDayClick={setDayDraft} wide={false}
+                onMove={onMove} onGroup={setGroupSel} onDay={setDaySel}
+                closedDays={closedDays}
+              />
+            ) : (
+              <CampaignView
+                events={filtered} focus={campFocus} onFocus={setCampFocus}
+                onSelect={e => setSelected(e.orig || e)} onRename={onRename}
+                cursor={cursor} onDayClick={setDayDraft} wide={false}
+                onMove={onMove} onGroup={setGroupSel} onDay={setDaySel}
+                closedDays={closedDays} />
+            )}
+          </div>
+        </div>
       )}
 
       {!loading && !searching && !readOnly && storageMode === 'supabase' && (

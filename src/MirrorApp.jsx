@@ -38,13 +38,14 @@ export default function MirrorApp() {
     go('spec')
   }
 
+  /* v2 ('26.7.29): 미러는 탭 2개뿐이라 사이드바 대신 상단 중앙 글래스 필 바 */
   return (
     <>
-      <nav className="tabs">
-        <div className="tabs-inner">
+      <nav className="mini-tabs">
+        <div className="mini-tabs-inner">
           <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
           <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
-          <span className="tabs-session">읽기 전용 공유 뷰</span>
+          <span className="mini-ro">읽기 전용 공유 뷰</span>
         </div>
       </nav>
       {tab === 'calendar' && <CalendarPage readOnly onOpenSpec={openSpec} />}

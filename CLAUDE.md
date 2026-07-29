@@ -11,7 +11,16 @@
    ("12/20 크리스마스 인스타 릴스 #크리스마스"), 클릭해서 수정·삭제, 캠페인(#태그)별 묶어 보기.
 
 ## 캘린더 구조 ('26.7)
-- `src/App.jsx` 탭 셸 → 기본(1페이지) 탭 = **홈**('26.7, 해시 없음, `src/HomePage.jsx`) /
+- **v2 리디자인 전면 적용 ('26.7.29 — 사용자 프로토타입 승인 후)**: ① 셸 = 상단 탭 바 →
+  **좌측 플로팅 글래스 사이드바**(App.jsx `.shell`/`.side` — 브랜드·탭·세션(알림/이메일/로그아웃),
+  모바일 ≤840px는 상단 가로 스크롤 바 폴백). 미러는 상단 중앙 글래스 필 바(MirrorApp `.mini-tabs`)
+  ② 캘린더 = **좌측 패널**(이번달 미니 먼스 `MiniMonth` + 매체/유형 필터 세로 리스트) +
+  **"크게 보기" 토글**(패널 숨김 + 폭 1520px 확장, localStorage `calBig` 기억, 검색 중·미러는
+  기존 구조 유지 — 미러 와이드 1560px 불변) ③ 매체 스펙 = 데스크톱(내부·미러) **마스터-디테일**
+  (좌측 목록 rail + 우측 상세 `MediaItem forceOpen` — 외부 뷰·모바일은 기존 아코디언 유지,
+  딥링크 specFocus는 rail 선택으로 연결) ④ 채널 덱 = 다크(#16181C)·형광 → **딥 그린 그라데이션
+  무대 + 골드(--gold) 액센트** ⑤ 영문 eyebrow 8개 페이지 전면 제거. 디자인 토큰은 아래
+  "디자인 규칙 (v2)" 참조
   팀 일정 `#team` / `CalendarPage.jsx`(매체 캘린더 `#calendar`) / `SpecLibrary.jsx` / `MonitorPage.jsx`. 뷰:
   기본(팀용) · `?view=mirror`(타 팀 공유 읽기 전용) · `?view=external`(대행사·지점용
   스펙만, 캘린더·모니터링 완전 숨김). `#spec` / `#monitor` = 탭 딥링크.
@@ -625,12 +634,18 @@
   페이지에서 아이디어 참고용으로만 호출할 것
 - 갱신: `npx skills add https://github.com/Leonxlnx/taste-skill` (로컬) 또는 리포 재복사
 
-## 디자인 규칙 (위반 시 재작업 — 반드시 준수)
-- 폰트: Pretendard (CDN: cdn.jsdelivr.net/gh/orioncactus/pretendard)
-- 컬러: 흑백 기반 + 현대 그린 #0B4336 포인트 1색. 형광 하이라이트 #EDFF5B는 강조·검색 매치 전용
+## 디자인 규칙 (v2 '26.7.29 전면 개편 — 위반 시 재작업, 반드시 준수)
+- 폰트: **Wanted Sans Variable 단일** (`public/fonts/WantedSansVariable.woff2` 셀프호스트,
+  index.css @font-face — jsdelivr CDN은 프록시 403 이력으로 셀프호스트 확정). Pretendard는 폴백만
+- 컬러: **THE HYUNDAI 카드 그린 #0B4336 앵커** + 그린 틴트 그레이 스케일(--g50~--g900,
+  --ink:#132019 — 순수 블랙·순수 그레이 미사용). 형광 #EDFF5B는 강조·검색 매치 전용(불변).
+  **골드 #C9A96A(--gold)는 채널 성과 덱 전용** 액센트
+- **글래스모피즘**: --glass 토큰(반투명 백 + blur + --glass-border + 그린 틴트 --glass-shadow) —
+  사이드바·캘린더 패널·그리드·모달·로그인 카드 공통. body = 앰비언트 라디얼 그라데이션 캔버스
+  (fixed). **그라데이션 허용은 이 body 배경과 덱 무대뿐** — 컴포넌트 그라데이션은 여전히 금지
+- **클로드 쿠세 금지**: 본제목 위 영문 대문자 eyebrow(자간 넓힌 소제목) 금지 — '26.7.29 전면 제거
 - 빨강 #C4372C은 오직 금지사항·경고에만. 일반 강조에 빨강 금지
-- 금지 패턴: border-left 컬러 스트립, box-shadow 카드, pill 배지 남발, 그라데이션,
-  이모지 아이콘, 과잉 border-radius
+- 금지 패턴: border-left 컬러 스트립, pill 배지 남발, 이모지 아이콘, 과잉 border-radius
 - 위계는 타이포그래피(크기·굵기 대비)로. 표는 가로선만
 - 스펙 상세의 주인공은 규격 숫자 (대형 타이포, tabular-nums)
 
