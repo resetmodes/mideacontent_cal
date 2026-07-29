@@ -40,3 +40,11 @@ export function resolveSpecMedia(channel, sub) {
   if (base && NAMES.has(base)) return base
   return null
 }
+
+/* 역방향 ('26.7.29) — 매체 스펙 항목명 → 이 매체로 등록된 일정을 찾는 판별기.
+   스펙 상세의 "최근 집행"에서 사용. 타겟APP은 세부명이 곧 매체명이라 별도 처리 */
+export function eventMatchesMedia(e, mediaName) {
+  if (!e || !mediaName) return false
+  if (e.channel === '타겟APP') return (e.sub || '') === mediaName
+  return resolveSpecMedia(e.channel, e.sub) === mediaName
+}
