@@ -37,12 +37,53 @@ const postDate = s => {
   return m ? `${m[1]}${UNIT_KO[m[2]]} 전` : s
 }
 
+/* 숫자 카운트업 ('26.7.29 리디자인) — 문자열에서 숫자만 뽑아 0→값으로 올림.
+   "3,154,134" "11.76%" "-676" "1,086,300원" 모두 접두·접미를 보존한다.
+   prefers-reduced-motion이면 즉시 최종값 */
+function useCountUp(text, ms = 900) {
+  const [out, setOut] = useState(text)
+  useEffect(() => {
+    const m = String(text).match(/^([^\d-]*)(-?[\d,]+(?:\.\d+)?)(.*)$/)
+    const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!m || reduce) { setOut(text); return }
+    const [, pre, numStr, post] = m
+    const target = parseFloat(numStr.replace(/,/g, ''))
+    if (!isFinite(target)) { setOut(text); return }
+    const dec = (numStr.split('.')[1] || '').length
+    const t0 = performance.now()
+    let raf
+    const tick = now => {
+      const p = Math.min((now - t0) / ms, 1)
+      const e = 1 - Math.pow(1 - p, 3)
+      const v = target * e
+      setOut(pre + (dec ? v.toFixed(dec) : Math.round(v).toLocaleString('ko-KR')) + post)
+      if (p < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [text, ms])
+  return out
+}
+
+/* 슬라이드의 주인공 숫자 — 한 장에 하나, 형광 언더바 */
+function Hero({ value, label, sub, hl = true }) {
+  const v = useCountUp(value)
+  return (
+    <div className="dk-hero">
+      <div className={'dk-hero-v' + (hl ? ' hl' : '')}>{v}</div>
+      <div className="dk-hero-l">{label}</div>
+      {sub && <div className="dk-hero-s">{sub}</div>}
+    </div>
+  )
+}
+
 /* **강조** 마크업 → <b> (리포트 문구용) */
 const em = t => t.split('**').map((seg, i) => (i % 2 ? <b key={i}>{seg}</b> : seg))
 
 /* ── 막대 (그린 단색 · 축 가로선만) ─────────────────────────── */
-function BarChart({ rows, unit = '회', series = null }) {
+function BarChart({ rows, unit = '회', series = null, baseline = true }) {
   const max = Math.max(...rows.flatMap(r => [r.v, r.v2 || 0]), 1)
+  const avg = rows.reduce((s, r) => s + r.v, 0) / (rows.length || 1)
   return (
     <div className="dk-chart">
       {series && (
@@ -51,20 +92,32 @@ function BarChart({ rows, unit = '회', series = null }) {
         </div>
       )}
       <div className="dk-bars">
-        {rows.map((r, i) => (
+        {baseline && rows.length > 1 && (
+          <div className="dk-baseline" style={{ bottom: `calc(${(avg / max) * 100}% * 0.78 + 30px)` }}>
+            <span>평균 {compact(Math.round(avg))}</span>
+          </div>
+        )}
+        {rows.map((r, i) => {
+          const prev = i > 0 ? rows[i - 1].v : null
+          const d = prev ? Math.round(((r.v - prev) / prev) * 100) : null
+          return (
           <div className="dk-bar-col" key={i}>
             <div className="dk-bar-v">
-              {compact(r.v)}{r.v2 != null && <em>{compact(r.v2)}</em>}
+              {compact(r.v)}
+              {r.v2 != null && <em>{compact(r.v2)}</em>}
+              {d != null && r.v2 == null && (
+                <i className={d >= 0 ? 'up' : ''}>{d >= 0 ? '▲' : '▼'}{Math.abs(d)}%</i>
+              )}
             </div>
             <div className="dk-bar-track">
-              <div className="dk-bar-fill" style={{ height: `${Math.max((r.v / max) * 100, r.v > 0 ? 1.5 : 0)}%`, animationDelay: `${i * 70}ms` }} />
+              <div className={'dk-bar-fill' + (r.v === max ? ' max' : '')} style={{ height: `${Math.max((r.v / max) * 100, r.v > 0 ? 1.5 : 0)}%`, animationDelay: `${i * 70}ms` }} />
               {r.v2 != null && (
                 <div className="dk-bar-fill alt" style={{ height: `${Math.max((r.v2 / max) * 100, r.v2 > 0 ? 1.5 : 0)}%`, animationDelay: `${i * 70 + 40}ms` }} />
               )}
             </div>
             <div className="dk-bar-l">{r.label}</div>
           </div>
-        ))}
+        )})}
       </div>
       <div className="dk-unit">단위: {unit}</div>
     </div>
@@ -101,10 +154,11 @@ function LineChart({ rows }) {
 }
 
 function Kpi({ label, value, unit, sub }) {
+  const v = useCountUp(value)
   return (
     <div className="dk-kpi">
       <div className="dk-kpi-l">{label}</div>
-      <div className="dk-kpi-v">{value}{unit && <small>{unit}</small>}</div>
+      <div className="dk-kpi-v">{v}{unit && <small>{unit}</small>}</div>
       {sub && <div className="dk-kpi-s">{sub}</div>}
     </div>
   )
@@ -124,6 +178,11 @@ function overviewSlides() {
           <div className="dk-eyebrow">Channel Performance · {REPORT.period}</div>
           <h2 className="dk-title">{REPORT.headline}</h2>
           <div className="dk-lede">{REPORT.lede}</div>
+          <div className="dk-cover-nums wide">
+            {REPORT.kpis.slice(0, 3).map((k, i) => (
+              <div key={i}><b>{k.v}</b><span>{k.l}</span></div>
+            ))}
+          </div>
         </div>
       ),
     },
@@ -150,7 +209,7 @@ function overviewSlides() {
                 <div className="dk-cmp-bars">
                   {c.monthly.map((v, i) => (
                     <div className="dk-cmp-cell" key={i}>
-                      <div className="dk-cmp-bar" style={{ width: `${(v / maxM) * 100}%`, animationDelay: `${i * 60}ms` }} />
+                      <div className={'dk-cmp-bar' + (v === maxM ? ' max' : '')} style={{ width: `${(v / maxM) * 100}%`, animationDelay: `${i * 60}ms` }} />
                       <span>{compact(v)}</span>
                     </div>
                   ))}
@@ -172,7 +231,7 @@ function overviewSlides() {
               <div className="dk-hbar-row" key={r.k} style={{ animationDelay: `${i * 80}ms` }}>
                 <span className="dk-hbar-l">{r.label}</span>
                 <span className="dk-hbar-track">
-                  <span className={'dk-hbar-fill' + (r.actual ? ' alt' : '')} style={{ width: `${(r.v / maxV) * 100}%` }} />
+                  <span className={'dk-hbar-fill' + (r.actual ? ' alt' : (r.v === maxV ? ' max' : ''))} style={{ width: `${(r.v / maxV) * 100}%` }} />
                 </span>
                 <span className="dk-hbar-v">{manWon(r.v)}</span>
               </div>
@@ -277,13 +336,21 @@ export default function ChannelDashboard({ channelKey, onBack }) {
         <div className="dk-cover-meta">
           유튜브 · {ch?.channelName} · {rp ? `리포트 ${rp.period}` : `${ymd(YT.generatedAt)} 수집`}
         </div>
-        <div className="dk-cover-nums">
-          {(rp ? rp.stats.slice(0, 3) : [
+        {(() => {
+          const nums = rp ? rp.stats.slice(0, 3) : [
             { v: compact(ch?.subscribers), l: '구독자' },
             { v: compact(ch?.totalViews), l: '총 조회수' },
             { v: num(ch?.totalVideos), l: '영상' },
-          ]).map((s, i) => <div key={i}><b>{s.v}</b><span>{s.l}</span></div>)}
-        </div>
+          ]
+          return (
+            <>
+              <Hero value={nums[0].v} label={nums[0].l} />
+              <div className="dk-cover-nums">
+                {nums.slice(1).map((s, i) => <div key={i}><b>{s.v}</b><span>{s.l}</span></div>)}
+              </div>
+            </>
+          )
+        })()}
       </div>
     ),
   })
@@ -294,8 +361,9 @@ export default function ChannelDashboard({ channelKey, onBack }) {
       node: (
         <>
           <div className="dk-h">기간 성과 <small>{rp.period} · 유튜브 스튜디오 기준</small></div>
-          <div className="dk-kpis five">
-            {rp.stats.map((s, i) => <Kpi key={i} label={s.l} value={s.v} />)}
+          <Hero value={rp.stats[0].v} label={rp.stats[0].l} />
+          <div className="dk-kpis four tight">
+            {rp.stats.slice(1).map((s, i) => <Kpi key={i} label={s.l} value={s.v} />)}
           </div>
         </>
       ),
@@ -364,8 +432,9 @@ export default function ChannelDashboard({ channelKey, onBack }) {
         node: (
           <>
             <div className="dk-h">인스타그램 성과 <small>{rp.period} · 인사이트 기준</small></div>
-            <div className="dk-kpis five">
-              {rp.ig.stats.map((s, i) => <Kpi key={i} label={s.l} value={s.v} />)}
+            <Hero value={rp.ig.stats[0].v} label={rp.ig.stats[0].l} />
+            <div className="dk-kpis four tight">
+              {rp.ig.stats.slice(1).map((s, i) => <Kpi key={i} label={s.l} value={s.v} />)}
             </div>
           </>
         ),
@@ -586,6 +655,9 @@ export default function ChannelDashboard({ channelKey, onBack }) {
 
         <button className="dk-nav prev" onClick={() => go(-1)} disabled={idx === 0} aria-label="이전 슬라이드">‹</button>
         <button className="dk-nav next" onClick={() => go(1)} disabled={idx === total - 1} aria-label="다음 슬라이드">›</button>
+
+        <div className="dk-prog"><span style={{ width: `${((idx + 1) / total) * 100}%` }} /></div>
+        <div className="dk-chapter">{cur.label.replace(/\s+/g, '')}</div>
 
         <div className="dk-dots">
           {slides.map((s, i) => (
