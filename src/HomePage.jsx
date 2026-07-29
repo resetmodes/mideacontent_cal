@@ -114,6 +114,9 @@ function TeamStatus({ events, today, onGo }) {
 
 /* ── ①-a 오늘·내일 게시·촬영 — 매체 캘린더(kind 없음) + 촬영(kind='촬영')만.
    팀 근태와 명확히 분리된 매체 실행 패널 (v2 2차) ── */
+/* 오늘과 내일 게시 표시 상한 ('26.7.29 확대) — 타겟APP 묶음으로 한 줄이 줄어 여유가 생김 */
+const HOME_MAX = 9
+
 function MediaToday({ events, today, onGo }) {
   const tomorrow = addDays(today, 1)
   const covers = (e, iso) => e.date <= iso && iso <= (e.endDate || e.date)
@@ -154,7 +157,7 @@ function MediaToday({ events, today, onGo }) {
         <div key={r.label} className={'home-day' + (r.label === '내일' ? ' next' : '')}>
           <span className="home-daylabel">{r.label}<small>{fmtK(r.iso)}</small></span>
           <div className="home-dayrows">
-            {r.list.slice(0, 6).map(({ e, group: g }) => {
+            {r.list.slice(0, HOME_MAX).map(({ e, group: g }) => {
               const many = g && g.items.length > 1
               const key = r.label + (many ? g.key : e.id)
               const open = many && openGrp === key
@@ -180,7 +183,7 @@ function MediaToday({ events, today, onGo }) {
                 </div>
               )
             })}
-            {r.list.length > 6 && <div className="home-allin">외 {r.list.length - 6}건, 매체 캘린더에서 확인</div>}
+            {r.list.length > HOME_MAX && <div className="home-allin">외 {r.list.length - HOME_MAX}건, 매체 캘린더에서 확인</div>}
           </div>
         </div>
       ))}

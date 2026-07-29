@@ -245,9 +245,21 @@ export const TITLE_ALIASES = [
   ['버스TV', 'BUS'], ['버스티비', 'BUS'], ['버스', 'BUS'],
 ]
 
-/* 타겟APP 후순위 ('26.7, '26.7.29 홈까지 확대) — 타겟APP은 한 소재를 10종 매체로 동시
-   집행해 목록 상한을 혼자 채운다. 안정 정렬로 타겟APP만 뒤로 (그 외 순서 불변).
-   월간 셀·하루 시트·홈 오늘과 내일 게시가 같은 규칙을 공유 */
+/* 매체 표시 우선순위 ('26.7.29 사용자 확정) — 목록 상한이 있는 화면(월간 셀·하루 시트·
+   홈 오늘과 내일 게시)에서 어떤 매체를 위에 둘지. 안정 정렬이라 같은 순위 안에서는
+   원래 순서 유지.
+     1 SNS 채널        인스타·유튜브 (콘텐츠 단발 게시라 놓치면 안 됨)
+     2 기타            백화점APP·카카오톡·기타
+     3 장기 상시 집행   APT LCD·버스 (기간이 길어 매일 떠 있음)
+     4 타겟APP          한 소재를 10종으로 동시 집행해 목록을 덮음
+   캠페인 뷰처럼 날짜 흐름이 중요한 화면에는 적용하지 않는다 */
 export const TARGET_CH = '타겟APP'
+export const MEDIA_RANK = {
+  '인스타': 1, '유튜브': 1,
+  '백화점APP': 2, '카카오톡': 2, '기타': 2,
+  '아파트LCD': 3, '버스광고': 3,
+  '타겟APP': 4,
+}
+export const mediaRank = ch => MEDIA_RANK[ch] || 2
 export const targetLast = list =>
-  [...list.filter(e => e.channel !== TARGET_CH), ...list.filter(e => e.channel === TARGET_CH)]
+  [...list].sort((a, b) => mediaRank(a.channel) - mediaRank(b.channel))

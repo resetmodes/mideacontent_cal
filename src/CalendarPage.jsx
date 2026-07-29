@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { CHANNELS, TEAM_TYPES, TEAM_KEYWORDS, channelById, TARGET_CH, targetLast } from './data/channels.js'
+import { CHANNELS, TEAM_TYPES, TEAM_KEYWORDS, channelById, TARGET_CH, targetLast, mediaRank } from './data/channels.js'
 import { parseQuick, toISO, fromISO, displayTitle } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, updateEventImages, deleteEvent, renameCampaign, listHistory, listDeleted, resolveNotionGone, storageMode } from './lib/store.js'
 import ImageAttach from './ImageAttach.jsx'
@@ -563,10 +563,11 @@ function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister, closed
       const o = orderRange(e)
       return o.date <= iso && iso <= (o.endDate || o.date)
     }
-    /* 타겟APP은 건수가 많아 항상 맨 아래 ('26.7 — 셀·시트 공통 원칙) */
-    const chOrder = e => (e.channel === TARGET_CH ? 999 : CHANNELS.findIndex(c => c.id === e.channel))
+    /* 매체 우선순위는 channels.js 단일 소스 (SNS, 기타, 장기 상시, 타겟APP) */
     return events.filter(covers).sort((a, b) =>
-      (chOrder(a) - chOrder(b)) || (a.sub || '').localeCompare(b.sub || '') || a.title.localeCompare(b.title))
+      (mediaRank(a.channel) - mediaRank(b.channel))
+      || (CHANNELS.findIndex(c => c.id === a.channel) - CHANNELS.findIndex(c => c.id === b.channel))
+      || (a.sub || '').localeCompare(b.sub || '') || a.title.localeCompare(b.title))
   }, [events, iso])
 
   /* 타겟APP 주제 묶음 ('26.7.29) — 같은 제목·기간의 타겟APP은 한 줄로 접고,
