@@ -613,6 +613,18 @@
   프로토타입과 동일해야 함. → **'26.7 React 전환 완료** (사용자 확인 후 진행). 프로토타입은
   디자인 레퍼런스로 보존, 이후 수정은 `src/` 기준.
 
+## 외부 디자인 스킬 (taste-skill, '26.7.29 설치)
+- `github.com/leonxlnx/taste-skill`(MIT)의 Agent Skills 13종을 `.claude/skills/`에 설치.
+  프론트엔드 심미 보조용 — 랜딩·포트폴리오·리디자인 지향. 주요 스킬:
+  `design-taste-frontend`(메인) · `image-to-code`(스크린샷→코드) · `redesign-existing-projects` ·
+  `brandkit` · `minimalist-ui` · `high-end-visual-design` · `stitch-design-taste` · imagegen 2종
+- **우선순위: 아래 "디자인 규칙"이 항상 우선.** 스킬이 제안하는 컬러 확장·그라데이션·
+  그림자·Tailwind/GSAP 도입은 이 프로젝트에 적용하지 않는다 (스택도 React+Vite 수작성 CSS).
+- 스킬 자체가 "dashboards·data tables·multi-step product UI에는 쓰지 말 것"이라고 명시 —
+  이 앱의 본체(캘린더·표·폼)에는 부적합. **채널 성과 덱 같은 발표용 화면**이나 새 랜딩성
+  페이지에서 아이디어 참고용으로만 호출할 것
+- 갱신: `npx skills add https://github.com/Leonxlnx/taste-skill` (로컬) 또는 리포 재복사
+
 ## 디자인 규칙 (위반 시 재작업 — 반드시 준수)
 - 폰트: Pretendard (CDN: cdn.jsdelivr.net/gh/orioncactus/pretendard)
 - 컬러: 흑백 기반 + 현대 그린 #0B4336 포인트 1색. 형광 하이라이트 #EDFF5B는 강조·검색 매치 전용
