@@ -28,13 +28,8 @@ const fmtDT = iso => {
   return `${d.getMonth() + 1}.${d.getDate()}${t}`
 }
 
-/* GA 미측정 매체 한 줄 요약 ('26.7.29) — 매체사가 노출·클릭을 주지 않는 상품(카카오톡·푸쉬·
-   인스타)은 집행 사실(발송 건수·게시 구성·일자)만 표기한다. 지표 추정·환산은 하지 않음 */
-const UNMEASURED_NOTE = {
-  카카오톡: '오픈·클릭률은 카카오 정책상 미제공',
-  푸쉬: '수신 후 반응은 앱 지표에 합산',
-  인스타그램: '게시물 반응은 별도 공유',
-}
+/* GA 미측정 매체 ('26.7.29) — 카카오톡·푸쉬·인스타는 GA4 집계 대상이 아니라 매체사 리포트
+   수치를 발급 시 수기 입력받는다(p.perf). 입력이 없으면 집행 내역만 표기 — 추정·환산 없음 */
 function execLine(p) {
   if (p.sendQty) return `발송 ${nf(p.sendQty)}건${fmtDT(p.sendAt) ? ` · ${fmtDT(p.sendAt)}` : ''}`
   if (p.option) return `${p.option}${p.start ? ` · ${fmtD(p.start)}` : ''}`
@@ -87,12 +82,18 @@ function Report({ d }) {
   const prods = d.products || []
   const unmeasured = prods.filter(p => p.measured === false)
   const sendTotal = unmeasured.reduce((a, p) => a + (p.sendQty || 0), 0)
+  const reachTotal = unmeasured.reduce((a, p) => a + (p.perf?.reach || 0), 0)
+  const actTotal = unmeasured.reduce((a, p) => a + (p.perf?.act || 0), 0)
   const hasDaily = c.dates.length > 0
 
   return (
     <div className="wrap shr-wrap">
       <header>
-        <div className="shr-brand">THE HYUNDAI 미디어콘텐츠팀 · 캠페인 결과 리포트</div>
+        <div className="shr-top">
+          <div className="shr-brand">THE HYUNDAI 미디어콘텐츠팀 · 캠페인 결과 리포트</div>
+          {/* PDF 저장 ('26.7.29) — 인쇄 대화상자의 "PDF로 저장" (별도 라이브러리 없이 한글 그대로) */}
+          <button className="btn-ghost sm shr-print" onClick={() => window.print()}>PDF로 저장</button>
+        </div>
         <h1 className="home-greet">{d.advertiser}{d.campaign ? ` — ${d.campaign}` : ''}</h1>
         <div className="masthead-sub">
           집행 {period} · {(d.products || []).map(p => slotName(p.product)).join(' · ')}
@@ -111,10 +112,16 @@ function Report({ d }) {
             : <Kpi label="집행 기간" value={c.days} unit="일" sub={`구좌 ${c.slots.length}개`} />}
         </div>
       ) : (
-        /* 앱 구좌 실적이 없는 캠페인 (발송·게시형만 집행) — 확정 수치만 표기 */
+        /* 앱 구좌 실적이 없는 캠페인 (발송·게시형만 집행) — 매체사 리포트 수치 기준 */
         <div className="mon-hero">
           <Kpi label="집행 매체" value={prods.length} unit="개" sub={period} />
-          {sendTotal > 0 && <Kpi label="총 발송" value={compact(sendTotal)} unit="건" sub="메시지 발송 완료" />}
+          {reachTotal > 0
+            ? <Kpi label="총 도달" value={compact(reachTotal)} unit="건" sub={sendTotal ? `발송 ${compact(sendTotal)}건` : '매체사 리포트 기준'} />
+            : sendTotal > 0 && <Kpi label="총 발송" value={compact(sendTotal)} unit="건" sub="메시지 발송 완료" />}
+          {actTotal > 0 && (
+            <Kpi label="총 반응" value={compact(actTotal)} unit="건"
+              sub={reachTotal ? `도달 대비 ${(actTotal / reachTotal * 100).toFixed(2)}%` : '클릭 · 오픈 · 참여 합계'} />
+          )}
           {spend && <Kpi label="광고비" value={compact(spend)} unit="원" sub="집행 기준" />}
         </div>
       )}
@@ -191,20 +198,26 @@ function Report({ d }) {
       {/* 매체사 미제공 매체 ('26.7.29) — 집행 사실만 표기. 지표 추정·환산 없음 */}
       {unmeasured.length > 0 && (
         <div className="dash-panel" style={{ marginTop: 16 }}>
-          <div className="group-label">그 외 집행 매체</div>
+          <div className="group-label">발송 · 게시 매체 실적</div>
           <div className="dash-d">
-            아래 매체는 매체사에서 노출·클릭 데이터를 제공하지 않아 집행 내역만 표기합니다
-            {hasDaily && ' (위 성과 수치에는 포함되지 않습니다)'}
+            매체사 리포트 기준{hasDaily && ' · 위 앱 구좌 성과와는 별도 집계입니다'}
           </div>
           <div className="mon-scroll shr-table">
             <table className="mon-table">
-              <thead><tr><th>매체</th><th>집행 내역</th><th>비고</th></tr></thead>
+              <thead><tr><th>매체</th><th>집행 내역</th><th>실적</th></tr></thead>
               <tbody>
                 {unmeasured.map((p, i) => (
                   <tr key={i}>
                     <td className="mon-acc">{slotName(p.product)}{p.qty > 1 ? ` ×${p.qty}` : ''}</td>
-                    <td className="strong">{execLine(p)}</td>
-                    <td className="mute">{UNMEASURED_NOTE[p.product] || '매체사 지표 미제공'}</td>
+                    <td>{execLine(p)}</td>
+                    <td className="strong">
+                      {p.perf
+                        ? <>
+                            {p.perf.rows.map(r => `${r.label} ${nf(r.value)}`).join(' · ')}
+                            {p.perf.rate && <span className="mute"> · {p.perf.rate.label} {p.perf.rate.value}</span>}
+                          </>
+                        : <span className="mute">집계 확인 중</span>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -215,7 +228,8 @@ function Report({ d }) {
 
       <footer>
         본 페이지는 광고주 확인용 임시 리포트입니다 (기한 경과 시 자동 만료) ·
-        {hasDaily ? ' 노출·클릭 기준: Google Analytics 4 ·' : ' 집행 내역 기준 ·'}
+        {hasDaily && ' 노출·클릭 기준: Google Analytics 4 ·'}
+        {unmeasured.some(p => p.perf) && ' 발송·게시 매체: 매체사 리포트 기준 ·'}
         {' '}문의: 현대백화점 미디어콘텐츠팀
       </footer>
     </div>

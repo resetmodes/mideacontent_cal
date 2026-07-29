@@ -41,6 +41,17 @@ export function kakaoPrice(qty, targeted) {
   return Math.round(qty * p.pricePer * (targeted ? 1 + p.surcharge : 1))
 }
 
+/* GA 미측정 매체 수기 실적 ('26.7.29) — 카카오톡·푸쉬·인스타는 GA4가 집계하지 못하므로
+   매체사 리포트(카카오 비즈메시지 관리자·인스타 인사이트 등)에서 받은 값을 발급 시 입력한다.
+   추정·환산은 하지 않음 — 빈칸이면 리포트에 표기하지 않고 집행 내역만 남는다.
+   rate = 마지막 값 ÷ 첫 번째 값 (클릭률·오픈율·참여율) */
+export const MANUAL_PERF = {
+  카카오톡:   { fields: [{ k: 'reach', label: '발송 성공' }, { k: 'clk', label: '클릭' }], rate: '클릭률' },
+  푸쉬:       { fields: [{ k: 'reach', label: '발송 성공' }, { k: 'clk', label: '오픈' }], rate: '오픈율' },
+  인스타그램: { fields: [{ k: 'reach', label: '도달' }, { k: 'imp', label: '노출' }, { k: 'eng', label: '참여' }], rate: '참여율' },
+}
+export const manualFields = product => MANUAL_PERF[product]?.fields || null
+
 export const RMN_AGENCIES = ['나스미디어', '인크로스', 'M2Digital', '메조미디어', 'DMC미디어']
 export const RMN_COMMISSION = 0.3   // 판매사 수수료
 
