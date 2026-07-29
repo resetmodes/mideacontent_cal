@@ -618,6 +618,20 @@
   (원본 실데이터 소거본 — public은 공개 URL이라 실데이터 금지, test-data 6f 감시).
   ExcelJS는 동적 import 별도 청크(938KB — 버튼 클릭 시에만 로드). **클로드 API 불필요
   결론** ('26.7 검토 — 전부 결정적 템플릿 채움, 토큰 비용 0)
+- **RMN 광고주 공유 리포트 ('26.7.29)**: 캠페인 결과 대시보드를 광고주에게 링크로 공유 —
+  RMN 캠페인 행 "광고주 공유" 버튼(GA 데이터 있는 캠페인만) → ShareModal(RmnPage)에서 발급.
+  **격리 = 스냅샷 방식**: 발급 시점에 해당 캠페인 데이터만 jsonb로 `rmn_share`에 저장 —
+  광고주는 원본 rmn_bookings/rmn_ga_daily에 접근 불가(anon 정책 없음), 열람은 security
+  definer RPC 2종(get_rmn_share_meta/get_rmn_share — 토큰+비밀번호+미만료 전부 일치 시만)뿐.
+  **30일 만료**(RPC단 강제) + **임시 비밀번호 8자**(genPw, 0/O/1/l 제외, 기본 on) +
+  **금액은 기본 미포함**(withMoney 옵트인 — 포함 시 광고비·CPM·CPC 병기, 수수료 구조는 항상
+  미노출) + 회수 = 발급 목록에서 행 삭제. RMN_BENCH(타 광고주 기준치)는 공유 페이지 미사용.
+  진입 = `?share=<token>` — App.jsx **로그인 게이트보다 먼저** 분기(src/ShareReport.jsx,
+  비번 게이트 → 대시보드). 내용 = 엑셀 결과보고서 항목(일별 노출·클릭·CTR) + KPI 4장 +
+  하이라이트 자동 문장(최고 노출일·최고 CTR일·구좌 비중) + 일별 막대·구좌 도넛·구좌별
+  성과·요일 평균 + 일별 상세 표 — 전부 스냅샷 실데이터 계산, 날조 없음. 엑셀 양식의 14일
+  제한과 달리 기간 제한 없음. 파일: src/lib/shareStore.js·ShareReport.jsx·RmnPage ShareModal·
+  data/rmn-share-setup.sql (**사용자 액션: SQL 1회 — setup.md 12장**, 미실행 시 발급만 실패)
 - **정산 탭 ('26.7 테스트 — 3인)**: `#settle`, `src/SettlePage.jsx` — 법인카드/세금계산서
   정산 관리. **config.js `SETTLE_EMAILS` 게이트**(노규빈·박준영·한은비만 탭 노출, 전 팀
   오픈 시 목록 확장). 데이터는 Supabase 전용 `settlements` + `settle-docs` 비공개 Storage

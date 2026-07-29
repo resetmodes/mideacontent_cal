@@ -9,6 +9,7 @@ import Celebration from './Celebration.jsx'
 import AdminPage from './AdminPage.jsx'
 import RmnPage from './RmnPage.jsx'
 import SettlePage from './SettlePage.jsx'
+import ShareReport from './ShareReport.jsx'
 import { getSession, onAuthChange, signOut } from './lib/auth.js'
 import { storageMode } from './lib/store.js'
 import { ADMIN_EMAILS, SETTLE_EMAILS } from './config.js'
@@ -21,6 +22,11 @@ import { ADMIN_EMAILS, SETTLE_EMAILS } from './config.js'
 export default function App() {
   const [session, setSession] = useState(getSession())
   useEffect(() => onAuthChange(setSession), [])
+
+  /* 광고주 공유 리포트 ('26.7.29) — ?share=<token>은 로그인 게이트보다 먼저 분기
+     (광고주는 계정 없이 열람 — 데이터는 RPC 스냅샷뿐, 내부 화면 접근 불가) */
+  const shareToken = new URLSearchParams(window.location.search).get('share')
+  if (shareToken) return <ShareReport token={shareToken} />
 
   const view = new URLSearchParams(window.location.search).get('view')
   const isExternal = view === 'external'
