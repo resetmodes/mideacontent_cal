@@ -72,10 +72,10 @@ export default function App() {
   return (
     <div className="shell">
       <aside className="side">
-        {/* 사이트명 "온에어" ('26.7.29) — 지금 걸려 있는 매체·일정·채널의 상황판이라는 상태어 */}
+        {/* 사이트명 "미디어콘텐츠룸" (약칭 미콘룸) — '26.7.29 사용자 확정 */}
         <div className="side-brand">
-          <b>온에어</b>
-          <span>미디어콘텐츠팀 · 매체 운영 상황판</span>
+          <b>미디어콘텐츠룸</b>
+          <span>미콘룸 · 매체 운영</span>
         </div>
         <nav className="side-nav">
           <button className={tab === 'home' ? 'on' : ''} onClick={() => go('home')}>홈</button>
