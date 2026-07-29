@@ -6,6 +6,7 @@ import { TREND } from './data/sns/trend.js'
 import { TA_GROUPS } from './data/targetapp.js'
 import { listTargetApp } from './lib/targetappStore.js'
 import ChannelDashboard from './ChannelDashboard.jsx'
+import { Donut, HBars, DuoBars, TrendLines } from './Charts.jsx'
 
 /* 직전 수집 스냅샷 (현재 수집일보다 앞선 것 중 최신) — 없으면 증감 미표시 */
 const prevSnapshot = cur => {
@@ -145,6 +146,18 @@ function InstagramView() {
   const dormantCount = IG.accounts.filter(a => a.dormant).length
   const posts30 = IG.accounts.reduce((s, a) => s + (a.postsLast30 || 0), 0)
 
+  /* 차트 데이터 (v2 3차) — 전부 수집분 실데이터 (경쟁사 제외) */
+  const totalFollowers = IG.accounts.reduce((s, a) => s + (a.followers || 0), 0)
+  const groupMix = groups.map(g => [g.name, g.list.reduce((s, a) => s + (a.followers || 0), 0)])
+  const engRank = [...IG.accounts].filter(a => a.engagementPer1k != null && !a.dormant)
+    .sort((a, b) => b.engagementPer1k - a.engagementPer1k).slice(0, 6)
+    .map(a => ({ name: a.name, sub: '@' + a.handle, value: a.engagementPer1k, disp: String(a.engagementPer1k), unit: '참여/1k' }))
+  const postRank = [...IG.accounts].sort((a, b) => (b.postsLast30 || 0) - (a.postsLast30 || 0)).slice(0, 8)
+    .map(a => ({ name: a.name, value: a.postsLast30 || 0, unit: '건' }))
+  const reelsRank = [...IG.accounts].filter(a => (a.postsLast30 || 0) > 0 && a.reelsShare != null)
+    .sort((a, b) => b.reelsShare - a.reelsShare).slice(0, 8)
+    .map(a => ({ name: a.name, value: a.reelsShare, disp: a.reelsShare + '%', unit: '릴스 비중' }))
+
   return (
     <>
       <Hero stats={[
@@ -153,6 +166,32 @@ function InstagramView() {
         { label: '30일 게시물 합계', value: posts30, unit: '건' },
         { label: '휴면 계정', value: dormantCount, unit: '개', sub: '30일+ 미게시' },
       ]} />
+
+      {/* 차트 행 (v2 3차 '26.7.29) */}
+      <div className="dash-grid g23">
+        <div className="dash-panel">
+          <div className="group-label">참여도 순위</div>
+          <div className="dash-d">참여/1k — 팔로워 1천 명당 반응 · 막대는 제곱근 스케일(이상치 완화) · 휴면 제외</div>
+          <HBars sqrt rows={engRank} />
+        </div>
+        <div className="dash-panel">
+          <div className="group-label">팔로워 구성</div>
+          <div className="dash-d">그룹별 합계 — 자사 계정만</div>
+          <Donut data={groupMix} center={compact(totalFollowers)} fmt={compact} />
+        </div>
+      </div>
+      <div className="dash-grid g32">
+        <div className="dash-panel">
+          <div className="group-label">게시 활동</div>
+          <div className="dash-d">최근 30일 게시 수 · 상위 8개 계정</div>
+          <HBars rows={postRank} />
+        </div>
+        <div className="dash-panel">
+          <div className="group-label">릴스 비중</div>
+          <div className="dash-d">30일 게시 중 릴스 비율 · 게시 있는 계정만</div>
+          <HBars rows={reelsRank} />
+        </div>
+      </div>
 
       {groups.map(g => (
         <div key={g.name}>
@@ -223,6 +262,16 @@ function YoutubeView() {
     return [...list].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 20)
   }, [chFilter])
 
+  /* 차트 데이터 (v2 3차) — 구독자 순증은 trend.js 스냅샷 (전 시점 값 있는 채널만) */
+  const ytDates = TREND.map(x => x.date.slice(5).replace('-', '.'))
+  const ytSeries = YT.channels
+    .map(c => [c.name, TREND.map(x => x.yt?.[c.key]?.s).filter(v => v != null)])
+    .filter(s => s[1].length === TREND.length && s[1].length >= 2)
+  const totalSubs = YT.channels.reduce((s, c) => s + (c.subscribers || 0), 0)
+  const subMix = [...YT.channels].sort((a, b) => b.subscribers - a.subscribers).map(c => [c.name, c.subscribers || 0])
+  const avgRank = [...YT.channels].sort((a, b) => (b.avgViews || 0) - (a.avgViews || 0))
+    .map(c => ({ name: c.name, sub: `영상 ${num(c.totalVideos)}개`, value: c.avgViews || 0, disp: compact(c.avgViews), unit: '평균 조회' }))
+
   if (detail) return <ChannelDashboard channelKey={detail} onBack={() => setDetail(null)} />
 
   return (
@@ -233,6 +282,25 @@ function YoutubeView() {
         { label: '대표채널 총 조회', value: compact(main?.totalViews), sub: `영상 ${num(main?.totalVideos)}개` },
         { label: '평균 조회 (대표)', value: compact(main?.avgViews), sub: '최근 수집분' },
       ]} />
+
+      {/* 차트 행 (v2 3차 '26.7.29) */}
+      <div className="dash-grid g23">
+        <div className="dash-panel">
+          <div className="group-label">구독자 순증</div>
+          <div className="dash-d">수집 시점별 스냅샷 — 첫 수집({ytDates[0]}) 대비 누적 증가 (명)</div>
+          <TrendLines dates={ytDates} series={ytSeries} />
+        </div>
+        <div className="dash-panel">
+          <div className="group-label">구독자 구성</div>
+          <div className="dash-d">채널별 비중</div>
+          <Donut data={subMix} center={compact(totalSubs)} fmt={compact} />
+        </div>
+      </div>
+      <div className="dash-panel" style={{ marginTop: 16 }}>
+        <div className="group-label">평균 조회 비교</div>
+        <div className="dash-d">영상당 평균 조회수 (최근 수집분) — 막대는 제곱근 스케일</div>
+        <HBars sqrt rows={avgRank} />
+      </div>
 
       <div className="group-label">
         채널 지표 <small className="cd-note-inline">채널명을 누르면 성과 대시보드</small>
@@ -327,6 +395,28 @@ function UgcView() {
           {UGC.summary.map((s, i) => (
             <div key={i} className="mon-hl-row"><span className="hl-mark">·</span><span>{s}</span></div>
           ))}
+        </div>
+      )}
+
+      {/* 차트 행 (v2 3차) — 감정 도넛 + 주제 랭킹 (Claude 분석분 있을 때만) */}
+      {(UGC.sentiment || UGC.topics?.length > 0) && (
+        <div className="dash-grid g32">
+          {UGC.sentiment && (
+            <div className="dash-panel">
+              <div className="group-label">감정 분포</div>
+              <div className="dash-d">게시물별 Claude 분석 — 긍정·중립·부정</div>
+              <Donut
+                data={['긍정', '중립', '부정'].map(k => [k, UGC.sentiment[k] || 0])}
+                center={num(UGC.totalPosts)} sub="게시물" />
+            </div>
+          )}
+          {UGC.topics?.length > 0 && (
+            <div className="dash-panel">
+              <div className="group-label">주제 분포</div>
+              <div className="dash-d">게시물 주제 분류 · 건수</div>
+              <HBars rows={UGC.topics.map(t => ({ name: t.name, value: t.count, unit: '건' }))} />
+            </div>
+          )}
         </div>
       )}
 
@@ -460,6 +550,24 @@ function TargetAppView() {
         { label: '총 방문', value: num(total('vis')), unit: '명' },
         { label: '앱설치', value: num(total('inst')), unit: '건', sub: `사업소·행사 ${offices.length}개 단위` },
       ]} />
+
+      {/* 차트 행 (v2 3차) — 월별 노출 막대 + 매체 구분별 노출 비중 */}
+      <div className="dash-grid g23">
+        <div className="dash-panel">
+          <div className="group-label">월별 노출</div>
+          <div className="dash-d">캠페인 시작월 기준 합계</div>
+          <DuoBars data={byMonth.map(m => [m.k, m.exp])} fmt={compact} />
+        </div>
+        {media.length > 0 && (
+          <div className="dash-panel">
+            <div className="group-label">매체 구분별 노출</div>
+            <div className="dash-d">누적 · {media[0]?.basis || ''}</div>
+            <Donut
+              data={TA_GROUPS.map(g => [g.g, g.media.reduce((s, name) => s + (mediaByName[name]?.exp || 0), 0)])}
+              center={compact(total('exp'))} sub="총 노출" fmt={compact} />
+          </div>
+        )}
+      </div>
 
       <div className="group-label">월별 추이</div>
       <div className="mon-scroll">
