@@ -475,10 +475,17 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
   color:var(--g400);cursor:pointer;letter-spacing:0;padding:0;}
 .home-more:hover{color:var(--green);}
 .home-allin{padding:16px 0 6px;font-size:13.5px;color:var(--g400);}
-.home-day{display:flex;gap:16px;padding:12px 0 2px;align-items:flex-start;}
-.home-daylabel{font-size:14.5px;font-weight:800;color:var(--ink);white-space:nowrap;min-width:86px;padding-top:9px;}
-.home-daylabel small{font-weight:600;color:var(--g400);font-variant-numeric:tabular-nums;}
-.home-dayrows{flex:1;min-width:0;}
+/* 오늘·내일 그룹 ('26.7.29 구분 강화) — 좌측 라벨 rail은 경계가 안 읽혀서
+   칩 헤더 + 그룹 사이 구분선으로 교체. 오늘=그린 칩 / 내일=그레이 칩 */
+.home-day{display:block;padding:4px 0 0;}
+.home-day + .home-day{margin-top:15px;padding-top:15px;border-top:1px solid var(--g200);}
+.home-daylabel{display:inline-flex;align-items:baseline;gap:7px;white-space:nowrap;
+  font-size:13px;font-weight:800;color:var(--green);
+  background:rgba(11,67,54,.10);border-radius:999px;padding:4px 13px 5px;}
+.home-daylabel small{font-size:12px;font-weight:600;color:var(--g500);font-variant-numeric:tabular-nums;}
+.home-day.next .home-daylabel{color:var(--g600);background:rgba(19,32,25,.06);}
+.home-dayrows{margin-top:2px;}
+.home-dayrows .home-trow:last-child{border-bottom:none;}
 .home-trow{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--g100);
   min-width:0;text-decoration:none;}
 .home-trow.link:hover .home-ttl{box-shadow:inset 0 -7px 0 var(--hl);}
@@ -1698,6 +1705,19 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   .gauges{grid-template-columns:repeat(3,1fr);}
   .pipe-lab{font-size:10px;}
   .toast{width:max-content;max-width:calc(100vw - 32px);font-size:13.5px;}
+
+  /* 홈 행 2줄 구성 ('26.7.29) — 좁은 폭에서 D-day·기간·캠페인이 제목을 밀어내
+     "도쿄장난감미술…"처럼 잘리던 문제. 1줄 = 아이콘+제목(2줄까지), 2줄 = 메타 */
+  .home-sec{padding:6px 16px 12px;}
+  .home-trow{flex-wrap:wrap;column-gap:7px;row-gap:2px;padding:10px 0;align-items:center;}
+  .home-ttl{flex:1 1 calc(100% - 30px);min-width:0;white-space:normal;overflow:hidden;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    font-size:14.5px;line-height:1.38;}
+  .home-dday{order:3;min-width:0;font-size:12.5px;}
+  .home-camp{order:4;font-size:12.5px;}
+  .home-sub{order:5;font-size:12.5px;white-space:normal;}
+  .home-vids{grid-template-columns:1fr;}
+  .home-daylabel{font-size:12.5px;padding:4px 11px 5px;}
 }
 
 /* 모션 최소화 설정 존중 */
