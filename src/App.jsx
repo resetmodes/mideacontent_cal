@@ -108,7 +108,7 @@ export default function App() {
       </aside>
       <div className="shell-main">
         {tab === 'home' && <Celebration />}
-        {tab === 'home' && <HomePage onGo={go} canSettle={isSettle && storageMode === 'supabase'} />}
+        {tab === 'home' && <HomePage onGo={go} canSettle={isSettle && storageMode === 'supabase'} onOpenSpec={openSpec} />}
         {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} />}
         {tab === 'shoot' && <CalendarPage shoot onOpenSpec={openSpec} />}
         {tab === 'team' && <CalendarPage team />}

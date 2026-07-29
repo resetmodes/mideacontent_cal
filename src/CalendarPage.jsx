@@ -238,7 +238,31 @@ function ChannelPickGrid({ value, onPick, shootOnly = false, team = false }) {
 }
 
 /* 등록 전 확인 팝업 — 매체 미인식 시 직접 선택, 유사 캠페인은 통일/신규 선택 */
-function ConfirmSheet({ draft, sim, onConfirm, onCancel, shootOnly = false, team = false }) {
+/* 중복 등록 감지 ('26.7.29) — 같은 날짜, 같은 매체에 제목이 사실상 같은 일정이 이미 있으면
+   등록 전에 보여준다. 대신 등록이 잦아 이중 등록이 실제로 생김.
+   제목 비교는 공백·기호를 지운 뒤 완전일치 또는 포함관계 (짧은 쪽이 4자 이상일 때만) */
+const normTitle = t => (t || '').replace(/[\s#·,.]/g, '').toLowerCase()
+export function findDuplicates(draft, events) {
+  if (!draft?.date || !draft.title || !events?.length) return []
+  const chans = draft.channels?.length
+    ? draft.channels.map(c => c.channel)
+    : (draft.channel ? [draft.channel] : [])
+  if (chans.length === 0) return []
+  const kind = draft.kind || null
+  const a = normTitle(draft.title)
+  if (a.length < 2) return []
+  return events.filter(e => {
+    if ((e.kind || null) !== kind) return false
+    if (e.date !== draft.date) return false
+    if (!chans.includes(e.channel)) return false
+    const b = normTitle(e.title)
+    if (a === b) return true
+    const short = a.length < b.length ? a : b
+    return short.length >= 4 && (a.includes(b) || b.includes(a))
+  }).slice(0, 4)
+}
+
+function ConfirmSheet({ draft, sim, dup = [], onConfirm, onCancel, shootOnly = false, team = false }) {
   const [channel, setChannel] = useState(draft.channel)
   const [campaign, setCampaign] = useState(draft.campaign)
   const needChannel = !draft.channel
@@ -256,6 +280,20 @@ function ConfirmSheet({ draft, sim, onConfirm, onCancel, shootOnly = false, team
                 : `어떤 매체인가요?${shootOnly ? ' (촬영일정은 인스타와 유튜브만)' : ''}`}
             </div>
             <ChannelPickGrid value={channel} onPick={setChannel} shootOnly={shootOnly} team={team} />
+          </div>
+        )}
+        {dup.length > 0 && (
+          <div className="cs-section cs-dup">
+            <div className="cs-q">같은 날 같은 매체에 이미 등록된 일정이 있습니다</div>
+            {dup.map(d => (
+              <div key={d.id} className="cs-dup-row">
+                <ChannelIcon id={d.channel} />
+                <span className="cs-dup-ttl">{displayTitle(d.title, d.channel)}</span>
+                {d.sub && <span className="cs-dup-sub">{d.sub}</span>}
+                {d.owner && <span className="cs-dup-sub">{d.owner}</span>}
+              </div>
+            ))}
+            <div className="cs-dup-note">그대로 등록하려면 아래 등록을 누르세요</div>
           </div>
         )}
         {sim.length > 0 && (
@@ -289,7 +327,7 @@ function ConfirmSheet({ draft, sim, onConfirm, onCancel, shootOnly = false, team
 /* 모바일 판별 — 예시 문구를 짧게 (긴 placeholder가 잘려 보이던 문제) */
 const isMobile = () => typeof window !== 'undefined' && window.matchMedia('(max-width:560px)').matches
 
-function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
+function QuickAdd({ onCreate, campaigns, events = [], shoot = false, team = false }) {
   const [text, setText] = useState('')
   const [err, setErr] = useState(null)
   const [pending, setPending] = useState(null)
@@ -351,7 +389,8 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
     }
     setErr(null)
     const sim = team ? [] : campSimilar(campaigns, draft.campaign)
-    if (!draft.channel || sim.length > 0) { setPending({ draft, sim }); return }
+    const dup = findDuplicates({ ...draft, kind: team ? '팀' : shoot ? '촬영' : null }, events)
+    if (!draft.channel || sim.length > 0 || dup.length > 0) { setPending({ draft, sim, dup }); return }
     doCreate(draft)
   }
 
@@ -417,7 +456,7 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
       {err && <div className="qa-err">{err}</div>}
       {pending && (
         <ConfirmSheet
-          draft={pending.draft} sim={pending.sim}
+          draft={pending.draft} sim={pending.sim} dup={pending.dup || []}
           shootOnly={!team && (shoot || !!pending.draft.shootDate)} team={team}
           onConfirm={doCreate} onCancel={() => setPending(null)}
         />
@@ -1441,7 +1480,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
       )}
 
       {!readOnly && (
-        <QuickAdd onCreate={onCreate} campaigns={campaigns} shoot={shoot} team={team} />
+        <QuickAdd onCreate={onCreate} campaigns={campaigns} events={events} shoot={shoot} team={team} />
       )}
 
       <div className="cal-search-row">

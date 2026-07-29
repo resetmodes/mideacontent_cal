@@ -1930,3 +1930,55 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .ref-thumb,.cg>summary,.adm-toggle,.rmn-camp-head,.stl-row-head{border-radius:12px;}
 /* 검색은 밑줄 스타일 유지 (박스 없음 = 등록 입력과 구분, '26.7 확정) */
 .cal-search,.spec-search input,.search{border-radius:0;}
+
+/* 스펙 상세 최근 집행 ('26.7.29) — 규격 옆에서 실제 집행 이력을 같이 확인 */
+.spec-runs{margin-top:18px;padding-top:14px;border-top:1px solid var(--g200);}
+.spec-runs-h{font-size:12px;font-weight:800;letter-spacing:.02em;color:var(--g500);margin-bottom:8px;}
+.spec-runs-h small{font-weight:500;color:var(--g400);margin-left:7px;letter-spacing:0;}
+.spec-run{display:flex;align-items:baseline;gap:12px;padding:7px 0;
+  border-bottom:1px solid var(--g100);font-size:13.5px;}
+.spec-run:last-child{border-bottom:none;}
+.spec-run.past{opacity:.55;}
+.sr-date{flex:0 0 92px;font-variant-numeric:tabular-nums;font-weight:700;color:var(--green);font-size:12.5px;}
+.sr-ttl{flex:1;font-weight:600;color:var(--ink);}
+.sr-camp{font-size:12px;font-weight:600;color:var(--g400);}
+@media (max-width:840px){
+  .sr-date{flex:0 0 78px;}
+  .spec-run{font-size:13px;}
+}
+
+/* 중복 등록 확인 ('26.7.29) — 등록 전 확인 시트 안, 이미 있는 일정 미리보기 */
+.cs-dup-row{display:flex;align-items:center;gap:9px;padding:8px 0;
+  border-bottom:1px solid var(--g100);font-size:13.5px;}
+.cs-dup-row:last-of-type{border-bottom:none;}
+.cs-dup-ttl{font-weight:700;color:var(--ink);}
+.cs-dup-sub{font-size:12px;font-weight:600;color:var(--g400);}
+.cs-dup-note{margin-top:6px;font-size:12px;color:var(--g400);}
+
+/* 통합 검색 ('26.7.29) — 홈 헤더 우측 하나. 일정, 매체 스펙, RMN 부킹 */
+.home-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;}
+.gs{position:relative;flex:0 0 320px;max-width:320px;margin-top:6px;}
+.gs-input{width:100%;font-family:inherit;font-size:14px;font-weight:500;color:var(--ink);
+  background:var(--glass);border:1px solid var(--glass-border);border-radius:18px;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  padding:11px 16px;outline:none;box-shadow:var(--glass-shadow);}
+.gs-input::placeholder{color:var(--g400);font-weight:400;}
+.gs-input:focus{border-color:var(--green);}
+.gs-panel{position:absolute;top:calc(100% + 8px);right:0;width:min(420px,86vw);z-index:60;
+  background:var(--glass-strong);border:1px solid var(--glass-border);border-radius:20px;
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--glass-shadow);
+  padding:10px;max-height:64vh;overflow:auto;}
+.gs-sec + .gs-sec{margin-top:8px;padding-top:8px;border-top:1px solid var(--g100);}
+.gs-h{font-size:11.5px;font-weight:800;color:var(--g400);padding:4px 8px 6px;}
+.gs-row{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  font-family:inherit;font-size:13.5px;background:none;border:none;border-radius:14px;
+  padding:9px 10px;cursor:pointer;}
+.gs-row:hover{background:rgba(255,255,255,.7);}
+.gs-ttl{flex:1;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gs-meta{font-size:12px;font-weight:600;color:var(--g400);white-space:nowrap;}
+.gs-empty{padding:14px 10px;font-size:13.5px;color:var(--g400);text-align:center;}
+@media (max-width:840px){
+  .home-head{flex-direction:column;gap:12px;}
+  .gs{flex:1 1 auto;max-width:none;width:100%;}
+  .gs-panel{right:auto;left:0;width:100%;}
+}

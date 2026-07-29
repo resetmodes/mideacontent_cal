@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { listEvents } from './lib/store.js'
 import { channelById, TARGET_CH, targetLast } from './data/channels.js'
+import { MEDIA } from './data/media.js'
 import { HOLIDAYS } from './data/holidays.js'
 import { toISO, fromISO, displayTitle } from './lib/parse.js'
 import { YT } from './data/sns/youtube.js'
@@ -426,8 +427,95 @@ function SettleBadge({ onGo }) {
 
 /* RMN 영업 현황 카드는 '26.7.28 사용자 지시로 홈에서 제거 — 매출·미수금은 RMN 탭에서만 */
 
+/* ── 통합 검색 ('26.7.29) — 홈 우측 상단 하나. 일정, 매체 스펙, RMN 부킹을 한 번에.
+   RMN은 첫 검색 때만 불러온다 (홈 초기 로딩에 부담 주지 않음) ── */
+function GlobalSearch({ events, onGo, onOpenSpec }) {
+  const [q, setQ] = useState('')
+  const [open, setOpen] = useState(false)
+  const [rmn, setRmn] = useState(null)
+  const boxRef = useRef(null)
+
+  useEffect(() => {
+    if (!q.trim() || rmn !== null) return
+    setRmn([])
+    import('./lib/rmnStore.js').then(m => m.listRmn()).then(rows => setRmn(rows || [])).catch(() => setRmn([]))
+  }, [q, rmn])
+
+  useEffect(() => {
+    const away = e => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', away)
+    return () => document.removeEventListener('mousedown', away)
+  }, [])
+
+  const hits = useMemo(() => {
+    const k = q.trim().toLowerCase()
+    if (k.length < 1) return null
+    const has = (...vals) => vals.some(v => (v || '').toString().toLowerCase().includes(k))
+    const ev = events.filter(e => e.channel !== '휴점'
+      && has(e.title, e.campaign, e.sub, e.memo, e.owner, channelById(e.channel)?.label))
+      .sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5)
+    const sp = MEDIA.filter(m => has(m.name, m.cat, m.target)
+      || (m.slots || []).some(s => has(s.name, s.size))).slice(0, 5)
+    const bk = (rmn || []).filter(b => has(b.advertiser, b.campaign, b.product))
+      .sort((a, b) => (b.start_date || '').localeCompare(a.start_date || '')).slice(0, 5)
+    return { ev, sp, bk, total: ev.length + sp.length + bk.length }
+  }, [q, events, rmn])
+
+  const go = fn => { setOpen(false); setQ(''); fn() }
+
+  return (
+    <div className="gs" ref={boxRef}>
+      <input
+        className="gs-input" type="search" value={q} placeholder="일정, 매체 스펙, 부킹 검색"
+        onFocus={() => setOpen(true)}
+        onChange={e => { setQ(e.target.value); setOpen(true) }}
+        onKeyDown={e => { if (e.key === 'Escape') { setQ(''); setOpen(false) } }}
+      />
+      {open && hits && (
+        <div className="gs-panel">
+          {hits.total === 0 && <div className="gs-empty">검색 결과 없음</div>}
+          {hits.ev.length > 0 && (
+            <div className="gs-sec">
+              <div className="gs-h">일정</div>
+              {hits.ev.map(e => (
+                <button key={e.id} className="gs-row" onClick={() => go(() => onGo(e.kind === '촬영' ? 'shoot' : e.kind === '팀' ? 'team' : 'calendar'))}>
+                  <ChannelIcon id={e.channel} />
+                  <span className="gs-ttl">{displayTitle(e.title, e.channel)}</span>
+                  <span className="gs-meta">{e.date.slice(5).replace('-', '.')}{e.campaign ? ` #${e.campaign}` : ''}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {hits.sp.length > 0 && (
+            <div className="gs-sec">
+              <div className="gs-h">매체 스펙</div>
+              {hits.sp.map(m => (
+                <button key={m.name} className="gs-row" onClick={() => go(() => onOpenSpec(m.name))}>
+                  <span className="gs-ttl">{m.name}</span>
+                  <span className="gs-meta">{m.cat} 지면 {m.slots.length}개</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {hits.bk.length > 0 && (
+            <div className="gs-sec">
+              <div className="gs-h">RMN 부킹</div>
+              {hits.bk.map(b => (
+                <button key={b.id} className="gs-row" onClick={() => go(() => onGo('rmn'))}>
+                  <span className="gs-ttl">{b.advertiser}{b.campaign ? ` ${b.campaign}` : ''}</span>
+                  <span className="gs-meta">{b.product} {(b.start_date || '').slice(5).replace('-', '.')}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ── 홈 셸 ─────────────────────────────────────────────────── */
-export default function HomePage({ onGo, canSettle }) {
+export default function HomePage({ onGo, canSettle, onOpenSpec }) {
   const [events, setEvents] = useState([])
   useEffect(() => { listEvents().then(setEvents).catch(() => {}) }, [])
   const today = toISO(new Date())
@@ -451,12 +539,15 @@ export default function HomePage({ onGo, canSettle }) {
 
   return (
     <div className="wrap home-wrap">
-      <header>
-        <h1 className="home-greet">
-          {d.getMonth() + 1}월 {d.getDate()}일 {DOW_KO[d.getDay()]}요일,<br />
-          {greetLine}
-        </h1>
-        <div className="masthead-sub">{subBits.join(', ')}</div>
+      <header className="home-head">
+        <div>
+          <h1 className="home-greet">
+            {d.getMonth() + 1}월 {d.getDate()}일 {DOW_KO[d.getDay()]}요일,<br />
+            {greetLine}
+          </h1>
+          <div className="masthead-sub">{subBits.join(', ')}</div>
+        </div>
+        {onOpenSpec && <GlobalSearch events={events} onGo={onGo} onOpenSpec={onOpenSpec} />}
       </header>
 
       {canSettle && <SettleBadge onGo={onGo} />}

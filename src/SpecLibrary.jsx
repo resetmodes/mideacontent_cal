@@ -2,9 +2,11 @@ import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { MEDIA, TARGET_COMMON, GROUP_NOTES, COMMON_GUIDE } from './data/media.js'
 import { MIRROR_URL } from './config.js'
 import { withLiveMetrics } from './lib/specMetrics.js'
+import { eventMatchesMedia } from './lib/specLink.js'
 import ShareButton from './ShareButton.jsx'
 import ChannelIcon from './ChannelIcon.jsx'
 import { channelById } from './data/channels.js'
+import { listEvents } from './lib/store.js'
 
 /* 개별 스펙 외부 링크 ('26.7 거버넌스: 개별 스펙 = 외부용) — 미러 사이트의
    로그인 없는 외부 모드로 연결 (계정 발급 없이 새니타이즈된 해당 매체만 열림).
@@ -197,7 +199,35 @@ function Timeline({ process, query }) {
 }
 
 /* forceOpen (v2 '26.7.29): 마스터-디테일 우측 상세 — 항상 펼침, 접기 토글 없음 */
-function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRef, forceOpen = false }) {
+/* 이 매체 최근 집행 ('26.7.29) — 캘린더에서 스펙으로 오는 딥링크의 역방향.
+   규격을 확인하면서 실제로 언제 어떻게 나갔는지 같이 본다.
+   내부 뷰 전용 (외부 공유·미러에는 내부 일정을 노출하지 않음) */
+function RecentRuns({ mediaName, events }) {
+  const rows = useMemo(() => {
+    if (!events) return []
+    const today = new Date().toISOString().slice(0, 10)
+    return events
+      .filter(e => !e.kind && eventMatchesMedia(e, mediaName))
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 5)
+      .map(e => ({ ...e, past: (e.endDate || e.date) < today }))
+  }, [events, mediaName])
+  if (rows.length === 0) return null
+  return (
+    <div className="spec-runs">
+      <div className="spec-runs-h">최근 집행 <small>매체 캘린더 등록분</small></div>
+      {rows.map(e => (
+        <div key={e.id} className={'spec-run' + (e.past ? ' past' : '')}>
+          <span className="sr-date">{e.date.slice(5).replace('-', '.')}{e.endDate && e.endDate !== e.date ? ` ~ ${e.endDate.slice(5).replace('-', '.')}` : ''}</span>
+          <span className="sr-ttl">{e.title}</span>
+          {e.campaign && <span className="sr-camp">#{e.campaign}</span>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRef, forceOpen = false, events = null }) {
   const [rawOpen, setOpen] = useState(false)
   const open = forceOpen || rawOpen
   const ref = useRef(null)
@@ -251,6 +281,7 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRe
           {!m.verified && (
             <div className="src draft"><b>검증 전 가안</b> 담당 파트 확인 필요</div>
           )}
+          {!isExternal && !mirror && <RecentRuns mediaName={m.name} events={events} />}
           {!isExternal && !mirror && (
             <div className="spec-share">
               대행사와 지점 전달용, 로그인 없이 이 매체만 열립니다
@@ -277,6 +308,12 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRe
 /* mirror: 미러 전용 사이트 — 내부 스펙 그대로 보이되 공유 링크 버튼 등 운영 UI 숨김 */
 export default function SpecLibrary({ isExternal, mirror = false, focusMedia, focusSeq }) {
   const [activeCat, setActiveCat] = useState('전체')
+  /* 최근 집행 표시용 일정 ('26.7.29) — 내부 뷰에서만 불러온다 (외부·미러는 내부 일정 비공개) */
+  const [events, setEvents] = useState(null)
+  useEffect(() => {
+    if (isExternal || mirror) return
+    listEvents().then(setEvents).catch(() => {})
+  }, [isExternal, mirror])
   const [query, setQuery] = useState('')
   const [refImg, setRefImg] = useState(null)   // 제작 가이드 원본 확대 보기
   const [sel, setSel] = useState(null)         // 마스터-디테일 선택 매체 (v2)
@@ -363,7 +400,7 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
               </aside>
               <div className="spec-detail">
                 {current && (
-                  <MediaItem key={current.name} m={current} query={query} isExternal={isExternal} mirror={mirror} forceOpen
+                  <MediaItem key={current.name} m={current} query={query} isExternal={isExternal} mirror={mirror} events={events} forceOpen
                     focus={!!focusMedia && focusMedia === current.name} focusSeq={focusSeq} onRef={setRefImg} />
                 )}
               </div>
@@ -386,7 +423,7 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
                       )}
                     </>
                   )}
-                  <MediaItem m={m} query={query} isExternal={isExternal} mirror={mirror}
+                  <MediaItem m={m} query={query} isExternal={isExternal} mirror={mirror} events={events}
                     focus={!!focusMedia && focusMedia === m.name} focusSeq={focusSeq} onRef={setRefImg} />
                 </React.Fragment>
               )
