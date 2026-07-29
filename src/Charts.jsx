@@ -8,7 +8,7 @@ import React from 'react'
    그린 단색 계단은 인접 조각 구분이 안 된다는 지적으로 교체 (브랜드 그린·라일락 우선) */
 export const SERIES = ['#0B4336', '#C9A0BE', '#7FA795', '#D9C6A5', '#9BA8C4']
 
-const nf = n => (n == null ? '—' : Number(n).toLocaleString('ko-KR'))
+const nf = n => (n == null ? '' : Number(n).toLocaleString('ko-KR'))
 
 /* ── 스파크라인 — KPI 카드 하단 미니 추세 ── */
 export function Spark({ data }) {

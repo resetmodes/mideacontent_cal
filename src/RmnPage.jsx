@@ -62,11 +62,11 @@ function RmnNotice({ notices, onConvert, onClose }) {
         <div className="md-ch">RMN 확인 필요</div>
         {notices.tentative.length > 0 && (
           <>
-            <div className="rmn-nt">가부킹 → 부킹 전환 필요 <small>집행 시작 3개월 이내 진입</small></div>
+            <div className="rmn-nt">부킹 전환 필요 <small>집행 시작 3개월 이내 진입</small></div>
             {notices.tentative.map(b => (
               <div key={b.id} className="rmn-nrow">
                 <Ini id={b.product} />
-                <span className="rmn-nttl">{b.advertiser} — {b.product} · {fmtRange(b)}</span>
+                <span className="rmn-nttl">{b.advertiser} {b.product} <small className="mute">{fmtRange(b)}</small></span>
                 <button className="btn-solid sm" onClick={() => onConvert(b)}>부킹 전환</button>
               </div>
             ))}
@@ -78,7 +78,7 @@ function RmnNotice({ notices, onConvert, onClose }) {
             {notices.tax.map(b => (
               <div key={b.id} className="rmn-nrow">
                 <Ini id={b.product} />
-                <span className="rmn-nttl">{b.advertiser} — {b.product} · {fmtRange(b)} · 현재 [{b.status}]</span>
+                <span className="rmn-nttl">{b.advertiser} {b.product} <small className="mute">{fmtRange(b)} 현재 {b.status}</small></span>
               </div>
             ))}
           </>
@@ -144,7 +144,7 @@ function ProposalMaker() {
         ))}
       </div>
       <div className="adm-actions">
-        <small className="mute">상품 1~4개 · 예상 지표는 기준값(rmnAgencies.js) 기반, 팝업·헤드라인·이벤트 메뉴는 "-"</small>
+        <small className="mute">상품 1~4개, 기준값이 없는 팝업과 헤드라인, 이벤트 메뉴는 빈칸</small>
         <button className="btn-solid sm" disabled={!valid} onClick={make}>제안서 다운로드</button>
       </div>
       {msg && <div className="adm-msg">{msg}</div>}
@@ -201,7 +201,7 @@ function SettleSummary({ bookings, onMsg }) {
 
   return (
     <>
-      <div className="group-label">정산 요약 <small className="adm-count">시작월 기준 · 미수금 = 입금 확인 전</small></div>
+      <div className="group-label">정산 요약 <small className="adm-count">시작월 기준, 미수금은 입금 확인 전</small></div>
       <div className="rmn-settle-bar">
         <div className="rmn-yf">
           {['전체', ...years].map(y => (
@@ -220,7 +220,7 @@ function SettleSummary({ bookings, onMsg }) {
                 <td className="mute">{d.cnt}건</td>
                 <td>{fmtWon(d.total)}</td>
                 <td>{fmtWon(d.net)}</td>
-                <td className={d.unpaid > 0 ? 'strong' : 'mute'}>{d.unpaid > 0 ? fmtWon(d.unpaid) : '—'}</td>
+                <td className={d.unpaid > 0 ? 'strong' : 'mute'}>{d.unpaid > 0 ? fmtWon(d.unpaid) : ''}</td>
               </tr>
             ) : (
               <tr key={d.row.ym}>
@@ -228,7 +228,7 @@ function SettleSummary({ bookings, onMsg }) {
                 <td className="mute">{d.row.cnt}건</td>
                 <td>{fmtWon(d.row.total)}</td>
                 <td>{fmtWon(d.row.net)}</td>
-                <td className={d.row.unpaid > 0 ? 'strong' : 'mute'}>{d.row.unpaid > 0 ? fmtWon(d.row.unpaid) : '—'}</td>
+                <td className={d.row.unpaid > 0 ? 'strong' : 'mute'}>{d.row.unpaid > 0 ? fmtWon(d.row.unpaid) : ''}</td>
               </tr>
             ))}
             <tr className="rmn-sum">
@@ -236,7 +236,7 @@ function SettleSummary({ bookings, onMsg }) {
               <td className="mute">{sum('cnt')}건</td>
               <td className="strong">{fmtWon(sum('total'))}</td>
               <td className="strong">{fmtWon(sum('net'))}</td>
-              <td className={sum('unpaid') > 0 ? 'strong' : 'mute'}>{sum('unpaid') > 0 ? fmtWon(sum('unpaid')) : '—'}</td>
+              <td className={sum('unpaid') > 0 ? 'strong' : 'mute'}>{sum('unpaid') > 0 ? fmtWon(sum('unpaid')) : ''}</td>
             </tr>
           </tbody>
         </table>
@@ -260,22 +260,22 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
         <span className="rmn-camp-dots">{[...new Set(g.items.map(b => b.product))].slice(0, 4).map(p => <Dot key={p} id={p} />)}</span>
         <span className="rmn-camp-name">
           {showYear && <span className="rmn-year">{g.start.slice(0, 4)}</span>}
-          <b>{g.advertiser}</b>{g.campaign ? <span className="mute"> · {g.campaign}</span> : ''}
+          <b>{g.advertiser}</b>{g.campaign ? <span className="mute"> {g.campaign}</span> : ''}
           {g.status === '가부킹' && <span className="rmn-gtag">가부킹</span>}
         </span>
-        <span className="rmn-camp-meta">{fmtD(g.start)} ~ {fmtD(g.end)} · {g.items.length}개 상품 · {fmtWon(g.total)}</span>
+        <span className="rmn-camp-meta">{fmtD(g.start)} ~ {fmtD(g.end)}, {g.items.length}개 상품, {fmtWon(g.total)}</span>
         <span className="rmn-camp-chev" aria-hidden>{open ? '▾' : '▸'}</span>
       </div>
-      <div className="rmn-camp-sub mute">{prods.join(' · ')}</div>
+      <div className="rmn-camp-sub mute">{prods.join(', ')}</div>
       <div className="rmn-camp-ctl">
         <select className="rmn-status" value={g.mixed ? '' : g.status} onChange={e => e.target.value && onSetStatus(e.target.value)}
-          title={g.mixed ? '상품별 상태가 다름 — 선택 시 전체 통일' : '캠페인 전체 상태'}>
-          {g.mixed && <option value="">상태 혼합…</option>}
+          title={g.mixed ? '상품별 상태가 다름, 선택하면 전체 통일' : '캠페인 전체 상태'}>
+          {g.mixed && <option value="">상태 혼합</option>}
           {RMN_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
           <option value="취소">취소</option>
         </select>
         {g.status !== '완료' && (
-          <button className="btn-ghost sm" onClick={onAdvance}>다음 → <small className="mute">{nextStatus(g.status)}</small></button>
+          <button className="btn-ghost sm" onClick={onAdvance}>다음 단계 <small className="mute">{nextStatus(g.status)}</small></button>
         )}
         <button className="btn-ghost sm" onClick={onOrder}>청약서</button>
         {hasGa && <button className="btn-ghost sm" onClick={onReport}>결과보고서</button>}
@@ -289,13 +289,13 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
             return (
             <React.Fragment key={b.id}>
             <div className={'rmn-item' + (editId === b.id ? ' sel' : '')}>
-              <span className="rmn-item-p"><Ini id={b.product} /> {b.product}{bookingQty(b) > 1 ? ` ×${bookingQty(b)}` : ''}{b.push_qty ? ` ${(b.push_qty / 10000).toLocaleString('ko-KR')}만` : ''}{b.option ? <small className="mute"> · {b.option}</small> : ''}</span>
+              <span className="rmn-item-p"><Ini id={b.product} /> {b.product}{bookingQty(b) > 1 ? ` ×${bookingQty(b)}` : ''}{b.push_qty ? ` ${(b.push_qty / 10000).toLocaleString('ko-KR')}만` : ''}{b.option ? <small className="mute"> {String(b.option).replace(/\s*·\s*/g, ' ')}</small> : ''}</span>
               <span className="mute rmn-item-d">{b.send_at ? `${fmtD(b.send_at)} ${b.send_at.slice(11, 16)}` : fmtRange(b)}</span>
               {/* GA4 자동 수집 실적 ('26.7) — impressions 채워진 부킹만 표시 */}
               {b.impressions != null && b.impressions > 0 && (
                 <span className="rmn-item-ga">
-                  노출 {Number(b.impressions).toLocaleString('ko-KR')} · 클릭 {Number(b.clicks || 0).toLocaleString('ko-KR')}
-                  {b.clicks > 0 && <> · CTR {((b.clicks / b.impressions) * 100).toFixed(2)}%</>}
+                  노출 {Number(b.impressions).toLocaleString('ko-KR')}, 클릭 {Number(b.clicks || 0).toLocaleString('ko-KR')}
+                  {b.clicks > 0 && <>, CTR {((b.clicks / b.impressions) * 100).toFixed(2)}%</>}
                 </span>
               )}
               <span className="rmn-item-w">{split ? <span className="mute">분할 집행</span> : fmtWon(b.actual_price)}</span>
@@ -314,7 +314,7 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
             {imgFor === b.id && (
               <div className="rmn-item-imgs">
                 <ImageAttach imgs={b.images || []} canEdit storeKey={`rmn/${b.id}`}
-                  onChange={next => onItemImages(b, next)} hint="집행 화면·결과 캡처" />
+                  onChange={next => onItemImages(b, next)} hint="집행 화면과 결과 캡처" />
               </div>
             )}
             </React.Fragment>
@@ -331,13 +331,13 @@ function CampaignPicker({ g, onEdit, onOrder, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="md-ch">{g.advertiser}{g.campaign ? ` · ${g.campaign}` : ''}</div>
-        <div className="mute" style={{ marginBottom: 10 }}>{fmtD(g.start)} ~ {fmtD(g.end)} · {g.items.length}개 상품 · {fmtWon(g.total)}</div>
+        <div className="md-ch">{g.advertiser}{g.campaign && <span className="md-ch-sub">{g.campaign}</span>}</div>
+        <div className="mute" style={{ marginBottom: 10 }}>{fmtD(g.start)} ~ {fmtD(g.end)}, {g.items.length}개 상품, {fmtWon(g.total)}</div>
         {g.items.map(b => (
           <button key={b.id} className="rmn-pick-item" onClick={() => onEdit(b)}>
             <Ini id={b.product} />
             <span className="rmn-pick-t">{b.product}{bookingQty(b) > 1 ? ` ×${bookingQty(b)}` : ''}</span>
-            <span className="mute">{b.send_at ? `${fmtD(b.send_at)} ${b.send_at.slice(11, 16)}` : fmtRange(b)} · [{b.status}]</span>
+            <span className="mute">{b.send_at ? `${fmtD(b.send_at)} ${b.send_at.slice(11, 16)}` : fmtRange(b)} {b.status}</span>
           </button>
         ))}
         <div className="md-actions">
@@ -391,7 +391,7 @@ function RmnMonth({ campaigns, onPick }) {
               {list.slice(0, 4).map(g => (
                 <button key={g.key + c.iso} className={'cal-ev' + (g.status === '가부킹' ? ' rmn-tent' : '')}
                   onClick={() => onPick(g)}
-                  title={`${g.advertiser}${g.campaign ? ' · ' + g.campaign : ''} — ${productsOn(g, c.iso).join('·')} [${g.status}]`}>
+                  title={`${g.advertiser}${g.campaign ? ' ' + g.campaign : ''} ${productsOn(g, c.iso).join(', ')} [${g.status}]`}>
                   <span className="rmn-camp-dots">{productsOn(g, c.iso).slice(0, 3).map(p => <Dot key={p} id={p} />)}</span>
                   <span className="ev-title">{g.advertiser}{g.status === '가부킹' ? ' (가)' : ''}</span>
                 </button>
@@ -403,7 +403,7 @@ function RmnMonth({ campaigns, onPick }) {
       </div>
       <div className="rmn-legend">
         {RMN_PRODUCTS.map(p => <span key={p.id}><Dot id={p.id} /> {p.id}</span>)}
-        <span className="mute">· (가) = 가부킹</span>
+        <span className="mute">(가)는 가부킹</span>
       </div>
     </div>
   )
@@ -611,7 +611,7 @@ export default function RmnPage() {
       /* qty·option: 값 있을 때만 전송(컬럼 미설정 하위호환) */
       if (q > 1 || (editId && origQty > 1)) row.qty = q
       if (pr?.msg && L.target) row.option = '타겟팅'
-      if (insta) row.option = `${L.insta_prod} · ${L.insta_fmt}`
+      if (insta) row.option = `${L.insta_prod} ${L.insta_fmt}`
       return row
     }
     try {
@@ -626,7 +626,7 @@ export default function RmnPage() {
             await createRmn({ ...base, start_date: s.start, end_date: s.end || s.start, list_price: 0, actual_price: 0, net_amount: 0 }); n++
           }
         }
-        const label = products.map(id => { const c = calcOf(id); return c.qty > 1 ? `${id}×${c.qty}` : id }).join('·')
+        const label = products.map(id => { const c = calcOf(id); return c.qty > 1 ? `${id}×${c.qty}` : id }).join(', ')
         setMsg(`"${shared.advertiser}" ${shared.status} ${n}건 등록됨${products.length > 1 ? ` (${label})` : ''}`); toast(`부킹 ${n}건 등록됨`)
       }
       setF(EMPTY); setEditId(null); setOrigQty(1); setSel(['메인배너']); setLines({ 메인배너: defaultLine() })
@@ -669,10 +669,10 @@ export default function RmnPage() {
   const setStatus = async (b, s) => {
     try { await updateRmn(b.id, { status: s }); refresh() } catch (e) { setMsg(e.message) }
   }
-  /* 상품(부킹)별 이미지 첨부 ('26.7) — 집행 화면·결과 캡처. images만 부분 PATCH */
+  /* 상품(부킹)별 이미지 첨부 ('26.7) — 집행 화면과 결과 캡처. images만 부분 PATCH */
   const setItemImages = async (b, images) => {
     try { await updateRmn(b.id, { images }); await refresh() }
-    catch (e) { throw /400/.test(e.message) ? new Error('이미지 컬럼 미설정 — setup.md 8-3 SQL 1줄 실행 필요') : e }
+    catch (e) { throw /400/.test(e.message) ? new Error('이미지 컬럼 미설정, setup.md 8-3 SQL 1줄 실행 필요') : e }
   }
   const del = async id => {
     if (confirmDel !== id) { setConfirmDel(id); return }
@@ -728,14 +728,14 @@ export default function RmnPage() {
       <header>
         <h1>RMN</h1>
         <div className="masthead-sub">
-          부킹·재고·정산 관리
+          부킹과 재고, 정산 관리
         </div>
       </header>
 
-      {rows === undefined && <div className="empty">불러오는 중…</div>}
+      {rows === undefined && <div className="empty">불러오는 중</div>}
       {rows === null && (
         <div className="mon-note">
-          RMN 테이블이 아직 없습니다 — Supabase SQL Editor에서 <b>data/rmn-setup.sql</b>을
+          RMN 테이블이 아직 없습니다. Supabase SQL Editor에서 <b>data/rmn-setup.sql</b>을
           1회 실행하면 사용 가능합니다 (절차: supabase-setup.md 8장)
         </div>
       )}
@@ -756,7 +756,7 @@ export default function RmnPage() {
           {mode === '현황' && (
             <>
               {/* ── 부킹 캘린더 ('26.7 최상단 이동) — 캠페인 칩, 클릭 시 상품 시트 ── */}
-              <div className="group-label">부킹 캘린더 <small className="adm-count">칩 = 광고주·캠페인 · 클릭 시 상품</small></div>
+              <div className="group-label">부킹 캘린더 <small className="adm-count">칩을 누르면 상품 표시</small></div>
               <RmnMonth campaigns={campaigns} onPick={setPickGroup} />
             </>
           )}
@@ -778,7 +778,7 @@ export default function RmnPage() {
               <div className="adm-row rmn-campperiod">
                 <label>캠페인 시작일<input type="date" value={camp.start} onChange={e => setCampPeriod('start', e.target.value)} /></label>
                 <label>캠페인 종료일<input type="date" value={camp.end} min={camp.start} onChange={e => setCampPeriod('end', e.target.value)} /></label>
-                <span className="rmn-cp-note mute">구좌 상품 기간 일괄 적용 · 상품별로 다르면 아래 라인에서 개별 변경</span>
+                <span className="rmn-cp-note mute">구좌 상품에 일괄 적용, 상품별로 다르면 아래에서 개별 변경</span>
               </div>
             )}
 
@@ -786,10 +786,10 @@ export default function RmnPage() {
             <div className="rmn-avail rmn-avail-in">
               {RMN_PRODUCTS.map(pr => {
                 const on = products.includes(pr.id)
-                const sub = pr.insta ? '게시형 · 구성 4종'
-                  : pr.msg ? '발송형 (건당 100원 · 타겟팅 +10%)'
-                  : pr.push ? '발송형 (건당 50원)'
-                  : `구좌 ${pr.slots}개 · ${fmtWon(pr.price)}/7일`
+                const sub = pr.insta ? '게시형 구성 4종'
+                  : pr.msg ? '발송형 건당 100원, 타겟팅 +10%'
+                  : pr.push ? '발송형 건당 50원'
+                  : `구좌 ${pr.slots}개, ${fmtWon(pr.price)}/7일`
                 /* 카드 내 재고 미니 게이지 (v2 3차) — 캠페인 기간 기준, 구좌 상품만 */
                 const av = pr.slots ? slotAvailability(bookings, pr.id, camp.start, camp.end, editId) : null
                 return (
@@ -871,7 +871,7 @@ export default function RmnPage() {
                           <div className="rmn-perflag">
                             {L.own
                               ? <>개별 기간 <button type="button" className="rmn-snap ghost" onClick={() => resetLinePeriod(id)}>캠페인 기간으로</button></>
-                              : <span className="mute">캠페인 기간 적용 중 — 날짜를 바꾸면 이 상품만 개별 기간</span>}
+                              : <span className="mute">캠페인 기간 적용 중, 날짜를 바꾸면 이 상품만 개별 기간</span>}
                           </div>
                         )}
                         <div className="adm-row">
@@ -891,8 +891,8 @@ export default function RmnPage() {
                         {L.start && c.days < c.weeks * PRICE_DAYS && (
                           <div className="rmn-days off">
                             <div className="rmn-days-line">
-                              집행 <b>{c.days}일</b>{L.segs.length ? <span className="mute"> (분할 {L.segs.length + 1}회)</span> : ''} ·
-                              과금 <b>{c.weeks}주({c.weeks * PRICE_DAYS}일 기준)</b> — 잔여 <b>{c.weeks * PRICE_DAYS - c.days}일</b>을
+                              집행 <b>{c.days}일</b>{L.segs.length ? <span className="mute"> (분할 {L.segs.length + 1}회)</span> : ''}
+                              과금 <b>{c.weeks}주({c.weeks * PRICE_DAYS}일 기준)</b> 잔여 <b>{c.weeks * PRICE_DAYS - c.days}일</b>을
                               다른 일자에 잘라 쓰려면
                               <button type="button" className="rmn-snap" onClick={() => addSeg(id)}>＋ 추가 일정 선택</button>
                             </div>
@@ -912,7 +912,7 @@ export default function RmnPage() {
                     )}
                     <div className="adm-row">
                       <label>공시가<input value={c.list.toLocaleString('ko-KR')} readOnly className="rmn-ro" /></label>
-                      <label>할인율 % <small className="mute">↔ 실판가 자동</small><input inputMode="decimal" value={L.discount}
+                      <label>할인율 % <small className="mute">실판가 자동 계산</small><input inputMode="decimal" value={L.discount}
                         onChange={e => setLine(id, 'discount', e.target.value)} placeholder="0" /></label>
                       <label>실판가 <small className="mute">입력 시 할인율 역산</small><input inputMode="numeric"
                         value={L.price !== '' ? Number(num(L.price)).toLocaleString('ko-KR') : c.actual.toLocaleString('ko-KR')}
@@ -924,7 +924,7 @@ export default function RmnPage() {
             </div>
             {soldOut && (
               <div className="rmn-soldout">
-                <b>{soldOutIds.join('·')}</b> 구좌가 해당 기간에 마감되었습니다 — 기간·수량을 조정하세요
+                <b>{soldOutIds.join(', ')}</b> 구좌가 해당 기간에 마감됐습니다. 기간이나 수량을 조정하세요.
               </div>
             )}
 
@@ -942,7 +942,7 @@ export default function RmnPage() {
               )}
               <label>상태
                 <select value={f.status} onChange={e => set('status', e.target.value)}>
-                  <option value="가부킹" disabled={!tentativeOK}>가부킹{!tentativeOK ? ' (시작 3개월 이내 — 불가)' : ''}</option>
+                  <option value="가부킹" disabled={!tentativeOK}>가부킹{!tentativeOK ? ' (시작 3개월 이내라 불가)' : ''}</option>
                   {RMN_STATUS.slice(1).map(s => <option key={s} value={s}>{s}</option>)}
                   <option value="취소">취소</option>
                 </select>
@@ -956,7 +956,7 @@ export default function RmnPage() {
               </div>
             )}
             <label>메모<textarea rows={2} value={f.memo} onChange={e => set('memo', e.target.value)}
-              placeholder="사업자등록번호·주소는 판매사 연동값 확보 후 자동 입력 예정" /></label>
+              placeholder="사업자등록번호와 주소는 판매사 연동값 확보 후 자동 입력" /></label>
           </div>
           </div>
           </div>
@@ -975,10 +975,10 @@ export default function RmnPage() {
               <div className="rsum-tot"><span>입금가{f.agency && <small>수수료 30% 차감</small>}</span></div>
               <div className="rsum-tot-v">{fmtWon(deposit)}</div>
               {missing.length > 0 && (
-                <div className="rsum-miss"><b>미입력 {missing.length}건</b>{missing.map(m => m.label).join(' · ')}</div>
+                <div className="rsum-miss"><b>미입력 {missing.length}건</b>{missing.map(m => m.label).join(', ')}</div>
               )}
               {soldOut && missing.length === 0 && (
-                <div className="rsum-miss"><b>구좌 마감</b>{soldOutIds.join('·')} — 기간·수량을 조정하세요</div>
+                <div className="rsum-miss"><b>구좌 마감</b>{soldOutIds.join(', ')}</div>
               )}
               <button className="btn-solid" disabled={!valid} onClick={submit}>
                 {editId ? '수정 저장' : products.length > 1 ? `${products.length}건 동시 부킹` : '부킹 등록'}
@@ -999,7 +999,7 @@ export default function RmnPage() {
 
             <section className="dash-panel">
               <div className="group-label">선택 기간 재고</div>
-              <div className="dash-d">{fmtD(camp.start)} ~ {fmtD(camp.end)} · 이번 부킹 반영</div>
+              <div className="dash-d">{fmtD(camp.start)} ~ {fmtD(camp.end)} 이번 부킹 반영</div>
               <div className="rinv">
                 {RMN_PRODUCTS.filter(pr => pr.slots).map(pr => {
                   const a = slotAvailability(bookings, pr.id, camp.start, camp.end, editId)
@@ -1018,7 +1018,7 @@ export default function RmnPage() {
                   )
                 })}
               </div>
-              <div className="rinv-note">연한 = 기존 부킹 · 진한 그린 = 이번 부킹 · 숫자 = 등록 후 잔여</div>
+              <div className="rinv-note">연한 막대는 기존 부킹, 진한 막대는 이번 부킹, 숫자는 등록 후 잔여</div>
             </section>
 
             <section className="dash-panel">
@@ -1026,7 +1026,7 @@ export default function RmnPage() {
               {recent.map(b => (
                 <div key={b.id} className="rrec">
                   <Ini id={b.product} />
-                  <b>{b.advertiser}{b.campaign ? ` — ${b.campaign}` : ''}</b>
+                  <b>{b.advertiser}{b.campaign ? ` ${b.campaign}` : ''}</b>
                   <span>{fmtRange(b)}</span>
                 </div>
               ))}
@@ -1039,7 +1039,7 @@ export default function RmnPage() {
           {mode === '현황' && (
           <>
           {/* ── 진행 중 캠페인 ('26.7 — [광고주+캠페인명] 그룹, 클릭 시 세부 상품 펼침) ── */}
-          <div className="group-label">진행 중 <small className="adm-count">{activeCamps.length}캠페인 · {activeCamps.reduce((a, g) => a + g.items.length, 0)}건</small></div>
+          <div className="group-label">진행 중 <small className="adm-count">{activeCamps.length}캠페인 {activeCamps.reduce((a, g) => a + g.items.length, 0)}건</small></div>
           <div className="rmn-camps">
             {activeCamps.length === 0 && <div className="mute rmn-empty">진행 중인 캠페인이 없습니다</div>}
             {activeCamps.map(g => (
@@ -1062,8 +1062,8 @@ export default function RmnPage() {
 
           {(doneCamps.length > 0 || canceled.length > 0) && (
             <details className="ta-office rmn-done">
-              <summary><span className="ta-name">완료·취소</span><span className="ta-cnt">{doneCamps.length}캠페인{canceled.length ? ` · 취소 ${canceled.length}` : ''}</span></summary>
-              <input className="rmn-done-q" placeholder="광고주·캠페인·상품 검색 (클릭하면 펼쳐서 상품 수정)"
+              <summary><span className="ta-name">완료와 취소</span><span className="ta-cnt">{doneCamps.length}캠페인{canceled.length ? `, 취소 ${canceled.length}` : ''}</span></summary>
+              <input className="rmn-done-q" placeholder="광고주, 캠페인, 상품 검색"
                 value={doneQuery} onChange={e => setDoneQuery(e.target.value)} />
               <div className="rmn-camps">
                 {doneShown.length === 0 && <div className="mute rmn-empty">검색 결과 없음</div>}
@@ -1079,8 +1079,8 @@ export default function RmnPage() {
                 ))}
                 {canceledShown.map(b => (
                   <div key={b.id} className="rmn-cancel-row">
-                    <span className="rmn-line-name"><Ini id={b.product} /> <span className="rmn-year">{(b.start_date || '').slice(0, 4)}</span> <b>{b.advertiser}</b>{b.campaign ? <span className="mute"> · {b.campaign}</span> : ''} <span className="rmn-gtag">취소</span></span>
-                    <span className="mute rmn-camp-meta">{b.product} · {fmtRange(b)} · {fmtWon(b.actual_price)}</span>
+                    <span className="rmn-line-name"><Ini id={b.product} /> <span className="rmn-year">{(b.start_date || '').slice(0, 4)}</span> <b>{b.advertiser}</b>{b.campaign ? <span className="mute"> {b.campaign}</span> : ''} <span className="rmn-gtag">취소</span></span>
+                    <span className="mute rmn-camp-meta">{b.product}, {fmtRange(b)}, {fmtWon(b.actual_price)}</span>
                     <button className="btn-ghost sm" onClick={() => startEdit(b)}>수정</button>
                     <button className={'btn-ghost sm danger' + (confirmDel === b.id ? ' arm' : '')} onClick={() => del(b.id)}>{confirmDel === b.id ? '한 번 더' : '삭제'}</button>
                   </div>
@@ -1157,7 +1157,7 @@ function RmnAnalytics({ rows, activeCamps }) {
   const mEnd = toISO(new Date(Number(t.slice(0, 4)), Number(t.slice(5, 7)), 0))
   const gauges = RMN_PRODUCTS.filter(pr => pr.slots).map(pr => {
     const a = slotAvailability(rows, pr.id, mStart, mEnd, null)
-    return { id: pr.id, pct: (a.total - a.left) / a.total * 100, sub: `${pr.slots}구좌 · ${a.left === 0 ? '마감' : `잔여 ${a.left}`}` }
+    return { id: pr.id, pct: (a.total - a.left) / a.total * 100, sub: `${pr.slots}구좌 ${a.left === 0 ? '마감' : `잔여 ${a.left}`}` }
   })
 
   /* 상태 파이프라인 — 취소 제외 전 부킹의 상태 분포 */
@@ -1174,7 +1174,7 @@ function RmnAnalytics({ rows, activeCamps }) {
     }
     return Object.entries(by).sort((a, b) => b[1].imp - a[1].imp).map(([k, v]) => ({
       name: k, sub: `노출 ${Math.round(v.imp / 10000).toLocaleString('ko-KR')}만`, value: v.imp,
-      disp: v.imp > 0 ? (v.clk / v.imp * 100).toFixed(2) + '%' : '—', unit: 'CTR',
+      disp: v.imp > 0 ? (v.clk / v.imp * 100).toFixed(2) + '%' : '', unit: 'CTR',
     }))
   }, [live])
 
@@ -1186,17 +1186,17 @@ function RmnAnalytics({ rows, activeCamps }) {
       <div className="mon-hero">
         <Kpi label={`${year} 누적 매출`} value={fmtM(s.cur)}
           delta={s.growth != null ? (s.growth >= 0 ? `▲ ${s.growth}%` : `▼ ${Math.abs(s.growth)}%`) : null}
-          deltaUp={s.growth > 0} sub={s.growth != null ? `전년 동기 대비 · ${s.items}건` : `${s.items}건`} spark={s.spark} />
+          deltaUp={s.growth > 0} sub={s.growth != null ? `전년 동기 대비 ${s.items}건` : `${s.items}건`} spark={s.spark} />
         <Kpi label="진행 중 캠페인" value={activeCamps.length} unit="건"
           sub={`상품 ${activeCamps.reduce((a, g) => a + g.items.length, 0)}건`} />
-        <Kpi label="미수금" value={fmtM(s.unpaid)} sub={`입금 확인 전 · ${s.unpaidN}건`} />
+        <Kpi label="미수금" value={fmtM(s.unpaid)} sub={`입금 확인 전 ${s.unpaidN}건`} />
         <Kpi label="평균 실효 할인율" value={s.rate} unit="%" sub="공시가 대비 실판가 (올해)" />
       </div>
 
       <div className="dash-grid g23">
         <div className="dash-panel">
           <div className="group-label">월별 매출</div>
-          <div className="dash-d">천원 · 시작월 기준 · 취소 제외</div>
+          <div className="dash-d">천원 단위, 시작월 기준이며 취소 제외</div>
           <DuoBars data={monthly} fmt={v => Math.round(v / 1000).toLocaleString('ko-KR')}
             legendA={String(year)} legendB={String(year - 1)} />
         </div>
@@ -1210,14 +1210,14 @@ function RmnAnalytics({ rows, activeCamps }) {
       <div className="dash-grid g32">
         <div className="dash-panel flat">
           <div className="group-label">이번 달 재고</div>
-          <div className="dash-d">구좌 점유율 · {Number(t.slice(5, 7))}월 기준</div>
+          <div className="dash-d">구좌 점유율 {Number(t.slice(5, 7))}월 기준</div>
           <div className="gauges">
             {gauges.map(g => <Gauge key={g.id} pct={g.pct} label={g.id} sub={g.sub} />)}
           </div>
         </div>
         <div className="dash-panel">
           <div className="group-label">진행 상태</div>
-          <div className="dash-d">취소 제외 전체 부킹 · 가부킹 → 완료</div>
+          <div className="dash-d">가부킹부터 완료까지, 취소 제외</div>
           <Pipeline steps={pipe} />
         </div>
       </div>
@@ -1225,7 +1225,7 @@ function RmnAnalytics({ rows, activeCamps }) {
       {ga.length > 0 && (
         <div className="dash-panel" style={{ marginTop: 16 }}>
           <div className="group-label">GA4 집행 실적</div>
-          <div className="dash-d">구좌별 노출 합계 · CTR (GA 수집된 부킹만)</div>
+          <div className="dash-d">구좌별 노출 합계와 CTR (GA 수집된 부킹만)</div>
           <HBars rows={ga} />
         </div>
       )}
@@ -1342,10 +1342,10 @@ function ShareModal({ g, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="md-ch">광고주 공유 리포트</div>
-        <div className="md-title">{g.advertiser}{g.campaign ? ` — ${g.campaign}` : ''}</div>
+        <div className="md-title">{g.advertiser}{g.campaign ? ` ${g.campaign}` : ''}</div>
         <div className="mute" style={{ fontSize: 13, lineHeight: 1.6 }}>
-          이 캠페인의 결과(일별 노출·클릭·CTR·구좌별 성과)만 담은 열람 전용 페이지를 발급합니다.
-          다른 캠페인·광고주 데이터는 포함되지 않으며, <b>30일 후 자동 만료</b>됩니다.
+          이 캠페인의 결과(일별 노출과 클릭, CTR, 구좌별 성과)만 담은 열람 전용 페이지를 발급합니다.
+          다른 캠페인이나 광고주 데이터는 포함되지 않으며 <b>30일 후 자동 만료</b>됩니다.
         </div>
         {/* GA 미측정 매체 실적 수기 입력 ('26.7.29 사용자 지시) — 카카오톡·푸쉬·인스타는
             GA4가 집계하지 못하므로, 매체사 리포트 수치를 여기서 받아 리포트에 함께 싣는다 */}
@@ -1353,8 +1353,8 @@ function ShareModal({ g, onClose }) {
           <div className="rmn-manual">
             <div className="group-label" style={{ fontSize: 15 }}>매체 실적 입력</div>
             <div className="mute" style={{ fontSize: 12.5, lineHeight: 1.6 }}>
-              {unmeasured.join(' · ')}{josa(unmeasured.at(-1), '은', '는')} GA에서 자동 수집되지 않습니다.
-              매체사 리포트(카카오 비즈메시지 관리자·인스타그램 인사이트 등) 수치를 입력하면
+              {unmeasured.join(', ')}{josa(unmeasured.at(-1), '은', '는')} GA에서 자동 수집되지 않습니다.
+              매체사 리포트(카카오 비즈메시지 관리자, 인스타그램 인사이트 등) 수치를 입력하면
               리포트에 함께 표기됩니다. <b>비우면 집행 내역만</b> 표기됩니다.
             </div>
             {unItems.map(b => (
@@ -1368,7 +1368,7 @@ function ShareModal({ g, onClose }) {
                   {(MANUAL_PERF[b.product]?.fields || []).map(f => (
                     <label key={f.k}>
                       {f.label}
-                      <input type="text" inputMode="numeric" placeholder="—"
+                      <input type="text" inputMode="numeric" placeholder=""
                         value={manual[b.id]?.[f.k] ?? ''}
                         onChange={e => setM(b.id, f.k, e.target.value)} />
                     </label>
@@ -1387,7 +1387,7 @@ function ShareModal({ g, onClose }) {
                 <input type="checkbox" checked={usePw} onChange={e => setUsePw(e.target.checked)} />
               </label>
               <label className="shr-opt">
-                광고비·CPM·CPC 포함 <small className="mute">기본 미포함 — 성과 지표만</small>
+                광고비와 CPM, CPC 포함 <small className="mute">기본은 성과 지표만</small>
                 <input type="checkbox" checked={withMoney} onChange={e => setWithMoney(e.target.checked)} />
               </label>
             </div>
@@ -1395,7 +1395,7 @@ function ShareModal({ g, onClose }) {
             <div className="md-actions">
               <div className="md-spacer" />
               <button className="btn-ghost" onClick={onClose}>닫기</button>
-              <button className="btn-solid" disabled={busy} onClick={issue}>{busy ? '발급 중…' : '공유 링크 발급'}</button>
+              <button className="btn-solid" disabled={busy} onClick={issue}>{busy ? '발급 중' : '공유 링크 발급'}</button>
             </div>
           </>
         ) : (

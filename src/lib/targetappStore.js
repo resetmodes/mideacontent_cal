@@ -19,7 +19,7 @@ async function req(path, options = {}) {
     },
   })
   if (res.status === 403) throw new Error('이 계정은 쓰기 권한이 없습니다 (team_writers 미등록)')
-  if (!res.ok) throw new Error(`targetapp ${res.status} — 테이블 설정 확인 (setup.md 7장)`)
+  if (!res.ok) throw new Error(`targetapp ${res.status}, 테이블 설정 확인 (setup.md 7장)`)
   return res
 }
 

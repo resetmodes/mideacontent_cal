@@ -87,7 +87,7 @@ function BulkEvents() {
     if (!name) return
     try {
       for (const e of chosen) await updateEvent(e.id, fullFields(e, { campaign: name }))
-      setMsg(`${chosen.length}건 → #${name} 일괄 변경`)
+      setMsg(`${chosen.length}건을 #${name}으로 일괄 변경`)
       setCamp(''); setSel(new Set())
       refresh()
     } catch (e) { setMsg(e.message) }
@@ -96,7 +96,7 @@ function BulkEvents() {
   return (
     <AdmSection title="일정 일괄 관리" count={`${filtered.length}건 표시`} defaultOpen>
       <div className="adm-filters">
-        <input className="adm-q" type="search" placeholder="검색 — 제목·캠페인·작성자·매체·메모"
+        <input className="adm-q" type="search" placeholder="제목, 캠페인, 작성자, 매체, 메모로 검색"
           value={q} onChange={e => setQ(e.target.value)} />
         <div className="seg">
           {['전체', '매체', '촬영', '팀'].map(k => (
@@ -136,7 +136,7 @@ function BulkEvents() {
                 <td><input type="checkbox" checked={sel.has(e.id)} onChange={() => toggle(e.id)} /></td>
                 <td className="mute">{fmtD(e.date)}{e.endDate ? `~${fmtD(e.endDate).slice(3)}` : ''}</td>
                 <td className="mute">{kindLabel(e)}</td>
-                <td><ChannelIcon id={e.channel} /> {channelById(e.channel)?.label || e.channel}{e.sub ? ` · ${e.sub}` : ''}</td>
+                <td><ChannelIcon id={e.channel} /> {channelById(e.channel)?.label || e.channel}{e.sub ? ` ${e.sub}` : ''}</td>
                 <td className="mon-acc">{e.title}</td>
                 <td className="mute">{e.campaign ? '#' + e.campaign : ''}</td>
                 <td className="mute">{e.owner || ''}</td>
@@ -145,7 +145,7 @@ function BulkEvents() {
           </tbody>
         </table>
       </div>
-      {filtered.length > 200 && <div className="adm-note">상위 200건만 표시 — 필터로 좁혀주세요</div>}
+      {filtered.length > 200 && <div className="adm-note">상위 200건만 표시, 필터로 좁혀주세요</div>}
       {msg && <div className="adm-msg">{msg}</div>}
     </AdmSection>
   )
@@ -175,7 +175,7 @@ function RestoreDeleted() {
   }
 
   return (
-    <AdmSection title="최근 90일 삭제 기록 — 원클릭 복원" count={`${rows.length}건`}>
+    <AdmSection title="최근 90일 삭제 기록" count={`${rows.length}건`}>
       {rows.length === 0 ? (
         <div className="adm-note">삭제 기록 없음 (이력 테이블 미설정이면 setup.md 6장)</div>
       ) : (
@@ -187,9 +187,9 @@ function RestoreDeleted() {
                 <tr key={r.id}>
                   <td className="mute">{(r.changed_at || '').slice(2, 16).replace('T', ' ')}</td>
                   <td className="mute">{fmtD(r.data?.date)}</td>
-                  <td className="mute">{r.data?.channel}{r.data?.sub ? ` · ${r.data.sub}` : ''}</td>
+                  <td className="mute">{r.data?.channel}{r.data?.sub ? ` ${r.data.sub}` : ''}</td>
                   <td className="mon-acc">{r.data?.title}</td>
-                  <td className="mute">{r.actor || '—'}</td>
+                  <td className="mute">{r.actor || ''}</td>
                   <td><button className="btn-ghost sm" onClick={() => restore(r)}>복원</button></td>
                 </tr>
               ))}
@@ -224,11 +224,11 @@ function XlsxUpload({ existing, onDone }) {
       const res = parseTargetWorkbook(XLSX, wb)
       if (res.items.length === 0) {
         /* 0건이면 원인 진단 정보 표시 — 실제 시트명·실패 사유를 봐야 규칙을 맞출 수 있음 */
-        const names = (res.sheetNames || []).slice(0, 20).join(' · ')
+        const names = (res.sheetNames || []).slice(0, 20).join(', ')
         const why = res.skipped.length
-          ? '판독 실패: ' + res.skipped.slice(0, 10).map(s => `${s.sheet}(${s.reason})`).join(' · ')
-          : '"N월…" 형태로 시작하는 시트가 없음'
-        setMsg(`인식된 캠페인 시트가 없습니다. ${why} — 파일의 시트명: ${names}${(res.sheetNames || []).length > 20 ? ` 외 ${res.sheetNames.length - 20}개` : ''}. 이 문구를 캡처해서 알려주시면 규칙을 맞춰 드립니다.`)
+          ? '판독 실패 ' + res.skipped.slice(0, 10).map(s => `${s.sheet}(${s.reason})`).join(', ')
+          : '"N월"로 시작하는 시트가 없음'
+        setMsg(`인식된 캠페인 시트가 없습니다. ${why}. 파일의 시트명은 ${names}${(res.sheetNames || []).length > 20 ? ` 외 ${res.sheetNames.length - 20}개` : ''} 입니다.`)
       } else setParsed(res)
     } catch (e) { setMsg('파일 읽기 실패: ' + e.message) }
     setBusy(false)
@@ -262,7 +262,7 @@ function XlsxUpload({ existing, onDone }) {
           else { await createTargetApp(row); created++ }
         }
       }
-      setMsg(`반영 완료 — ${replaceAll ? '기존 전체 삭제 후 ' : ''}신규 ${created}행 · 갱신 ${updated}행 (캠페인 ${chosen.length}건, 매체별 분할)`)
+      setMsg(`반영 완료, ${replaceAll ? '기존 전체 삭제 후 ' : ''}신규 ${created}행 갱신 ${updated}행 (캠페인 ${chosen.length}건)`)
       setParsed(null); setReplaceAll(false)
       onDone()
     } catch (e) { setMsg(e.message) }
@@ -274,15 +274,15 @@ function XlsxUpload({ existing, onDone }) {
   return (
     <div className="xu">
       <label className="xu-pick">
-        {busy ? '처리 중…' : '실적 엑셀 업로드 (.xlsx — 실적 대장 그대로)'}
+        {busy ? '처리 중' : '실적 엑셀 업로드 (.xlsx 실적 대장 그대로)'}
         <input type="file" accept=".xlsx,.xlsm" style={{ display: 'none' }}
           onChange={e => { pick(e.target.files?.[0]); e.target.value = '' }} />
       </label>
       {parsed && (
         <div className="xu-preview">
           <div className="xu-head">
-            인식 {parsed.items.length}건 — 체크된 캠페인만 매체별 행으로 반영됩니다
-            (노출·클릭·방문·앱다운로드·비용, 재업로드 시 파일 값으로 갱신·메모만 보존)
+            인식 {parsed.items.length}건, 체크된 캠페인만 매체별 행으로 반영
+            (노출, 클릭, 방문, 앱다운로드, 비용을 파일 값으로 갱신하고 메모는 보존)
           </div>
           <div className="mon-scroll">
             <table className="mon-table adm-table">
@@ -298,7 +298,7 @@ function XlsxUpload({ existing, onDone }) {
                       {it.status === '진행중' && <span className="xu-run">진행중</span>}
                       {it.dup && <span className="xu-dup">중복 의심</span>}
                     </td>
-                    <td className="mute">{it.media.map(m => m.media).join('·')}</td>
+                    <td className="mute">{it.media.map(m => m.media).join(', ')}</td>
                     <td className="mute">{sum(it, 'exp').toLocaleString('ko-KR')}</td>
                     <td className="mute">{sum(it, 'clk').toLocaleString('ko-KR')}</td>
                     <td className="mute">{sum(it, 'vis').toLocaleString('ko-KR')}</td>
@@ -310,17 +310,17 @@ function XlsxUpload({ existing, onDone }) {
           </div>
           {parsed.skipped.length > 0 && (
             <div className="adm-note">
-              인식 실패 {parsed.skipped.length}건: {parsed.skipped.map(s => `${s.sheet}(${s.reason})`).join(' · ')}
+              인식 실패 {parsed.skipped.length}건 {parsed.skipped.map(s => `${s.sheet}(${s.reason})`).join(', ')}
             </div>
           )}
           <label className="xu-replace">
             <input type="checkbox" checked={replaceAll} onChange={e => setReplaceAll(e.target.checked)} />
-            기존 실적 <b>전체 삭제 후</b> 반영 (대체 업로드 — 이 파일이 유일한 원본일 때만)
+            기존 실적 <b>전체 삭제 후</b> 반영 (대체 업로드, 이 파일이 유일한 원본일 때만)
           </label>
           <div className="adm-actions">
             <button className="btn-ghost sm" onClick={() => { setParsed(null); setReplaceAll(false) }}>취소</button>
             <button className="btn-solid sm" disabled={busy || parsed.items.every(it => !it.checked)} onClick={apply}>
-              {replaceAll ? '전체 교체 — ' : ''}선택 {parsed.items.filter(it => it.checked).length}건 반영
+              {replaceAll ? '전체 교체 ' : ''}선택 {parsed.items.filter(it => it.checked).length}건 반영
             </button>
           </div>
         </div>
@@ -384,7 +384,7 @@ function TargetAppAdmin() {
     <AdmSection title="타겟APP 실적 입력" count="엑셀 업로드 또는 직접 입력">
       {!data && (
         <div className="adm-note">
-          targetapp_stats 테이블 미설정 — data/targetapp-seed.sql 실행 후 입력 가능 (setup.md 7장)
+          targetapp_stats 테이블 미설정, data/targetapp-seed.sql 실행 후 입력 가능 (setup.md 7장)
         </div>
       )}
       <XlsxUpload existing={rows} onDone={refresh} />
@@ -398,7 +398,7 @@ function TargetAppAdmin() {
           <label className="wide">캠페인명<input value={f.name} onChange={e => set('name', e.target.value)} placeholder="예: 캐치티니핑 팝업스토어" /></label>
           <label>기간<input value={f.period} onChange={e => set('period', e.target.value)} placeholder="예: 3.21~3.31" /></label>
         </div>
-        <label>집행 매체 — 체크
+        <label>집행 매체
           <div className="sub-pick">
             {TA_SUBS.map(s => (
               <button type="button" key={s} className={f.media.includes(s) ? 'on' : ''} onClick={() => toggleMedia(s)}>{s}</button>
@@ -411,7 +411,7 @@ function TargetAppAdmin() {
           <label>방문자수<input inputMode="numeric" value={f.vis} onChange={e => set('vis', e.target.value)} /></label>
           <label>앱설치<input inputMode="numeric" value={f.inst} onChange={e => set('inst', e.target.value)} /></label>
         </div>
-        <label>인사이트 메모 (선택 — 모니터링 사업소 카드에 표시)
+        <label>인사이트 메모 (모니터링 사업소 카드에 표시)
           <textarea rows={2} value={f.note} onChange={e => set('note', e.target.value)} />
         </label>
         <div className="adm-actions">
@@ -430,7 +430,7 @@ function TargetAppAdmin() {
                   <td className="mute">{r.year}.{r.month}</td>
                   <td>{r.office}</td>
                   <td className="mon-acc">{r.name}</td>
-                  <td className="mute">{(r.media || []).join('·')}</td>
+                  <td className="mute">{(r.media || []).join(', ')}</td>
                   <td className="mute">{(r.exp || 0).toLocaleString('ko-KR')}</td>
                   <td className="mute">{(r.clk || 0).toLocaleString('ko-KR')}</td>
                   <td className="mute">{(r.vis || 0).toLocaleString('ko-KR')}</td>
@@ -458,7 +458,7 @@ export default function AdminPage() {
       <header>
         <h1>어드민</h1>
         <div className="masthead-sub">
-          일정 일괄 관리 · 삭제 복원 · 타겟APP 실적 입력 — 지정 계정 전용 (config.js ADMIN_EMAILS)
+          일정 일괄 관리와 삭제 복원, 타겟APP 실적 입력 (지정 계정 전용)
         </div>
       </header>
       <BulkEvents />

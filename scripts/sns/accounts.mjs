@@ -1,8 +1,8 @@
 /* SNS 모니터링 대상 계정 — 단일 소스 (수집·정제·화면 그룹이 모두 이 파일 기준)
-   그룹 체계 ('26.7 변경): 본사 / 사업소 / 아울렛 / 콘텐츠·IP / 해외 (+경쟁사 별도)
+   그룹 체계 ('26.7 변경): 본사 / 사업소 / 아울렛 / 콘텐츠 IP / 해외 (+경쟁사 별도)
    계정 추가·이동 = 이 파일 수정 → 다음 수집부터 반영 */
 
-export const IG_GROUP_ORDER = ['본사', '사업소', '아울렛', '콘텐츠·IP', '해외']
+export const IG_GROUP_ORDER = ['본사', '사업소', '아울렛', '콘텐츠 IP', '해외']
 
 export const IG_ACCOUNTS = [
   /* ── 본사 ─────────────────────────────── */
@@ -35,13 +35,13 @@ export const IG_ACCOUNTS = [
   { handle: 'hyundaioutlets_daejeon',   file: 'hyundaioutlets_daejeon',   name: '현대아울렛 대전',       group: '아울렛', isMain: false },
   { handle: 'hyundaioutlets_songdo',    file: 'hyundaioutlets_songdo',    name: '현대아울렛 송도',       group: '아울렛', isMain: false },
 
-  /* ── 콘텐츠·IP ────────────────────────── */
-  { handle: 'thehyundaiculture',        file: 'thehyundaiculture',        name: '더현대컬처',            group: '콘텐츠·IP', isMain: false },
-  { handle: 'hmoka3700',                file: 'hmoka3700',                name: '현대어린이책미술관',    group: '콘텐츠·IP', isMain: false },
-  { handle: 'peer_official',            file: 'peer_official',            name: '피어 PEER',             group: '콘텐츠·IP', isMain: false },
-  { handle: 'heendy.life',              file: 'heendy_life',              name: '흰디 Heendy',           group: '콘텐츠·IP', isMain: false },
-  { handle: 'thehyundai_beclean',       file: 'thehyundai_beclean',       name: '비클린(인디뷰티)',      group: '콘텐츠·IP', isMain: false },
-  { handle: 'till_white',               file: 'till_white',               name: '틸화이트',              group: '콘텐츠·IP', isMain: false },
+  /* ── 콘텐츠 IP ────────────────────────── */
+  { handle: 'thehyundaiculture',        file: 'thehyundaiculture',        name: '더현대컬처',            group: '콘텐츠 IP', isMain: false },
+  { handle: 'hmoka3700',                file: 'hmoka3700',                name: '현대어린이책미술관',    group: '콘텐츠 IP', isMain: false },
+  { handle: 'peer_official',            file: 'peer_official',            name: '피어 PEER',             group: '콘텐츠 IP', isMain: false },
+  { handle: 'heendy.life',              file: 'heendy_life',              name: '흰디 Heendy',           group: '콘텐츠 IP', isMain: false },
+  { handle: 'thehyundai_beclean',       file: 'thehyundai_beclean',       name: '비클린(인디뷰티)',      group: '콘텐츠 IP', isMain: false },
+  { handle: 'till_white',               file: 'till_white',               name: '틸화이트',              group: '콘텐츠 IP', isMain: false },
 
   /* ── 해외 ─────────────────────────────── */
   { handle: 'the_hyundai_tw',           file: 'the_hyundai_tw',           name: '더현대 대만',           group: '해외', isMain: false },

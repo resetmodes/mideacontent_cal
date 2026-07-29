@@ -154,11 +154,11 @@ export function histDiff(cur, prev) {
   const out = []
   for (const [k, label] of HIST_FIELDS) {
     const a = prev[k] ?? '', b = cur[k] ?? ''
-    if (a !== b) out.push(`${label}: ${a || '—'} → ${b || '—'}`)
+    if (a !== b) out.push(`${label} ${a || '없음'}에서 ${b || '없음'}으로`)
   }
   /* 이미지 첨부는 배열이라 장수 변화만 표기 ('26.7) */
   const ai = (prev.images || []).length, bi = (cur.images || []).length
-  if (ai !== bi) out.push(`이미지: ${ai}장 → ${bi}장`)
+  if (ai !== bi) out.push(`이미지 ${ai}장에서 ${bi}장으로`)
   return out
 }
 
@@ -171,9 +171,9 @@ function HistoryView({ eventId }) {
   }
   if (state === 'closed')
     return <button className="md-hist-link" onClick={open}>변경 이력</button>
-  if (state === 'loading') return <div className="md-hist-note">이력 불러오는 중…</div>
+  if (state === 'loading') return <div className="md-hist-note">이력 불러오는 중</div>
   if (state === 'error')
-    return <div className="md-hist-note">이력 조회 실패 — 이력 테이블 미설정일 수 있음 (supabase-setup.md 6장)</div>
+    return <div className="md-hist-note">이력 조회 실패, 이력 테이블 미설정일 수 있음 (supabase-setup.md 6장)</div>
   if (state.length === 0) return <div className="md-hist-note">기록된 이력 없음 (이력 기능 활성화 이후 변경분부터 기록)</div>
   return (
     <div className="md-hist">
@@ -182,9 +182,9 @@ function HistoryView({ eventId }) {
         return (
           <div key={h.id} className="md-hist-row">
             <span className="mh-when">{fmtTs(h.changed_at)}</span>
-            <span className="mh-who">{h.actor ? authorName(h.actor) : '—'}</span>
+            <span className="mh-who">{h.actor ? authorName(h.actor) : ''}</span>
             <span className="mh-act">{ACTION_KO[h.action] || h.action}</span>
-            {diffs.length > 0 && <span className="mh-diff">{diffs.join(' · ')}</span>}
+            {diffs.length > 0 && <span className="mh-diff">{diffs.join(', ')}</span>}
           </div>
         )
       })}
@@ -209,12 +209,12 @@ function DeletedLog({ shoot, team = false }) {
   return (
     <details className="del-log" onToggle={load}>
       <summary>최근 30일 삭제 기록</summary>
-      {failed && <div className="md-hist-note">조회 실패 — 이력 테이블 미설정일 수 있음 (supabase-setup.md 6장)</div>}
+      {failed && <div className="md-hist-note">조회 실패, 이력 테이블 미설정일 수 있음 (supabase-setup.md 6장)</div>}
       {rows && rows.length === 0 && <div className="md-hist-note">최근 30일 내 삭제된 일정 없음</div>}
       {rows && rows.map(r => (
         <div key={r.id} className="md-hist-row">
           <span className="mh-when">{fmtTs(r.changed_at)}</span>
-          <span className="mh-who">{r.actor ? authorName(r.actor) : '—'}</span>
+          <span className="mh-who">{r.actor ? authorName(r.actor) : ''}</span>
           <span className="mh-act">삭제</span>
           <span className="mh-diff">{r.data?.date} {displayTitle(r.data?.title, r.data?.channel)}{r.data?.channel ? ` (${r.data.channel})` : ''}</span>
         </div>
@@ -252,15 +252,15 @@ function ConfirmSheet({ draft, sim, onConfirm, onCancel, shootOnly = false, team
           <div className="cs-section">
             <div className="cs-q">
               {team
-                ? '유형이 인식되지 않았습니다 — 어떤 일정인가요?'
-                : `매체가 인식되지 않았습니다 — 어떤 매체인가요?${shootOnly ? ' (촬영일정은 인스타·유튜브만)' : ''}`}
+                ? '어떤 일정인가요?'
+                : `어떤 매체인가요?${shootOnly ? ' (촬영일정은 인스타와 유튜브만)' : ''}`}
             </div>
             <ChannelPickGrid value={channel} onPick={setChannel} shootOnly={shootOnly} team={team} />
           </div>
         )}
         {sim.length > 0 && (
           <div className="cs-section">
-            <div className="cs-q">비슷한 캠페인이 이미 있습니다 — 어느 쪽으로 등록할까요?</div>
+            <div className="cs-q">어느 캠페인으로 등록할까요?</div>
             <div className="cs-camps">
               {sim.map(c => (
                 <button key={c} className={campaign === c ? 'on' : ''} onClick={() => setCampaign(c)}>
@@ -341,13 +341,13 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
       setText(''); setErr(null); setPending(null)
       return
     }
-    if (!draft.date && !draft.shootDate) { setErr(team ? '날짜를 인식하지 못함 — 7/20 또는 8/1~3 형식으로' : '날짜를 인식하지 못함 — 12/20 형식, 촬영·업로드 병기는 "7/10 촬영 7/15 업로드"'); return }
-    if (!draft.title) { setErr(team ? '내용이 비어 있음 — 날짜 뒤에 이름·내용을 입력 (예: 7/20 노규빈 연차)' : '제목이 비어 있음 — 날짜 뒤에 내용을 입력'); return }
+    if (!draft.date && !draft.shootDate) { setErr(team ? '날짜를 인식하지 못함 (7/20 또는 8/1~3 형식)' : '날짜를 인식하지 못함 (12/20 형식, 촬영과 업로드 병기는 "7/10 촬영 7/15 업로드")'); return }
+    if (!draft.title) { setErr(team ? '날짜 뒤에 이름과 내용을 입력하세요 (예: 7/20 노규빈 연차)' : '날짜 뒤에 내용을 입력하세요'); return }
     /* 촬영 건 포함 시 매체 제한 — 유튜브·인스타만 (팀 탭은 해당 없음) */
     const hasShoot = !team && (shoot || !!draft.shootDate)
     const chans = draft.channels?.length ? draft.channels : (draft.channel ? [{ channel: draft.channel }] : [])
     if (hasShoot && chans.length > 0 && chans.some(c => !SHOOT_CHANNELS.has(c.channel))) {
-      setErr('촬영일정은 인스타·유튜브만 등록 가능'); return
+      setErr('촬영일정은 인스타와 유튜브만 등록 가능'); return
     }
     setErr(null)
     const sim = team ? [] : campSimilar(campaigns, draft.campaign)
@@ -362,12 +362,12 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
         <input
           className="qa-input" type="text" autoComplete="off"
           placeholder={isMobile()
-            ? (team ? '예: 7/20 노규빈 연차 · 다음주 월~수 출장' : shoot ? '예: 7/10 촬영 7/15 업로드 인스타' : '예: 12/20 인스타 릴스 #크리스마스')
+            ? (team ? '예: 7/20 노규빈 연차' : shoot ? '예: 7/10 촬영 7/15 업로드 인스타' : '예: 12/20 인스타 릴스 #크리스마스')
             : team
-              ? '한 줄 등록 — 예: 7/20 노규빈 연차 · 다음주 금요일 반차 · 다음주 월~수 노규빈 출장'
+              ? '예: 7/20 노규빈 연차, 다음주 월~수 노규빈 출장'
               : shoot
-                ? '한 줄 등록 — 예: 7/10 촬영 7/15 업로드 여름 룩북 인스타 · 다음주 화요일 촬영 세팅'
-                : '한 줄 등록 — 예: 12/20 크리스마스 인스타 릴스 #크리스마스 · 다음주 목요일 앱푸쉬'}
+                ? '예: 7/10 촬영 7/15 업로드 여름 룩북 인스타'
+                : '예: 12/20 크리스마스 인스타 릴스 #크리스마스'}
           value={text}
           onChange={e => { setText(e.target.value); setErr(null) }}
           onKeyDown={e => {
@@ -383,14 +383,14 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
             <span className={'st ' + (draft.date ? 'got' : 'miss')}>
               {draft.date
                 ? (draft.shootDate ? '업로드 ' : '') + fmtRange(draft)
-                : '날짜 미인식 — 12/20 형식으로'}
+                : '날짜 미인식 (12/20 형식)'}
             </span>
           )}
           {draft.channels?.length > 1 ? (
             <>
               {draft.channels.map((c, i) => (
                 <span key={i} className="st got">
-                  <ChannelIcon id={c.channel} /> {channelById(c.channel)?.label}{c.sub ? ` · ${c.sub}` : ''}
+                  <ChannelIcon id={c.channel} /> {channelById(c.channel)?.label}{c.sub ? ` ${c.sub}` : ''}
                 </span>
               ))}
               <span className="st camp">{draft.channels.length}건 동시 등록</span>
@@ -398,8 +398,8 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
           ) : (
             <span className={'st ' + (draft.channel ? 'got' : 'miss')}>
               {draft.channel
-                ? <><ChannelIcon id={draft.channel} /> {channelById(draft.channel)?.label}{draft.sub ? ` · ${draft.sub}` : ''}</>
-                : (team ? '유형 미인식 — 등록 시 선택 팝업' : '매체 미인식 — 등록 시 선택 팝업')}
+                ? <><ChannelIcon id={draft.channel} /> {channelById(draft.channel)?.label}{draft.sub ? ` ${draft.sub}` : ''}</>
+                : (team ? '유형 미인식' : '매체 미인식')}
             </span>
           )}
           {!team && draft.campaign && <span className="st camp">#{draft.campaign}</span>}
@@ -408,7 +408,7 @@ function QuickAdd({ onCreate, campaigns, shoot = false, team = false }) {
       )}
       {similar.length > 0 && (
         <div className="qa-suggest big">
-          {bareHash ? '기존 캠페인 선택' : '비슷한 캠페인이 이미 있음 — 클릭하면 통일'}
+          {bareHash ? '기존 캠페인 선택' : '비슷한 캠페인, 클릭하면 통일'}
           {similar.map(c => (
             <button key={c} onClick={() => useCampaign(c)}>#{c}</button>
           ))}
@@ -505,7 +505,7 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
             onClick={onDayClick
               ? () => { if (!dragRef.current?.active) onDayClick(c.iso) }
               : onDay ? () => onDay(c.iso) : undefined}   /* 읽기 전용 = 셀 클릭이 하루 보기 */
-            title={onDayClick ? '클릭해서 일정 등록 · 날짜 숫자 클릭 = 하루 전체 보기' : onDay ? '클릭해서 이 날 일정 전체 보기' : undefined}
+            title={onDayClick ? '클릭해서 일정 등록' : onDay ? '클릭해서 이 날 일정 전체 보기' : undefined}
           >
             <div className="cal-dayrow">
               {/* 일자 숫자 = 하루 전체 보기 ('26.7) — 셀(등록)과 분리된 명시 타깃 */}
@@ -532,13 +532,13 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
                     else onSelect(n > 1 ? e.group[0] : e)
                   }}
                   title={n > 1
-                    ? `타겟APP ${n}개 매체 동시 집행 — ${displayTitle(e.title, e.channel)} (${fmtRange(e)})`
-                    : `${channelById(e.channel)?.label || e.channel}${e.sub ? ` (${e.sub})` : ''} — ${displayTitle(e.title, e.channel)} (${fmtRange(e)})`}
+                    ? `타겟APP ${n}개 매체 동시 집행, ${displayTitle(e.title, e.channel)} (${fmtRange(e)})`
+                    : `${channelById(e.channel)?.label || e.channel}${e.sub ? ` (${e.sub})` : ''} ${displayTitle(e.title, e.channel)} (${fmtRange(e)})`}
                 >
                   <ChannelIcon id={e.channel} />
                   {n > 1 && <span className="ev-cnt">×{n}</span>}
                   {wide && <span className="ev-ch">{channelById(e.channel)?.label || e.channel}</span>}
-                  <span className="ev-title">{displayTitle(e.title, e.channel)}{e.isEnd && ' · 종료'}</span>
+                  <span className="ev-title">{displayTitle(e.title, e.channel)}{e.isEnd && ' 종료'}</span>
                 </button>
               )
             })}
@@ -577,8 +577,8 @@ function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister, closed
       <div className="modal day-sheet" onClick={e => e.stopPropagation()}>
         <div className="md-ch">하루 일정 {list.length}건</div>
         <div className="md-title">{fmtDot(iso)}
-          {closed && <small className="day-closed"> · {closed}</small>}
-          {hol && <small className="day-hol"> · {hol}</small>}</div>
+          {closed && <small className="day-closed"> {closed}</small>}
+          {hol && <small className="day-hol"> {hol}</small>}</div>
         <div className="day-list">
           {list.map(e => {
             const o = orderRange(e)
@@ -587,10 +587,10 @@ function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister, closed
             return (
               <button key={e.id} className="day-row" onClick={() => onSelect(e)}>
                 <ChannelIcon id={e.channel} />
-                <span className="day-ch">{channelById(e.channel)?.label || e.channel}{e.sub ? ` · ${e.sub}` : ''}</span>
+                <span className="day-ch">{channelById(e.channel)?.label || e.channel}{e.sub ? ` ${e.sub}` : ''}</span>
                 <span className="day-ttl">{displayTitle(e.title, e.channel)}</span>
                 {e.campaign && <span className="day-camp">#{e.campaign}</span>}
-                {tag && <span className="day-sub">{tag} · {fmtRange(o)}</span>}
+                {tag && <span className="day-sub">{tag} {fmtRange(o)}</span>}
               </button>
             )
           })}
@@ -640,11 +640,11 @@ function CampBlock({ g, renaming, renameVal, setRenameVal, onConfirmRename, onSt
               <span className="camp-name">#{g.name}</span>
             )}
             {canRename && (
-              <button className="camp-rename" onClick={() => onStartRename(g.name)}>이름 변경·통합</button>
+              <button className="camp-rename" onClick={() => onStartRename(g.name)}>이름 변경</button>
             )}
           </>
         )}
-        <span className="camp-range">{fmtDot(g.first)} ~ {fmtDot(g.lastEnd)} · {g.list.length}건</span>
+        <span className="camp-range">{fmtDot(g.first)} ~ {fmtDot(g.lastEnd)}, {g.list.length}건</span>
       </div>
       {g.list.map(e => (
         <button key={e.id} className="camp-ev" onClick={() => onSelect(e)}>
@@ -752,7 +752,7 @@ function CampaignView({
         closedDays={closedDays} />
 
       {empty && (
-        <div className="empty">캠페인 태그가 붙은 일정이 없음 — 빠른 입력에 #캠페인명 을 붙이면 여기에 묶임</div>
+        <div className="empty">빠른 입력에 #캠페인명을 붙이면 여기에 묶임</div>
       )}
 
       {focusedGroup ? (
@@ -766,7 +766,7 @@ function CampaignView({
           {groups.recent.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
           {groups.past.length > 0 && (
             <details className="camp-past">
-              <summary>지난 캠페인 {groups.past.length}건 — 최근 1개월 게시 없음, 자동 보관</summary>
+              <summary>지난 캠페인 {groups.past.length}건 <small>최근 1개월 게시 없음</small></summary>
               {groups.past.map(g => <CampBlock key={g.name} g={g} {...blockProps} />)}
             </details>
           )}
@@ -889,7 +889,10 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
       <div className="modal" onClick={e => e.stopPropagation()}>
         {!editing ? (
           <>
-            <div className="md-ch"><ChannelIcon id={event.channel} /> {channelById(event.channel)?.label || event.channel}{event.sub ? ` · ${event.sub}` : ''}{isShoot ? ' · 촬영' : ''}{isTeam ? ' · 팀 일정' : ''}</div>
+            <div className="md-ch"><ChannelIcon id={event.channel} /> {channelById(event.channel)?.label || event.channel}
+              {event.sub && <span className="md-ch-sub">{event.sub}</span>}
+              {isShoot && <span className="md-ch-sub">촬영</span>}
+              {isTeam && <span className="md-ch-sub">팀 일정</span>}</div>
             <div className="md-title">{displayTitle(event.title, event.channel)}</div>
             <dl className="md-grid">
               <dt>일자</dt><dd>{fmtRange(event)}</dd>
@@ -909,7 +912,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                 <div className="md-perf-item">
                   <a className="md-perf-row" href={pinned.url} target="_blank" rel="noopener noreferrer">
                     <span className="pf-title">{pinned.title}</span>
-                    <span className="pf-meta">{pinned.meta} <span className="pf-open">↗</span></span>
+                    <span className="pf-meta">{pinned.meta}</span>
                   </a>
                 </div>
               </div>
@@ -922,7 +925,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                   <div key={p.url} className="md-perf-item">
                     <a className="md-perf-row" href={p.url} target="_blank" rel="noopener noreferrer">
                       <span className="pf-title">{p.title}</span>
-                      <span className="pf-meta">{p.meta} <span className="pf-open">↗</span></span>
+                      <span className="pf-meta">{p.meta}</span>
                     </a>
                     {!readOnly && (
                       <button className="pf-pin" onClick={() => setPerf(p.url)}>선택</button>
@@ -933,7 +936,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
             )}
             {specName && onOpenSpec && (
               <button className="md-spec-link" onClick={() => { onOpenSpec(specName); onClose() }}>
-                이 매체 규격·납기 보기 →
+                이 매체 규격과 납기 보기
               </button>
             )}
             {storageMode === 'supabase' && <HistoryView eventId={event.id} />}
@@ -950,15 +953,15 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
           </>
         ) : (
           <>
-            <div className="md-ch">{isNew ? `${isTeam ? '팀 ' : isShoot ? '촬영 ' : ''}일정 등록 — ${fmtDot(f.date || event.date)}` : `${isTeam ? '팀 ' : isShoot ? '촬영 ' : ''}일정 수정`}</div>
+            <div className="md-ch">{`${isTeam ? '팀 ' : isShoot ? '촬영 ' : ''}일정 ${isNew ? '등록' : '수정'}`}</div>
             {isNew && (
               <input
                 className="qa-input md-quick" type="text" autoComplete="off" autoFocus
                 placeholder={mobile
                   ? (isTeam ? '예: 노규빈 연차' : '예: 인스타 릴스 여름 룩북 #여름')
                   : isTeam
-                    ? `한 줄 자동 작성 — 예: 노규빈 연차${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`
-                    : `한 줄 자동 작성 — 예: 본사 인스타 릴스 촬영 #여름${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`}
+                    ? `예: 노규빈 연차${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`
+                    : `예: 본사 인스타 릴스 촬영 #여름${expanded ? ' (아래 폼이 자동으로 채워짐)' : ''}`}
                 value={quick}
                 onChange={e => applyQuick(e.target.value)}
               />
@@ -967,7 +970,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
               <>
                 <div className="qa-status md-mini">
                   <span className="st got">{f.endDate ? `${fmtDot(f.date)} ~ ${fmtDot(f.endDate)}` : fmtDot(f.date)}</span>
-                  <span className="st got"><ChannelIcon id={f.channel} /> {channelById(f.channel)?.label || f.channel}{subsSel.length ? ` · ${subsSel.join('·')}` : f.sub ? ` · ${f.sub}` : ''}</span>
+                  <span className="st got"><ChannelIcon id={f.channel} /> {channelById(f.channel)?.label || f.channel}{subsSel.length ? ` ${subsSel.join(', ')}` : f.sub ? ` ${f.sub}` : ''}</span>
                   {subsSel.length > 1 && <span className="st camp">{subsSel.length}건 동시 등록</span>}
                   {f.campaign && <span className="st camp">#{f.campaign}</span>}
                   {f.title ? <span className="st ttl">{f.title}</span> : <span className="st miss">내용을 위에 입력</span>}
@@ -981,7 +984,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                     ))}
                   </div>
                 )}
-                <button className="md-expand" onClick={() => setExpanded(true)}>상세 입력 펼치기 — 매체·기간·메모 직접 선택</button>
+                <button className="md-expand" onClick={() => setExpanded(true)}>상세 입력 펼치기</button>
               </>
             )}
             <div className="md-form" style={expanded ? undefined : { display: 'none' }}>
@@ -1006,14 +1009,14 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                 {!(multiSub && subs.length > 0) && (
                   <label>세부
                     <select value={f.sub} onChange={e => set('sub', e.target.value)} disabled={subs.length === 0}>
-                      <option value="">{subs.length ? '선택' : '—'}</option>
+                      <option value="">{subs.length ? '선택' : ''}</option>
                       {subs.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </label>
                 )}
               </div>
               {multiSub && subs.length > 0 && (
-                <label>세부 — 체크한 만큼 동시 등록{subsSel.length > 1 ? ` (${subsSel.length}건)` : ''}
+                <label>세부 (체크한 만큼 동시 등록){subsSel.length > 1 ? ` (${subsSel.length}건)` : ''}
                   <div className="sub-pick">
                     {subs.map(s => (
                       <button type="button" key={s} className={subsSel.includes(s) ? 'on' : ''} onClick={() => toggleSub(s)}>{s}</button>
@@ -1056,9 +1059,9 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                   <input value={f.owner} onChange={e => set('owner', e.target.value)} />
                 </label>
               </div>
-              <label>메모 · 참고 링크
+              <label>메모와 참고 링크
                 <textarea rows={3} value={f.memo} onChange={e => set('memo', e.target.value)}
-                  placeholder="추가로 알아야 할 설명이나 참고 링크(http…) — 링크는 상세에서 클릭 가능" />
+                  placeholder="설명이나 참고 링크" />
               </label>
             </div>
             <div className="md-actions">
@@ -1082,7 +1085,7 @@ function NotionReview({ list, onResolve }) {
   return (
     <div className="notion-review">
       <button className="nr-head" onClick={() => setOpen(o => !o)}>
-        노션에서 삭제된 일정 <b>{list.length}건</b> — 우리 캘린더에서 지울지 확인 필요
+        노션에서 삭제된 일정 <b>{list.length}건</b>, 우리 캘린더에서 지울지 확인 필요
         <span className="nr-chev">{open ? '접기' : '확인'}</span>
       </button>
       {open && list.map(e => (
@@ -1367,12 +1370,12 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
         <h1>{team ? '팀 일정' : shoot ? '촬영 일정 캘린더' : '매체 일정 캘린더'}</h1>
         <div className="masthead-sub">
           {team
-            ? '연차·외근·교육·기념일 등, 빠른 입력 한 줄로 등록하세요'
+            ? '연차, 외근, 교육, 기념일을 빠른 입력 한 줄로 등록'
             : shoot
               ? '콘텐츠 촬영 스케줄 ("7/10 촬영 7/15 업로드"로 병기하면 업로드 건은 매체 캘린더에 자동 등록)'
               : readOnly
-                ? '미디어콘텐츠팀 매체 집행 일정 — 읽기 전용 공유 뷰 (등록·수정은 팀 내부에서만)'
-                : '팀 운영 매체 집행 일정: 빠른 입력 한 줄로 등록, 클릭해서 수정·삭제'}
+                ? '읽기 전용 공유 뷰 (등록과 수정은 팀 내부에서만)'
+                : '빠른 입력 한 줄로 등록, 클릭해서 수정하거나 삭제'}
         </div>
         {session && !readOnly && !team && (
           <div className="session-bar">
@@ -1386,7 +1389,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
 
       {!readOnly && storageMode === 'local' && (
         <div className="store-note">
-          현재 <b>이 브라우저에만</b> 저장 중 — 팀 공유를 켜려면 Supabase 연동 (data/supabase-setup.md)
+          현재 <b>이 브라우저에만</b> 저장 중, 팀 공유를 켜려면 Supabase 연동 (data/supabase-setup.md)
         </div>
       )}
       {error && <div className="store-err">{error}</div>}
@@ -1404,8 +1407,8 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
         <input
           className="cal-search" type="search" autoComplete="off"
           placeholder={team
-            ? (isMobile() ? '일정 찾기 — 이름·유형·메모' : '등록된 일정 찾기 — 이름·유형·메모·작성자')
-            : (isMobile() ? '일정 찾기 — 제목·캠페인·작성자' : '등록된 일정 찾기 — 제목·캠페인·메모·작성자·매체')}
+            ? (isMobile() ? '이름, 유형, 메모로 찾기' : '이름, 유형, 메모, 작성자로 찾기')
+            : (isMobile() ? '제목, 캠페인, 작성자로 찾기' : '제목, 캠페인, 메모, 작성자, 매체로 찾기')}
           value={search} onChange={e => setSearch(e.target.value)}
         />
         {searching && <button className="cal-search-clear" onClick={() => setSearch('')}>지우기</button>}
@@ -1450,7 +1453,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
       )}
 
       {loading ? (
-        <div className="empty">불러오는 중…</div>
+        <div className="empty">불러오는 중</div>
       ) : searching ? (
         <SearchResults events={kindEvents} query={search} onSelect={setSelected} />
       ) : readOnly ? (
@@ -1529,7 +1532,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
       {undo && !readOnly && (
         <div className="undo-bar">
           <span className="undo-msg">
-            "{displayTitle(undo.title, undo.channel)}"{undo.n > 1 ? ` ×${undo.n}` : ''} {fmtDot(undo.from)} → {fmtDot(undo.to)} 이동됨
+            "{displayTitle(undo.title, undo.channel)}"{undo.n > 1 ? ` ×${undo.n}` : ''} {fmtDot(undo.from)}에서 {fmtDot(undo.to)}로 이동됨
           </span>
           <button className="undo-btn" onClick={onUndo}>실행 취소</button>
         </div>
@@ -1555,7 +1558,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
               {groupSel.map(e => (
                 <button key={e.id} className="group-item" onClick={() => { setGroupSel(null); setSelected(e) }}>
                   <span className="gi-sub">{e.sub || '세부 미지정'}</span>
-                  <span className="gi-go">상세 →</span>
+                  <span className="gi-go">상세</span>
                 </button>
               ))}
             </div>

@@ -18,7 +18,7 @@ import { fmtWon } from './data/rmn.js'
    상태 파이프라인(전원 공유 뷰) + 반복 정산 템플릿 + 월별·건별 폴더링 ZIP 일괄 다운로드 */
 
 const thisMonth = () => new Date().toISOString().slice(0, 7)
-const fmtYM = ym => ym ? ym.replace('-', '.') : '—'
+const fmtYM = ym => ym ? ym.replace('-', '.') : ''
 const mmdd = iso => iso ? `${iso.slice(5, 7)}${iso.slice(8, 10)}` : '0000'
 const firstName = n => (n || '').split(' ')[0]
 
@@ -42,7 +42,7 @@ function AllocBox({ presetId, amount, excluded, onPreset, onToggleStore, onMsg }
       const wb = new ExcelJS.Workbook()
       const ws = wb.addWorksheet('점 배분')
       ws.columns = [{ width: 4 }, { width: 14 }, { width: 10 }, { width: 16 }, { width: 4 }, { width: 14 }, { width: 10 }, { width: 16 }]
-      ws.getCell('B2').value = `※ 항목명: ${result.preset.label}${result.renormalized ? ' (일부 점 제외 — 재정규화)' : ''}`
+      ws.getCell('B2').value = `※ 항목명 ${result.preset.label}${result.renormalized ? ' (일부 점 제외로 재정규화)' : ''}`
       ws.getCell('B4').value = '구분'; ws.getCell('C4').value = '분담률'; ws.getCell('D4').value = '비용'
       ws.getCell('B5').value = '합계'; ws.getCell('C5').value = 100; ws.getCell('D5').value = result.amount
       result.rows.forEach((r, i) => {
@@ -80,8 +80,8 @@ function AllocBox({ presetId, amount, excluded, onPreset, onToggleStore, onMsg }
         <>
           <div className="stl-alloc-sum">
             {result.preset.stores.length - excluded.length}개점 배분
-            {excluded.length > 0 && <span className="mute"> (제외 {excluded.length}점 — 잔여 비율 재정규화)</span>}
-            · 법인 분할: {result.corp.map(c => `${c.name} ${fmtWon(c.cost)}`).join(' / ')}
+            {excluded.length > 0 && <span className="mute"> (제외 {excluded.length}점, 잔여 비율 재정규화)</span>}
+            법인 분할 {result.corp.map(c => `${c.name} ${fmtWon(c.cost)}`).join(', ')}
             <button type="button" className="btn-ghost sm" onClick={() => setOpenTable(o => !o)}>{openTable ? '배분표 접기' : '배분표 보기'}</button>
             <button type="button" className="btn-ghost sm" onClick={downloadXlsx}>xlsx 다운로드</button>
           </div>
@@ -96,9 +96,9 @@ function AllocBox({ presetId, amount, excluded, onPreset, onToggleStore, onMsg }
                     return (
                       <tr key={s.name} className={off ? 'stl-off' : ''}>
                         <td><input type="checkbox" checked={!off} onChange={() => onToggleStore(s.name)} /></td>
-                        <td className="mon-acc">{s.grp ? <small className="mute">{s.grp} · </small> : ''}{s.name}</td>
-                        <td className="mute">{off ? '—' : `${Math.round(row.effRate * 100) / 100}%`}</td>
-                        <td>{off ? '—' : fmtWon(row.cost)}</td>
+                        <td className="mon-acc">{s.grp ? <small className="mute">{s.grp} </small> : ''}{s.name}</td>
+                        <td className="mute">{off ? '' : `${Math.round(row.effRate * 100) / 100}%`}</td>
+                        <td>{off ? '' : fmtWon(row.cost)}</td>
                       </tr>
                     )
                   })}
@@ -152,7 +152,7 @@ function FileSlot({ slot, row, onChanged, onMsg, readonly }) {
       ))}
       {!readonly && (
         <label className={'stl-up' + (busy ? ' busy' : '')}>
-          {busy ? '업로드 중…' : '＋ 파일 첨부'}
+          {busy ? '업로드 중' : '＋ 파일 첨부'}
           <input type="file" multiple onChange={up} disabled={busy} style={{ display: 'none' }} />
         </label>
       )}
@@ -174,7 +174,7 @@ function SettleRow({ row, open, onToggle, onChanged, onMsg, onEdit, confirmDel, 
         <span className={'stl-type ' + (row.stype === '법인카드' ? 'card' : 'tax')}>{row.stype === '법인카드' ? '카드' : '계산서'}</span>
         <span className="stl-title"><b>{row.title}</b>{row.recurring && <span className="stl-rec">반복</span>}</span>
         <span className="stl-meta">
-          {firstName(row.owner_name) || row.owner_email?.split('@')[0]} · {fmtYM(row.month)} · {fmtWon(row.amount)}
+          {firstName(row.owner_name) || row.owner_email?.split('@')[0]}, {fmtYM(row.month)}, {fmtWon(row.amount)}
           {missing && <span className="stl-warn">증빙 미첨부</span>}
           {!missing && taxWait && <span className="stl-warn soft">계산서 미발행</span>}
         </span>
@@ -186,7 +186,7 @@ function SettleRow({ row, open, onToggle, onChanged, onMsg, onEdit, confirmDel, 
         </select>
         {row.status !== flow[flow.length - 1] && (
           <button className="btn-ghost sm" onClick={() => setStatus(nextSettleStatus(row.stype, row.status))}>
-            다음 → <small className="mute">{nextSettleStatus(row.stype, row.status)}</small>
+            다음 단계 <small className="mute">{nextSettleStatus(row.stype, row.status)}</small>
           </button>
         )}
         <button className="btn-ghost sm" onClick={() => onEdit(row)}>수정</button>
@@ -201,10 +201,10 @@ function SettleRow({ row, open, onToggle, onChanged, onMsg, onEdit, confirmDel, 
           ))}
           {row.stype === '법인카드' && (
             <div className="stl-line mute">
-              {row.account ? `계정과목: ${row.account}` : ''}{row.easy_doc ? ` · 간편결재 문서번호: ${row.easy_doc}` : ''}
+              {row.account ? `계정과목 ${row.account}` : ''}{row.easy_doc ? ` 간편결재 문서번호 ${row.easy_doc}` : ''}
             </div>
           )}
-          {alloc && <div className="stl-line mute">점 배분: {alloc.label}{(row.alloc_excluded || []).length ? ` (제외 ${row.alloc_excluded.join('·')})` : ''}</div>}
+          {alloc && <div className="stl-line mute">점 배분 {alloc.label}{(row.alloc_excluded || []).length ? ` (제외 ${row.alloc_excluded.join(', ')})` : ''}</div>}
           {row.memo && <div className="stl-line mute">{row.memo}</div>}
         </div>
       )}
@@ -253,7 +253,7 @@ export default function SettlePage() {
       else {
         const created = await createSettle({ ...body, status: '작성' })
         setExpanded(created?.id || null)   // 등록 직후 펼쳐서 바로 파일 첨부
-        setMsg(`"${body.title}" 등록됨 — 아래 행을 펼쳐 증빙을 첨부하세요`); toast('정산 등록됨')
+        setMsg(`"${body.title}" 등록됨, 아래 행을 펼쳐 증빙을 첨부하세요`); toast('정산 등록됨')
       }
       setF(EMPTY); setExcluded([]); setEditId(null)
       refresh()
@@ -323,7 +323,7 @@ export default function SettlePage() {
         }
       }
       saveBlob(buildZip(entries), `정산증빙_${zipMonth === 'all' ? '전체' : zipMonth}.zip`)
-      setMsg(`${targets.length}건 · ${entries.length}개 파일 ZIP 다운로드 완료`)
+      setMsg(`${targets.length}건 ${entries.length}개 파일 ZIP 다운로드 완료`)
     } catch (e) { setMsg(e.message) }
     setZipBusy(false)
   }
@@ -333,14 +333,14 @@ export default function SettlePage() {
       <header>
         <h1>정산</h1>
         <div className="masthead-sub">
-          법인카드·세금계산서 정산 관리 — 증빙 첨부(자동 압축)·점 배분·반복 정산 (테스트: 3인 공유)
+          법인카드와 세금계산서 정산 관리 (테스트 3인 공유)
         </div>
       </header>
 
-      {rows === undefined && <div className="empty">불러오는 중…</div>}
+      {rows === undefined && <div className="empty">불러오는 중</div>}
       {rows === null && (
         <div className="mon-note">
-          정산 테이블이 아직 없습니다 — Supabase SQL Editor에서 <b>data/settle-setup.sql</b>을
+          정산 테이블이 아직 없습니다. Supabase SQL Editor에서 <b>data/settle-setup.sql</b>을
           1회 실행하면 사용 가능합니다 (절차: supabase-setup.md 9장)
         </div>
       )}
@@ -353,13 +353,13 @@ export default function SettlePage() {
               {missingList.length > 0 && (
                 <button className="stl-sum-item" onClick={() => setFilter('증빙 미첨부')}>
                   증빙 미첨부 <b>{missingList.length}건</b>
-                  <span className="mute"> — {[...new Set(missingList.map(r => firstName(r.owner_name)))].join(' · ')}</span>
+                  <span className="mute"> {[...new Set(missingList.map(r => firstName(r.owner_name)))].join(', ')}</span>
                 </button>
               )}
               {taxList.length > 0 && (
                 <button className="stl-sum-item" onClick={() => setFilter('계산서 미발행')}>
                   계산서 미발행 <b>{taxList.length}건</b>
-                  <span className="mute"> — {[...new Set(taxList.map(r => firstName(r.owner_name)))].join(' · ')}</span>
+                  <span className="mute"> {[...new Set(taxList.map(r => firstName(r.owner_name)))].join(', ')}</span>
                 </button>
               )}
             </div>
@@ -418,21 +418,21 @@ export default function SettlePage() {
                 {editId ? '수정 저장' : '정산 등록'}
               </button>
             </div>
-            <small className="mute">담당자는 로그인 계정({authorName(me)})으로 자동 기록 · 증빙은 등록 후 행을 펼쳐 첨부 (이미지 자동 압축)</small>
+            <small className="mute">담당자는 로그인 계정({authorName(me)})으로 자동 기록, 증빙은 등록 후 행을 펼쳐 첨부</small>
             {msg && <div className="adm-msg">{msg}</div>}
           </div>
 
           {/* ── 반복 정산 템플릿 ── */}
           {templates.length > 0 && (
             <>
-              <div className="group-label">반복 정산 템플릿 <small className="adm-count">매달 같은 파일 — 언제든 다운로드 · 원클릭 생성</small></div>
+              <div className="group-label">반복 정산 템플릿 <small className="adm-count">매달 같은 파일을 원클릭으로 생성</small></div>
               <div className="stl-rows">
                 {templates.map(t => (
                   <div key={t.id} className="stl-row stl-tpl">
                     <div className="stl-head" onClick={() => setExpanded(x => x === t.id ? null : t.id)}>
                       <span className="stl-rec">반복</span>
                       <span className="stl-title"><b>{t.title}</b></span>
-                      <span className="stl-meta">{t.stype} · {fmtWon(t.amount)} · 파일 {(t.files || []).length}개</span>
+                      <span className="stl-meta">{t.stype}, {fmtWon(t.amount)}, 파일 {(t.files || []).length}개</span>
                       <span className="stl-chev" aria-hidden>{expanded === t.id ? '▾' : '▸'}</span>
                     </div>
                     <div className="stl-ctl">
@@ -456,7 +456,7 @@ export default function SettlePage() {
           )}
 
           {/* ── 정산 목록 (전원 공유) ── */}
-          <div className="group-label">정산 목록 <small className="adm-count">{items.length}건 — 3인 모두 서로의 건 확인 가능</small></div>
+          <div className="group-label">정산 목록 <small className="adm-count">{items.length}건, 3인 공유</small></div>
           <div className="stl-filters">
             {['전체', '증빙 미첨부', '계산서 미발행', '진행 중', '완료'].map(x => (
               <button key={x} className={filter === x ? 'on' : ''} onClick={() => setFilter(x)}>{x}</button>
@@ -473,16 +473,16 @@ export default function SettlePage() {
           </div>
 
           {/* ── 회기 마감 일괄 다운로드 — 월별/건별 폴더 ZIP ── */}
-          <div className="group-label">증빙 일괄 다운로드 <small className="adm-count">ZIP — 월별 / 건별 폴더 정리</small></div>
+          <div className="group-label">증빙 일괄 다운로드 <small className="adm-count">월별과 건별 폴더로 정리</small></div>
           <div className="stl-zipbar">
             <select value={zipMonth} onChange={e => setZipMonth(e.target.value)}>
               <option value="all">전체 기간</option>
               {months.map(m => <option key={m} value={m}>{fmtYM(m)}</option>)}
             </select>
             <button className="btn-solid sm" disabled={zipBusy} onClick={makeZip}>
-              {zipBusy ? '묶는 중…' : 'ZIP 다운로드'}
+              {zipBusy ? '묶는 중' : 'ZIP 다운로드'}
             </button>
-            <small className="mute">폴더 구조: 귀속월 / 등록일_제목_담당자 / 파일</small>
+            <small className="mute">폴더 구조는 귀속월 안에 등록일_제목_담당자</small>
           </div>
         </>
       )}

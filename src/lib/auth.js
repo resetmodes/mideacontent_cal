@@ -29,7 +29,7 @@ function setFromTokenResponse(data, email) {
 
 const ERROR_KO = {
   'Invalid login credentials': '이메일 또는 비밀번호가 올바르지 않습니다',
-  'Email not confirmed': '이메일 인증이 완료되지 않은 계정입니다 — 담당자에게 문의',
+  'Email not confirmed': '이메일 인증이 완료되지 않은 계정입니다, 담당자에게 문의',
 }
 
 export async function signIn(email, password) {
@@ -41,7 +41,7 @@ export async function signIn(email, password) {
   const data = await res.json()
   if (!res.ok) {
     const msg = data.error_description || data.msg
-    throw new Error(ERROR_KO[msg] || msg || '로그인 실패 — 이메일·비밀번호 확인')
+    throw new Error(ERROR_KO[msg] || msg || '로그인 실패, 이메일과 비밀번호 확인')
   }
   setFromTokenResponse(data, email)
 }
@@ -53,14 +53,14 @@ export function signOut() {
 }
 
 async function refresh() {
-  if (!session?.refreshToken) throw new Error('세션 만료 — 다시 로그인 필요')
+  if (!session?.refreshToken) throw new Error('세션 만료, 다시 로그인 필요')
   const res = await fetch(`${AUTH_API}/token?grant_type=refresh_token`, {
     method: 'POST',
     headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({ refresh_token: session.refreshToken }),
   })
   const data = await res.json()
-  if (!res.ok) { signOut(); throw new Error('세션 만료 — 다시 로그인 필요') }
+  if (!res.ok) { signOut(); throw new Error('세션 만료, 다시 로그인 필요') }
   setFromTokenResponse(data)
 }
 

@@ -22,8 +22,8 @@ export default function LoginScreen({ viewer = false }) {
         <h1>로그인</h1>
         <div className="masthead-sub">
           {viewer
-            ? '읽기 전용 공유 뷰 — 전달받은 뷰어 계정으로 로그인 (계정 문의: 미디어콘텐츠팀)'
-            : '매체 캘린더 · 매체 스펙 · 매체 모니터링 — 팀 계정으로 로그인 (계정 발급은 담당자에게 문의)'}
+            ? '읽기 전용 공유 뷰입니다. 전달받은 뷰어 계정으로 로그인하세요. 계정은 미디어콘텐츠팀에 문의하세요.'
+            : '팀 계정으로 로그인하세요. 계정 발급은 담당자에게 문의하세요.'}
         </div>
       </header>
       <form className="login-card" onSubmit={submit}>
@@ -34,7 +34,7 @@ export default function LoginScreen({ viewer = false }) {
           <input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
         </label>
         {err && <div className="qa-err">{err}</div>}
-        <button className="btn-solid" type="submit" disabled={loading}>{loading ? '확인 중…' : '로그인'}</button>
+        <button className="btn-solid" type="submit" disabled={loading}>{loading ? '확인 중' : '로그인'}</button>
       </form>
     </div>
   )

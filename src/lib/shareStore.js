@@ -19,7 +19,7 @@ async function authedReq(path, opts = {}) {
   if (!res.ok) {
     const t = await res.text()
     if (res.status === 404 || /rmn_share/.test(t) && /not exist|relation/.test(t))
-      throw new Error('공유 테이블이 아직 없습니다 — data/rmn-share-setup.sql을 1회 실행하세요')
+      throw new Error('공유 테이블이 아직 없습니다, data/rmn-share-setup.sql을 1회 실행하세요')
     throw new Error(`공유 처리 실패 (${res.status}) ${t.slice(0, 120)}`)
   }
   return res
@@ -69,7 +69,7 @@ async function rpc(name, body) {
     headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error('리포트를 불러올 수 없습니다 — 링크를 다시 확인해 주세요')
+  if (!res.ok) throw new Error('리포트를 불러올 수 없습니다, 링크를 다시 확인해 주세요')
   return res.json()
 }
 

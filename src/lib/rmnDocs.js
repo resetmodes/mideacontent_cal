@@ -24,7 +24,7 @@ const dayCount = (s, e) => Math.round((new Date(e + 'T00:00:00') - new Date(s + 
 async function loadWb(name) {
   const ExcelJS = (await import('exceljs')).default
   const res = await fetch(`${import.meta.env.BASE_URL}templates/${name}`)
-  if (!res.ok) throw new Error(`템플릿 로드 실패: ${name} (${res.status})`)
+  if (!res.ok) throw new Error(`템플릿 로드 실패 ${name} (${res.status})`)
   const wb = new ExcelJS.Workbook()
   await wb.xlsx.load(await res.arrayBuffer())
   return wb
@@ -43,7 +43,7 @@ async function downloadWb(wb, filename) {
 /* ── 청약서 — 같은 광고주·기간의 부킹 묶음(≤6행)으로 1장 생성 ── */
 export async function buildOrderXlsx(group, todayISO) {
   if (!group.length) throw new Error('청약서에 담을 부킹이 없습니다')
-  if (group.length > 6) throw new Error('청약서 상품 행은 최대 6개 — 기간을 나눠 생성해 주세요')
+  if (group.length > 6) throw new Error('청약서 상품 행은 최대 6개입니다. 기간을 나눠 생성해 주세요.')
   const wb = await loadWb('rmn-order.xlsx')
   const ws = wb.getWorksheet('청약서')
   const set = (a, v, fmt) => { const c = ws.getCell(a); c.value = v ?? ''; if (fmt) c.numFmt = fmt }
@@ -332,9 +332,9 @@ const xlSerial = iso => Math.round((new Date(iso + 'T00:00:00Z') - new Date('189
 
 export async function buildResultXlsx(group, dailyRows) {
   const days = dayCount(group.start, group.end)
-  if (days > 14) throw new Error(`캠페인 기간 ${days}일 — 현재 결과보고서 양식은 14일 이내 전용입니다`)
+  if (days > 14) throw new Error(`캠페인 기간 ${days}일, 결과보고서 양식은 14일 이내 전용입니다`)
   if (!dailyRows || dailyRows.length === 0)
-    throw new Error('GA 일별 데이터가 없습니다 — 수집 전이거나 rmn_ga_daily 미설정 (setup.md 8-5)')
+    throw new Error('GA 일별 데이터가 없습니다 (수집 전이거나 rmn_ga_daily 미설정, setup.md 8-5)')
 
   const wb = await loadWb('rmn-report.xlsx')
   const ws = wb.worksheets[0]
@@ -372,6 +372,6 @@ export async function buildResultXlsx(group, dailyRows) {
       if (v.imps || v.clicks) filled++
     })
   }
-  if (!filled) throw new Error('이 캠페인 구좌의 일별 데이터가 없습니다 (수집 대상 상품: 스플래시·팝업·메인·하단·헤드라인)')
+  if (!filled) throw new Error('이 캠페인 구좌의 일별 데이터가 없습니다 (수집 대상은 스플래시, 팝업, 메인, 하단, 헤드라인)')
   await downloadWb(wb, `결과보고서_${group.advertiser}_${group.start.replace(/-/g, '')}.xlsx`)
 }

@@ -19,7 +19,7 @@ async function req(path, options = {}) {
     },
   })
   if (res.status === 403) throw new Error('이 계정은 쓰기 권한이 없습니다 (team_writers 미등록)')
-  if (!res.ok) throw new Error(`RMN ${res.status} — 테이블 설정 확인 (setup.md 8장)`)
+  if (!res.ok) throw new Error(`RMN ${res.status}, 테이블 설정 확인 (setup.md 8장)`)
   return res
 }
 
@@ -33,7 +33,7 @@ const toDb = b => ({
   agency_phone: b.agency_phone || null, agency_email: b.agency_email || null,
   status: b.status, memo: b.memo || null,
   /* qty·option: 값 있을 때만 전송 (컬럼 미설정 하위호환).
-     option = 상품 세부 구성 ('26.7 — 카카오톡 "타겟팅", 인스타 "구성·형식") */
+     option = 상품 세부 구성 ('26.7 — 카카오톡 "타겟팅", 인스타 "구성과 형식") */
   ...(b.qty != null ? { qty: b.qty } : {}),
   ...(b.option ? { option: b.option } : {}),
 })

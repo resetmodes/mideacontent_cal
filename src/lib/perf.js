@@ -18,7 +18,7 @@ export const YT_KEY = { '공식': 'the_hyundai', '와지트': 'wazitwine', '이�
 export const IG_HANDLE = { '공식': 'the_hyundai', '도시': 'dosi.manual' }
 
 const compact = n => {
-  if (n == null) return '—'
+  if (n == null) return ''
   if (n >= 100000000) return (n / 100000000).toFixed(1) + '억'
   if (n >= 10000) return (n / 10000).toFixed(1) + '만'
   return n.toLocaleString('ko-KR')
@@ -52,7 +52,7 @@ export function findPerformance(event) {
       if (!a || !inRange(a.t, a.unc + 2 * DAY)) continue
       hits.push({
         url: v.url, title: v.title, dist: dist(a.t),
-        meta: `조회 ${compact(v.views)} · ${v.type === 'Shorts' ? '쇼츠' : '롱폼'} · 게시 ≈ ${md(a.t)}`,
+        meta: `조회 ${compact(v.views)} ${v.type === 'Shorts' ? '쇼츠' : '롱폼'} 게시 ${md(a.t)}`,
       })
     }
   }
@@ -68,7 +68,7 @@ export function findPerformance(event) {
         : p.likes != null ? `좋아요 ${compact(p.likes)}` : '좋아요 비공개'
       hits.push({
         url: p.url, title: p.caption || '(캡션 없음)', dist: dist(t),
-        meta: `${metric} · 게시 ${md(t)}`,
+        meta: `${metric} 게시 ${md(t)}`,
       })
     }
   }

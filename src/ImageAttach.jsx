@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { uploadEventImage, removeEventImage, imageUrl, MAX_IMAGES } from './lib/eventImages.js'
 
-export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onChange, hint = '시안·결과 보고용' }) {
+export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onChange, hint = '시안과 결과 보고용' }) {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)
   const [view, setView] = useState(null)      // 라이트박스로 보는 이미지
@@ -79,9 +79,9 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
             if (!busy) addFiles(e.dataTransfer.files)   // 이미지 외 파일은 addFiles가 걸러냄
           }}
         >
-          {busy ? '업로드 중…' : dragOver ? '여기에 놓으면 업로드됩니다' : (
-            <>＋ 이미지 첨부{imgs.length ? ` (${imgs.length}/${MAX_IMAGES})` : ` — ${hint}`}
-              <small>클릭해서 선택 · 드래그앤드롭 · 붙여넣기(Ctrl+V)</small></>
+          {busy ? '업로드 중' : dragOver ? '여기에 놓으면 업로드' : (
+            <>＋ 이미지 첨부{imgs.length ? ` (${imgs.length}/${MAX_IMAGES})` : ` ${hint}`}
+              <small>클릭하거나 드래그앤드롭, 붙여넣기(Ctrl+V)</small></>
           )}
         </button>
       )}
