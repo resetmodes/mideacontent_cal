@@ -3,6 +3,8 @@ import { MEDIA, TARGET_COMMON, GROUP_NOTES, COMMON_GUIDE } from './data/media.js
 import { MIRROR_URL } from './config.js'
 import { withLiveMetrics } from './lib/specMetrics.js'
 import ShareButton from './ShareButton.jsx'
+import ChannelIcon from './ChannelIcon.jsx'
+import { channelById } from './data/channels.js'
 
 /* 개별 스펙 외부 링크 ('26.7 거버넌스: 개별 스펙 = 외부용) — 미러 사이트의
    로그인 없는 외부 모드로 연결 (계정 발급 없이 새니타이즈된 해당 매체만 열림).
@@ -38,6 +40,32 @@ function hl(text, query) {
       {text.slice(0, i)}
       <mark>{text.slice(i, i + query.length)}</mark>
       {text.slice(i + query.length)}
+    </>
+  )
+}
+
+/* 매체명 표시 분해 ('26.7.29) — "인스타그램 · 공식 (the_hyundai)" → 배지[인스타] + 이름[공식].
+   계정 주소(괄호)는 표시에서 제외하고, 채널은 점(·) 대신 아이콘 배지로 구분.
+   원본 name은 딥링크·specLink·지표 매핑 키라 그대로 둔다 (표시만 바꿈) */
+const NAME_CH = { 인스타그램: '인스타', 유튜브: '유튜브', 카카오톡: '카카오톡' }
+export function splitMediaName(name) {
+  const i = name.indexOf(' · ')
+  if (i < 0) return { chips: [], label: name }
+  const parts = name.slice(0, i).split('+').map(s => s.trim())
+  /* 채널 계정 항목일 때만 분해 — "홈페이지 (WEB)"·"고지물 (PMS)"의 괄호는 구분자라 보존 */
+  if (!parts.every(p => NAME_CH[p])) return { chips: [], label: name }
+  return { chips: parts.map(p => NAME_CH[p]), label: name.slice(i + 3).replace(/\s*\([^)]*\)\s*$/, '').trim() }
+}
+
+/* 채널 배지 — 아이콘 + 짧은 이름, 테두리로 구분 */
+function MediaName({ name, query }) {
+  const { chips, label } = splitMediaName(name)
+  return (
+    <>
+      {chips.map(id => (
+        <span key={id} className="m-chip"><ChannelIcon id={id} />{channelById(id).label}</span>
+      ))}
+      {hl(label, query)}
     </>
   )
 }
@@ -192,7 +220,7 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRe
           <div className="m-cat">
             {m.cat}{m.reg && <> · <span className="reg">{m.reg}</span></>}
           </div>
-          <div className="m-name">{hl(m.name, query)}</div>
+          <div className="m-name"><MediaName name={m.name} query={query} /></div>
         </div>
         <div className="m-preview">
           <div className="m-size">{m.slots.length > 1 ? m.slots.length + '개 지면' : first.size}</div>
@@ -327,7 +355,7 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
                       {showGroup && <div className="spec-rail-group">{m.group}</div>}
                       {/* 목록은 매체명만 ('26.7.29 사용자 지시 — 카테고리·납기 설명줄 삭제) */}
                       <button className={current && current.name === m.name ? 'on' : ''} onClick={() => setSel(m.name)}>
-                        {hl(m.name, query)}
+                        <MediaName name={m.name} query={query} />
                       </button>
                     </React.Fragment>
                   )

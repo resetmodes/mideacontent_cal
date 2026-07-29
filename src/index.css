@@ -73,6 +73,14 @@ h1{font-size:clamp(24px,3.2vw,30px);font-weight:800;letter-spacing:-0.02em;line-
 .m-cat{font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--green);}
 .m-cat .reg{color:var(--ink);}
 .m-name{font-size:22px;font-weight:800;letter-spacing:-0.02em;line-height:1.25;}
+/* 채널 배지 ('26.7.29) — "인스타그램 ·" 점 구분 대신 아이콘+이름 + 테두리 */
+.m-chip{display:inline-flex;align-items:center;gap:5px;vertical-align:2px;margin-right:7px;
+  font-size:11.5px;font-weight:700;letter-spacing:-0.01em;color:var(--g600);
+  background:rgba(255,255,255,.5);border:1px solid var(--g200);border-radius:8px;padding:2px 8px 2px 5px;}
+.m-chip .ch-chip{width:15px;height:15px;border-radius:4px;vertical-align:0;}
+.m-chip .ch-chip svg{width:10px;height:10px;}
+.spec-rail .m-chip{font-size:10.5px;padding:1px 6px 1px 4px;margin-right:5px;vertical-align:1px;}
+.spec-rail button.on .m-chip{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff;}
 .m-preview{text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;}
 .m-size{font-size:14px;font-weight:700;letter-spacing:-0.01em;}
 .m-due{font-size:11.5px;color:var(--grey);margin-top:2px;}
@@ -104,7 +112,9 @@ h1{font-size:clamp(24px,3.2vw,30px);font-weight:800;letter-spacing:-0.02em;line-
 .slot-rules li::before{content:"·";position:absolute;left:2px;color:var(--green);font-weight:800;}
 .ref-thumb{font-family:inherit;background:none;border:none;padding:0;cursor:zoom-in;text-align:center;
   display:flex;flex-direction:column;gap:6px;margin-top:14px;}
-.ref-thumb img{width:100%;border:1px solid var(--g200);display:block;}
+.ref-thumb img{width:100%;display:block;border:none;background:transparent;
+  /* 목업·가이드 원본의 흰 여백을 배경에 녹임 ('26.7.29 — 흰 박스가 도드라지던 문제) */
+  mix-blend-mode:multiply;}
 .ref-thumb span{font-size:11px;font-weight:600;color:var(--g400);letter-spacing:.04em;}
 .ref-thumb:hover span{color:var(--green);}
 /* 매체 대표 비주얼 — 본문 우측 열 ('26.7 변경: 상단 통짜 → 사이니지 지면 카드와 같은 우측 배치) */
@@ -1740,9 +1750,8 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   .media-head::after{content:'＋';flex:none;font-size:15px;font-weight:700;color:var(--g400);
     line-height:1;transition:color .14s ease;}
   .media.open .media-head::after{content:'−';color:var(--green);}
-  .m-cat{font-size:11.5px;font-weight:700;letter-spacing:.02em;color:var(--g500);}
-  .m-cat .reg{color:var(--green);}
-  .m-name{font-size:17.5px;line-height:1.32;margin-top:2px;}
+  .m-cat{display:none;}   /* 모바일 목록은 매체명만 ('26.7.29 사용자 지시) */
+  .m-name{font-size:17.5px;line-height:1.32;}
   .m-preview{text-align:right;}
   .m-size{font-size:13px;}
   .media-body{padding:2px 0 18px;}
@@ -1777,4 +1786,16 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   .count{padding:8px 0 4px;}
   .spec-share{border-top:1px solid var(--g200);}
   footer{border-top:1px solid var(--g200);}
+
+  /* 목업 이미지 축소 ('26.7.29) — 폰 목업이 세로로 길어 스펙을 밀어냈음.
+     썸네일은 작게 가로 배열하고, 전체는 눌러서(라이트박스) 확인 */
+  .media.open .media-body.has-visual{display:block;}
+  .media-body.has-visual .media-visual-col{order:0;position:static;margin:0 0 12px;
+    flex-direction:row;flex-wrap:wrap;gap:8px;}
+  .media-body.has-visual .media-visual{max-width:84px;margin:0;}
+  .media-visual img{max-height:132px;object-fit:cover;object-position:top center;}
+  .ref-thumb{max-width:96px;margin-top:10px;}
+  .ref-thumb img{max-height:150px;object-fit:cover;object-position:top center;}
+  .ref-thumb span{font-size:10.5px;}
+  .slot2{grid-template-columns:1fr auto;gap:12px;align-items:start;}
 }
