@@ -4,7 +4,7 @@ import {
   slotAvailability, pushAvailability, canTentative, buildRmnNotices,
   applyDiscount, netAmount, fmtWon,
   groupCampaigns, campaignOn, periodDays, priceWeeks, PRICE_DAYS, bookingQty,
-  INSTA_PRODUCTS, INSTA_FORMATS, instaPrice, kakaoPrice,
+  INSTA_PRODUCTS, INSTA_FORMATS, instaPrice, kakaoPrice, MANUAL_PERF,
 } from './data/rmn.js'
 import { listRmn, createRmn, updateRmn, deleteRmn, listGaDaily } from './lib/rmnStore.js'
 import { buildOrderXlsx, buildProposalXlsx, buildLedgerXlsx, buildResultXlsx, DOC_NAME, DOC_ORDER } from './lib/rmnDocs.js'
@@ -1233,6 +1233,32 @@ function RmnAnalytics({ rows, activeCamps }) {
   )
 }
 
+/* 받침 여부로 조사 선택 — "인스타그램은" / "카카오톡은" / "푸쉬는" */
+const josa = (word, withBatchim, without) => {
+  const ch = (word || '').at(-1)
+  if (!ch) return without
+  const code = ch.charCodeAt(0) - 0xac00
+  return code >= 0 && code <= 11171 && code % 28 !== 0 ? withBatchim : without
+}
+
+/* 수기 실적 → 리포트 표기용 완성형 ('26.7.29). 입력이 없으면 null (집행 내역만 표기) */
+const numOf = v => {
+  const n = Number(String(v ?? '').replace(/[^\d]/g, ''))
+  return n > 0 ? n : null
+}
+function buildPerf(product, vals) {
+  const def = MANUAL_PERF[product]
+  if (!def || !vals) return null
+  const rows = def.fields.map(f => ({ label: f.label, value: numOf(vals[f.k]) })).filter(r => r.value)
+  if (!rows.length) return null
+  const first = numOf(vals[def.fields[0].k])
+  const last = numOf(vals[def.fields.at(-1).k])
+  const rate = first && last && def.fields.length > 1
+    ? { label: def.rate, value: (last / first * 100).toFixed(2) + '%' } : null
+  /* reach = 도달·발송 성공 / act = 반응(클릭·오픈·참여) — 리포트 KPI 합산용 */
+  return { rows, rate, reach: first, act: def.fields.length > 1 ? last : null }
+}
+
 /* ── 광고주 공유 리포트 발급 ('26.7.29) — 스냅샷 저장 후 링크+임시 비밀번호 표시.
    데이터 = 이 캠페인의 GA 일별(rmn_ga_daily) + 상품 구성. 30일 만료, 회수 가능.
    금액(광고비·CPM·CPC)은 기본 미포함 — 체크 시에만 스냅샷에 실림 */
@@ -1249,11 +1275,16 @@ function ShareModal({ g, onClose }) {
     listShares(g.advertiser, g.campaign).then(setExisting).catch(() => {})
   }, [g])
 
-  /* 발송형(푸쉬·카카오톡)·게시형(인스타)은 GA 측정 대상이 아님 */
-  const unmeasured = [...new Set(g.items.filter(b => {
+  /* 발송형(푸쉬·카카오톡)·게시형(인스타)은 GA 측정 대상이 아님 → 매체사 리포트 수기 입력 */
+  const unItems = g.items.filter(b => {
     const p = rmnProduct(b.product)
-    return p && (p.push || p.insta)
-  }).map(b => b.product))]
+    return p && (p.push || p.insta) && b.status !== '취소'
+  })
+  const unmeasured = [...new Set(unItems.map(b => b.product))]
+  /* 수기 실적 입력값 — { 부킹id: { reach, clk, ... } }. 기존 저장분(perf_manual)이 있으면 프리필 */
+  const [manual, setManual] = useState(() => Object.fromEntries(
+    unItems.map(b => [b.id, { ...(b.perf_manual || {}) }])))
+  const setM = (id, k, v) => setManual(m => ({ ...m, [id]: { ...m[id], [k]: v } }))
 
   const issue = async () => {
     setBusy(true); setErr(null)
@@ -1274,12 +1305,20 @@ function ShareModal({ g, onClose }) {
           option: b.option || null,
           sendQty: b.push_qty || null,
           sendAt: b.send_at || null,
+          /* 수기 실적은 렌더 완료형으로 저장 — 필드 정의가 나중에 바뀌어도 과거 리포트는 그대로 */
+          perf: buildPerf(b.product, manual[b.id]),
         })),
         spend: withMoney ? items.reduce((a, b) => a + (b.actual_price || 0), 0) : null,
         daily, createdAt: new Date().toISOString(),
       }
       const pw = usePw ? genPw() : null
       const row = await createShare({ advertiser: g.advertiser, campaign: g.campaign, data, pw, days: 30 })
+      /* 입력한 실적을 부킹에도 저장해 다음 발급 때 프리필 (컬럼 미설정이면 조용히 스킵 — setup.md 8-6) */
+      for (const b of unItems) {
+        const v = manual[b.id]
+        if (v && Object.values(v).some(x => numOf(x)))
+          await updateRmn(b.id, { perf_manual: v }).catch(() => {})
+      }
       setMade({ url: shareUrl(row.token), pw })
       toast('공유 링크 발급됨')
       listShares(g.advertiser, g.campaign).then(setExisting).catch(() => {})
@@ -1308,22 +1347,46 @@ function ShareModal({ g, onClose }) {
           이 캠페인의 결과(일별 노출·클릭·CTR·구좌별 성과)만 담은 열람 전용 페이지를 발급합니다.
           다른 캠페인·광고주 데이터는 포함되지 않으며, <b>30일 후 자동 만료</b>됩니다.
         </div>
-        {/* GA 미측정 매체 안내 ('26.7.29) — 카카오톡·푸쉬·인스타는 매체사가 지표를 주지 않음 */}
-        {unmeasured.length > 0 && (
-          <div className="mute" style={{ fontSize: 12.5, lineHeight: 1.6, marginTop: 8 }}>
-            <b>{unmeasured.join(' · ')}</b>는 매체사에서 노출·클릭 데이터를 제공하지 않아,
-            리포트에 <b>집행 내역</b>(발송 건수·게시 구성·일자)으로만 표기됩니다.
+        {/* GA 미측정 매체 실적 수기 입력 ('26.7.29 사용자 지시) — 카카오톡·푸쉬·인스타는
+            GA4가 집계하지 못하므로, 매체사 리포트 수치를 여기서 받아 리포트에 함께 싣는다 */}
+        {!made && unItems.length > 0 && (
+          <div className="rmn-manual">
+            <div className="group-label" style={{ fontSize: 15 }}>매체 실적 입력</div>
+            <div className="mute" style={{ fontSize: 12.5, lineHeight: 1.6 }}>
+              {unmeasured.join(' · ')}{josa(unmeasured.at(-1), '은', '는')} GA에서 자동 수집되지 않습니다.
+              매체사 리포트(카카오 비즈메시지 관리자·인스타그램 인사이트 등) 수치를 입력하면
+              리포트에 함께 표기됩니다. <b>비우면 집행 내역만</b> 표기됩니다.
+            </div>
+            {unItems.map(b => (
+              <div className="rmn-manual-row" key={b.id}>
+                <div className="rmn-manual-name">
+                  <Dot id={b.product} /> {b.product}
+                  {b.push_qty ? <small className="mute"> 발송 {Number(b.push_qty).toLocaleString('ko-KR')}건</small> : null}
+                  {b.option ? <small className="mute"> {b.option}</small> : null}
+                </div>
+                <div className="rmn-manual-fields">
+                  {(MANUAL_PERF[b.product]?.fields || []).map(f => (
+                    <label key={f.k}>
+                      {f.label}
+                      <input type="text" inputMode="numeric" placeholder="—"
+                        value={manual[b.id]?.[f.k] ?? ''}
+                        onChange={e => setM(b.id, f.k, e.target.value)} />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
         {!made ? (
           <>
             <div className="md-form" style={{ marginTop: 14 }}>
-              <label className="rmn-target" style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+              <label className="shr-opt">
                 임시 비밀번호 걸기 <small className="mute">해제 시 링크만으로 열람</small>
                 <input type="checkbox" checked={usePw} onChange={e => setUsePw(e.target.checked)} />
               </label>
-              <label className="rmn-target" style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+              <label className="shr-opt">
                 광고비·CPM·CPC 포함 <small className="mute">기본 미포함 — 성과 지표만</small>
                 <input type="checkbox" checked={withMoney} onChange={e => setWithMoney(e.target.checked)} />
               </label>
