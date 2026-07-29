@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { toast } from './lib/toast.js'
 import {
   ALLOC_PRESETS, allocPreset, computeAlloc,
   SETTLE_TYPES, settleFlow, nextSettleStatus, FILE_SLOTS, SETTLE_ACCOUNTS,
@@ -248,11 +249,11 @@ export default function SettlePage() {
       owner_email: me, owner_name: authorName(me),
     }
     try {
-      if (editId) { await updateSettle(editId, body); setMsg(`"${body.title}" 수정됨`) }
+      if (editId) { await updateSettle(editId, body); setMsg(`"${body.title}" 수정됨`); toast('수정 저장됨') }
       else {
         const created = await createSettle({ ...body, status: '작성' })
         setExpanded(created?.id || null)   // 등록 직후 펼쳐서 바로 파일 첨부
-        setMsg(`"${body.title}" 등록됨 — 아래 행을 펼쳐 증빙을 첨부하세요`)
+        setMsg(`"${body.title}" 등록됨 — 아래 행을 펼쳐 증빙을 첨부하세요`); toast('정산 등록됨')
       }
       setF(EMPTY); setExcluded([]); setEditId(null)
       refresh()
@@ -276,7 +277,7 @@ export default function SettlePage() {
     try {
       const r = all.find(x => x.id === id)
       for (const file of r?.files || []) await removeSettleFile(file.path).catch(() => {})
-      await deleteSettle(id); setMsg('삭제됨'); refresh()
+      await deleteSettle(id); setMsg('삭제됨'); toast('삭제됨', { danger: true }); refresh()
     } catch (e) { setMsg(e.message) }
   }
 

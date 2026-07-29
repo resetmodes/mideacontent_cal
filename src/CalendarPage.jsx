@@ -11,6 +11,7 @@ import { HOLIDAYS, CLOSED_DAYS } from './data/holidays.js'
 import { MIRROR_URL, NOTION_REVIEW_EMAILS } from './config.js'
 import ChannelIcon from './ChannelIcon.jsx'
 import ShareButton from './ShareButton.jsx'
+import { toast } from './lib/toast.js'
 
 const DOW = ['일', '월', '화', '수', '목', '금', '토']
 const todayISO = () => toISO(new Date())
@@ -1205,6 +1206,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
         owner: e.owner || me || null,
       }))
       setEvents(prev => [...prev, ev].sort((a, b) => a.date.localeCompare(b.date)))
+      toast('일정 등록됨')
     } catch (err) { setError(err.message) }
   }
   const onSave = async (id, patch) => {
@@ -1212,6 +1214,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
       const ev = await updateEvent(id, orderRange(patch))
       setEvents(prev => prev.map(x => (x.id === id ? ev : x)))
       setSelected(sel => (sel?.id === id ? ev : sel))   // 열린 모달도 즉시 갱신 (실적 확정 등)
+      toast('저장됨')
     } catch (err) { setError(err.message) }
   }
   /* 노션 삭제 검토 ('26.7) — 규빈 계정 + 매체 캘린더 탭에서만. 유지 = 연동 분리, 삭제 = 실삭제 */
@@ -1238,6 +1241,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
     try {
       await deleteEvent(id)
       setEvents(prev => prev.filter(x => x.id !== id))
+      toast('삭제됨', { danger: true })
     } catch (err) { setError(err.message) }
   }
   const onRename = async (from, to) => {

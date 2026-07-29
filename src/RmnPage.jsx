@@ -12,6 +12,7 @@ import { toISO, fromISO } from './lib/parse.js'
 import { HOLIDAYS } from './data/holidays.js'
 import ImageAttach from './ImageAttach.jsx'
 import { Kpi, Donut, HBars, DuoBars, Gauge, Pipeline } from './Charts.jsx'
+import { toast } from './lib/toast.js'
 
 /* RMN — 현대백화점 APP 광고 판매(부킹·재고·상태·정산) 관리 탭 ('26.7 1차, GA 연동 전).
    팀 전체 노출(내부 로그인) — 미러·외부 뷰에는 탭 자체가 없음.
@@ -609,7 +610,7 @@ export default function RmnPage() {
       return row
     }
     try {
-      if (editId) { await updateRmn(editId, rowOf(f.product)); setMsg(`"${shared.advertiser}" 수정됨`) }
+      if (editId) { await updateRmn(editId, rowOf(f.product)); setMsg(`"${shared.advertiser}" 수정됨`); toast('수정 저장됨') }
       else {
         let n = 0
         for (const id of products) {
@@ -621,7 +622,7 @@ export default function RmnPage() {
           }
         }
         const label = products.map(id => { const c = calcOf(id); return c.qty > 1 ? `${id}×${c.qty}` : id }).join('·')
-        setMsg(`"${shared.advertiser}" ${shared.status} ${n}건 등록됨${products.length > 1 ? ` (${label})` : ''}`)
+        setMsg(`"${shared.advertiser}" ${shared.status} ${n}건 등록됨${products.length > 1 ? ` (${label})` : ''}`); toast(`부킹 ${n}건 등록됨`)
       }
       setF(EMPTY); setEditId(null); setOrigQty(1); setSel(['메인배너']); setLines({ 메인배너: defaultLine() })
       setCamp({ start: todayISO(), end: addDaysISO(todayISO(), PRICE_DAYS - 1) })
@@ -671,7 +672,7 @@ export default function RmnPage() {
   const del = async id => {
     if (confirmDel !== id) { setConfirmDel(id); return }
     setConfirmDel(null)
-    try { await deleteRmn(id); setMsg('삭제됨'); refresh() } catch (e) { setMsg(e.message) }
+    try { await deleteRmn(id); setMsg('삭제됨'); toast('삭제됨', { danger: true }); refresh() } catch (e) { setMsg(e.message) }
   }
 
   /* 캠페인 그룹핑 ('26.7) — [광고주+캠페인명] 기준. 진행중 = 미완료 캠페인 / 완료·취소 별도 */
