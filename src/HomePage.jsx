@@ -93,8 +93,8 @@ function TeamStatus({ events, today, onGo }) {
       {empty ? (
         <div className="home-allin">오늘·내일 부재 일정 없음 — 전원 근무</div>
       ) : rows.map(r => r.list.length > 0 && (
-        <div key={r.label} className="home-day">
-          <span className="home-daylabel">{r.label} <small>{fmtK(r.iso)}</small></span>
+        <div key={r.label} className={'home-day' + (r.label === '내일' ? ' next' : '')}>
+          <span className="home-daylabel">{r.label}<small>{fmtK(r.iso)}</small></span>
           <div className="home-dayrows">
             {r.list.map(e => (
               <div key={e.id + r.label} className="home-trow">
@@ -134,8 +134,8 @@ function MediaToday({ events, today, onGo }) {
       {empty ? (
         <div className="home-allin">오늘·내일 예정된 게시·촬영 없음</div>
       ) : rows.map(r => r.list.length > 0 && (
-        <div key={r.label} className="home-day">
-          <span className="home-daylabel">{r.label} <small>{fmtK(r.iso)}</small></span>
+        <div key={r.label} className={'home-day' + (r.label === '내일' ? ' next' : '')}>
+          <span className="home-daylabel">{r.label}<small>{fmtK(r.iso)}</small></span>
           <div className="home-dayrows">
             {r.list.slice(0, 6).map(e => (
               <div key={e.id + r.label} className="home-trow">
@@ -227,11 +227,17 @@ function CampaignDday({ events, today, onGo }) {
           <span className={'home-dday' + (g.ongoing && (g.dday == null || g.dday > 0) ? ' run' : '')}>
             {g.ongoing && (g.dday == null || g.dday > 0) ? '진행중' : g.dday === 0 ? 'D-day' : `D-${g.dday}`}
           </span>
-          <span className="home-camp">#{g.name}</span>
-          {g.next && (
-            <span className="home-ttl">
-              <ChannelIcon id={g.next.channel} /> {displayTitle(g.next.title, g.next.channel)}
-            </span>
+          {/* 제목이 주인공 — 캠페인명은 메타로 뒤에 ('26.7.29 모바일 가독성).
+              다음 게시가 없는 캠페인은 캠페인명을 제목 자리에 */}
+          {g.next ? (
+            <>
+              <span className="home-ttl">
+                <ChannelIcon id={g.next.channel} /> {displayTitle(g.next.title, g.next.channel)}
+              </span>
+              <span className="home-camp">#{g.name}</span>
+            </>
+          ) : (
+            <span className="home-ttl">#{g.name}</span>
           )}
           <span className="home-sub">{g.next ? fmtK(g.next.date) : ''}{g.list.length > 1 ? ` 외 ${g.list.length - 1}건` : ''}</span>
         </div>
