@@ -586,7 +586,7 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .modal{background:var(--paper);border-radius:20px;width:100%;max-width:520px;
   max-height:86vh;overflow-y:auto;padding:26px 26px 20px;
   box-shadow:0 12px 40px rgba(23,23,25,.18);}
-.md-ch{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--green);text-transform:uppercase;}
+.md-ch{font-size:13px;font-weight:700;letter-spacing:-0.01em;color:var(--green);}
 /* 채널 뒤 부가 표기 (세부·촬영·팀) — 구분자 대신 여백과 색으로 위계 */
 .md-ch-sub{margin-left:9px;font-weight:600;color:var(--g400);}
 .md-title{font-size:23px;font-weight:800;letter-spacing:-0.02em;line-height:1.3;margin:6px 0 14px;}
@@ -1860,3 +1860,20 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   .mon-hero{break-inside:avoid;}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 }
+
+
+/* ═══════════ 곡률 통일 ('26.7.29) ═══════════
+   패널·캘린더 22px, 사이드바 26px, 상세 24px 대비 버튼·입력이 8~10px로 각져 있었음.
+   컨트롤은 14px(패널 곡률의 컨트롤 대응값), 작은 칩은 11px로 계열을 맞춤 */
+.btn-solid,.btn-ghost,.qa-btn,.qa-input,.qa-owner,.md-quick,
+.md-form input,.md-form select,.md-form textarea,
+.ch-pick button,.cs-camps button,.camp-rename,.camp-rename-form input,
+.rmn-manual-fields input,.rmn-line input,.rmn-line select,.rmn-ro,
+.stl-preset,.stl-file,.adm-search,.adm-camp,.mon-note,
+.cal-search-clear,.notify-btn,.home-more,.cd-report,.cd-open,.dk-btn,.dk-back,
+.ta-month button,.stl-filter button,.adm-filter button,.rmn-status,
+.img-add,.img-thumb,.shr-print{border-radius:14px;}
+.seg,.qa-status .st,.rmn-gtag,.mon-flag,.m-chip,.stl-warn,.rmn-year,
+.day-hol,.day-closed,.ev-chip{border-radius:11px;}
+.seg button{border-radius:9px;}
+.cal-nav button,.camp-arrow{border-radius:12px;}
