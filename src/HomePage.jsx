@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { listEvents } from './lib/store.js'
-import { channelById } from './data/channels.js'
+import { channelById, TARGET_CH, targetLast } from './data/channels.js'
 import { HOLIDAYS } from './data/holidays.js'
 import { toISO, fromISO, displayTitle } from './lib/parse.js'
 import { YT } from './data/sns/youtube.js'
@@ -123,7 +123,7 @@ function MediaToday({ events, today, onGo }) {
   const group = list => {
     const out = [], gmap = {}
     for (const e of list) {
-      if (e.channel !== '타겟APP') { out.push({ e }); continue }
+      if (e.channel !== TARGET_CH) { out.push({ e }); continue }
       const key = [e.title, e.date, e.endDate || ''].join('|')
       if (gmap[key]) { gmap[key].items.push(e); continue }
       const g = { key, e, items: [e] }
@@ -132,9 +132,11 @@ function MediaToday({ events, today, onGo }) {
     }
     return out
   }
+  /* 타겟APP은 항상 아래로 ('26.7.29) — 10종 동시 집행이 상위 6건을 혼자 채우던 문제 */
+  const dayList = iso => group(targetLast(media.filter(e => covers(e, iso))))
   const rows = [
-    { label: '오늘', iso: today, list: group(media.filter(e => covers(e, today))) },
-    { label: '내일', iso: tomorrow, list: group(media.filter(e => covers(e, tomorrow))) },
+    { label: '오늘', iso: today, list: dayList(today) },
+    { label: '내일', iso: tomorrow, list: dayList(tomorrow) },
   ]
   const empty = rows.every(r => r.list.length === 0)
   const [openGrp, setOpenGrp] = useState(null)

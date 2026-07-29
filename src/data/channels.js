@@ -244,3 +244,10 @@ export const TITLE_ALIASES = [
   ['버스 광고', 'BUS'], ['버스광고', 'BUS'],
   ['버스TV', 'BUS'], ['버스티비', 'BUS'], ['버스', 'BUS'],
 ]
+
+/* 타겟APP 후순위 ('26.7, '26.7.29 홈까지 확대) — 타겟APP은 한 소재를 10종 매체로 동시
+   집행해 목록 상한을 혼자 채운다. 안정 정렬로 타겟APP만 뒤로 (그 외 순서 불변).
+   월간 셀·하루 시트·홈 오늘과 내일 게시가 같은 규칙을 공유 */
+export const TARGET_CH = '타겟APP'
+export const targetLast = list =>
+  [...list.filter(e => e.channel !== TARGET_CH), ...list.filter(e => e.channel === TARGET_CH)]
