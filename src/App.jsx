@@ -67,44 +67,50 @@ export default function App() {
     return <SpecLibrary isExternal focusMedia={mediaParam} focusSeq={1} />
   }
 
+  /* v2 셸 ('26.7.29): 상단 탭 바 → 좌측 플로팅 글래스 사이드바.
+     모바일(≤840px)은 CSS에서 상단 가로 스크롤 바로 폴백 — DOM은 동일 */
   return (
-    <>
-      <nav className="tabs">
-        <div className="tabs-inner">
-          {session && (
-            <span className="tabs-session">
-              <NotifyCenter session={session} />
-              <span className="ts-email">{session.email}</span>
-              <button onClick={signOut}>로그아웃</button>
-            </span>
-          )}
-          <div className="tabs-scroll">
-            <button className={tab === 'home' ? 'on' : ''} onClick={() => go('home')}>홈</button>
-            <button className={tab === 'team' ? 'on' : ''} onClick={() => go('team')}>팀 일정</button>
-            <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
-            <button className={tab === 'shoot' ? 'on' : ''} onClick={() => go('shoot')}>촬영일정</button>
-            <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
-            <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>매체 모니터링</button>
-            <button className={tab === 'rmn' ? 'on' : ''} onClick={() => go('rmn')}>RMN</button>
-            {isSettle && (
-              <button className={tab === 'settle' ? 'on' : ''} onClick={() => go('settle')}>정산</button>
-            )}
-            {isAdmin && (
-              <button className={tab === 'admin' ? 'on' : ''} onClick={() => go('admin')}>어드민</button>
-            )}
-          </div>
+    <div className="shell">
+      <aside className="side">
+        <div className="side-brand">
+          <b>미디어콘텐츠팀<br />매체 허브</b>
+          <span>스펙 · 캘린더 · 모니터링</span>
         </div>
-      </nav>
-      {tab === 'home' && <Celebration />}
-      {tab === 'home' && <HomePage onGo={go} canSettle={isSettle && storageMode === 'supabase'} />}
-      {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} />}
-      {tab === 'shoot' && <CalendarPage shoot onOpenSpec={openSpec} />}
-      {tab === 'team' && <CalendarPage team />}
-      {tab === 'spec' && <SpecLibrary isExternal={false} focusMedia={specFocus.name} focusSeq={specFocus.seq} />}
-      {tab === 'monitor' && <MonitorPage />}
-      {tab === 'rmn' && <RmnPage />}
-      {tab === 'settle' && isSettle && <SettlePage />}
-      {tab === 'admin' && isAdmin && <AdminPage />}
-    </>
+        <nav className="side-nav">
+          <button className={tab === 'home' ? 'on' : ''} onClick={() => go('home')}>홈</button>
+          <button className={tab === 'team' ? 'on' : ''} onClick={() => go('team')}>팀 일정</button>
+          <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
+          <button className={tab === 'shoot' ? 'on' : ''} onClick={() => go('shoot')}>촬영일정</button>
+          <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
+          <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>매체 모니터링</button>
+          <button className={tab === 'rmn' ? 'on' : ''} onClick={() => go('rmn')}>RMN</button>
+          {isSettle && (
+            <button className={tab === 'settle' ? 'on' : ''} onClick={() => go('settle')}>정산</button>
+          )}
+          {isAdmin && (
+            <button className={tab === 'admin' ? 'on' : ''} onClick={() => go('admin')}>어드민</button>
+          )}
+        </nav>
+        {session && (
+          <div className="side-session">
+            <NotifyCenter session={session} />
+            <span className="ts-email">{session.email}</span>
+            <button onClick={signOut}>로그아웃</button>
+          </div>
+        )}
+      </aside>
+      <div className="shell-main">
+        {tab === 'home' && <Celebration />}
+        {tab === 'home' && <HomePage onGo={go} canSettle={isSettle && storageMode === 'supabase'} />}
+        {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} />}
+        {tab === 'shoot' && <CalendarPage shoot onOpenSpec={openSpec} />}
+        {tab === 'team' && <CalendarPage team />}
+        {tab === 'spec' && <SpecLibrary isExternal={false} focusMedia={specFocus.name} focusSeq={specFocus.seq} />}
+        {tab === 'monitor' && <MonitorPage />}
+        {tab === 'rmn' && <RmnPage />}
+        {tab === 'settle' && isSettle && <SettlePage />}
+        {tab === 'admin' && isAdmin && <AdminPage />}
+      </div>
+    </div>
   )
 }

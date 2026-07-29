@@ -709,7 +709,6 @@ export default function RmnPage() {
   return (
     <div className="wrap cal-wrap">
       <header>
-        <div className="eyebrow">Media Content Team · Retail Media Network</div>
         <h1>RMN</h1>
         <div className="masthead-sub">
           부킹·재고·정산 관리

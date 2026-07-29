@@ -168,8 +168,10 @@ function Timeline({ process, query }) {
   )
 }
 
-function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRef }) {
-  const [open, setOpen] = useState(false)
+/* forceOpen (v2 '26.7.29): 마스터-디테일 우측 상세 — 항상 펼침, 접기 토글 없음 */
+function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRef, forceOpen = false }) {
+  const [rawOpen, setOpen] = useState(false)
+  const open = forceOpen || rawOpen
   const ref = useRef(null)
   const first = m.slots[0]
   const rawExtras = m.group === '타겟형 매체' ? { ...(m.extra || {}), ...TARGET_COMMON } : (m.extra || {})
@@ -185,7 +187,7 @@ function MediaItem({ m, query, isExternal, mirror = false, focus, focusSeq, onRe
 
   return (
     <div ref={ref} className={'media' + (open ? ' open' : '') + (focus ? ' focus' : '')}>
-      <div className="media-head" onClick={() => setOpen(o => !o)}>
+      <div className="media-head" onClick={forceOpen ? undefined : () => setOpen(o => !o)}>
         <div className="m-id">
           <div className="m-cat">
             {m.cat}{m.reg && <> · <span className="reg">{m.reg}</span></>}
@@ -249,10 +251,22 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
   const [activeCat, setActiveCat] = useState('전체')
   const [query, setQuery] = useState('')
   const [refImg, setRefImg] = useState(null)   // 제작 가이드 원본 확대 보기
+  const [sel, setSel] = useState(null)         // 마스터-디테일 선택 매체 (v2)
+
+  /* 마스터-디테일 (v2 '26.7.29): 데스크톱 내부·미러 뷰만 — 좌측 목록 + 우측 상세.
+     외부 공유 뷰·모바일은 기존 아코디언 유지 (단일 매체 딥링크·좁은 화면 동선) */
+  const [desktop, setDesktop] = useState(() => window.matchMedia('(min-width:841px)').matches)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width:841px)')
+    const fn = e => setDesktop(e.matches)
+    mq.addEventListener('change', fn)
+    return () => mq.removeEventListener('change', fn)
+  }, [])
+  const masterDetail = desktop && !isExternal
 
   /* 딥링크 진입 시 필터·검색을 초기화해 대상 매체가 목록에 반드시 보이게 함 */
   useEffect(() => {
-    if (focusMedia) { setActiveCat('전체'); setQuery('') }
+    if (focusMedia) { setActiveCat('전체'); setQuery(''); setSel(focusMedia) }
   }, [focusMedia, focusSeq])
 
   const cats = useMemo(() =>
@@ -269,7 +283,6 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
   return (
     <div className="wrap">
       <header>
-        <div className="eyebrow">Media Content Team · Spec Index{isExternal && ' · External Share'}</div>
         <h1>매체 스펙 라이브러리</h1>
         <div className="masthead-sub">미디어콘텐츠팀 운영 매체 소재 규격 · 납기 · 진행 프로세스 · 심의 기준</div>
         {!isExternal && !mirror && (
@@ -296,27 +309,64 @@ export default function SpecLibrary({ isExternal, mirror = false, focusMedia, fo
 
       <CommonGuide />
 
-      <div id="list">
-        {items.map(m => {
-          const showGroup = m.group !== lastGroup
-          lastGroup = m.group
-          return (
-            <React.Fragment key={m.name}>
-              {showGroup && (
-                <>
-                  <div className="group-label">{m.group.toUpperCase()}</div>
-                  {GROUP_NOTES[m.group] && (
-                    <div className="group-note" dangerouslySetInnerHTML={{ __html: sanitizeGroupNote(GROUP_NOTES[m.group], isExternal) }} />
-                  )}
-                </>
-              )}
-              <MediaItem m={m} query={query} isExternal={isExternal} mirror={mirror}
-                focus={!!focusMedia && focusMedia === m.name} focusSeq={focusSeq} onRef={setRefImg} />
-            </React.Fragment>
+      {masterDetail ? (
+        /* v2 마스터-디테일: 좌측 매체 목록(그룹 구분) + 우측 상세 (항상 펼침) */
+        (() => {
+          const current = items.find(m => m.name === sel) || items[0]
+          let railGroup = null
+          return items.length === 0 ? (
+            <div className="empty">조건에 맞는 매체가 없음</div>
+          ) : (
+            <div className="spec-md">
+              <aside className="spec-rail">
+                {items.map(m => {
+                  const showGroup = m.group !== railGroup
+                  railGroup = m.group
+                  return (
+                    <React.Fragment key={m.name}>
+                      {showGroup && <div className="spec-rail-group">{m.group}</div>}
+                      <button className={current && current.name === m.name ? 'on' : ''} onClick={() => setSel(m.name)}>
+                        {hl(m.name, query)}
+                        <small>{m.cat}{m.reg ? ` · ${m.reg}` : ''} · 요청 {m.lead}</small>
+                      </button>
+                    </React.Fragment>
+                  )
+                })}
+              </aside>
+              <div className="spec-detail">
+                {current && (
+                  <MediaItem key={current.name} m={current} query={query} isExternal={isExternal} mirror={mirror} forceOpen
+                    focus={!!focusMedia && focusMedia === current.name} focusSeq={focusSeq} onRef={setRefImg} />
+                )}
+              </div>
+            </div>
           )
-        })}
-      </div>
-      {items.length === 0 && <div className="empty">조건에 맞는 매체가 없음</div>}
+        })()
+      ) : (
+        <>
+          <div id="list">
+            {items.map(m => {
+              const showGroup = m.group !== lastGroup
+              lastGroup = m.group
+              return (
+                <React.Fragment key={m.name}>
+                  {showGroup && (
+                    <>
+                      <div className="group-label">{m.group.toUpperCase()}</div>
+                      {GROUP_NOTES[m.group] && (
+                        <div className="group-note" dangerouslySetInnerHTML={{ __html: sanitizeGroupNote(GROUP_NOTES[m.group], isExternal) }} />
+                      )}
+                    </>
+                  )}
+                  <MediaItem m={m} query={query} isExternal={isExternal} mirror={mirror}
+                    focus={!!focusMedia && focusMedia === m.name} focusSeq={focusSeq} onRef={setRefImg} />
+                </React.Fragment>
+              )
+            })}
+          </div>
+          {items.length === 0 && <div className="empty">조건에 맞는 매체가 없음</div>}
+        </>
+      )}
 
       {refImg && (
         <div className="ref-lightbox" onClick={() => setRefImg(null)}>

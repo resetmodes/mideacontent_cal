@@ -19,7 +19,6 @@ export default function LoginScreen({ viewer = false }) {
   return (
     <div className="wrap cal-wrap">
       <header>
-        <div className="eyebrow">Media Content Team{viewer && ' · Read Only'}</div>
         <h1>로그인</h1>
         <div className="masthead-sub">
           {viewer

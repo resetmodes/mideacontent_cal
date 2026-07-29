@@ -340,7 +340,6 @@ export default function HomePage({ onGo, canSettle }) {
   return (
     <div className="wrap home-wrap">
       <header>
-        <div className="eyebrow">Media Content Team · Home</div>
         <h1>미디어콘텐츠팀</h1>
         <div className="masthead-sub">
           {d.getFullYear()}년 {d.getMonth() + 1}월 {d.getDate()}일 {DOW_KO[d.getDay()]}요일{hol ? ` · ${hol}` : ''} — 오늘의 팀과 이번 주 콘텐츠

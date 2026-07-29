@@ -175,7 +175,7 @@ function overviewSlides() {
       key: 'ov-cover', label: '표지',
       node: (
         <div className="dk-cover">
-          <div className="dk-eyebrow">Channel Performance · {REPORT.period}</div>
+          <div className="dk-eyebrow">채널 성과 리포트 · {REPORT.period}</div>
           <h2 className="dk-title">{REPORT.headline}</h2>
           <div className="dk-lede">{REPORT.lede}</div>
           <div className="dk-cover-nums wide">
@@ -330,7 +330,7 @@ export default function ChannelDashboard({ channelKey, onBack }) {
     key: 'cover', label: '표지',
     node: (
       <div className="dk-cover">
-        <div className="dk-eyebrow">Channel Performance</div>
+        <div className="dk-eyebrow">채널 성과 리포트</div>
         <h2 className="dk-title">{rp?.title || ch?.name}</h2>
         {rp && <div className="dk-cover-tag">{rp.tag}</div>}
         <div className="dk-cover-meta">

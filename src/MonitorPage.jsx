@@ -594,7 +594,6 @@ export default function MonitorPage() {
   return (
     <div className="wrap cal-wrap">
       <header>
-        <div className="eyebrow">Media Content Team · Media Monitor</div>
         <h1>매체 모니터링</h1>
         <div className="masthead-sub">
           {platform === 'targetapp'

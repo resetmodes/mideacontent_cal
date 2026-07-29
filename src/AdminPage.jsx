@@ -456,7 +456,6 @@ export default function AdminPage() {
   return (
     <div className="wrap cal-wrap">
       <header>
-        <div className="eyebrow">Media Content Team · Admin</div>
         <h1>어드민</h1>
         <div className="masthead-sub">
           일정 일괄 관리 · 삭제 복원 · 타겟APP 실적 입력 — 지정 계정 전용 (config.js ADMIN_EMAILS)
