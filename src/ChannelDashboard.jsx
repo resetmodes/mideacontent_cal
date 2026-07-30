@@ -155,6 +155,88 @@ function LineChart({ rows }) {
   )
 }
 
+/* ── 월별 조회수 추이 ('26.7.30 사용자 지시 "막대 말고 선형으로, 추이가 확실히 보이게") ──
+   막대는 각 달의 크기는 읽히지만 오르내림이 눈에 안 들어온다. 꺾은선으로 바꾸고
+   채널이 여럿이면 한 판에 겹쳐 그려 서로 비교되게 한다.
+
+   선은 SVG(가로로 늘어나도 굵기 유지), 점과 값 라벨은 HTML로 겹쳐 올린다 —
+   viewBox를 가로로 늘이면 원이 타원이 되고 글자가 찌그러지기 때문.
+   무대가 어두우므로 형광은 쓰지 않는다 (강조 전용 원칙) */
+/* 어두운 무대 위에서 서로 구분되는 4색. 공식 라일락(#F0E4ED)은 흰 선과 거의 붙어 보여
+   차트용 라일락(--lilac-bar 계열)을 조금 밝힌 톤을 쓴다 ('26.7.30) */
+const TREND_C = ['#FFFFFF', '#DDA3C6', '#8FD3B6', '#E8CE96', 'rgba(255,255,255,.5)']
+
+function TrendChart({ series, labels, fmt = compact, unit = '회', scale = 'linear' }) {
+  const rows = (series || []).filter(s => (s.values || []).some(v => v != null))
+  if (!rows.length || labels.length < 2) return null
+  const all = rows.flatMap(s => s.values.filter(v => v != null))
+  const max = Math.max(...all), min = Math.min(...all)
+  /* 위아래 여유 — 선이 테두리에 붙으면 변화 폭이 과장돼 보인다.
+     값이 하나뿐이거나 전부 같으면 폭을 값 기준으로 잡아 0으로 나누지 않게 */
+  const pad = (max - min) * 0.22 || Math.abs(max) * 0.15 || 1
+  const hi = max + pad, lo = Math.max(0, min - pad)
+  /* 채널 규모가 100배씩 벌어지면 작은 채널이 바닥에 눌려 추이가 안 보인다 —
+     그때만 제곱근 눈금 (슬라이드 부제에 표기) */
+  const f = scale === 'sqrt' ? Math.sqrt : (v => v)
+  const fLo = f(lo), fHi = f(hi)
+  const x = i => (i / (labels.length - 1)) * 100
+  const y = v => 100 - ((f(v) - fLo) / (fHi - fLo || 1)) * 100
+  /* 눈금선에 실제 값 표기 — 제곱근 눈금이면 간격이 고르지 않다는 게 숫자로 보인다 */
+  const inv = t => (scale === 'sqrt' ? Math.pow(fLo + (fHi - fLo) * t, 2) : lo + (hi - lo) * t)
+  const path = s => s.values
+    .map((v, i) => (v == null ? '' : `${i === 0 ? 'M' : 'L'}${x(i).toFixed(2)} ${y(v).toFixed(2)}`))
+    .join(' ')
+  const single = rows.length === 1
+
+  return (
+    <div className="dk-trend">
+      <div className="dk-trend-plot">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="dk-trend-svg" aria-hidden="true">
+          {[0, 25, 50, 75, 100].map(g => (
+            <line key={g} x1="0" y1={g} x2="100" y2={g} className="dk-trend-grid" />
+          ))}
+          {rows.map((s, i) => (
+            <path key={s.name} d={path(s)} className="dk-trend-line"
+              style={{ stroke: TREND_C[i % TREND_C.length] }} />
+          ))}
+        </svg>
+        {[0, 25, 50, 75, 100].map(g => (
+          <span key={'g' + g} className="dk-trend-ytick" style={{ top: `${g}%` }}>{fmt(inv(1 - g / 100))}</span>
+        ))}
+        {rows.map((s, i) => s.values.map((v, j) => (v == null ? null : (
+          <span key={s.name + j} className="dk-trend-dot"
+            style={{ left: `${x(j)}%`, top: `${y(v)}%`, background: TREND_C[i % TREND_C.length],
+              animationDelay: `${j * 70 + 420}ms` }} />
+        ))))}
+        {/* 값 라벨 — 한 채널이면 모든 점에, 여러 채널이면 마지막 점에만 (겹침 방지) */}
+        {rows.map((s, i) => s.values.map((v, j) => {
+          if (v == null) return null
+          const last = j === s.values.length - 1
+          if (!single && !last) return null
+          return (
+            <span key={'v' + s.name + j} className={'dk-trend-val' + (last ? ' last' : '')}
+              style={{ left: `${x(j)}%`, top: `${y(v)}%`, color: TREND_C[i % TREND_C.length],
+                animationDelay: `${j * 70 + 560}ms` }}>{fmt(v)}</span>
+          )
+        }))}
+      </div>
+      <div className="dk-trend-x">
+        {labels.map(l => <span key={l}>{l}</span>)}
+      </div>
+      <div className="dk-trend-foot">
+        {rows.length > 1 && (
+          <div className="dk-trend-leg">
+            {rows.map((s, i) => (
+              <span key={s.name} style={{ '--c': TREND_C[i % TREND_C.length] }}>{s.name}</span>
+            ))}
+          </div>
+        )}
+        <div className="dk-unit">단위: {unit}{scale === 'sqrt' ? ', 세로축 제곱근 눈금' : ''}</div>
+      </div>
+    </div>
+  )
+}
+
 function Kpi({ label, value, unit, sub }) {
   const v = useCountUp(value)
   return (
@@ -170,7 +252,6 @@ function Kpi({ label, value, unit, sub }) {
 /* ── 종합 리포트 덱 (개요) — 채널 4개를 한 화면에서 비교 ───────────────── */
 function overviewSlides() {
   const chs = Object.entries(REPORT.channels)
-  const maxM = Math.max(...chs.flatMap(([, c]) => c.monthly))
   const maxV = Math.max(...REPORT.adValue.rows.map(r => r.v))
   return [
     {
@@ -204,22 +285,8 @@ function overviewSlides() {
       node: (
         <>
           <div className="dk-h">개월 차별 조회수 추이 <small>{REPORT.compareNote}</small></div>
-          <div className="dk-cmp">
-            {chs.map(([k, c]) => (
-              <div className="dk-cmp-row" key={k}>
-                <div className="dk-cmp-name">{c.title}</div>
-                <div className="dk-cmp-bars">
-                  {c.monthly.map((v, i) => (
-                    <div className="dk-cmp-cell" key={i}>
-                      <div className={'dk-cmp-bar' + (v === maxM ? ' max' : '')} style={{ width: `${(v / maxM) * 100}%`, animationDelay: `${i * 60}ms` }} />
-                      <span>{compact(v)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="dk-cmp-legend">{REPORT.monthLabels.join(', ')} 순</div>
+          <TrendChart labels={REPORT.monthLabels} scale="sqrt"
+            series={chs.map(([k, c]) => ({ name: c.title, values: c.monthly }))} />
         </>
       ),
     },
@@ -379,7 +446,8 @@ export default function ChannelDashboard({ channelKey, onBack }) {
       node: (
         <>
           <div className="dk-h">월별 조회수 <small>{rp.period} 개월차 기준</small></div>
-          <BarChart rows={rp.monthly.map((v, i) => ({ label: REPORT.monthLabels[i], v }))} />
+          <TrendChart labels={REPORT.monthLabels}
+            series={[{ name: rp.title, values: rp.monthly }]} />
         </>
       ),
     })
@@ -551,7 +619,8 @@ export default function ChannelDashboard({ channelKey, onBack }) {
       node: (
         <>
           <div className="dk-h">월별 조회수 <small>스튜디오 API</small></div>
-          <BarChart rows={sa.monthly.map(m => ({ label: monthLabel(m.month), v: m.views }))} />
+          <TrendChart labels={sa.monthly.map(m => monthLabel(m.month))}
+            series={[{ name: '조회수', values: sa.monthly.map(m => m.views) }]} />
           <table className="dk-table">
             <thead><tr><th>월</th><th>조회수</th><th>시청시간</th><th>구독자 증감</th><th>평균 시청</th></tr></thead>
             <tbody>
