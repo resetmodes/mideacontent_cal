@@ -267,9 +267,10 @@ function AccountTable({ list, prev = null }) {
 function StudioBoard() {
   const chans = YTA?.channels || null
   const keys = chans ? Object.keys(chans) : []
-  /* 유입 경로와 시청자 구성은 채널마다 성격이 달라 합산하면 묻힌다 ('26.7.30) —
-     칩으로 전체와 채널을 전환해 각 채널을 따로 분석할 수 있게 함 */
-  const [sel, setSel] = useState('전체')
+  /* 채널마다 성격이 달라 합산하면 묻힌다 ('26.7.30) — 칩으로 채널을 전환해 개별 분석.
+     기본 선택은 대표 채널 (전 채널 합계는 비교용이라 칩 맨 뒤) */
+  const mainKey = YT.channels?.find(c => c.isMain)?.key
+  const [sel, setSel] = useState(() => (keys.includes(mainKey) ? mainKey : keys[0] || '전체'))
   if (!keys.length) {
     return (
       <div className="mon-note" style={{ marginBottom: 16 }}>
@@ -279,14 +280,16 @@ function StudioBoard() {
     )
   }
   const nameOf = k => YT.channels?.find(c => c.key === k)?.name || k
-  const sum = f => keys.reduce((a, k) => a + (f(chans[k]) || 0), 0)
+  const scope = sel === '전체' ? keys : keys.filter(k => k === sel)
+  const sum = f => scope.reduce((a, k) => a + (f(chans[k]) || 0), 0)
   const totalMin = sum(c => c.totals?.minutes)
   const totalViews = sum(c => c.totals?.views)
   const totalSubs = sum(c => c.totals?.subsNet)
-  /* 월별 합계 (채널 합산) */
-  const months = [...new Set(keys.flatMap(k => (chans[k].monthly || []).map(m => m.month)))].sort()
+  const scopeLabel = sel === '전체' ? `채널 ${keys.length}개 합계` : nameOf(sel)
+  /* 월별 (선택 채널 기준) */
+  const months = [...new Set(scope.flatMap(k => (chans[k].monthly || []).map(m => m.month)))].sort()
   const monthMin = months.map(m => [m.slice(5) + '월',
-    keys.reduce((a, k) => a + ((chans[k].monthly || []).find(x => x.month === m)?.minutes || 0), 0)])
+    scope.reduce((a, k) => a + ((chans[k].monthly || []).find(x => x.month === m)?.minutes || 0), 0)])
   const watchRank = keys.map(k => ({
     name: nameOf(k), sub: `조회 ${compact(chans[k].totals?.views)}`,
     value: chans[k].totals?.minutes || 0, disp: hours(chans[k].totals?.minutes),
@@ -296,8 +299,7 @@ function StudioBoard() {
     value: chans[k].totals?.avgViewPct || 0, disp: (chans[k].totals?.avgViewPct ?? 0) + '%',
   })).sort((a, b) => b.value - a.value)
 
-  /* 유입 경로 — 선택 채널(또는 전체 합산) 상위 7 */
-  const scope = sel === '전체' ? keys : keys.filter(k => k === sel)
+  /* 유입 경로 — 선택 채널 상위 7 */
   const tMap = {}
   scope.forEach(k => (chans[k].traffic || []).forEach(t => { tMap[t.source] = (tMap[t.source] || 0) + (t.views || 0) }))
   const tTotal = Object.values(tMap).reduce((a, v) => a + v, 0)
@@ -331,37 +333,37 @@ function StudioBoard() {
       <div className="group-label" style={{ marginTop: 22 }}>
         스튜디오 지표 <small className="cd-note-inline">{ymdDot(YTA.range?.start)} ~ {ymdDot(YTA.range?.end)}</small>
       </div>
+      {/* 채널 전환 ('26.7.30) — 아래 지표 전체에 적용. 합계는 비교용이라 맨 뒤 */}
+      <div className="std-chips">
+        {[...keys, '전체'].map(k => (
+          <button key={k} className={sel === k ? 'on' : ''} onClick={() => setSel(k)}>
+            {k === '전체' ? '전 채널 합계' : nameOf(k)}
+          </button>
+        ))}
+      </div>
       <div className="mon-hero">
-        <Kpi label="총 시청시간" value={hours(totalMin)} sub="API 수집 기간 합계" />
-        <Kpi label="총 조회수" value={compact(totalViews)} sub={`채널 ${keys.length}개 합계`} />
+        <Kpi label="시청시간" value={hours(totalMin)} sub={scopeLabel} />
+        <Kpi label="조회수" value={compact(totalViews)} sub="수집 기간 합계" />
         <Kpi label="구독자 순증" value={(totalSubs >= 0 ? '+' : '') + num(totalSubs)} unit="명" sub="가입에서 해지를 뺀 값" />
-        <Kpi label="채널 평균 시청" value={mmss(Math.round(keys.reduce((a, k) => a + (chans[k].totals?.avgViewSec || 0), 0) / keys.length))} sub="영상당 지속시간" />
+        <Kpi label="평균 시청" value={mmss(Math.round(scope.reduce((a, k) => a + (chans[k].totals?.avgViewSec || 0), 0) / (scope.length || 1)))}
+          sub={sel === '전체' ? '채널 평균' : (chans[sel]?.totals?.avgViewPct != null ? `길이의 ${chans[sel].totals.avgViewPct}%` : '영상당 지속시간')} />
       </div>
       <div className="dash-grid g23">
         <div className="dash-panel">
           <div className="group-label">월별 시청시간</div>
-          <div className="dash-d">전 채널 합계, 시간</div>
+          <div className="dash-d">{scopeLabel}, 시간</div>
           <DuoBars data={monthMin.map(([m, v]) => [m, Math.round(v / 60)])} fmt={n => num(n) + 'h'} />
         </div>
         <div className="dash-panel">
           <div className="group-label">채널별 시청시간</div>
-          <div className="dash-d">막대는 제곱근 스케일</div>
+          <div className="dash-d">전 채널 비교, 막대는 제곱근 스케일</div>
           <HBars sqrt rows={watchRank} />
         </div>
       </div>
       <div className="dash-panel" style={{ marginTop: 16 }}>
         <div className="group-label">시청 지속률</div>
-        <div className="dash-d">영상 길이 대비 평균 시청 비율, 콘텐츠 흡인력 지표</div>
+        <div className="dash-d">전 채널 비교, 영상 길이 대비 평균 시청 비율</div>
         <HBars rows={holdRank} />
-      </div>
-
-      {/* 채널 전환 칩 ('26.7.30) — 아래 유입 경로와 시청자 구성에 적용 */}
-      <div className="std-chips">
-        {['전체', ...keys].map(k => (
-          <button key={k} className={sel === k ? 'on' : ''} onClick={() => setSel(k)}>
-            {k === '전체' ? '전체' : nameOf(k)}
-          </button>
-        ))}
       </div>
 
       {/* 유입 경로 ('26.7.30) — 선택 채널 상위 7개 */}
