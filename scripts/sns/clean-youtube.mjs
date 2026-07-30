@@ -161,7 +161,7 @@ async function main() {
     source: 'streamers/youtube-channel-scraper',
     platform: 'youtube',
     generatedAt: new Date().toISOString(),
-    note: '영상별 좋아요·댓글은 미제공(조회수만). 날짜는 상대 표기. 제목은 oEmbed 원본(한글) 기준.',
+    note: '영상별 좋아요와 댓글은 제공되지 않아 조회수만 표기합니다. 날짜는 상대 표기이고 제목은 원본 기준입니다.',
     channels: channelSummaries,
     videos: allVideos,
   }

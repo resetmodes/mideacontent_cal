@@ -47,6 +47,31 @@ async function api(url, token) {
   return res.json()
 }
 
+/* 채널 ID 자동 해결 ('26.7.30) — accounts.mjs의 URL에서 @핸들을 뽑아 Data API로 조회.
+   채널 ID를 사람이 찾아 넣을 필요가 없다. channelId가 이미 있으면 그대로 사용 */
+const handleOf = url => {
+  const m = decodeURIComponent(url || '').match(/@([^/?#]+)/)
+  return m ? m[1] : null
+}
+async function resolveChannelId(token, c) {
+  if (c.channelId) return c.channelId
+  const h = handleOf(c.url)
+  if (!h) return null
+  try {
+    const r = await api(`https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${encodeURIComponent('@' + h)}`, token)
+    const id = r.items?.[0]?.id
+    if (id) { console.log(`· ${c.key}: 채널 ID 자동 확인 ${id}`); return id }
+  } catch (e) { console.warn(`· ${c.key}: 핸들 조회 실패 (${e.message.slice(0, 60)})`) }
+  /* 폴백 — 내 채널 목록에서 이름으로 매칭 (OAuth 계정이 소유한 채널만) */
+  try {
+    const mine = await api('https://www.googleapis.com/youtube/v3/channels?part=id,snippet&mine=true&maxResults=50', token)
+    const hit = (mine.items || []).find(i =>
+      (i.snippet?.customUrl || '').replace('@', '').toLowerCase() === h.toLowerCase())
+    if (hit) { console.log(`· ${c.key}: 내 채널 목록에서 확인 ${hit.id}`); return hit.id }
+  } catch { /* 폴백 실패는 조용히 */ }
+  return null
+}
+
 /* reports.query — 채널 1개 분량 */
 async function channelReport(token, channelId, start, end) {
   const base = 'https://youtubeanalytics.googleapis.com/v2/reports'
@@ -100,9 +125,10 @@ async function main() {
   const channels = {}
   let ok = 0
   for (const c of YT_CHANNELS) {
-    if (!c.channelId) { console.warn(`· ${c.key}: channelId 미등록 — accounts.mjs에 추가 필요`); continue }
+    const cid = await resolveChannelId(token, c)
+    if (!cid) { console.warn(`· ${c.key}: 채널 ID를 찾지 못함 (핸들 변경이면 accounts.mjs url 갱신)`); continue }
     try {
-      channels[c.key] = await channelReport(token, c.channelId, iso(start), iso(end))
+      channels[c.key] = await channelReport(token, cid, iso(start), iso(end))
       ok++
     } catch (e) {
       console.warn(`⚠ ${c.key}: ${e.message} (권한 없는 채널이면 해당 계정으로 재동의 필요)`)
