@@ -1,0 +1,23 @@
+{
+  "name": "미디어콘텐츠룸",
+  "short_name": "미콘룸",
+  "description": "현대백화점 미디어콘텐츠팀 매체 운영 허브",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F3F7F4",
+  "theme_color": "#0B4336",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "매체 캘린더", "short_name": "캘린더", "url": "/#calendar" },
+    { "name": "팀 일정", "short_name": "팀", "url": "/#team" },
+    { "name": "매체 스펙", "short_name": "스펙", "url": "/#spec" }
+  ]
+}

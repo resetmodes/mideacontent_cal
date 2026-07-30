@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>캠페인 통합 성과 뷰 시안</title>
+<style>
+@font-face{font-family:"Wanted Sans Variable";font-style:normal;font-display:swap;font-weight:400 1000;
+  src:url("../public/fonts/WantedSansVariable.woff2") format("woff2-variations"),
+      url("https://mediacontent-cal.vercel.app/fonts/WantedSansVariable.woff2") format("woff2-variations");}
+:root{
+  --ink:#132019;--paper:#fff;--green:#0B4336;--green-deep:#07281F;
+  --grey:#7C8A82;--hairline:#DCE3DD;--red:#C4372C;--hl:#EDFF5B;
+  --lilac:#F0E4ED;--lilac-bar:#CFA3BD;--lilac-ink:#96637F;
+  --g900:#14211B;--g600:#4C5C54;--g500:#61736A;--g400:#88968E;
+  --g300:#A9B5AD;--g200:#D8E0DA;--g100:#E9EEE9;--g50:#F3F6F3;
+  --glass:rgba(255,255,255,.46);--glass-strong:rgba(255,255,255,.72);
+  --glass-border:rgba(255,255,255,.66);--glass-shadow:0 12px 32px -18px rgba(11,67,54,.30);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{overflow-x:clip}
+body{font-family:'Wanted Sans Variable','Pretendard Variable',Pretendard,-apple-system,sans-serif;
+  color:var(--ink);font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(1000px 640px at 6% -8%,rgba(11,67,54,.16),transparent 58%),
+    radial-gradient(760px 520px at 97% 10%,rgba(143,179,166,.24),transparent 60%),
+    radial-gradient(880px 640px at 46% 112%,rgba(11,67,54,.12),transparent 55%),
+    linear-gradient(160deg,#F3F7F4 0%,#EEF3EF 55%,#EAF1EC 100%);
+  background-attachment:fixed}
+.wrap{max-width:1400px;margin:0 auto;padding:26px 30px 90px}
+.num{font-variant-numeric:tabular-nums}
+
+/* 시안 안내 (실제 화면에는 없음) */
+.demo-note{background:var(--ink);color:#fff;border-radius:16px;padding:14px 20px;margin-bottom:26px;
+  font-size:13px;line-height:1.6}
+.demo-note b{background:var(--hl);color:var(--ink);font-weight:800;padding:1px 5px;border-radius:5px}
+
+/* 세그먼트 (기존 언어 그대로) */
+.seg{display:inline-flex;gap:4px;background:rgba(255,255,255,.30);backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border);border-radius:20px;padding:4px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+.seg button{font-family:inherit;font-size:13.5px;font-weight:700;letter-spacing:-0.01em;
+  border:none;background:none;color:var(--g500);padding:7px 16px;border-radius:16px;cursor:pointer}
+.seg button.on{background:var(--glass-strong);color:var(--green);
+  box-shadow:0 4px 14px -8px rgba(11,67,54,.5)}
+
+/* 캠페인 네비 (기존) */
+.camp-nav{padding:26px 0 4px}
+.camp-nav-title{display:flex;align-items:center;justify-content:center;gap:14px}
+.camp-title-txt{font-size:clamp(26px,3.6vw,34px);font-weight:800;letter-spacing:-0.03em}
+.camp-arrow{font-family:inherit;font-size:24px;color:var(--g300);background:none;border:none;cursor:pointer;
+  width:34px;height:34px;border-radius:10px}
+.camp-arrow:hover{color:var(--green);background:rgba(255,255,255,.5)}
+.camp-chips{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;padding-top:12px}
+.camp-chips button{font-family:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--g200);
+  background:rgba(255,255,255,.5);color:var(--g500);border-radius:12px;padding:4px 11px;cursor:pointer}
+.camp-chips button.on{background:var(--green);border-color:var(--green);color:#fff}
+
+/* 캠페인 요약 헤더 */
+.cp-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding:28px 0 0}
+.cp-meta{display:flex;gap:26px;flex-wrap:wrap}
+.cp-m{min-width:0}
+.cp-m span{display:block;font-size:12px;font-weight:600;color:var(--g400);letter-spacing:-0.01em}
+.cp-m b{display:block;font-size:16px;font-weight:700;letter-spacing:-0.02em;padding-top:2px}
+.cp-state{font-size:12px;font-weight:800;letter-spacing:-0.01em;color:var(--green);
+  background:rgba(255,255,255,.6);border:1px solid var(--g200);border-radius:12px;padding:5px 12px}
+
+.group-label{font-size:17.5px;font-weight:800;letter-spacing:-0.015em;color:var(--ink);padding:32px 0 8px}
+.dash-d{font-size:12.5px;color:var(--g400);padding:0 0 4px}
+
+/* KPI */
+.mon-hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:16px}
+.mon-stat{min-width:0;background:var(--glass);backdrop-filter:blur(18px);
+  border:1px solid var(--glass-border);border-radius:22px;box-shadow:var(--glass-shadow);
+  padding:18px 20px 16px}
+.mon-label{font-size:13px;font-weight:700;color:var(--g500);letter-spacing:-0.01em}
+.mon-value{font-size:clamp(32px,3.6vw,46px);font-weight:800;letter-spacing:-0.035em;line-height:1.05;
+  font-variant-numeric:tabular-nums;padding-top:8px}
+.mon-value small{font-size:.42em;font-weight:600;color:var(--g400);margin-left:3px;letter-spacing:0}
+.mon-sub{font-size:12.5px;color:var(--g400);margin-top:6px}
+
+/* 표 */
+.mon-scroll{overflow-x:auto;background:var(--glass);backdrop-filter:blur(18px);
+  border:1px solid var(--glass-border);border-radius:22px;box-shadow:var(--glass-shadow);
+  padding:8px 20px 12px;margin-top:16px}
+.mon-table{width:100%;min-width:720px;border-collapse:collapse;margin-top:4px}
+.mon-table th{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--g400);text-align:right;
+  padding:11px 10px 9px;border-bottom:1px solid var(--ink);white-space:nowrap}
+.mon-table th:first-child{text-align:left;padding-left:0}
+.mon-table td{font-size:14.5px;padding:11px 10px;border-bottom:1px solid var(--g100);text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.mon-table td:first-child{text-align:left;padding-left:0}
+.mon-table td.strong{font-weight:700}
+.mon-table td .mute,.mon-table td.mute{color:var(--g400);font-weight:400}
+.mon-table tr.sum td{border-bottom:none;border-top:1px solid var(--ink);font-weight:800;padding-top:13px}
+.cp-ch{display:flex;align-items:center;gap:8px}
+.ch-chip{width:20px;height:20px;border-radius:6px;flex:none;display:flex;align-items:center;
+  justify-content:center;color:#fff;font-size:10px;font-weight:800}
+.cp-ch b{font-weight:700;letter-spacing:-0.01em}
+.cp-ch em{display:block;font-style:normal;font-size:11.5px;color:var(--g400);font-weight:500}
+.src-tag{font-size:11px;font-weight:600;color:var(--g500);background:rgba(255,255,255,.55);
+  border:1px solid var(--g200);border-radius:8px;padding:2px 8px;white-space:nowrap}
+.src-tag.none{color:var(--g400);border-style:dashed;background:none}
+
+/* 차트 */
+.dash-grid{display:grid;gap:16px;margin-top:16px}
+.dash-grid.g23{grid-template-columns:1.7fr 1fr}
+.dash-panel{background:var(--glass);backdrop-filter:blur(18px);border:1px solid var(--glass-border);
+  border-radius:22px;box-shadow:var(--glass-shadow);padding:16px 22px 18px;min-width:0}
+.dash-panel .group-label{padding:2px 0 1px}
+.dash-panel.flat{background:none;border:none;box-shadow:none;backdrop-filter:none;padding-left:8px;padding-right:8px}
+.hbars{margin-top:12px}
+.hb{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--g100)}
+.hb:last-child{border-bottom:none}
+.hb-n{width:152px;flex:none;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb-n small{display:block;font-size:11.5px;font-weight:500;color:var(--g400)}
+.hb-t{flex:1;height:12px;background:rgba(19,32,25,.06);border-radius:3px;min-width:0;overflow:hidden}
+.hb-f{display:block;height:100%;background:#5C8C7B;border-radius:3px}
+.hb-f.max{background:var(--green)}
+.hb-v{width:96px;flex:none;text-align:right;font-size:15px;font-weight:800;
+  font-variant-numeric:tabular-nums;letter-spacing:-0.02em}
+.hb-v em{display:block;font-style:normal;font-size:11.5px;font-weight:600;color:var(--g400);letter-spacing:0}
+.hb-v.none{font-size:12.5px;font-weight:600;color:var(--g400)}
+.donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding-top:10px}
+.donut{position:relative}
+.donut-ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-ctr b{font-size:22px;font-weight:800;letter-spacing:-0.03em;font-variant-numeric:tabular-nums}
+.donut-ctr span{font-size:11px;color:var(--g400);font-weight:600}
+.donut-leg{flex:1;min-width:150px}
+.dleg-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px}
+.dleg-dot{width:9px;height:9px;border-radius:3px;flex:none}
+.dleg-n{flex:1;color:var(--g600);font-weight:600}
+.dleg-v{font-weight:700;font-variant-numeric:tabular-nums}
+
+/* 콘텐츠 실적 행 */
+.cp-post{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;
+  padding:13px 0;border-bottom:1px solid var(--g100)}
+.cp-post:last-child{border-bottom:none}
+.cp-thumb{width:52px;height:52px;border-radius:12px;background:var(--g100);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--g400);font-weight:700}
+.cp-t{min-width:0}
+.cp-t b{display:block;font-size:14.5px;font-weight:700;letter-spacing:-0.015em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cp-t span{font-size:12px;color:var(--g400)}
+.cp-nums{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cp-nums b{font-size:15px;font-weight:800;letter-spacing:-0.02em}
+.cp-nums span{display:block;font-size:11.5px;color:var(--g400);font-weight:600}
+
+/* 캠페인 일정 블록 (기존) */
+.camp-block{background:var(--glass);backdrop-filter:blur(18px);border:1px solid var(--glass-border);
+  border-radius:22px;box-shadow:var(--glass-shadow);padding:16px 22px 18px;margin-top:16px}
+.camp-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.camp-name{font-size:17.5px;font-weight:800;letter-spacing:-0.02em}
+.camp-range{font-size:12.5px;color:var(--g400)}
+.camp-ev{display:block;width:100%;text-align:left;font-family:inherit;background:none;border:none;
+  border-top:1px solid var(--g100);padding:9px 0;cursor:pointer;font-size:14px}
+.camp-ev .d{color:var(--g400);font-size:12.5px;font-weight:600;margin-right:9px;font-variant-numeric:tabular-nums}
+.camp-ev:hover{color:var(--green)}
+
+@media(max-width:900px){.dash-grid.g23{grid-template-columns:1fr}}
+@media(max-width:640px){.wrap{padding:20px 16px 60px}.cp-meta{gap:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="demo-note">
+    캠페인 통합 성과 뷰 시안입니다. 매체 캘린더의 <b>캠페인 세그</b>에서 캠페인 하나를 선택했을 때
+    기존 월간 그리드와 일정 블록 사이에 이 성과 블록이 들어갑니다.
+    전체 캠페인 상태에서는 지금과 동일하게 성과 블록 없이 목록만 보입니다.
+    숫자는 구조 확인용 예시입니다.
+  </div>
+
+  <div class="seg">
+    <button>월간</button>
+    <button class="on">캠페인</button>
+  </div>
+
+  <div class="camp-nav">
+    <div class="camp-nav-title">
+      <button class="camp-arrow" aria-label="이전 캠페인">‹</button>
+      <span class="camp-title-txt">#썸머페스타</span>
+      <button class="camp-arrow" aria-label="다음 캠페인">›</button>
+    </div>
+    <div class="camp-chips">
+      <button>전체</button>
+      <button class="on">썸머페스타</button>
+      <button>워터밤</button>
+      <button>도쿄장난감미술관</button>
+      <button>백투스쿨</button>
+    </div>
+  </div>
+
+  <div class="cp-head">
+    <div class="cp-meta">
+      <div class="cp-m"><span>집행 기간</span><b class="num">7.1 ~ 7.28</b></div>
+      <div class="cp-m"><span>집행 건수</span><b class="num">10건</b></div>
+      <div class="cp-m"><span>집행 매체</span><b>5개</b></div>
+      <div class="cp-m"><span>담당</span><b>노규빈, 박준영</b></div>
+    </div>
+    <span class="cp-state">종료 D+2</span>
+  </div>
+
+  <div class="group-label">캠페인 성과</div>
+  <div class="dash-d">매체마다 집계 기준이 달라 단순 합산한 값입니다. 인스타그램과 유튜브는 주간 수집분, 타겟APP은 실적 입력분을 씁니다.</div>
+
+  <div class="mon-hero">
+    <div class="mon-stat">
+      <div class="mon-label">총 노출</div>
+      <div class="mon-value num">1,574<small>만</small></div>
+      <div class="mon-sub">집계된 3개 매체 합계</div>
+    </div>
+    <div class="mon-stat">
+      <div class="mon-label">총 반응</div>
+      <div class="mon-value num">63,960</div>
+      <div class="mon-sub">좋아요, 댓글, 클릭 합계</div>
+    </div>
+    <div class="mon-stat">
+      <div class="mon-label">반응률</div>
+      <div class="mon-value num">0.41<small>%</small></div>
+      <div class="mon-sub">노출 대비 반응</div>
+    </div>
+    <div class="mon-stat">
+      <div class="mon-label">집계 대기</div>
+      <div class="mon-value num">2<small>개 매체</small></div>
+      <div class="mon-sub">백화점APP, 카카오톡</div>
+    </div>
+  </div>
+
+  <div class="mon-scroll">
+    <table class="mon-table">
+      <thead>
+        <tr>
+          <th>매체</th><th>집행</th><th>노출</th><th>반응</th><th>반응률</th><th>출처</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="cp-ch"><span class="ch-chip" style="background:#E1306C">IG</span>
+            <span><b>인스타그램</b><em>공식, 도시매뉴얼</em></span></div></td>
+          <td>피드 2건, 릴스 1건</td>
+          <td class="strong num">412,800</td>
+          <td class="num">18,240</td>
+          <td class="num">4.42%</td>
+          <td><span class="src-tag">주간 수집</span></td>
+        </tr>
+        <tr>
+          <td><div class="cp-ch"><span class="ch-chip" style="background:#FF0000">YT</span>
+            <span><b>유튜브</b><em>공식</em></span></div></td>
+          <td>영상 1건</td>
+          <td class="strong num">87,400</td>
+          <td class="num">3,120</td>
+          <td class="num">3.57%</td>
+          <td><span class="src-tag">주간 수집</span></td>
+        </tr>
+        <tr>
+          <td><div class="cp-ch"><span class="ch-chip" style="background:#0B4336">TA</span>
+            <span><b>타겟APP</b><em>6개 매체</em></span></div></td>
+          <td>배너 6건</td>
+          <td class="strong num">15,240,000</td>
+          <td class="num">42,600</td>
+          <td class="num">0.28%</td>
+          <td><span class="src-tag">실적 입력</span></td>
+        </tr>
+        <tr>
+          <td><div class="cp-ch"><span class="ch-chip" style="background:#4C5C54">APP</span>
+            <span><b>백화점APP</b><em>팝업배너</em></span></div></td>
+          <td>7일 집행</td>
+          <td class="mute" colspan="3">집계 확인 중</td>
+          <td><span class="src-tag none">GA4 연동 예정</span></td>
+        </tr>
+        <tr>
+          <td><div class="cp-ch"><span class="ch-chip" style="background:#FEE500;color:#191919">KA</span>
+            <span><b>카카오톡</b><em>친구톡</em></span></div></td>
+          <td>1회 발송</td>
+          <td class="mute" colspan="3">집계 확인 중</td>
+          <td><span class="src-tag none">수기 입력</span></td>
+        </tr>
+        <tr class="sum">
+          <td>합계</td><td></td>
+          <td class="num">15,740,200</td>
+          <td class="num">63,960</td>
+          <td class="num">0.41%</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="dash-grid g23">
+    <div class="dash-panel">
+      <div class="group-label">매체별 노출</div>
+      <div class="dash-d">타겟APP과 SNS의 규모 차이가 커서 제곱근 눈금으로 그렸습니다. 막대 길이는 배수가 아니라 순위를 읽는 용도입니다.</div>
+      <div class="hbars">
+        <div class="hb"><span class="hb-n">타겟APP<small>6개 매체</small></span>
+          <span class="hb-t"><span class="hb-f max" style="width:100%"></span></span>
+          <span class="hb-v num">15,240,000</span></div>
+        <div class="hb"><span class="hb-n">인스타그램<small>공식, 도시매뉴얼</small></span>
+          <span class="hb-t"><span class="hb-f" style="width:16.5%"></span></span>
+          <span class="hb-v num">412,800</span></div>
+        <div class="hb"><span class="hb-n">유튜브<small>공식</small></span>
+          <span class="hb-t"><span class="hb-f" style="width:7.6%"></span></span>
+          <span class="hb-v num">87,400</span></div>
+        <div class="hb"><span class="hb-n">백화점APP<small>팝업배너</small></span>
+          <span class="hb-t"></span>
+          <span class="hb-v none">집계 확인 중</span></div>
+        <div class="hb"><span class="hb-n">카카오톡<small>친구톡</small></span>
+          <span class="hb-t"></span>
+          <span class="hb-v none">집계 확인 중</span></div>
+      </div>
+    </div>
+    <div class="dash-panel flat">
+      <div class="group-label">반응 구성</div>
+      <div class="dash-d">노출이 아니라 실제 반응이 어디서 나왔는지 봅니다</div>
+      <div class="donut-wrap">
+        <div class="donut" style="width:148px;height:148px">
+          <svg width="148" height="148">
+            <circle cx="74" cy="74" r="61" fill="none" stroke="#0B4336" stroke-width="20"
+              stroke-dasharray="253.2 130.1" stroke-dashoffset="0" transform="rotate(-90 74 74)"></circle>
+            <circle cx="74" cy="74" r="61" fill="none" stroke="#C9A0BE" stroke-width="20"
+              stroke-dasharray="107.4 275.9" stroke-dashoffset="-255.2" transform="rotate(-90 74 74)"></circle>
+            <circle cx="74" cy="74" r="61" fill="none" stroke="#7FA795" stroke-width="20"
+              stroke-dasharray="16.3 367" stroke-dashoffset="-364.6" transform="rotate(-90 74 74)"></circle>
+          </svg>
+          <div class="donut-ctr"><b class="num">63,960</b><span>합계</span></div>
+        </div>
+        <div class="donut-leg">
+          <div class="dleg-row"><span class="dleg-dot" style="background:#0B4336"></span><span class="dleg-n">타겟APP</span><span class="dleg-v num">42,600</span></div>
+          <div class="dleg-row"><span class="dleg-dot" style="background:#C9A0BE"></span><span class="dleg-n">인스타그램</span><span class="dleg-v num">18,240</span></div>
+          <div class="dleg-row"><span class="dleg-dot" style="background:#7FA795"></span><span class="dleg-n">유튜브</span><span class="dleg-v num">3,120</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="group-label">콘텐츠별 실적</div>
+  <div class="dash-d">이 캠페인으로 등록된 일정 중 수집 데이터와 매칭된 콘텐츠입니다. 행을 누르면 일정 상세가 열립니다.</div>
+  <div class="mon-scroll" style="padding:6px 22px 10px">
+    <div class="cp-post">
+      <div class="cp-thumb" style="background:linear-gradient(135deg,#0B4336,#7FA795)"></div>
+      <div class="cp-t"><b>썸머페스타 오프닝 릴스</b><span>인스타그램 공식, 7.3 게시</span></div>
+      <div class="cp-nums"><b class="num">214,600</b><span>반응 11,240</span></div>
+    </div>
+    <div class="cp-post">
+      <div class="cp-thumb" style="background:linear-gradient(135deg,#C9A0BE,#F0E4ED)"></div>
+      <div class="cp-t"><b>워터파크 팝업 현장 스케치</b><span>유튜브 공식, 7.11 게시</span></div>
+      <div class="cp-nums"><b class="num">87,400</b><span>반응 3,120</span></div>
+    </div>
+    <div class="cp-post">
+      <div class="cp-thumb" style="background:linear-gradient(135deg,#D9C6A5,#F3F6F3)"></div>
+      <div class="cp-t"><b>여름 신상 캐러셀</b><span>인스타그램 도시매뉴얼, 7.16 게시</span></div>
+      <div class="cp-nums"><b class="num">124,300</b><span>반응 4,880</span></div>
+    </div>
+    <div class="cp-post">
+      <div class="cp-thumb">매칭 대기</div>
+      <div class="cp-t"><b>썸머페스타 마감 피드</b><span>인스타그램 공식, 7.26 게시</span></div>
+      <div class="cp-nums"><b style="color:var(--g400);font-size:13px">다음 수집 반영</b><span>주 1회 수집</span></div>
+    </div>
+  </div>
+
+  <div class="group-label">캠페인 일정</div>
+  <div class="camp-block">
+    <div class="camp-head">
+      <span class="camp-name">#썸머페스타</span>
+      <span class="camp-range num">7.1 ~ 7.28, 10건</span>
+    </div>
+    <button class="camp-ev"><span class="d num">7.1</span>타겟APP 썸머페스타 배너 ×6</button>
+    <button class="camp-ev"><span class="d num">7.3</span>인스타 오프닝 릴스</button>
+    <button class="camp-ev"><span class="d num">7.8</span>APP팝업 썸머페스타</button>
+    <button class="camp-ev"><span class="d num">7.11</span>유튜브 현장 스케치</button>
+    <button class="camp-ev"><span class="d num">7.16</span>인스타 도시 여름 신상</button>
+    <button class="camp-ev"><span class="d num">7.22</span>카톡 친구톡 발송</button>
+    <button class="camp-ev"><span class="d num">7.26</span>인스타 마감 피드</button>
+  </div>
+
+</div>
+</body>
+</html>
