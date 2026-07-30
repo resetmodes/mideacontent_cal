@@ -10,7 +10,7 @@ import { uploadEventImage, removeEventImage, imageUrl, MAX_IMAGES } from './lib/
 export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onChange, hint = '시안과 결과 보고용' }) {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)
-  const [view, setView] = useState(null)      // 라이트박스로 보는 이미지
+  const [viewIdx, setViewIdx] = useState(-1)  // 라이트박스로 보는 이미지 (인덱스, -1 = 닫힘)
   const [armDel, setArmDel] = useState(null)  // × 1회 클릭 = 확인 대기 상태 (path)
   const [dragOver, setDragOver] = useState(false)  // 드래그앤드롭 하이라이트
   const fileRef = useRef(null)
@@ -48,6 +48,25 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
     setBusy(false)
   }
 
+  /* 라이트박스 좌우 넘기기 ('26.7.29) — 여러 장 첨부 시 화살표·키보드·스와이프로 이동.
+     삭제로 장수가 줄면 인덱스를 범위 안으로 당김 */
+  const view = viewIdx >= 0 ? imgs[Math.min(viewIdx, imgs.length - 1)] : null
+  const step = d => setViewIdx(i => (i + d + imgs.length) % imgs.length)
+  useEffect(() => {
+    if (viewIdx < 0) return
+    const onKey = e => {
+      if (e.key === 'Escape') setViewIdx(-1)
+      else if (e.key === 'ArrowLeft' && imgs.length > 1) step(-1)
+      else if (e.key === 'ArrowRight' && imgs.length > 1) step(1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [viewIdx, imgs.length])
+  useEffect(() => { if (viewIdx >= imgs.length) setViewIdx(imgs.length ? imgs.length - 1 : -1) }, [imgs.length, viewIdx])
+
+  /* 스와이프 (모바일) — 40px 이상 가로 이동이면 넘김 */
+  const touch = useRef(null)
+
   const editable = canEdit && !!onChange
   if (!imgs.length && !editable) return null
 
@@ -55,9 +74,9 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
     <div className="md-imgs">
       {imgs.length > 0 && (
         <div className="md-img-grid">
-          {imgs.map(img => (
+          {imgs.map((img, i) => (
             <figure key={img.path} className="md-img">
-              <img src={imageUrl(img.path)} alt={img.name} loading="lazy" onClick={() => setView(img)} />
+              <img src={imageUrl(img.path)} alt={img.name} loading="lazy" onClick={() => setViewIdx(i)} />
               {editable && (
                 <button
                   className={'md-img-x' + (armDel === img.path ? ' arm' : '')}
@@ -91,8 +110,22 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
       {/* 라이트박스는 body로 포털 ('26.7.29) — 모달에 backdrop-filter가 걸려 있어
           position:fixed가 모달 기준으로 갇혔고, 그래서 세로 이미지가 잘려 스크롤이 필요했음 */}
       {view && createPortal(
-        <div className="ref-lightbox" onClick={() => setView(null)}>
-          <img src={imageUrl(view.path)} alt={view.name} />
+        <div className="ref-lightbox" onClick={() => setViewIdx(-1)}
+          onTouchStart={e => { touch.current = e.touches[0].clientX }}
+          onTouchEnd={e => {
+            const dx = e.changedTouches[0].clientX - (touch.current ?? 0)
+            if (imgs.length > 1 && Math.abs(dx) > 40) step(dx > 0 ? -1 : 1)
+          }}>
+          <img src={imageUrl(view.path)} alt={view.name} onClick={e => e.stopPropagation()} />
+          {imgs.length > 1 && (
+            <>
+              <button className="lb-nav prev" aria-label="이전 이미지"
+                onClick={e => { e.stopPropagation(); step(-1) }}>‹</button>
+              <button className="lb-nav next" aria-label="다음 이미지"
+                onClick={e => { e.stopPropagation(); step(1) }}>›</button>
+              <div className="lb-count">{Math.min(viewIdx, imgs.length - 1) + 1} / {imgs.length}</div>
+            </>
+          )}
           <div className="ref-close">닫기</div>
         </div>, document.body)}
     </div>
