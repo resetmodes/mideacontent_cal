@@ -1326,6 +1326,17 @@ function ShareModal({ g, onClose }) {
     catch { window.prompt('아래 내용을 복사하세요', text) }
   }
 
+  /* 기존 발급 링크 복사 — 발급 직후 안내와 같은 문안 */
+  const [copiedId, setCopiedId] = useState(null)
+  const copyIssued = async x => {
+    const url = shareUrl(x.token)
+    const text = x.pw
+      ? `[${g.advertiser}${g.campaign ? ` ${g.campaign}` : ''} 캠페인 결과 리포트]\n${url}\n비밀번호: ${x.pw}\n(${(x.expires_at || '').slice(0, 10)}까지 열람 가능합니다)`
+      : `[${g.advertiser}${g.campaign ? ` ${g.campaign}` : ''} 캠페인 결과 리포트]\n${url}\n(${(x.expires_at || '').slice(0, 10)}까지 열람 가능합니다)`
+    try { await navigator.clipboard.writeText(text); setCopiedId(x.id); setTimeout(() => setCopiedId(null), 2000) }
+    catch { window.prompt('아래 내용을 복사하세요', text) }
+  }
+
   const revoke = async id => {
     try { await deleteShare(id); setExisting(list => list.filter(x => x.id !== id)); toast('링크 회수됨', { danger: true }) }
     catch (e) { setErr(e.message) }
@@ -1407,14 +1418,31 @@ function ShareModal({ g, onClose }) {
         )}
 
         {existing.length > 0 && (
-          <div className="md-hist" style={{ marginTop: 16 }}>
+          <div className="shr-issued">
             <div className="md-perf-title">발급된 링크 {existing.length}건 <small>회수하면 즉시 열람 불가</small></div>
+            {/* 기존 발급분도 링크와 비밀번호를 다시 확인할 수 있어야 함 ('26.7.29) —
+                광고주가 링크를 잃어버렸을 때 재발급 없이 같은 링크를 다시 보낼 수 있게 */}
             {existing.map(x => (
-              <div key={x.id} className="md-hist-row">
-                <span className="mh-when">~{(x.expires_at || '').slice(0, 10)}</span>
-                <span className="mh-who">{x.pw ? '비밀번호 있음' : '링크만'}</span>
-                <span className="mh-diff mute">{x.created_by || ''}</span>
-                <button className="btn-ghost sm danger" onClick={() => revoke(x.id)}>회수</button>
+              <div key={x.id} className="shr-issued-row">
+                <div className="shr-issued-top">
+                  <span className="shr-issued-exp">{(x.expires_at || '').slice(0, 10)}까지</span>
+                  <span className="mute">{x.created_by || ''}</span>
+                  <div className="md-spacer" />
+                  <button className="btn-ghost sm" onClick={() => copyIssued(x)}>
+                    {copiedId === x.id ? '복사됨' : '링크 복사'}
+                  </button>
+                  <button className="btn-ghost sm danger" onClick={() => revoke(x.id)}>회수</button>
+                </div>
+                <div className="shr-issued-body">
+                  <label>
+                    링크
+                    <input readOnly value={shareUrl(x.token)} onFocus={e => e.target.select()} />
+                  </label>
+                  <label className="shr-issued-pw">
+                    비밀번호
+                    <input readOnly value={x.pw || '없음'} onFocus={e => e.target.select()} />
+                  </label>
+                </div>
               </div>
             ))}
           </div>

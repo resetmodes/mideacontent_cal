@@ -124,7 +124,8 @@ h1{font-size:clamp(24px,3.2vw,30px);font-weight:800;letter-spacing:-0.02em;line-
 .media-visual{margin:2px 0 0;}
 .ref-lightbox{position:fixed;inset:0;background:rgba(23,23,25,.72);z-index:120;cursor:zoom-out;
   display:flex;align-items:center;justify-content:center;padding:24px;}
-.ref-lightbox img{max-width:min(1100px,96vw);max-height:92vh;background:#fff;display:block;}
+.ref-lightbox img{max-width:96vw;max-height:92vh;width:auto;height:auto;object-fit:contain;
+  background:#fff;display:block;}
 .ref-close{position:fixed;top:16px;right:20px;font-size:13px;font-weight:700;color:#fff;letter-spacing:.04em;}
 /* 광고 소재 공통 가이드 (접힘) */
 .cg{border-top:2px solid var(--ink);margin:6px 0 22px;}
@@ -1992,3 +1993,20 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 @media (max-width:560px){
   .login-logo{height:42px;width:auto;}
 }
+
+/* 발급된 공유 링크 목록 ('26.7.29) — 기존 발급분의 링크와 비밀번호를 다시 확인 */
+.shr-issued{margin-top:16px;border-top:1px solid var(--g200);padding-top:12px;}
+.shr-issued-row{padding:10px 0;border-bottom:1px solid var(--g100);}
+.shr-issued-row:last-child{border-bottom:none;}
+.shr-issued-top{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--g400);}
+.shr-issued-exp{font-weight:700;color:var(--ink);}
+.shr-issued-body{display:flex;gap:8px;margin-top:8px;}
+.shr-issued-body label{flex:1;display:flex;flex-direction:column;gap:3px;
+  font-size:11px;font-weight:600;color:var(--g400);}
+.shr-issued-pw{flex:0 0 118px;}
+.shr-issued-body input{font-family:inherit;font-size:12.5px;color:var(--ink);
+  background:rgba(255,255,255,.72);border:1px solid var(--g200);border-radius:14px;
+  padding:8px 11px;width:100%;outline:none;}
+.shr-issued-body input:focus{border-color:var(--green);}
+.shr-issued-pw input{font-variant-numeric:tabular-nums;letter-spacing:.04em;font-weight:700;}
+@media (max-width:560px){ .shr-issued-body{flex-direction:column;} .shr-issued-pw{flex:1;} }
