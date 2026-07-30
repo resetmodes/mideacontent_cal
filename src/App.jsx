@@ -43,8 +43,11 @@ export default function App() {
     if (window.location.hash === '#settle') return 'settle'
     return 'home'   // '26.7: 홈이 접속 첫 화면
   })
-  const go = t => {
+  /* calView: 매체 캘린더의 하위 세그(월간·캠페인) — 홈 KPI에서 캠페인으로 바로 진입 ('26.7.29) */
+  const [calView, setCalView] = useState(null)
+  const go = (t, view = null) => {
     setTab(t)
+    setCalView(view)
     /* home = 기본 탭(해시 없음). 나머지는 딥링크 해시 */
     const HASH = { spec: '#spec', monitor: '#monitor', shoot: '#shoot', calendar: '#calendar', team: '#team', admin: '#admin', rmn: '#rmn', settle: '#settle' }
     window.history.replaceState(null, '', HASH[t] || window.location.pathname + window.location.search)
@@ -114,7 +117,7 @@ export default function App() {
       <div className="shell-main">
         {tab === 'home' && <Celebration />}
         {tab === 'home' && <HomePage onGo={go} canSettle={isSettle && storageMode === 'supabase'} onOpenSpec={openSpec} />}
-        {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} />}
+        {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} initialView={calView} />}
         {tab === 'shoot' && <CalendarPage shoot onOpenSpec={openSpec} />}
         {tab === 'team' && <CalendarPage team />}
         {tab === 'spec' && <SpecLibrary isExternal={false} focusMedia={specFocus.name} focusSeq={specFocus.seq} />}

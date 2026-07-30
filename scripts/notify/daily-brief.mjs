@@ -100,7 +100,7 @@ function buildCard({ team, shoots, uploads }) {
         $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
         version: '1.4',
         body,
-        actions: [{ type: 'Action.OpenUrl', title: '미콘룸 바로가기', url: `${SITE}/#calendar` }],
+        actions: [{ type: 'Action.OpenUrl', title: '미콘룸 바로가기', url: SITE }],
       },
     }],
   }

@@ -48,11 +48,12 @@ function useWeekStats(events, today) {
 }
 
 /* ── ⓪ 이번 주 요약 히어로 — KPI 글래스 카드 4개 (모니터링 탭과 동일 카드 언어).
-   각 지표 클릭 시 해당 탭으로 이동 (게시 예정·캠페인→매체 캘린더, 촬영→촬영 캘린더, 부재→팀 일정) */
+   각 지표 클릭 시 해당 탭으로 이동 (게시 예정은 매체 캘린더 월간, 캠페인은 캠페인 세그,
+   촬영은 촬영 캘린더, 부재는 팀 일정) */
 function WeekHero({ s, onGo }) {
   const stats = [
     { label: '이번 주 게시 예정', value: s.posts, unit: '건', sub: '오늘부터 7일', to: 'calendar' },
-    { label: '진행 중인 캠페인', value: s.campaigns, unit: '개', sub: '3주 내 기준', to: 'calendar' },
+    { label: '진행 중인 캠페인', value: s.campaigns, unit: '개', sub: '3주 내 기준', to: 'calendar', view: '캠페인' },
     { label: '이번 주 촬영', value: s.shoots, unit: '건', sub: '유튜브와 인스타', to: 'shoot' },
     { label: '오늘 팀원 부재', value: s.away, unit: '건', sub: '연차, 외근, 출장, 교육', to: 'team' },
   ]
@@ -60,7 +61,7 @@ function WeekHero({ s, onGo }) {
   return (
     <div className="mon-hero home-hero">
       {stats.map(st => (
-        <button key={st.label} className="mon-stat home-stat" onClick={() => onGo(st.to)}>
+        <button key={st.label} className="mon-stat home-stat" onClick={() => onGo(st.to, st.view)}>
           <div className="mon-label">{st.label}</div>
           <div className="mon-value">{st.value}<small>{st.unit}</small></div>
           <div className="mon-sub">{st.sub}</div>
