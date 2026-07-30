@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { IG } from './data/sns/instagram.js'
 import { YT } from './data/sns/youtube.js'
 import { YTA } from './data/sns/ytAnalytics.js'
+import { trafficKo, deviceKo, ageKo, genderKo } from './data/sns/ytLabels.js'
 import { UGC } from './data/sns/ugc.js'
 import { TREND } from './data/sns/trend.js'
 import { TA_GROUPS } from './data/targetapp.js'
@@ -259,20 +260,6 @@ function AccountTable({ list, prev = null }) {
   )
 }
 
-/* 유입 경로 코드 → 한글 ('26.7.30) — API가 새 코드를 추가해도 매핑 없으면 원문 표기 */
-const TRAFFIC_KO = {
-  YT_SEARCH: '유튜브 검색', RELATED_VIDEO: '추천 영상', SHORTS: '쇼츠 피드',
-  SUBSCRIBER: '구독 피드', BROWSE: '홈 탐색', YT_CHANNEL: '채널 페이지',
-  EXT_URL: '외부 사이트', PLAYLIST: '재생목록', YT_PLAYLIST_PAGE: '재생목록 페이지',
-  NOTIFICATION: '알림', END_SCREEN: '최종 화면', HASHTAGS: '해시태그',
-  ADVERTISING: '광고', SOUND_PAGE: '사운드 페이지', VIDEO_REMIXES: '리믹스',
-  NO_LINK_EMBEDDED: '외부 임베드', NO_LINK_OTHER: '직접 유입', YT_OTHER_PAGE: '기타 페이지',
-  ANNOTATION: '카드와 링크', CAMPAIGN_CARD: '캠페인 카드', PROMOTED: '프로모션',
-  LIVE_REDIRECT: '라이브 이동', SHORTS_CONTENT_LINKS: '쇼츠 링크',
-}
-const AGE_KO = a => (a || '').replace('age', '').replace('-', '~') + '세'
-const GENDER_KO = { female: '여성', male: '남성', user_specified: '기타', gender_other: '기타' }
-
 /* ── 스튜디오 지표 대시보드 ('26.7.30) — YouTube Analytics API 수집분(ytAnalytics.js).
    공개 스크레이핑으로는 못 얻는 값(시청시간·구독자 증감·평균 시청)을 채널 비교로 보여준다.
    미수집 상태(YTA 없음)에서는 연동 안내만 — 수치를 지어내지 않는다.
@@ -311,14 +298,13 @@ function StudioBoard() {
   keys.forEach(k => (chans[k].traffic || []).forEach(t => { tMap[t.source] = (tMap[t.source] || 0) + (t.views || 0) }))
   const tTotal = Object.values(tMap).reduce((a, v) => a + v, 0)
   const traffic = Object.entries(tMap).sort((a, b) => b[1] - a[1]).slice(0, 7).map(([src, v]) => ({
-    name: TRAFFIC_KO[src] || src, value: v,
+    name: trafficKo(src), value: v,
     disp: compact(v), unit: tTotal ? Math.round(v / tTotal * 100) + '%' : '',
   }))
   /* 기기 */
   const dMap = {}
   keys.forEach(k => (chans[k].device || []).forEach(d => { dMap[d.type] = (dMap[d.type] || 0) + (d.views || 0) }))
-  const DEV_KO = { MOBILE: '모바일', DESKTOP: 'PC', TABLET: '태블릿', TV: 'TV', GAME_CONSOLE: '게임기', UNKNOWN_PLATFORM: '기타' }
-  const devices = Object.entries(dMap).sort((a, b) => b[1] - a[1]).map(([t, v]) => [DEV_KO[t] || t, v])
+  const devices = Object.entries(dMap).sort((a, b) => b[1] - a[1]).map(([t, v]) => [deviceKo(t), v])
   const deviceTotal = Object.values(dMap).reduce((a, v) => a + v, 0)
   /* 시청자 구성 — 채널별 viewerPercentage를 단순 평균 (채널 규모 가중은 API가 주지 않음) */
   const withDemo = keys.filter(k => (chans[k].demo || []).length)
@@ -328,13 +314,13 @@ function StudioBoard() {
     gMap[d.gender] = (gMap[d.gender] || 0) + (d.pct || 0) / withDemo.length
   }))
   const ages = Object.entries(aMap).sort((a, b) => a[0].localeCompare(b[0])).map(([a, v]) => ({
-    name: AGE_KO(a), value: v, disp: v.toFixed(1) + '%',
+    name: ageKo(a), value: v, disp: v.toFixed(1) + '%',
   }))
   /* 성별은 미상이 빠져 합이 100 미만 — 도넛이 자체 재정규화하면 범례 숫자와 어긋나므로
      여기서 성별 확인된 시청자 기준으로 환산해 표기를 맞춘다 */
   const gSum = Object.values(gMap).reduce((a, v) => a + v, 0) || 1
   const genders = Object.entries(gMap).sort((a, b) => b[1] - a[1])
-    .map(([g, v]) => [GENDER_KO[g] || g, +(v / gSum * 100).toFixed(1)])
+    .map(([g, v]) => [genderKo(g), +(v / gSum * 100).toFixed(1)])
 
   return (
     <>

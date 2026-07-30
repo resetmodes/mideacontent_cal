@@ -14,6 +14,7 @@ import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { LogoLockup } from './Logo.jsx'
 import { YT } from './data/sns/youtube.js'
 import { YTA } from './data/sns/ytAnalytics.js'
+import { trafficKo, deviceKo, demoSplit } from './data/sns/ytLabels.js'
 import { TREND } from './data/sns/trend.js'
 import { REPORT } from './data/sns/channelReport.js'
 
@@ -82,7 +83,7 @@ function Hero({ value, label, sub, hl = true }) {
 const em = t => t.split('**').map((seg, i) => (i % 2 ? <b key={i}>{seg}</b> : seg))
 
 /* ── 막대 (그린 단색 · 축 가로선만) ─────────────────────────── */
-function BarChart({ rows, unit = '회', series = null, baseline = true }) {
+function BarChart({ rows, unit = '회', series = null, baseline = true, delta = true }) {
   const max = Math.max(...rows.flatMap(r => [r.v, r.v2 || 0]), 1)
   const avg = rows.reduce((s, r) => s + r.v, 0) / (rows.length || 1)
   return (
@@ -106,7 +107,7 @@ function BarChart({ rows, unit = '회', series = null, baseline = true }) {
             <div className="dk-bar-v">
               {compact(r.v)}
               {r.v2 != null && <em>{compact(r.v2)}</em>}
-              {d != null && r.v2 == null && (
+              {delta && d != null && r.v2 == null && (
                 <i className={d >= 0 ? 'up' : ''}>{d >= 0 ? '▲' : '▼'}{Math.abs(d)}%</i>
               )}
             </div>
@@ -565,6 +566,49 @@ export default function ChannelDashboard({ channelKey, onBack }) {
       ),
     })
   }
+  /* 유입 경로 ('26.7.30) — "어디서 보는가". 히어로는 1위 경로 비중 */
+  if (sa?.traffic?.length && !overview) {
+    const tot = sa.traffic.reduce((a, t) => a + (t.views || 0), 0) || 1
+    const rows = sa.traffic.slice(0, 6).map(t => ({ label: trafficKo(t.source), v: t.views || 0 }))
+    const top1 = sa.traffic[0]
+    slides.push({
+      key: 'traffic', label: '유입 경로',
+      node: (
+        <>
+          <div className="dk-h">시청자는 어디서 들어오나 <small>조회수 기준</small></div>
+          <Hero value={`${Math.round((top1.views / tot) * 100)}%`}
+            label={`${trafficKo(top1.source)} 유입 비중`}
+            sub={`${num(top1.views)}회, 전체 ${num(tot)}회 중 최다 경로`} />
+          <BarChart rows={rows} baseline={false} delta={false} />
+        </>
+      ),
+    })
+  }
+
+  /* 시청자 구성 ('26.7.30) — "누가 보는가". 슬라이드당 히어로 1개 원칙이라
+     기기 비중은 표로 겹치지 않게 부제에 한 줄로 넣는다.
+     시청자 수 임계 미달이면 API가 빈 값을 주므로 그때는 슬라이드 자체를 생략 */
+  if (sa?.demo?.length && !overview) {
+    const { ages, genders } = demoSplit(sa.demo)
+    const topAge = [...ages].sort((a, b) => b.pct - a.pct)[0]
+    const dTot = (sa.device || []).reduce((a, d) => a + (d.views || 0), 0)
+    const topDev = (sa.device || [])[0]
+    const subBits = [
+      genders.map(g => `${g.label} ${g.pct}%`).join(', '),
+      topDev && dTot ? `${deviceKo(topDev.type)} 시청 ${Math.round((topDev.views / dTot) * 100)}%` : null,
+    ].filter(Boolean)
+    slides.push({
+      key: 'demo', label: '시청자 구성',
+      node: (
+        <>
+          <div className="dk-h">누가 보고 있나 <small>시청 비중</small></div>
+          <Hero value={`${topAge.pct}%`} label={`${topAge.label} 시청 비중`} sub={subBits.join(', ')} />
+          <BarChart rows={ages.map(a => ({ label: a.label, v: a.pct }))} unit="%" baseline={false} delta={false} />
+        </>
+      ),
+    })
+  }
+
   if (subTrend.length >= 2 && !overview) {
     slides.push({
       key: 'subs', label: '구독자 추이',

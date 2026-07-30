@@ -1409,7 +1409,7 @@ tr.dormant .mon-acc b{color:var(--g400);}
 /* 상단 진행 바 · 좌측 챕터 라벨 */
 .dk-prog{position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.1);}
 .dk-prog span{display:block;height:100%;background:var(--lilac);transition:width .35s cubic-bezier(.22,.61,.36,1);}
-.dk-chapter{position:absolute;left:14px;top:50%;transform:translateY(-50%);
+.dk-chapter{position:absolute;left:5px;top:50%;transform:translateY(-50%);
   writing-mode:vertical-rl;text-orientation:upright;line-height:1;
   font-size:10.5px;font-weight:700;letter-spacing:.16em;color:var(--dk-dim);
   white-space:nowrap;pointer-events:none;opacity:.7;}
@@ -1601,7 +1601,7 @@ tr.dormant .mon-acc b{color:var(--g400);}
   font-family:inherit;transition:color .15s;}
 .dk-nav:hover:not(:disabled){color:var(--lilac);}
 .dk-nav:disabled{opacity:.2;cursor:default;}
-.dk-nav.prev{left:2px;}.dk-nav.next{right:2px;}
+.dk-nav.prev{left:22px;}.dk-nav.next{right:2px;}
 .dk-dots{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;gap:7px;}
 .dk-dot{width:7px;height:7px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.24);
   cursor:pointer;transition:.18s;}
