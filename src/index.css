@@ -523,17 +523,51 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .home-vid:hover b{box-shadow:inset 0 -8px 0 var(--hl);}
 
 /* ── 기념일 축하 팝업 ('26.7) — 원색 카드+검정 실루엣, 사용자 지정 예외 디자인 */
-.modal-overlay.cele-overlay{background:rgba(10,10,10,.78);}   /* .modal-overlay보다 뒤 정의가 아니라 특이도로 우선 */
-.cele-stack{display:flex;flex-direction:column;align-items:center;gap:14px;max-height:88vh;overflow-y:auto;padding:10px;}
-.cele-card{width:320px;max-width:86vw;border-radius:20px;padding:26px 26px 20px;color:#0E0E0E;}
-.cele-head{font-size:31px;font-weight:900;letter-spacing:-0.01em;line-height:1.02;text-transform:uppercase;}
-.cele-art{display:block;width:132px;height:132px;margin:16px auto 6px;}
-.cele-title{font-size:19px;font-weight:800;letter-spacing:-0.02em;}
-.cele-date{font-size:12.5px;font-weight:700;opacity:.72;margin-top:4px;}
-.cele-brand{margin-top:16px;font-size:10px;font-weight:800;letter-spacing:.18em;opacity:.85;}
-.cele-btn{background:#fff;color:var(--ink);border:none;border-radius:999px;font-family:inherit;
-  font-size:13.5px;font-weight:800;padding:11px 26px;cursor:pointer;}
-.cele-btn:hover{background:var(--hl);}
+/* 기념일 축하 팝업 ('26.7.30 글래스모피즘 전환) — 원색 카드 + 검정 실루엣이 v2 화면에서
+   혼자 튀었다. 카드는 사이트와 같은 유리 표면으로, 축하는 컨페티와 그린 선화로 낸다.
+   .modal-overlay보다 뒤 정의가 아니라 특이도로 우선 */
+.modal-overlay.cele-overlay{background:rgba(9,26,20,.52);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.cele-stack{display:flex;flex-direction:column;align-items:center;gap:14px;
+  max-height:88vh;overflow-y:auto;padding:10px;}
+.cele-card{position:relative;width:340px;max-width:86vw;overflow:hidden;
+  background:var(--glass-strong);backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px);
+  border:1px solid var(--glass-border);border-radius:24px;box-shadow:var(--glass-shadow);
+  padding:30px 26px 22px;color:var(--ink);text-align:center;}
+/* 카드 안쪽에 은은한 그린 글로우 — 유리 뒤에서 빛이 도는 느낌 */
+.cele-card::before{content:'';position:absolute;inset:-40% -20% auto;height:70%;
+  background:radial-gradient(60% 100% at 50% 0%, rgba(11,67,54,.16), transparent 70%);
+  pointer-events:none;}
+.cele-body{position:relative;}
+/* 컨페티 — 유리 뒤에 흩날림 */
+.cele-confetti{position:absolute;inset:0;pointer-events:none;}
+.cele-confetti span{position:absolute;border-radius:2px;opacity:0;
+  animation:celeDrop .7s cubic-bezier(.22,.61,.36,1) both;}
+@keyframes celeDrop{
+  from{opacity:0;transform:translateY(-14px) rotate(0deg) scale(.6);}
+  to{opacity:.85;}
+}
+.cele-art{display:block;width:118px;height:92px;margin:0 auto 14px;color:var(--green);
+  animation:celeRise .5s cubic-bezier(.22,.61,.36,1) both;}
+@keyframes celeRise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.cele-head{font-size:clamp(26px,7vw,32px);font-weight:900;letter-spacing:-0.02em;line-height:1.02;
+  color:var(--green);animation:celeRise .5s cubic-bezier(.22,.61,.36,1) .08s both;}
+.cele-head span{display:block;}
+.cele-title{font-size:19px;font-weight:800;letter-spacing:-0.02em;margin-top:14px;
+  animation:celeRise .5s cubic-bezier(.22,.61,.36,1) .16s both;}
+.cele-date{font-size:13px;font-weight:700;color:var(--g500);margin-top:5px;
+  font-variant-numeric:tabular-nums;}
+.cele-early{font-size:12px;font-weight:600;color:var(--g400);margin-top:6px;}
+.cele-brand{margin-top:20px;padding-top:14px;border-top:1px solid var(--g200);
+  font-size:11.5px;font-weight:700;color:var(--g400);}
+.cele-btn{background:var(--green);color:#fff;border:none;font-family:inherit;
+  font-size:13.5px;font-weight:800;padding:12px 28px;cursor:pointer;
+  box-shadow:0 8px 22px -12px rgba(11,67,54,.7);}
+.cele-btn:hover{background:var(--green-deep);}
+@media (prefers-reduced-motion:reduce){
+  .cele-confetti span{animation:none;opacity:.85;}
+  .cele-art,.cele-head,.cele-title{animation:none;}
+}
 
 /* 캠페인 뷰 */
 .camp-view{margin-top:10px;}
@@ -1897,7 +1931,7 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .rmn-done-q,.rmn-status,.rmn-seg input,.rmn-snap,.rmn-line-x,.rmn-seg-x,.rmn-manual-fields input,
 .rmn-ro,.rmn-line input,.rmn-line select,.rmn-form-side .btn-solid,
 .stl-sum-item,.stl-preset,.stl-file,.stl-up,.stl-zipbar select,
-.img-add,.img-thumb,.ta-month button{border-radius:18px;}
+.img-add,.img-thumb,.ta-month button,.cele-btn{border-radius:18px;}
 /* 작은 상태 칩·배지 */
 .st,.rmn-gtag,.mon-flag,.m-chip,.stl-warn,.stl-badge,.rmn-year,.day-hol,.day-closed,
 .ev-chip,.rmn-qtys{border-radius:12px;}
