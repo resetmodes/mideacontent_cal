@@ -1233,13 +1233,15 @@ function MiniMonth({ cursor, onCursor, events }) {
   )
 }
 
-function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, team = false }) {
+function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, team = false, initialView = null }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [cursor, setCursor] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
   const [filter, setFilter] = useState('전체')
-  const [view, setView] = useState('월간')
+  /* 홈 KPI에서 넘어오면 그 세그로 시작 ('26.7.29 — 캠페인 지표 클릭 = 캠페인 뷰) */
+  const [view, setView] = useState(initialView || '월간')
+  useEffect(() => { if (initialView) setView(initialView) }, [initialView])
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
   const [groupSel, setGroupSel] = useState(null)   // 타겟APP 묶음 클릭 → 세부 선택 시트
@@ -1658,9 +1660,9 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
 /* 로그인 게이트는 App.jsx(사이트 전체 락)에서 처리 — 여기 도달했다면 이미 인증된 상태.
    readOnly(?view=mirror)는 뷰어 계정용 UI — 쓰기 권한은 RLS의 team_writers 등록 여부가 결정
    (setup.md 4장) */
-export default function CalendarPage({ readOnly = false, onOpenSpec, shoot = false, team = false }) {
+export default function CalendarPage({ readOnly = false, onOpenSpec, shoot = false, team = false, initialView = null }) {
   const [session, setSession] = useState(getSession())
   useEffect(() => onAuthChange(setSession), [])
 
-  return <CalendarApp session={session} readOnly={readOnly} onOpenSpec={onOpenSpec} shoot={shoot} team={team} />
+  return <CalendarApp session={session} readOnly={readOnly} onOpenSpec={onOpenSpec} shoot={shoot} team={team} initialView={initialView} />
 }
