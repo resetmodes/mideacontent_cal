@@ -4,6 +4,7 @@
    붙여넣기는 이 위젯이 마운트된 동안만 동작 — 호출측은 한 번에 하나만 마운트할 것
    (여러 개 열리면 같은 캡처가 전부에 올라감) */
 import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { uploadEventImage, removeEventImage, imageUrl, MAX_IMAGES } from './lib/eventImages.js'
 
 export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onChange, hint = '시안과 결과 보고용' }) {
@@ -87,11 +88,13 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
       )}
       {err && <div className="md-imgs-err">{err}</div>}
       {editable && <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={e => { addFiles(e.target.files); e.target.value = '' }} />}
-      {view && (
+      {/* 라이트박스는 body로 포털 ('26.7.29) — 모달에 backdrop-filter가 걸려 있어
+          position:fixed가 모달 기준으로 갇혔고, 그래서 세로 이미지가 잘려 스크롤이 필요했음 */}
+      {view && createPortal(
         <div className="ref-lightbox" onClick={() => setView(null)}>
           <img src={imageUrl(view.path)} alt={view.name} />
-        </div>
-      )}
+          <div className="ref-close">닫기</div>
+        </div>, document.body)}
     </div>
   )
 }
