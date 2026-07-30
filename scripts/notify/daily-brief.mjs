@@ -5,7 +5,7 @@
    ① 오늘 팀원 일정 (팀 캘린더 kind='팀' — 연차·외근·교육 등. '업무' 유형·제외, 기념일은 월-일 일치 시)
    ② 오늘 촬영 일정 (kind='촬영', 오늘이 기간에 포함)
    ③ 오늘 매체 일정 (매체 캘린더 게시 시작일=오늘)
-   비는 섹션은 "일정 없음" 표기 (카드는 평일 매일 발송) + 하단 "캘린더 보러가기" 버튼.
+   비는 섹션은 "일정 없음" 표기 (카드는 평일 매일 발송) + 하단 "미콘룸 바로가기" 버튼.
    주말은 cron(월~금)으로, 공휴일은 스크립트가 HOLIDAYS 대조로 발송 생략
 
    시크릿: TEAMS_WEBHOOK_URL(필수 — Power Automate 워크플로, docs/teams-webhook-setup.md)
@@ -82,7 +82,7 @@ function buildCard({ team, shoots, uploads }) {
     if (rows.length > 8) tb(`외 ${rows.length - 8}건`, { isSubtle: true, spacing: 'Small' })
   }
 
-  tb(`미디어콘텐츠팀 아침 브리핑 ${fmtD(todayISO)}`, { size: 'Medium', weight: 'Bolder' })
+  tb(`미디어콘텐츠룸 아침 브리핑 ${fmtD(todayISO)}`, { size: 'Medium', weight: 'Bolder' })
 
   section(`오늘 팀원 일정${team.length ? ` ${team.length}건` : ''}`,
     team.map(e => `${e.title} (${chLabel(e.channel)}${e.end_date && e.end_date !== e.date ? `, ${fmtRange(e)}` : ''})`))
@@ -100,7 +100,7 @@ function buildCard({ team, shoots, uploads }) {
         $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
         version: '1.4',
         body,
-        actions: [{ type: 'Action.OpenUrl', title: '캘린더 보러가기', url: `${SITE}/#calendar` }],
+        actions: [{ type: 'Action.OpenUrl', title: '미콘룸 바로가기', url: `${SITE}/#calendar` }],
       },
     }],
   }
