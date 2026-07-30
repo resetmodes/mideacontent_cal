@@ -6,6 +6,8 @@ import ImageAttach from './ImageAttach.jsx'
 import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
 import { findPerformance } from './lib/perf.js'
+import { buildCampaignPerf } from './lib/campaignPerf.js'
+import { HBars, Donut } from './Charts.jsx'
 import { authorName, withAuthorName } from './data/team.js'
 import { HOLIDAYS, CLOSED_DAYS } from './data/holidays.js'
 import { MIRROR_URL, NOTION_REVIEW_EMAILS } from './config.js'
@@ -770,9 +772,206 @@ function CampNav({ names, focus, onFocus }) {
   )
 }
 
+/* ── 캠페인 통합 성과 ('26.7.30) — 캠페인 하나를 선택했을 때만 렌더.
+   매체마다 집계 출처가 달라 행마다 출처 배지를 달고, 없는 값은 채우지 않는다.
+   타겟APP 실적은 Supabase 전용이라 캠페인을 처음 열 때 한 번만 불러 캐시한다 */
+let taCache = null
+const loadTargetApp = () => {
+  if (!taCache) {
+    taCache = storageMode === 'supabase'
+      ? import('./lib/targetappStore.js')
+        .then(m => m.listTargetApp())
+        .then(d => d?.rows || null)
+        .catch(() => null)
+      : Promise.resolve(null)
+  }
+  return taCache
+}
+
+const cpNum = n => Number(n || 0).toLocaleString('ko-KR')
+/* KPI 큰 숫자 — 만·억으로 접되 자릿수가 커지면 소수점을 뗀다 (1621.5만은 읽히지 않음) */
+const cpBig = n => {
+  if (!n) return ['0', '']
+  const unit = n >= 100000000 ? ['억', 100000000] : n >= 10000 ? ['만', 10000] : null
+  if (!unit) return [cpNum(n), '']
+  const v = n / unit[1]
+  return [v.toLocaleString('ko-KR', { maximumFractionDigits: v >= 100 ? 0 : 1 }), unit[0]]
+}
+
+function CampaignPerf({ group, onSelect }) {
+  const [taRows, setTaRows] = useState(null)
+  useEffect(() => {
+    let alive = true
+    loadTargetApp().then(r => { if (alive) setTaRows(r) })
+    return () => { alive = false }
+  }, [])
+
+  const perf = useMemo(
+    () => buildCampaignPerf(group.list, { taRows, campaign: group.name }),
+    [group.list, group.name, taRows])
+
+  const today = todayISO()
+  const state = group.lastEnd < today
+    ? `종료 D+${Math.round((fromISO(today) - fromISO(group.lastEnd)) / 86400000)}`
+    : group.first > today
+      ? `시작 D-${Math.round((fromISO(group.first) - fromISO(today)) / 86400000)}`
+      : '진행 중'
+
+  const expRows = perf.rows.filter(r => r.exp != null)
+  const actRows = perf.rows.filter(r => r.act != null)
+  const vals = expRows.map(r => r.exp)
+  /* 타겟APP 노출과 SNS 조회는 자릿수가 달라 선형 막대면 SNS가 안 보인다 */
+  const useSqrt = vals.length > 1 && Math.max(...vals) >= 20 * Math.min(...vals)
+  const [expV, expU] = cpBig(perf.total.exp)
+
+  return (
+    <div className="cp-perf">
+      <div className="cp-head">
+        <div className="cp-meta">
+          <div className="cp-m"><span>집행 기간</span><b className="num">{fmtDot(group.first)} ~ {fmtDot(group.lastEnd)}</b></div>
+          <div className="cp-m"><span>집행 건수</span><b className="num">{perf.total.count}건</b></div>
+          <div className="cp-m"><span>집행 매체</span><b className="num">{perf.total.media}개</b></div>
+        </div>
+        <span className="cp-state">{state}</span>
+      </div>
+
+      <div className="group-label">캠페인 성과</div>
+      <div className="dash-d">
+        매체마다 집계 출처가 달라 행마다 출처를 함께 적었습니다. 수집이나 실적 입력이 없는 매체는
+        값을 추정하지 않고 비워 둡니다.
+      </div>
+
+      {perf.total.measured === 0 ? (
+        <div className="cp-empty">아직 집계된 매체가 없습니다</div>
+      ) : (
+        <>
+          <div className="mon-hero">
+            <div className="mon-stat">
+              <div className="mon-label">총 노출</div>
+              <div className="mon-value num">{expV}{expU && <small>{expU}</small>}</div>
+              <div className="mon-sub">타겟APP 노출과 SNS 조회 합계</div>
+            </div>
+            <div className="mon-stat">
+              <div className="mon-label">총 반응</div>
+              <div className="mon-value num">{cpNum(perf.total.act)}</div>
+              <div className="mon-sub">좋아요, 댓글, 클릭 합계</div>
+            </div>
+            <div className="mon-stat">
+              <div className="mon-label">집계된 매체</div>
+              <div className="mon-value num">{perf.total.measured}<small>개</small></div>
+              <div className="mon-sub">전체 {perf.total.media}개 매체 중</div>
+            </div>
+            <div className="mon-stat">
+              <div className="mon-label">집계 대기</div>
+              <div className="mon-value num">{perf.pending.length}<small>개 매체</small></div>
+              <div className="mon-sub">{perf.pending.join(', ') || '없음'}</div>
+            </div>
+          </div>
+
+          <div className="mon-scroll">
+            <table className="mon-table">
+              <thead>
+                <tr><th>매체</th><th>집행</th><th>노출</th><th>반응</th><th>반응률</th><th>출처</th></tr>
+              </thead>
+              <tbody>
+                {perf.rows.map(r => (
+                  <tr key={r.ch}>
+                    <td>
+                      <div className="cp-ch">
+                        <ChannelIcon id={r.ch} />
+                        <span>
+                          <b>{r.label}</b>
+                          {r.subs.length > 0 && <em>{r.subs.join(', ')}</em>}
+                        </span>
+                      </div>
+                    </td>
+                    <td>{r.count}건</td>
+                    {r.exp == null && r.act == null ? (
+                      <td className="mute" colSpan={3}>집계 확인 중</td>
+                    ) : (
+                      <>
+                        <td className="strong num">{r.exp == null ? '' : cpNum(r.exp)}</td>
+                        <td className="num">{r.act == null ? '' : cpNum(r.act)}</td>
+                        <td className="num">{r.rate == null ? '' : r.rate.toFixed(2) + '%'}</td>
+                      </>
+                    )}
+                    <td>
+                      <span className={'src-tag' + (r.source ? '' : ' none')}>{r.source || '미집계'}</span>
+                      {r.note && <em className="src-note">{r.note}</em>}
+                    </td>
+                  </tr>
+                ))}
+                <tr className="sum">
+                  <td>합계</td><td />
+                  <td className="num">{cpNum(perf.total.exp)}</td>
+                  <td className="num">{cpNum(perf.total.act)}</td>
+                  <td /><td />
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="dash-grid g23">
+            <div className="dash-panel">
+              <div className="group-label">매체별 노출</div>
+              <div className="dash-d">
+                {useSqrt
+                  ? '매체 간 규모 차이가 커서 제곱근 눈금으로 그렸습니다. 막대 길이는 배수가 아니라 순위를 읽는 용도입니다.'
+                  : '집계된 매체만 표시합니다'}
+              </div>
+              <HBars sqrt={useSqrt} rows={expRows.map(r => ({
+                name: r.label, sub: r.subs.join(', ') || undefined, value: r.exp,
+              }))} />
+            </div>
+            <div className="dash-panel flat">
+              <div className="group-label">반응 구성</div>
+              <div className="dash-d">노출이 아니라 실제 반응이 어디서 나왔는지 봅니다</div>
+              <Donut data={actRows.map(r => [r.label, r.act])} center={cpNum(perf.total.act)} />
+            </div>
+          </div>
+        </>
+      )}
+
+      {perf.contents.length > 0 && (
+        <>
+          <div className="group-label">콘텐츠별 실적</div>
+          <div className="dash-d">
+            일정 1건마다 게시 시점이 가장 가까운 게시물 1건을 매칭합니다. 행을 누르면 일정 상세가 열립니다.
+          </div>
+          <div className="mon-scroll cp-posts">
+            {perf.contents.map(c => (
+              <button key={c.url} className="cp-post" onClick={() => onSelect(c.event)}>
+                <span className="cp-thumb">
+                  {c.thumb ? <img src={c.thumb} alt="" loading="lazy" /> : <ChannelIcon id={c.ch} />}
+                </span>
+                <span className="cp-t">
+                  <b>{c.title}</b>
+                  <span>{c.chLabel}{c.sub && ' ' + c.sub}, {c.format}, {fmtDot(new Date(c.t).toISOString().slice(0, 10))} 게시</span>
+                </span>
+                {(() => {
+                  /* 조회가 있으면 조회가 주인공, 없으면(피드·캐러셀) 반응이 주인공 */
+                  const act = c.likes != null || c.comments != null ? (c.likes || 0) + (c.comments || 0) : null
+                  const [main, unit] = c.views ? [cpNum(c.views), '조회'] : act != null ? [cpNum(act), '반응'] : ['', '수치 없음']
+                  return (
+                    <span className="cp-nums">
+                      <b className="num">{main}</b>
+                      <span className="num">{unit}{c.views && act != null ? `, 반응 ${cpNum(act)}` : ''}</span>
+                    </span>
+                  )
+                })()}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function CampaignView({
   events, onSelect, onRename, focus = null, onFocus = null,
   cursor, onDayClick = null, onMove = null, onGroup = null, onDay = null, closedDays = CLOSED_DAYS, wide = false,
+  perf = false,
 }) {
   const today = todayISO()
   const [renaming, setRenaming] = useState(null)   // 이름 변경 중인 캠페인
@@ -838,6 +1037,7 @@ function CampaignView({
 
       {focusedGroup ? (
         <>
+          {perf && <CampaignPerf key={focusedGroup.name} group={focusedGroup} onSelect={onSelect} />}
           <div className="camp-sec">#{focusedGroup.name} <small>이 캠페인만 캘린더에 표시 중</small></div>
           <CampBlock key={focusedGroup.name} g={focusedGroup} {...blockProps} />
         </>
@@ -1584,6 +1784,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
               <CampaignView
                 events={filtered} focus={campFocus} onFocus={setCampFocus}
                 onSelect={e => setSelected(e.orig || e)} onRename={onRename}
+                perf={!shoot}
                 cursor={cursor} onDayClick={setDayDraft} wide={false}
                 onMove={onMove} onGroup={setGroupSel} onDay={setDaySel}
                 closedDays={closedDays} />

@@ -2038,3 +2038,56 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   padding:7px 15px;cursor:pointer;transition:all .16s ease;}
 .std-chips button:hover{color:var(--ink);border-color:var(--g300);}
 .std-chips button.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:700;}
+
+/* ═══════════ 캠페인 통합 성과 ('26.7.30) ═══════════
+   캠페인 하나를 선택했을 때 월간 그리드와 일정 블록 사이에 들어가는 성과 블록.
+   KPI·표·차트는 전 페이지 공통 언어(mon-stat·mon-scroll·dash-panel)를 그대로 쓰고,
+   여기 정의는 캠페인 전용 요소(요약 헤더·출처 배지·콘텐츠 행)만 */
+.cp-perf{margin-top:26px;}
+.cp-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;}
+.cp-meta{display:flex;gap:26px;flex-wrap:wrap;}
+.cp-m{min-width:0;}
+.cp-m span{display:block;font-size:12px;font-weight:600;color:var(--g400);letter-spacing:-0.01em;}
+.cp-m b{display:block;font-size:16px;font-weight:700;letter-spacing:-0.02em;padding-top:2px;
+  font-variant-numeric:tabular-nums;}
+.cp-state{font-size:12px;font-weight:800;letter-spacing:-0.01em;color:var(--green);
+  background:rgba(255,255,255,.6);border:1px solid var(--g200);border-radius:12px;padding:5px 12px;}
+.cp-empty{font-size:13.5px;color:var(--g400);padding:18px 0 4px;}
+/* 매체 셀 — 아이콘 + 매체명 + 세부 */
+.cp-ch{display:flex;align-items:center;gap:9px;}
+.cp-ch b{font-weight:700;letter-spacing:-0.01em;}
+.cp-ch em{display:block;font-style:normal;font-size:11.5px;color:var(--g400);font-weight:500;}
+/* 집계 출처 배지 — 없는 매체는 점선으로 구분 */
+.src-tag{display:inline-block;font-size:11px;font-weight:600;color:var(--g500);
+  background:rgba(255,255,255,.55);border:1px solid var(--g200);border-radius:8px;padding:2px 8px;
+  white-space:nowrap;}
+.src-tag.none{color:var(--g400);border-style:dashed;background:none;}
+.src-note{display:block;font-style:normal;font-size:11px;color:var(--g400);margin-top:3px;
+  max-width:190px;white-space:normal;line-height:1.45;}
+/* 콘텐츠별 실적 행 */
+.cp-posts{padding:6px 22px 10px;}
+.cp-post{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;width:100%;
+  font-family:inherit;text-align:left;background:none;border:none;cursor:pointer;
+  padding:13px 0;border-bottom:1px solid var(--g100);}
+.cp-post:last-child{border-bottom:none;}
+.cp-post:hover .cp-t b{color:var(--green);}
+.cp-thumb{width:52px;height:52px;border-radius:12px;background:var(--g100);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;flex:none;}
+.cp-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.cp-thumb .ch-chip{width:24px;height:24px;border-radius:7px;}
+.cp-t{min-width:0;}
+.cp-t b{display:block;font-size:14.5px;font-weight:700;letter-spacing:-0.015em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cp-t>span{font-size:12px;color:var(--g400);}
+.cp-nums{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.cp-nums b{display:block;font-size:15px;font-weight:800;letter-spacing:-0.02em;}
+.cp-nums>span{display:block;font-size:11.5px;color:var(--g400);font-weight:600;}
+@media (max-width:640px){
+  .cp-meta{gap:16px;}
+  .cp-post{grid-template-columns:44px 1fr;row-gap:6px;}
+  .cp-thumb{width:44px;height:44px;}
+  .cp-nums{grid-column:2;text-align:left;}
+  .cp-nums b{display:inline;margin-right:8px;}
+  .cp-nums>span{display:inline;}
+  .src-note{max-width:none;}
+}

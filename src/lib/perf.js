@@ -35,8 +35,10 @@ function approxTime(dateStr, baseISO) {
   return { t: new Date(baseISO).getTime() - (+m[1]) * unit, unc: Math.max(unit / 2, DAY) }
 }
 
-/* 일정 기간(±허용 오차) 안에 게시된 자사 콘텐츠 후보 — 근접순 최대 3건 */
-export function findPerformance(event) {
+/* 일정 기간(±허용 오차) 안에 게시된 자사 콘텐츠 — 수치 원본을 근접순으로 돌려준다.
+   일정 모달의 후보 표시(findPerformance)와 캠페인 통합 성과(campaignPerf)가
+   같은 매칭 규칙을 쓰도록 여기서 한 번만 판정한다 ('26.7.30 분리) */
+export function matchContent(event) {
   if (!event?.date) return []
   const start = fromISO(event.date).getTime()
   const end = event.endDate ? fromISO(event.endDate).getTime() : start
@@ -51,8 +53,9 @@ export function findPerformance(event) {
       const a = approxTime(v.date, YT.generatedAt)
       if (!a || !inRange(a.t, a.unc + 2 * DAY)) continue
       hits.push({
-        url: v.url, title: v.title, dist: dist(a.t),
-        meta: `조회 ${compact(v.views)} ${v.type === 'Shorts' ? '쇼츠' : '롱폼'} 게시 ${md(a.t)}`,
+        kind: 'yt', url: v.url, title: v.title, t: a.t, dist: dist(a.t),
+        views: v.views ?? 0, likes: null, comments: null,
+        format: v.type === 'Shorts' ? '쇼츠' : '롱폼', thumb: v.thumb || null,
       })
     }
   }
@@ -63,15 +66,24 @@ export function findPerformance(event) {
       if (p.handle !== handle) continue
       const t = new Date(p.ts).getTime()
       if (isNaN(t) || !inRange(t, 3 * DAY)) continue
-      const metric = p.format === 'Reels' && p.views
-        ? `조회 ${compact(p.views)}`
-        : p.likes != null ? `좋아요 ${compact(p.likes)}` : '좋아요 비공개'
       hits.push({
-        url: p.url, title: p.caption || '(캡션 없음)', dist: dist(t),
-        meta: `${metric} 게시 ${md(t)}`,
+        kind: 'ig', url: p.url, title: p.caption || '(캡션 없음)', t, dist: dist(t),
+        views: p.views ?? 0, likes: p.likes, comments: p.comments ?? 0,
+        format: p.format === 'Reels' ? '릴스' : p.format === 'Carousel' ? '캐러셀' : '피드', thumb: null,
       })
     }
   }
 
-  return hits.sort((a, b) => a.dist - b.dist).slice(0, 3)
+  return hits.sort((a, b) => a.dist - b.dist)
+}
+
+/* 일정 모달의 "집행 실적 후보" 표시용 — 근접순 최대 3건 */
+export function findPerformance(event) {
+  return matchContent(event).slice(0, 3).map(m => {
+    const metric = m.kind === 'yt'
+      ? `조회 ${compact(m.views)} ${m.format}`
+      : m.format === '릴스' && m.views ? `조회 ${compact(m.views)}`
+        : m.likes != null ? `좋아요 ${compact(m.likes)}` : '좋아요 비공개'
+    return { url: m.url, title: m.title, dist: m.dist, meta: `${metric} 게시 ${md(m.t)}` }
+  })
 }
