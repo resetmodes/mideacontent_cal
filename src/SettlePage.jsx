@@ -196,7 +196,8 @@ function SettleRow({ row, open, onToggle, onChanged, onMsg, onEdit, confirmDel, 
       </div>
       {open && (
         <div className="stl-body">
-          {FILE_SLOTS[row.stype].map(slot => (
+          {/* 알 수 없는 유형이 한 행이라도 있으면 탭 전체가 흰 화면이 됐다 ('26.7.30 수리) */}
+          {(FILE_SLOTS[row.stype] || []).map(slot => (
             <FileSlot key={slot.key} slot={slot} row={row} onChanged={onChanged} onMsg={onMsg} />
           ))}
           {row.stype === '법인카드' && (
@@ -444,7 +445,7 @@ export default function SettlePage() {
                     </div>
                     {expanded === t.id && (
                       <div className="stl-body">
-                        {FILE_SLOTS[t.stype].map(slot => (
+                        {(FILE_SLOTS[t.stype] || []).map(slot => (
                           <FileSlot key={slot.key} slot={slot} row={t} onChanged={refresh} onMsg={setMsg} />
                         ))}
                       </div>

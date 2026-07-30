@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import ModalShell from './ModalShell.jsx'
 import { listEvents } from './lib/store.js'
 import { HOLIDAYS } from './data/holidays.js'
 import { toISO, fromISO } from './lib/parse.js'
@@ -91,8 +92,7 @@ export default function Celebration() {
   }
 
   return (
-    <div className="modal-overlay cele-overlay" onClick={close}>
-      <div className="cele-stack" onClick={e => e.stopPropagation()}>
+    <ModalShell onClose={close} overlayClass="cele-overlay" innerClass="cele-stack">
         {items.map((e, i) => {
           const bg = CARD_COLORS[i % CARD_COLORS.length]
           const head = HEADLINE[e.sub] || 'IT’S A\nSPECIAL DAY.'
@@ -110,7 +110,6 @@ export default function Celebration() {
           )
         })}
         <button className="cele-btn" onClick={close}>축하 완료</button>
-      </div>
-    </div>
+    </ModalShell>
   )
 }

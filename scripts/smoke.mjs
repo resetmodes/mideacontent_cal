@@ -75,13 +75,13 @@ try {
   await page.waitForSelector('.home-wrap', { timeout: 8000 })
   ok('홈 렌더 (첫 화면)')
 
-  // 2. 탭 6개
-  const tabs = await page.$$eval('.tabs button', els => els.map(e => e.textContent.trim()))
+  // 2. 탭 목록 (v2 셸: 상단 탭 바 → 좌측 사이드바 .side-nav — '26.7.29 리디자인)
+  const tabs = await page.$$eval('.side-nav button', els => els.map(e => e.textContent.trim()))
   ;['홈', '팀 일정', '매체 캘린더', '촬영일정', '매체 스펙', '매체 모니터링'].every(t => tabs.includes(t))
     ? ok('탭 6종: ' + tabs.slice(0, 6).join('/')) : bad('탭 구성 이상: ' + JSON.stringify(tabs))
 
   // 3. 빠른 입력 → 등록 → 검색 → 모달 (매체 캘린더로 이동)
-  await page.click('.tabs button:has-text("매체 캘린더")')
+  await page.click('.side-nav button:has-text("매체 캘린더")')
   await page.waitForSelector('.cal-wrap', { timeout: 4000 })
   ok('캘린더 렌더')
   await page.fill('.qa-input', '12/20 스모크 테스트 인스타 #스모크')
@@ -94,13 +94,13 @@ try {
   ok('빠른 입력 → 검색 → 모달')
 
   // 4. 스펙 탭 렌더
-  await page.click('.modal .btn-ghost:has-text("닫기")')
-  await page.click('.tabs button:has-text("매체 스펙")')
+  await page.keyboard.press('Escape')   // 모달은 Esc로 닫힘 ('26.7.30 추가)
+  await page.click('.side-nav button:has-text("매체 스펙")')
   await page.waitForSelector('.media', { timeout: 4000 })
   ok('매체 스펙 렌더')
 
   // 5. 모니터링 렌더
-  await page.click('.tabs button:has-text("매체 모니터링")')
+  await page.click('.side-nav button:has-text("매체 모니터링")')
   await page.waitForSelector('.mon-table', { timeout: 4000 })
   ok('매체 모니터링 렌더')
 

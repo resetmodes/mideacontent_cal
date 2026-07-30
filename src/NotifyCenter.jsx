@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import ModalShell from './ModalShell.jsx'
 import { listChangesSince, storageMode } from './lib/store.js'
 import { authorName } from './data/team.js'
 import { displayTitle } from './lib/parse.js'
@@ -59,8 +60,7 @@ export default function NotifyCenter({ session }) {
         </button>
       )}
       {open && (
-        <div className="modal-overlay" onClick={closePanel}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+        <ModalShell onClose={closePanel}>
             <div className="md-ch">알림센터</div>
             <div className="md-title sm">지난 확인 이후 변경 {rows.length}건</div>
             {seenAt && <div className="notify-sub">마지막 확인 {fmtTs(seenAt)}<br />열람하면 확인 처리됩니다</div>}
@@ -86,8 +86,7 @@ export default function NotifyCenter({ session }) {
               <div className="md-spacer" />
               <button className="btn-ghost" onClick={closePanel}>확인</button>
             </div>
-          </div>
-        </div>
+        </ModalShell>
       )}
     </>
   )

@@ -13,6 +13,8 @@ import { HOLIDAYS } from './data/holidays.js'
 import ImageAttach from './ImageAttach.jsx'
 import { Kpi, Donut, HBars, DuoBars, Gauge, Pipeline } from './Charts.jsx'
 import { toast } from './lib/toast.js'
+import ModalShell from './ModalShell.jsx'
+import { copyText } from './lib/clipboard.js'
 import { createShare, listShares, deleteShare, genPw, shareUrl } from './lib/shareStore.js'
 
 /* RMN — 현대백화점 APP 광고 판매(부킹·재고·상태·정산) 관리 탭 ('26.7 1차, GA 연동 전).
@@ -57,8 +59,7 @@ const productsOn = (g, iso) => [...new Set(g.items.filter(b => b.start_date <= i
 /* ── 탭 접속 알림 팝업 — 가부킹 전환 + 세금계산서 (하루 1회) ── */
 function RmnNotice({ notices, onConvert, onClose }) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+    <ModalShell onClose={onClose}>
         <div className="md-ch">RMN 확인 필요</div>
         {notices.tentative.length > 0 && (
           <>
@@ -87,8 +88,7 @@ function RmnNotice({ notices, onConvert, onClose }) {
           <div className="md-spacer" />
           <button className="btn-ghost" onClick={onClose}>오늘 그만 보기</button>
         </div>
-      </div>
-    </div>
+    </ModalShell>
   )
 }
 
@@ -328,8 +328,7 @@ function CampaignRow({ g, open, onToggle, editId, confirmDel, onAdvance, onSetSt
 /* ── 캘린더 캠페인 클릭 → 상품 선택 시트 ── */
 function CampaignPicker({ g, onEdit, onOrder, onClose }) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+    <ModalShell onClose={onClose}>
         <div className="md-ch">{g.advertiser}{g.campaign && <span className="md-ch-sub">{g.campaign}</span>}</div>
         <div className="mute" style={{ marginBottom: 10 }}>{fmtD(g.start)} ~ {fmtD(g.end)}, {g.items.length}개 상품, {fmtWon(g.total)}</div>
         {g.items.map(b => (
@@ -344,8 +343,7 @@ function CampaignPicker({ g, onEdit, onOrder, onClose }) {
           <div className="md-spacer" />
           <button className="btn-ghost" onClick={onClose}>닫기</button>
         </div>
-      </div>
-    </div>
+    </ModalShell>
   )
 }
 
@@ -1322,8 +1320,7 @@ function ShareModal({ g, onClose }) {
     const text = made.pw
       ? `[${g.advertiser}${g.campaign ? ` ${g.campaign}` : ''} 캠페인 결과 리포트]\n${made.url}\n비밀번호: ${made.pw}\n(30일간 열람 가능합니다)`
       : `[${g.advertiser}${g.campaign ? ` ${g.campaign}` : ''} 캠페인 결과 리포트]\n${made.url}\n(30일간 열람 가능합니다)`
-    try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000) }
-    catch { window.prompt('아래 내용을 복사하세요', text) }
+    if (await copyText(text)) { setCopied(true); setTimeout(() => setCopied(false), 2000) }
   }
 
   /* 기존 발급 링크 복사 — 발급 직후 안내와 같은 문안 */
@@ -1333,8 +1330,7 @@ function ShareModal({ g, onClose }) {
     const text = x.pw
       ? `[${g.advertiser}${g.campaign ? ` ${g.campaign}` : ''} 캠페인 결과 리포트]\n${url}\n비밀번호: ${x.pw}\n(${(x.expires_at || '').slice(0, 10)}까지 열람 가능합니다)`
       : `[${g.advertiser}${g.campaign ? ` ${g.campaign}` : ''} 캠페인 결과 리포트]\n${url}\n(${(x.expires_at || '').slice(0, 10)}까지 열람 가능합니다)`
-    try { await navigator.clipboard.writeText(text); setCopiedId(x.id); setTimeout(() => setCopiedId(null), 2000) }
-    catch { window.prompt('아래 내용을 복사하세요', text) }
+    if (await copyText(text)) { setCopiedId(x.id); setTimeout(() => setCopiedId(null), 2000) }
   }
 
   const revoke = async id => {
@@ -1343,8 +1339,7 @@ function ShareModal({ g, onClose }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+    <ModalShell onClose={onClose}>
         <div className="md-ch">광고주 공유 리포트</div>
         <div className="md-title">{g.advertiser}{g.campaign ? ` ${g.campaign}` : ''}</div>
         <div className="mute" style={{ fontSize: 13, lineHeight: 1.6 }}>
@@ -1447,7 +1442,6 @@ function ShareModal({ g, onClose }) {
             ))}
           </div>
         )}
-      </div>
-    </div>
+    </ModalShell>
   )
 }

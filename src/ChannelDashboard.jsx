@@ -393,7 +393,8 @@ export default function ChannelDashboard({ channelKey, onBack }) {
               <a key={id} className="dk-top-row" href={`https://www.youtube.com/watch?v=${id}`}
                 target="_blank" rel="noreferrer" style={{ animationDelay: `${i * 60}ms` }}>
                 <span className="dk-rank">{i + 1}</span>
-                <img className="dk-thumb" loading="lazy" src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" />
+                <img className="dk-thumb" loading="lazy" src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt=""
+                  onError={e => { e.currentTarget.style.visibility = 'hidden' }} />
                 <span className="dk-top-t">{t}</span>
                 <span className="dk-top-v">{num(v)}</span>
               </a>
@@ -632,7 +633,8 @@ export default function ChannelDashboard({ channelKey, onBack }) {
           {topVideos.map((v, i) => (
             <a key={v.url} className="dk-top-row" href={v.url} target="_blank" rel="noreferrer" style={{ animationDelay: `${i * 60}ms` }}>
               <span className="dk-rank">{i + 1}</span>
-              {v.thumb && <img className="dk-thumb" loading="lazy" src={v.thumb} alt="" />}
+              {v.thumb && <img className="dk-thumb" loading="lazy" src={v.thumb} alt=""
+                onError={e => { e.currentTarget.style.visibility = 'hidden' }} />}
               <span className="dk-top-t">{v.title}</span>
               <span className="dk-top-m">{v.type === 'Shorts' ? '쇼츠' : '롱폼'} {postDate(v.date)}</span>
               <span className="dk-top-v">{num(v.views)}</span>

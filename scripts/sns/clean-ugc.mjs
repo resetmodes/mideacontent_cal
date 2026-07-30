@@ -246,7 +246,7 @@ async function main() {
     influencerPosts: posts.filter(p => (p.followers ?? 0) >= INFLUENCER_MIN_FOLLOWERS).length,
     sentiment, topics, summary,
     topPosts, creators,
-    note: `추적 태그 ${UGC_TAGS.map(t => '#' + t).join(' ')} · 최근 1개월(${CUTOFF_DATE} 이후) · 자사·경쟁사 계정 게시물 제외 · 팔로워는 반응 상위 작성자만 조회`,
+    note: `추적 태그 ${UGC_TAGS.map(t => '#' + t).join(' ')}, 최근 1개월(${CUTOFF_DATE} 이후) 기준입니다. 자사와 경쟁사 계정 게시물은 제외했고 팔로워는 반응 상위 작성자만 조회합니다.`,
   }
 
   await mkdir(OUT_DIR, { recursive: true })
