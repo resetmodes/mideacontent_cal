@@ -240,6 +240,8 @@
   (YouTube Analytics API v2, 주간 수집 워크플로에 스텝 추가 — 시크릿 없으면 조용히 스킵).
   **GA4와 달리 유튜브는 서비스 계정 미지원** → 채널 관리 계정이 1회 OAuth 동의 후
   refresh token을 시크릿(`YT_OAUTH_CLIENT_ID`·`_SECRET`·`_REFRESH_TOKEN`)으로 저장.
+  **동의 화면을 "테스트" 상태로 두면 refresh token이 7일 만에 만료**되므로 반드시
+  "앱 게시"로 프로덕션 전환할 것 (setup 문서에 필수 단계로 명기).
   채널 ID는 accounts.mjs `YT_CHANNELS[].channelId`에 기입. 절차 = `docs/yt-analytics-setup.md`.
   **노출수·노출 클릭률(CTR)은 Analytics API가 제공하지 않음**(스튜디오 전용) — 대시보드에
   표기하지 않고 안내만 (수치 날조 금지). 수익은 수익화 채널 + 별도 스코프 필요.
@@ -247,7 +249,12 @@
   실패 시 `mine=true` 목록에서 customUrl 매칭 폴백. 사람이 채널 ID를 찾아 넣을 필요 없음
   (핸들이 바뀌면 accounts.mjs url만 갱신). **대시보드 = 모니터링 유튜브 세그 상단
   `StudioBoard`** — KPI 4장(총 시청시간·총 조회·구독자 순증·채널 평균 시청) + 월별 시청시간
-  막대 + 채널별 시청시간(sqrt) + 시청 지속률 랭킹. YTA가 null이면 연동 안내 문구만 렌더.
+  막대 + 채널별 시청시간(sqrt) + 시청 지속률 랭킹 + **유입 경로·기기·시청자 연령·성별**
+  ('26.7.30 추가 — 수집 쿼리 3개: insightTrafficSourceType, ageGroup×gender viewerPercentage,
+  deviceType. 유입 경로 코드는 화면에서 한글 매핑(TRAFFIC_KO), 미매핑 코드는 원문 표기.
+  시청자 수가 임계 미달이면 구글이 빈 값을 주므로 섹션째 숨김. 성별은 미상 제외로 합이
+  100 미만이라 확인된 시청자 기준으로 환산해 도넛과 범례 숫자를 일치시킴).
+  YTA가 null이면 연동 안내 문구만 렌더.
   채널 덱의 스튜디오 슬라이드 2장은 그대로 (덱은 발표용, 모니터링은 상시 조회용)
 - **유튜브 제목 한글화 ('26.7)**: 채널 스크레이퍼는 러너 IP(미국) 기준 자동번역 영문 제목을
   줌 → clean-youtube.mjs가 oEmbed(원본 크리에이터 제목, 로케일 무관)로 보정. 비용 0(무료
