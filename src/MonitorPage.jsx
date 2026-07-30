@@ -267,6 +267,9 @@ function AccountTable({ list, prev = null }) {
 function StudioBoard() {
   const chans = YTA?.channels || null
   const keys = chans ? Object.keys(chans) : []
+  /* 유입 경로와 시청자 구성은 채널마다 성격이 달라 합산하면 묻힌다 ('26.7.30) —
+     칩으로 전체와 채널을 전환해 각 채널을 따로 분석할 수 있게 함 */
+  const [sel, setSel] = useState('전체')
   if (!keys.length) {
     return (
       <div className="mon-note" style={{ marginBottom: 16 }}>
@@ -293,9 +296,10 @@ function StudioBoard() {
     value: chans[k].totals?.avgViewPct || 0, disp: (chans[k].totals?.avgViewPct ?? 0) + '%',
   })).sort((a, b) => b.value - a.value)
 
-  /* 유입 경로 — 전 채널 합산 상위 7 */
+  /* 유입 경로 — 선택 채널(또는 전체 합산) 상위 7 */
+  const scope = sel === '전체' ? keys : keys.filter(k => k === sel)
   const tMap = {}
-  keys.forEach(k => (chans[k].traffic || []).forEach(t => { tMap[t.source] = (tMap[t.source] || 0) + (t.views || 0) }))
+  scope.forEach(k => (chans[k].traffic || []).forEach(t => { tMap[t.source] = (tMap[t.source] || 0) + (t.views || 0) }))
   const tTotal = Object.values(tMap).reduce((a, v) => a + v, 0)
   const traffic = Object.entries(tMap).sort((a, b) => b[1] - a[1]).slice(0, 7).map(([src, v]) => ({
     name: trafficKo(src), value: v,
@@ -303,11 +307,11 @@ function StudioBoard() {
   }))
   /* 기기 */
   const dMap = {}
-  keys.forEach(k => (chans[k].device || []).forEach(d => { dMap[d.type] = (dMap[d.type] || 0) + (d.views || 0) }))
+  scope.forEach(k => (chans[k].device || []).forEach(d => { dMap[d.type] = (dMap[d.type] || 0) + (d.views || 0) }))
   const devices = Object.entries(dMap).sort((a, b) => b[1] - a[1]).map(([t, v]) => [deviceKo(t), v])
   const deviceTotal = Object.values(dMap).reduce((a, v) => a + v, 0)
   /* 시청자 구성 — 채널별 viewerPercentage를 단순 평균 (채널 규모 가중은 API가 주지 않음) */
-  const withDemo = keys.filter(k => (chans[k].demo || []).length)
+  const withDemo = scope.filter(k => (chans[k].demo || []).length)
   const aMap = {}, gMap = {}
   withDemo.forEach(k => (chans[k].demo || []).forEach(d => {
     aMap[d.age] = (aMap[d.age] || 0) + (d.pct || 0) / withDemo.length
@@ -351,12 +355,21 @@ function StudioBoard() {
         <HBars rows={holdRank} />
       </div>
 
-      {/* 유입 경로 ('26.7.30) — 전 채널 합산 상위 7개 */}
+      {/* 채널 전환 칩 ('26.7.30) — 아래 유입 경로와 시청자 구성에 적용 */}
+      <div className="std-chips">
+        {['전체', ...keys].map(k => (
+          <button key={k} className={sel === k ? 'on' : ''} onClick={() => setSel(k)}>
+            {k === '전체' ? '전체' : nameOf(k)}
+          </button>
+        ))}
+      </div>
+
+      {/* 유입 경로 ('26.7.30) — 선택 채널 상위 7개 */}
       {traffic.length > 0 && (
-        <div className="dash-grid g23" style={{ marginTop: 16 }}>
+        <div className="dash-grid g23">
           <div className="dash-panel">
             <div className="group-label">유입 경로</div>
-            <div className="dash-d">조회수 기준 상위 경로, 전 채널 합계</div>
+            <div className="dash-d">조회수 기준 상위 경로, {sel === '전체' ? '전 채널 합계' : nameOf(sel)}</div>
             <HBars rows={traffic} />
           </div>
           <div className="dash-panel flat">
@@ -368,11 +381,16 @@ function StudioBoard() {
       )}
 
       {/* 시청자 구성 ('26.7.30) — 시청자 수가 적으면 구글이 값을 주지 않아 섹션째 숨김 */}
+      {ages.length === 0 && sel !== '전체' && (
+        <div className="mon-note" style={{ marginTop: 16 }}>
+          {nameOf(sel)}는 시청자 수가 적어 구글이 연령과 성별을 제공하지 않습니다
+        </div>
+      )}
       {ages.length > 0 && (
         <div className="dash-grid g23" style={{ marginTop: 16 }}>
           <div className="dash-panel">
             <div className="group-label">시청자 연령</div>
-            <div className="dash-d">전체 시청 비중, 채널 평균</div>
+            <div className="dash-d">{sel === '전체' ? `시청 비중, 채널 ${withDemo.length}개 평균` : `${nameOf(sel)} 시청 비중`}</div>
             <HBars rows={ages} />
           </div>
           <div className="dash-panel flat">

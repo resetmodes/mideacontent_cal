@@ -14,7 +14,7 @@ import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { LogoLockup } from './Logo.jsx'
 import { YT } from './data/sns/youtube.js'
 import { YTA } from './data/sns/ytAnalytics.js'
-import { trafficKo, deviceKo, demoSplit } from './data/sns/ytLabels.js'
+import { trafficKo, deviceKo, demoSplit, aggregateStudio } from './data/sns/ytLabels.js'
 import { TREND } from './data/sns/trend.js'
 import { REPORT } from './data/sns/channelReport.js'
 
@@ -270,6 +270,9 @@ export default function ChannelDashboard({ channelKey, onBack }) {
   const overview = channelKey === '__overview'
   const ch = YT.channels.find(c => c.key === channelKey)
   const sa = YTA?.channels?.[channelKey] || null
+  /* 종합 덱은 채널별 데이터가 없으므로 4채널 합산을 쓴다 ('26.7.30) */
+  const agg = overview ? aggregateStudio(YTA?.channels || {}) : null
+  const src = overview ? agg : sa
   const [idx, setIdx] = useState(0)
   const [dir, setDir] = useState(1)
   const stage = useRef(null)
@@ -567,15 +570,15 @@ export default function ChannelDashboard({ channelKey, onBack }) {
     })
   }
   /* 유입 경로 ('26.7.30) — "어디서 보는가". 히어로는 1위 경로 비중 */
-  if (sa?.traffic?.length && !overview) {
-    const tot = sa.traffic.reduce((a, t) => a + (t.views || 0), 0) || 1
-    const rows = sa.traffic.slice(0, 6).map(t => ({ label: trafficKo(t.source), v: t.views || 0 }))
-    const top1 = sa.traffic[0]
+  if (src?.traffic?.length) {
+    const tot = src.traffic.reduce((a, t) => a + (t.views || 0), 0) || 1
+    const rows = src.traffic.slice(0, 6).map(t => ({ label: trafficKo(t.source), v: t.views || 0 }))
+    const top1 = src.traffic[0]
     slides.push({
       key: 'traffic', label: '유입 경로',
       node: (
         <>
-          <div className="dk-h">시청자는 어디서 들어오나 <small>조회수 기준</small></div>
+          <div className="dk-h">시청자는 어디서 들어오나 <small>{overview ? '전 채널 합계' : '조회수 기준'}</small></div>
           <Hero value={`${Math.round((top1.views / tot) * 100)}%`}
             label={`${trafficKo(top1.source)} 유입 비중`}
             sub={`${num(top1.views)}회, 전체 ${num(tot)}회 중 최다 경로`} />
@@ -588,11 +591,11 @@ export default function ChannelDashboard({ channelKey, onBack }) {
   /* 시청자 구성 ('26.7.30) — "누가 보는가". 슬라이드당 히어로 1개 원칙이라
      기기 비중은 표로 겹치지 않게 부제에 한 줄로 넣는다.
      시청자 수 임계 미달이면 API가 빈 값을 주므로 그때는 슬라이드 자체를 생략 */
-  if (sa?.demo?.length && !overview) {
-    const { ages, genders } = demoSplit(sa.demo)
+  if (src?.demo?.length) {
+    const { ages, genders } = demoSplit(src.demo)
     const topAge = [...ages].sort((a, b) => b.pct - a.pct)[0]
-    const dTot = (sa.device || []).reduce((a, d) => a + (d.views || 0), 0)
-    const topDev = (sa.device || [])[0]
+    const dTot = (src.device || []).reduce((a, d) => a + (d.views || 0), 0)
+    const topDev = (src.device || [])[0]
     const subBits = [
       genders.map(g => `${g.label} ${g.pct}%`).join(', '),
       topDev && dTot ? `${deviceKo(topDev.type)} 시청 ${Math.round((topDev.views / dTot) * 100)}%` : null,
@@ -601,7 +604,7 @@ export default function ChannelDashboard({ channelKey, onBack }) {
       key: 'demo', label: '시청자 구성',
       node: (
         <>
-          <div className="dk-h">누가 보고 있나 <small>시청 비중</small></div>
+          <div className="dk-h">누가 보고 있나 <small>{overview ? `채널 ${agg.channelsWithDemo}개 평균` : '시청 비중'}</small></div>
           <Hero value={`${topAge.pct}%`} label={`${topAge.label} 시청 비중`} sub={subBits.join(', ')} />
           <BarChart rows={ages.map(a => ({ label: a.label, v: a.pct }))} unit="%" baseline={false} delta={false} />
         </>
