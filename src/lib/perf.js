@@ -35,7 +35,39 @@ function approxTime(dateStr, baseISO) {
   return { t: new Date(baseISO).getTime() - (+m[1]) * unit, unc: Math.max(unit / 2, DAY) }
 }
 
-/* 일정 기간(±허용 오차) 안에 게시된 자사 콘텐츠 — 수치 원본을 근접순으로 돌려준다.
+/* ── 제목 대조 ('26.7.30) — 날짜만으로는 같은 날 올라온 다른 게시물이 섞인다.
+   일정 제목·캠페인명과 게시물 캡션·영상 제목에서 겹치는 글자 조각을 세어
+   후보 중 하나를 자동으로 확정할 수 있는지 판단한다.
+
+   한국어는 조사가 붙어 단어가 그대로 일치하지 않으므로("팝업스토어를" vs "팝업스토어")
+   토큰을 2글자 조각으로 쪼개 비교한다. 채널·포맷 지칭처럼 어느 게시물에나 나오는 말은
+   제외 — 이 말들이 겹쳤다고 같은 콘텐츠라고 볼 수 없다 */
+const STOP = new Set(['인스타', '인스타그램', '유튜브', '릴스', '쇼츠', '피드', '캐러셀', '스토리',
+  '업로드', '게시', '발행', '촬영', '공식', '영상', '콘텐츠', '컨텐츠', '현대', '백화점', '더현대'])
+
+const tokens = s => (s || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ')
+  .split(' ').filter(t => t.length >= 2 && !STOP.has(t))
+
+const grams = s => {
+  const set = new Set()
+  for (const t of tokens(s)) {
+    if (t.length === 2) set.add(t)
+    else for (let i = 0; i < t.length - 1; i++) set.add(t.slice(i, i + 2))
+  }
+  return set
+}
+
+const overlap = (a, b) => {
+  let n = 0
+  for (const g of a) if (b.has(g)) n++
+  return n
+}
+
+/* 자동 확정 기준 — 겹치는 조각이 2개 이상(대략 3글자 단어 하나)이고,
+   2등보다 확실히 앞설 때만. 애매하면 사람이 고르게 둔다 */
+const CONFIDENT = 2
+
+/* 일정 기간(±허용 오차) 안에 게시된 자사 콘텐츠 — 수치 원본을 돌려준다.
    일정 모달의 후보 표시(findPerformance)와 캠페인 통합 성과(campaignPerf)가
    같은 매칭 규칙을 쓰도록 여기서 한 번만 판정한다 ('26.7.30 분리) */
 export function matchContent(event) {
@@ -74,16 +106,35 @@ export function matchContent(event) {
     }
   }
 
-  return hits.sort((a, b) => a.dist - b.dist)
+  /* 제목이 겹치는 후보를 먼저, 그다음 게시 시점이 가까운 순 */
+  const q = grams(`${event.title || ''} ${event.campaign || ''}`)
+  for (const h of hits) h.score = q.size ? overlap(q, grams(h.title)) : 0
+  hits.sort((a, b) => b.score - a.score || a.dist - b.dist)
+  return hits
 }
 
-/* 일정 모달의 "집행 실적 후보" 표시용 — 근접순 최대 3건 */
+/* 후보 목록에서 제목 대조로 하나를 자동 확정할 수 있으면 그 건, 아니면 null */
+export function pickAuto(hits) {
+  const [top, next] = hits || []
+  if (!top || top.score < CONFIDENT) return null
+  if (next && next.score >= top.score) return null   // 동점이면 사람이 고르게 둔다
+  return top
+}
+
+/* 담당자가 이미 고른 게 있으면(perfUrl) 그게 항상 우선이라 여기서는 보지 않는다 */
+export const autoMatch = event => pickAuto(matchContent(event))
+
+/* 일정 모달의 "집행 실적 후보" 표시용 — 최대 3건. auto가 true면 자동 확정된 건 */
 export function findPerformance(event) {
+  const auto = autoMatch(event)
   return matchContent(event).slice(0, 3).map(m => {
     const metric = m.kind === 'yt'
       ? `조회 ${compact(m.views)} ${m.format}`
       : m.format === '릴스' && m.views ? `조회 ${compact(m.views)}`
         : m.likes != null ? `좋아요 ${compact(m.likes)}` : '좋아요 비공개'
-    return { url: m.url, title: m.title, dist: m.dist, meta: `${metric} 게시 ${md(m.t)}` }
+    return {
+      url: m.url, title: m.title, dist: m.dist, meta: `${metric} 게시 ${md(m.t)}`,
+      auto: !!auto && auto.url === m.url,
+    }
   })
 }

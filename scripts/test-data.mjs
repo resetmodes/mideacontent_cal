@@ -346,5 +346,55 @@ for (const m of MEDIA) {
   if (!b || b.end_date !== '2026-08-12') bad('notion 매핑: nid-2 기간(end) 불일치')
 }
 
+/* 11. 캠페인 통합 성과 매칭 ('26.7.30) — 없는 매체가 표에 뜨거나
+   다른 시기 실적이 붙는 사고를 회귀 감시 */
+{
+  const { matchTargetApp, spanMonths, buildCampaignPerf } = await import('../src/lib/campaignPerf.js')
+  const { matchContent, pickAuto } = await import('../src/lib/perf.js')
+  const { IG } = await import('../src/data/sns/instagram.js')
+
+  const rows = [
+    { name: '여름테마', year: 2026, month: 3, exp: 1, clk: 1 },
+    { name: '2026 여름테마 프로모션', year: 2026, month: 7, exp: 10, clk: 2 },
+    { name: '여름', year: 2026, month: 7, exp: 99, clk: 9 },
+  ]
+  const july = new Set(['2026-7'])
+  const hit = matchTargetApp('여름테마', rows, july)
+  if (hit.length !== 1 || hit[0].month !== 7)
+    bad('campaignPerf: 타겟APP 대장 매칭이 캠페인 시기를 벗어남 (다른 달 실적 유입)')
+  if (matchTargetApp('여름테마핫딜', rows, july).length !== 0)
+    bad('campaignPerf: 대장 표기가 캠페인 태그에 포함되는 역방향 매칭은 과매칭이라 막아야 함')
+  if (matchTargetApp('여름테마', rows, new Set(['2026-9'])).length !== 0)
+    bad('campaignPerf: 시기가 안 겹치는데도 대장 실적이 붙음')
+  if ([...spanMonths([{ date: '2026-06-28', endDate: '2026-07-03' }])].join() !== '2026-6,2026-7')
+    bad('campaignPerf: spanMonths가 달을 넘는 기간을 못 잡음')
+
+  /* 일정에 없는 매체는 절대 표에 나오면 안 됨 */
+  const perf = buildCampaignPerf(
+    [{ id: 'a', date: '2026-07-24', channel: '인스타', sub: '공식', title: '여름테마', campaign: '여름테마' }],
+    { taRows: rows, campaign: '여름테마' })
+  if (perf.rows.some(r => r.ch === '타겟APP'))
+    bad('campaignPerf: 캘린더에 없는 매체가 성과 표에 나타남')
+
+  /* 제목 대조 자동 확정 — 같은 날 여러 게시물 중 제목이 겹치는 것만 골라야 함 */
+  const mine = (IG.posts || []).filter(p => p.handle === 'the_hyundai')
+  /* 그 계정 게시물 중 딱 하나에만 나오는 4글자 단어를 제목으로 주면 그 건이 확정돼야 함 */
+  let probe = null
+  for (const p of mine) {
+    for (const w of (p.caption || '').match(/[가-힣]{4,}/g) || []) {
+      if (mine.filter(q => (q.caption || '').includes(w)).length === 1) { probe = { p, w }; break }
+    }
+    if (probe) break
+  }
+  if (probe) {
+    const day = probe.p.ts.slice(0, 10)
+    const auto = pickAuto(matchContent({ date: day, channel: '인스타', sub: '공식', title: probe.w }))
+    if (!auto || auto.url !== probe.p.url)
+      bad(`perf: 제목이 겹치는 게시물을 자동 확정하지 못함 (키워드 ${probe.w})`)
+    const vague = pickAuto(matchContent({ date: day, channel: '인스타', sub: '공식', title: '인스타 업로드' }))
+    if (vague) bad('perf: 범용 제목인데도 자동 확정함 (사람이 골라야 하는 상황)')
+  }
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)
