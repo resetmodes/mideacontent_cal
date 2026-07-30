@@ -82,11 +82,24 @@ async function channelReport(token, channelId, start, end) {
   const totals = await api(q('metrics=views,estimatedMinutesWatched,subscribersGained,subscribersLost,averageViewDuration,averageViewPercentage,likes,comments,shares'), token)
   /* ③ 영상별 상위 10 */
   const top = await api(q('dimensions=video&metrics=views,estimatedMinutesWatched&sort=-views&maxResults=10'), token)
+  /* ④ 트래픽 소스 — 유입 경로별 조회수 ('26.7.30) */
+  const traffic = await api(q('dimensions=insightTrafficSourceType&metrics=views,estimatedMinutesWatched&sort=-views'), token)
+     .catch(() => ({ rows: [], columnHeaders: [] }))
+  /* ⑤ 시청자 연령·성별 — viewerPercentage는 다른 지표와 함께 못 부른다 (단독 쿼리).
+     시청자 수가 임계 미만이면 구글이 빈 응답을 준다 — 그때는 화면에서 섹션째 숨김 */
+  const demo = await api(q('dimensions=ageGroup,gender&metrics=viewerPercentage&sort=-viewerPercentage'), token)
+     .catch(() => ({ rows: [], columnHeaders: [] }))
+  /* ⑥ 기기 유형 */
+  const device = await api(q('dimensions=deviceType&metrics=views&sort=-views'), token)
+     .catch(() => ({ rows: [], columnHeaders: [] }))
 
   const row = (r, cols) => Object.fromEntries(cols.map((c, i) => [c.name, r[i]]))
   const mRows = (monthly.rows || []).map(r => row(r, monthly.columnHeaders))
   const tRow = (totals.rows || [])[0] ? row(totals.rows[0], totals.columnHeaders) : {}
   const topRows = (top.rows || []).map(r => row(r, top.columnHeaders))
+  const trafficRows = (traffic.rows || []).map(r => row(r, traffic.columnHeaders))
+  const demoRows = (demo.rows || []).map(r => row(r, demo.columnHeaders))
+  const deviceRows = (device.rows || []).map(r => row(r, device.columnHeaders))
 
   /* 영상 제목 해석 (Data API — 같은 토큰의 youtube.readonly 스코프 사용) */
   let titles = {}
@@ -110,6 +123,11 @@ async function channelReport(token, channelId, start, end) {
       likes: tRow.likes || 0, comments: tRow.comments || 0, shares: tRow.shares || 0,
     },
     top: topRows.map(r => ({ videoId: r.video, title: titles[r.video] || r.video, views: r.views, minutes: r.estimatedMinutesWatched })),
+    /* 유입 경로 — API 코드값 그대로 저장하고 한글 라벨은 화면에서 매핑 (코드가 늘어도 안전) */
+    traffic: trafficRows.map(r => ({ source: r.insightTrafficSourceType, views: r.views, minutes: r.estimatedMinutesWatched })),
+    /* 시청자 구성 — viewerPercentage 합이 100 (연령 × 성별 교차) */
+    demo: demoRows.map(r => ({ age: r.ageGroup, gender: r.gender, pct: r.viewerPercentage })),
+    device: deviceRows.map(r => ({ type: r.deviceType, views: r.views })),
   }
 }
 
