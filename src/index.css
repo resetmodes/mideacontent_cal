@@ -2091,3 +2091,14 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   .cp-nums>span{display:inline;}
   .src-note{max-width:none;}
 }
+/* 매칭 근거 표기 ('26.7.30) — 제목 대조 없이 날짜만으로 고른 건은 추정임을 밝힌다 */
+.cp-guess{font-style:normal;font-size:10.5px;font-weight:700;color:var(--g500);
+  background:rgba(255,255,255,.55);border:1px solid var(--g200);border-radius:8px;
+  padding:1px 6px;margin-left:7px;white-space:nowrap;}
+.md-perf-more{margin-top:6px;}
+.md-perf-more>summary{font-size:12px;font-weight:600;color:var(--g400);cursor:pointer;
+  list-style:none;padding:4px 0;}
+.md-perf-more>summary::-webkit-details-marker{display:none;}
+.md-perf-more>summary::before{content:"+ ";font-weight:800;}
+.md-perf-more[open]>summary::before{content:"− ";}
+.md-perf-more>summary:hover{color:var(--green);}

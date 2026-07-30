@@ -946,7 +946,10 @@ function CampaignPerf({ group, onSelect }) {
                 </span>
                 <span className="cp-t">
                   <b>{c.title}</b>
-                  <span>{c.chLabel}{c.sub && ' ' + c.sub}, {c.format}, {fmtDot(new Date(c.t).toISOString().slice(0, 10))} 게시</span>
+                  <span>
+                    {c.chLabel}{c.sub && ' ' + c.sub}, {c.format}, {fmtDot(new Date(c.t).toISOString().slice(0, 10))} 게시
+                    {c.how === 'near' && <em className="cp-guess">날짜 추정</em>}
+                  </span>
                 </span>
                 {(() => {
                   /* 조회가 있으면 조회가 주인공, 없으면(피드·캐러셀) 반응이 주인공 */
@@ -1198,22 +1201,53 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
                 </div>
               </div>
             ) : perf.length > 0 && (
-              <div className="md-perf">
-                <div className="md-perf-title">
-                  집행 실적 후보 <small>{readOnly ? 'SNS 수집분 근사 매칭' : '실제 콘텐츠를 선택하면 그것만 확정으로 남음'}</small>
+              /* 제목 대조로 하나가 확정되면 그 건만 보여주고, 나머지는 접어 둔다 ('26.7.30)
+                 사람이 매번 고르지 않아도 되게 — 어긋나면 "다른 후보"에서 바꾼다 */
+              perf.some(p => p.auto) ? (
+                <div className="md-perf">
+                  <div className="md-perf-title">집행 실적 <small>제목 자동 대조</small></div>
+                  {perf.filter(p => p.auto).map(p => (
+                    <div key={p.url} className="md-perf-item">
+                      <a className="md-perf-row" href={p.url} target="_blank" rel="noopener noreferrer">
+                        <span className="pf-title">{p.title}</span>
+                        <span className="pf-meta">{p.meta}</span>
+                      </a>
+                      {!readOnly && <button className="pf-pin" onClick={() => setPerf(p.url)}>확정</button>}
+                    </div>
+                  ))}
+                  {perf.length > 1 && (
+                    <details className="md-perf-more">
+                      <summary>다른 후보 {perf.length - 1}건</summary>
+                      {perf.filter(p => !p.auto).map(p => (
+                        <div key={p.url} className="md-perf-item">
+                          <a className="md-perf-row" href={p.url} target="_blank" rel="noopener noreferrer">
+                            <span className="pf-title">{p.title}</span>
+                            <span className="pf-meta">{p.meta}</span>
+                          </a>
+                          {!readOnly && <button className="pf-pin" onClick={() => setPerf(p.url)}>선택</button>}
+                        </div>
+                      ))}
+                    </details>
+                  )}
                 </div>
-                {perf.map(p => (
-                  <div key={p.url} className="md-perf-item">
-                    <a className="md-perf-row" href={p.url} target="_blank" rel="noopener noreferrer">
-                      <span className="pf-title">{p.title}</span>
-                      <span className="pf-meta">{p.meta}</span>
-                    </a>
-                    {!readOnly && (
-                      <button className="pf-pin" onClick={() => setPerf(p.url)}>선택</button>
-                    )}
+              ) : (
+                <div className="md-perf">
+                  <div className="md-perf-title">
+                    집행 실적 후보 <small>{readOnly ? '게시 시점만으로 추정' : '제목이 겹치는 게시물이 없어 게시 시점으로만 추렸음'}</small>
                   </div>
-                ))}
-              </div>
+                  {perf.map(p => (
+                    <div key={p.url} className="md-perf-item">
+                      <a className="md-perf-row" href={p.url} target="_blank" rel="noopener noreferrer">
+                        <span className="pf-title">{p.title}</span>
+                        <span className="pf-meta">{p.meta}</span>
+                      </a>
+                      {!readOnly && (
+                        <button className="pf-pin" onClick={() => setPerf(p.url)}>선택</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )
             )}
             {specName && onOpenSpec && (
               <button className="md-spec-link" onClick={() => { onOpenSpec(specName); onClose() }}>
