@@ -44,3 +44,34 @@ export function demoSplit(demo = []) {
       .map(([g, v]) => ({ code: g, label: genderKo(g), pct: +(v / gSum * 100).toFixed(1) })),
   }
 }
+
+/* 채널 합산 ('26.7.30) — 종합 덱과 모니터링 "전체" 보기용.
+   유입 경로와 기기는 조회수 합, 시청자 구성은 채널 평균 (API가 규모 가중치를 주지 않음) */
+export function aggregateStudio(channels = {}) {
+  const keys = Object.keys(channels)
+  if (!keys.length) return null
+  const tMap = {}, dMap = {}
+  keys.forEach(k => {
+    (channels[k].traffic || []).forEach(t => { tMap[t.source] = (tMap[t.source] || 0) + (t.views || 0) })
+    ;(channels[k].device || []).forEach(d => { dMap[d.type] = (dMap[d.type] || 0) + (d.views || 0) })
+  })
+  const withDemo = keys.filter(k => (channels[k].demo || []).length)
+  const demo = []
+  if (withDemo.length) {
+    const cross = {}
+    withDemo.forEach(k => (channels[k].demo || []).forEach(d => {
+      const key = `${d.age}|${d.gender}`
+      cross[key] = (cross[key] || 0) + (d.pct || 0) / withDemo.length
+    }))
+    for (const [key, pct] of Object.entries(cross)) {
+      const [age, gender] = key.split('|')
+      demo.push({ age, gender, pct: +pct.toFixed(2) })
+    }
+  }
+  return {
+    traffic: Object.entries(tMap).sort((a, b) => b[1] - a[1]).map(([source, views]) => ({ source, views })),
+    device: Object.entries(dMap).sort((a, b) => b[1] - a[1]).map(([type, views]) => ({ type, views })),
+    demo,
+    channelsWithDemo: withDemo.length,
+  }
+}

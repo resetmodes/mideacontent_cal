@@ -2030,3 +2030,11 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   .lb-nav.prev{left:10px;}
   .lb-nav.next{right:10px;}
 }
+
+/* 스튜디오 대시보드 채널 전환 칩 ('26.7.30) */
+.std-chips{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 12px;}
+.std-chips button{font-family:inherit;font-size:13px;font-weight:600;color:var(--g500);
+  background:rgba(255,255,255,.5);border:1px solid var(--glass-border);border-radius:18px;
+  padding:7px 15px;cursor:pointer;transition:all .16s ease;}
+.std-chips button:hover{color:var(--ink);border-color:var(--g300);}
+.std-chips button.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:700;}
