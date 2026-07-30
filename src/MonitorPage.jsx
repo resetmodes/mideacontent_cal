@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { IG } from './data/sns/instagram.js'
 import { YT } from './data/sns/youtube.js'
+import { YTA } from './data/sns/ytAnalytics.js'
 import { UGC } from './data/sns/ugc.js'
 import { TREND } from './data/sns/trend.js'
 import { TA_GROUPS } from './data/targetapp.js'
 import { listTargetApp } from './lib/targetappStore.js'
 import ChannelDashboard from './ChannelDashboard.jsx'
-import { Donut, HBars, DuoBars, TrendLines } from './Charts.jsx'
+import { Donut, HBars, DuoBars, TrendLines, Kpi } from './Charts.jsx'
 
 /* 직전 수집 스냅샷 (현재 수집일보다 앞선 것 중 최신) — 없으면 증감 미표시 */
 const prevSnapshot = cur => {
@@ -97,6 +98,14 @@ function Highlights() {
 }
 
 const num = n => (n == null ? '' : n.toLocaleString('ko-KR'))
+/* 스튜디오 지표 표기 — 시청시간은 시간 단위, 지속시간은 분:초 (채널 덱과 같은 규칙) */
+const hours = m => (m == null ? '' : `${Math.round(m / 60).toLocaleString('ko-KR')}h`)
+const mmss = sec => {
+  if (sec == null) return ''
+  const m = Math.floor(sec / 60), ss = String(Math.round(sec % 60)).padStart(2, '0')
+  return `${m}:${ss}`
+}
+const ymdDot = s => (s ? s.slice(0, 10).replace(/-/g, '.') : '')
 const compact = n => {
   if (n == null) return ''
   if (n >= 100000000) return (n / 100000000).toFixed(1) + '억'
@@ -250,6 +259,75 @@ function AccountTable({ list, prev = null }) {
   )
 }
 
+/* ── 스튜디오 지표 대시보드 ('26.7.30) — YouTube Analytics API 수집분(ytAnalytics.js).
+   공개 스크레이핑으로는 못 얻는 값(시청시간·구독자 증감·평균 시청)을 채널 비교로 보여준다.
+   미수집 상태(YTA 없음)에서는 연동 안내만 — 수치를 지어내지 않는다.
+   노출수·노출 클릭률은 API가 제공하지 않아 표기하지 않음 */
+function StudioBoard() {
+  const chans = YTA?.channels || null
+  const keys = chans ? Object.keys(chans) : []
+  if (!keys.length) {
+    return (
+      <div className="mon-note" style={{ marginBottom: 16 }}>
+        스튜디오 지표는 아직 연동 전입니다. 채널 관리 계정이 1회 동의하면 시청시간과
+        구독자 증감, 평균 시청 지속시간이 여기에 자동으로 채워집니다 (docs/yt-analytics-setup.md).
+      </div>
+    )
+  }
+  const nameOf = k => YT.channels?.find(c => c.key === k)?.name || k
+  const sum = f => keys.reduce((a, k) => a + (f(chans[k]) || 0), 0)
+  const totalMin = sum(c => c.totals?.minutes)
+  const totalViews = sum(c => c.totals?.views)
+  const totalSubs = sum(c => c.totals?.subsNet)
+  /* 월별 합계 (채널 합산) */
+  const months = [...new Set(keys.flatMap(k => (chans[k].monthly || []).map(m => m.month)))].sort()
+  const monthMin = months.map(m => [m.slice(5) + '월',
+    keys.reduce((a, k) => a + ((chans[k].monthly || []).find(x => x.month === m)?.minutes || 0), 0)])
+  const watchRank = keys.map(k => ({
+    name: nameOf(k), sub: `조회 ${compact(chans[k].totals?.views)}`,
+    value: chans[k].totals?.minutes || 0, disp: hours(chans[k].totals?.minutes),
+  })).sort((a, b) => b.value - a.value)
+  const holdRank = keys.map(k => ({
+    name: nameOf(k), sub: `평균 ${mmss(chans[k].totals?.avgViewSec)}`,
+    value: chans[k].totals?.avgViewPct || 0, disp: (chans[k].totals?.avgViewPct ?? 0) + '%',
+  })).sort((a, b) => b.value - a.value)
+
+  return (
+    <>
+      <div className="group-label" style={{ marginTop: 22 }}>
+        스튜디오 지표 <small className="cd-note-inline">{ymdDot(YTA.range?.start)} ~ {ymdDot(YTA.range?.end)}</small>
+      </div>
+      <div className="mon-hero">
+        <Kpi label="총 시청시간" value={hours(totalMin)} sub="API 수집 기간 합계" />
+        <Kpi label="총 조회수" value={compact(totalViews)} sub={`채널 ${keys.length}개 합계`} />
+        <Kpi label="구독자 순증" value={(totalSubs >= 0 ? '+' : '') + num(totalSubs)} unit="명" sub="가입에서 해지를 뺀 값" />
+        <Kpi label="채널 평균 시청" value={mmss(Math.round(keys.reduce((a, k) => a + (chans[k].totals?.avgViewSec || 0), 0) / keys.length))} sub="영상당 지속시간" />
+      </div>
+      <div className="dash-grid g23">
+        <div className="dash-panel">
+          <div className="group-label">월별 시청시간</div>
+          <div className="dash-d">전 채널 합계, 시간</div>
+          <DuoBars data={monthMin.map(([m, v]) => [m, Math.round(v / 60)])} fmt={n => num(n) + 'h'} />
+        </div>
+        <div className="dash-panel">
+          <div className="group-label">채널별 시청시간</div>
+          <div className="dash-d">막대는 제곱근 스케일</div>
+          <HBars sqrt rows={watchRank} />
+        </div>
+      </div>
+      <div className="dash-panel" style={{ marginTop: 16 }}>
+        <div className="group-label">시청 지속률</div>
+        <div className="dash-d">영상 길이 대비 평균 시청 비율, 콘텐츠 흡인력 지표</div>
+        <HBars rows={holdRank} />
+      </div>
+      <div className="mon-note" style={{ marginTop: 12 }}>
+        노출수와 노출 클릭률은 Analytics API가 제공하지 않아 표기하지 않습니다.
+        해당 수치는 유튜브 스튜디오에서 직접 확인해 주세요.
+      </div>
+    </>
+  )
+}
+
 function YoutubeView() {
   const [chFilter, setChFilter] = useState('전체')
   const [detail, setDetail] = useState(null)   // 채널 대시보드 ('26.7.29)
@@ -282,6 +360,8 @@ function YoutubeView() {
         { label: '대표채널 총 조회', value: compact(main?.totalViews), sub: `영상 ${num(main?.totalVideos)}개` },
         { label: '평균 조회 (대표)', value: compact(main?.avgViews), sub: '최근 수집분' },
       ]} />
+
+      <StudioBoard />
 
       {/* 차트 행 (v2 3차 '26.7.29) */}
       <div className="dash-grid g23">

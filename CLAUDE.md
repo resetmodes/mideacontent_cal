@@ -242,7 +242,13 @@
   refresh token을 시크릿(`YT_OAUTH_CLIENT_ID`·`_SECRET`·`_REFRESH_TOKEN`)으로 저장.
   채널 ID는 accounts.mjs `YT_CHANNELS[].channelId`에 기입. 절차 = `docs/yt-analytics-setup.md`.
   **노출수·노출 클릭률(CTR)은 Analytics API가 제공하지 않음**(스튜디오 전용) — 대시보드에
-  표기하지 않고 안내만 (수치 날조 금지). 수익은 수익화 채널 + 별도 스코프 필요
+  표기하지 않고 안내만 (수치 날조 금지). 수익은 수익화 채널 + 별도 스코프 필요.
+  **채널 ID 자동 해결 ('26.7.30)**: accounts.mjs url의 @핸들 → Data API `forHandle`로 조회,
+  실패 시 `mine=true` 목록에서 customUrl 매칭 폴백. 사람이 채널 ID를 찾아 넣을 필요 없음
+  (핸들이 바뀌면 accounts.mjs url만 갱신). **대시보드 = 모니터링 유튜브 세그 상단
+  `StudioBoard`** — KPI 4장(총 시청시간·총 조회·구독자 순증·채널 평균 시청) + 월별 시청시간
+  막대 + 채널별 시청시간(sqrt) + 시청 지속률 랭킹. YTA가 null이면 연동 안내 문구만 렌더.
+  채널 덱의 스튜디오 슬라이드 2장은 그대로 (덱은 발표용, 모니터링은 상시 조회용)
 - **유튜브 제목 한글화 ('26.7)**: 채널 스크레이퍼는 러너 IP(미국) 기준 자동번역 영문 제목을
   줌 → clean-youtube.mjs가 oEmbed(원본 크리에이터 제목, 로케일 무관)로 보정. 비용 0(무료
   공개 엔드포인트), 실패 시 기존 제목 유지(파이프라인 안전), 동시성 6. videoId·thumb(썸네일
