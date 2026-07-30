@@ -122,7 +122,8 @@ h1{font-size:clamp(24px,3.2vw,30px);font-weight:800;letter-spacing:-0.02em;line-
 .media-body.has-visual .mb-main{min-width:0;}
 .media-visual-col{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px;}
 .media-visual{margin:2px 0 0;}
-.ref-lightbox{position:fixed;inset:0;background:rgba(23,23,25,.72);z-index:120;cursor:zoom-out;
+.ref-lightbox{position:fixed;inset:0;background:rgba(14,20,17,.86);z-index:120;cursor:zoom-out;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   display:flex;align-items:center;justify-content:center;padding:24px;}
 .ref-lightbox img{max-width:96vw;max-height:92vh;width:auto;height:auto;object-fit:contain;
   background:#fff;display:block;}
@@ -2010,3 +2011,22 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .shr-issued-body input:focus{border-color:var(--green);}
 .shr-issued-pw input{font-variant-numeric:tabular-nums;letter-spacing:.04em;font-weight:700;}
 @media (max-width:560px){ .shr-issued-body{flex-direction:column;} .shr-issued-pw{flex:1;} }
+
+/* 라이트박스 좌우 넘기기 ('26.7.29) — 여러 장 첨부 시 */
+.lb-nav{position:fixed;top:50%;transform:translateY(-50%);z-index:121;
+  width:46px;height:46px;border-radius:23px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;transition:background .16s ease;}
+.lb-nav:hover{background:rgba(255,255,255,.28);}
+.lb-nav.prev{left:22px;}
+.lb-nav.next{right:22px;}
+.lb-count{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:121;
+  font-size:12.5px;font-weight:700;color:#fff;letter-spacing:.04em;
+  background:rgba(255,255,255,.14);border-radius:14px;padding:6px 14px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-variant-numeric:tabular-nums;}
+@media (max-width:560px){
+  .lb-nav{width:40px;height:40px;font-size:22px;}
+  .lb-nav.prev{left:10px;}
+  .lb-nav.next{right:10px;}
+}

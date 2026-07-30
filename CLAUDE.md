@@ -353,7 +353,10 @@
   `src/ImageAttach.jsx` 공용 컴포넌트 — 캘린더 일정·RMN 부킹이 같이 씀.
   **라이트박스는 createPortal로 body에 렌더 ('26.7.29 수리)** — 모달의 backdrop-filter가
   position:fixed의 containing block이 되어 세로 이미지가 모달 안에 갇혀 스크롤해야 보였음.
-  이미지도 max-height 92vh + object-fit contain으로 한 화면에 들어오게 고정. 붙여넣기는 위젯이
+  이미지도 max-height 92vh + object-fit contain으로 한 화면에 들어오게 고정.
+  **여러 장이면 좌우 넘기기 ('26.7.29)** — 화살표 버튼·키보드 ←→·모바일 스와이프(40px)·
+  하단 "N / M" 카운터, 끝에서 순환. Esc로 닫힘, 한 장이면 화살표 미표시.
+  삭제로 장수가 줄면 인덱스를 범위 안으로 당김. 오버레이는 어둡게(.86)+blur로 이미지 집중 붙여넣기는 위젯이
   마운트된 동안만 동작이라 호출측은 한 번에 하나만 열 것 (RMN은 패널 단일 열림으로 보장).
   **설치 오진 사고 ('26.7.24)**: setup 10장을 한 번에 Run 하면 SQL Editor가 통째로 한
   트랜잭션이라 뒤쪽 storage 정책문이 실패할 때 **앞의 버킷 생성까지 롤백** — "성공" 후에도
