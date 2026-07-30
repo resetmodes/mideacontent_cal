@@ -339,6 +339,22 @@
   자체에 그 매체가 등록돼 있는 것).
   RMN 매출은 넣지 않음 — 외부 광고주 판매 도메인이라 자사 캠페인 성과와 성격이 다름.
   백화점APP 자사 집행분이 GA4 `ep_ad_agency`에 잡히는지 확인되면 `PERF_SOURCE`에 한 줄 추가
+- **모바일 레이아웃 수리 ('26.7.30 사용자 지적)**: 실기기(아이폰)에서만 재현되던 것들 —
+  헤드리스 크로뮴은 date·time 입력의 최소 폭이 작아 넘침이 안 잡혔다. ① **검색 필드 곡률 0**
+  (사용자 표현 "곡률 없는 흰 바탕") — 곡률 통일 블록의 "검색은 밑줄" 규칙(`.search{border-radius:0}`)이
+  뒤에 있어 v2 모바일의 라운드 글래스 필드를 눌렀다. 모바일에서만 18px 복원 ② **`.controls`가
+  v1 흰 사각형** (background:var(--paper) + 잉크 밑줄) → 카드와 같은 유리 패널(반투명·blur·22px)
+  ③ **모바일 상단 탭 바가 곡률 없는 흰 판** → 유리 표면 + 아래쪽 22px 곡률 ④ **RMN 캠페인
+  기간 두 칸이 우측으로 밀림** — `.rmn-campperiod{align-items:flex-end}`가 세로로 쌓일 때
+  각 칸을 내용 너비로 줄이고 오른쪽에 붙였다. 모바일에서 stretch로 복원 ⑤ **date·time 입력이
+  카드를 뚫고 값이 가운데 정렬** — iOS는 고유 최소 폭을 갖고 값을 센터링한다.
+  `-webkit-appearance:none` + `text-align:left` + `min-width:0` 전역 적용(네이티브 피커는 그대로)
+  ⑥ **셀렉트가 iOS 기본 파란 글씨** — `.adm-taform`에 input·textarea만 스타일이 있고 select가
+  빠져 있었다. **주의: select 보정에 `background` 축약형을 쓰면 커스텀 셰브론 이미지가 지워지고,
+  border-radius를 쓰면 곡률 통일 18px을 덮는다** (둘 다 background-color만 쓰고 곡률은 안 건드림)
+- **채널 덱 유사 전체화면 ('26.7.30)**: iOS 사파리는 영상이 아닌 요소에 `requestFullscreen`을
+  구현하지 않아 아이폰에서 전체화면 버튼이 아무 일도 안 했다. 메서드가 없거나 호출이 거부되면
+  `.dk-stage.faux`(position:fixed·100dvh)로 화면을 덮고 body 스크롤을 잠근다. 닫기 버튼과 Esc로 해제
 - **홈 화면 설치 (PWA, '26.7.30)**: `public/manifest.webmanifest` + `public/icon-{180,192,512}.png`
   (favicon.svg를 렌더해 생성) + index.html 메타. 폰 홈 화면 아이콘에서 주소창 없이 전체 화면
   실행, 앱 전환 화면에도 별도 앱으로 표시. iOS는 apple-touch-icon과 apple-mobile-web-app-*

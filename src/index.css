@@ -43,7 +43,9 @@ h1{font-size:clamp(24px,3.2vw,30px);font-weight:800;letter-spacing:-0.02em;line-
   border-top:2px solid var(--ink);border-bottom:1px solid var(--hairline);padding:10px 0;}
 .draft-note b{background:var(--hl);font-weight:700;padding:0 3px;}
 
-.controls{position:sticky;top:0;background:var(--paper);z-index:10;padding:14px 0 0;border-bottom:1px solid var(--ink);}
+/* 검색·필터 스티키 바 — v1의 흰 사각형 + 잉크 밑줄이 v2 글래스 화면에 그대로 남아 있었음
+   ('26.7.30 수리, 사용자 지적 "곡률 없는 흰 바탕"). 유리 표면 + 아래쪽만 곡률 */
+.controls{position:sticky;top:0;z-index:10;padding:11px 16px 5px;margin-top:14px;}
 .search{width:100%;border:none;border-bottom:1px solid var(--hairline);font-family:inherit;
   font-size:17px;font-weight:500;padding:8px 0;outline:none;background:transparent;color:var(--ink);}
 .search::placeholder{color:#bbb;font-weight:400;}
@@ -1145,7 +1147,10 @@ tr.dormant .mon-acc b{color:var(--g400);}
 /* ═══════════ v2 글래스 오버라이드 ('26.7.29) ═══════════
    기존 컴포넌트를 글래스 패널 언어로 — 흰 배경은 반투명으로, 박스는 글래스 보더+블러로.
    타이포 위계·가로선 원칙은 그대로 유지 */
-.controls{background:rgba(243,247,244,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+/* 검색·필터 스티키 바 — v1의 흰 사각형 + 잉크 밑줄이 v2 글래스 화면에 그대로 남아
+   곡률 없는 흰 판으로 보였음 ('26.7.30 수리, 사용자 지적). 카드와 같은 유리 패널로 */
+.controls{background:rgba(255,255,255,.56);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--glass-border);border-radius:20px;box-shadow:var(--glass-shadow);}
 .qa-input,.qa-owner,.login-card input,.md-form input,.md-form select,.md-form textarea,
 .adm-q,.adm-taform input,.adm-taform textarea,.adm-filters input[type=date],.adm-bulk input,
 .rmn-done-q,.rmn-seg input,.rmn-status,.stl-zipbar select,.ch-pick button,.cs-camps button{
@@ -2102,3 +2107,50 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .md-perf-more>summary::before{content:"+ ";font-weight:800;}
 .md-perf-more[open]>summary::before{content:"− ";}
 .md-perf-more>summary:hover{color:var(--green);}
+
+/* ═══════════ 모바일 레이아웃 수리 ('26.7.30 사용자 지적) ═══════════
+   실기기(아이폰)에서만 재현되던 것들. 헤드리스 크로뮴은 date·time 입력의 최소 폭이
+   작아 넘침이 안 잡혔고, iOS 사파리는 그 폭이 훨씬 넓어 카드를 뚫고 나갔다 */
+
+/* ① 폼 입력이 카드를 뚫고 나감 — flex 아이템의 min-width:auto(=min-content) 때문에
+   date·time 입력이 줄어들지 않았다. 셀렉트는 아예 스타일이 없어 iOS 기본 파란 글씨였음 */
+.adm-taform label{min-width:0;}
+.adm-taform label>input,.adm-taform label>select,.adm-taform label>textarea{
+  min-width:0;max-width:100%;}
+/* 날짜·시간 입력은 iOS가 고유 최소 폭을 갖고 값을 가운데 정렬한다 — 다른 입력과 어긋나고
+   좁은 화면에서 카드를 뚫는다. 네이티브 피커는 그대로 열린다 */
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;
+  text-align:left;min-width:0;max-width:100%;}
+.adm-taform select{font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);
+  border:1px solid var(--g200);padding:9px 11px;outline:none;
+  background-color:rgba(255,255,255,.62);width:100%;min-width:0;max-width:100%;}
+/* 곡률은 곡률 통일 블록(18px), 셰브론은 커스텀 셀렉트 블록이 담당 —
+   background 축약형을 쓰면 셰브론 이미지가 지워진다 */
+.adm-taform select:focus{border-color:var(--green);}
+.rmn-line input,.rmn-line select{min-width:0;max-width:100%;}
+
+/* ② 채널 덱 유사 전체화면 — iOS 사파리는 영상이 아닌 요소에 requestFullscreen을
+   구현하지 않아 버튼이 아무 일도 안 했다. 네이티브가 없으면 화면을 덮는 방식으로 대체 */
+.dk-stage.faux{position:fixed;inset:0;z-index:200;width:100vw;height:100dvh;
+  max-height:none;aspect-ratio:auto;border-radius:0;}
+.dk-exit{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;z-index:201;
+  font-family:inherit;font-size:12.5px;font-weight:700;color:#fff;cursor:pointer;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.34);
+  border-radius:14px;padding:7px 14px;backdrop-filter:blur(10px);}
+body.dk-locked{overflow:hidden;}
+
+@media (max-width:840px){
+  /* ③ 상단 탭 바가 곡률 없는 흰 판이었음 — 유리 표면 + 아래쪽 곡률 */
+  .side{background:rgba(255,255,255,.70);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);border:none;border-bottom:1px solid var(--glass-border);
+    border-radius:0 0 22px 22px;box-shadow:var(--glass-shadow);}
+  /* ③-b 모바일 검색 필드가 곡률 0이었음 — 곡률 통일 블록의 "검색은 밑줄" 규칙이
+     v2 모바일의 라운드 글래스 필드까지 눌러버렸다 (해당 규칙이 뒤에 있어 이김) */
+  .search{border-radius:18px;}
+  .controls{padding:10px 14px 4px;}
+  /* ④ 캠페인 기간 두 칸이 오른쪽으로 밀려 있었음 — 세로로 쌓일 때 flex-end가
+     각 칸을 내용 너비로 줄이고 우측에 붙였다 */
+  .rmn-campperiod{align-items:stretch;}
+  .rmn-cp-note{align-self:flex-start;}
+  .adm-row label{min-width:0;}
+}
