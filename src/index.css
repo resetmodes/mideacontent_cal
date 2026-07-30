@@ -1625,7 +1625,10 @@ tr.dormant .mon-acc b{color:var(--g400);}
 
 @media (max-width:820px){
   .dk{width:100%;left:auto;transform:none;}
-  .dk-stage{aspect-ratio:4/3;max-height:none;}
+  /* 폰 세로에서 4:3은 292px밖에 안 돼 차트가 무대를 넘었다 ('26.7.30) —
+     화면 높이 기준으로 잡아 모든 슬라이드가 숨 쉴 자리를 준다 */
+  .dk-stage{aspect-ratio:auto;height:min(64vh,560px);max-height:none;
+    overflow-y:auto;overscroll-behavior:contain;}   /* 내용이 긴 슬라이드는 세로로 읽게 */
   .dk-kpis,.dk-kpis.five,.dk-kpis.four,.dk-kpis.three{grid-template-columns:repeat(2,1fr);}
   .dk-thumb,.dk-top-m,.dk-ppl-d,.dk-chapter{display:none;}
   .dk-nav{display:none;}
@@ -2178,3 +2181,56 @@ body.dk-locked{overflow:hidden;}
 .err-more[open]>summary::before{content:"− ";}
 .err-more pre{font-size:11.5px;color:var(--g500);white-space:pre-wrap;word-break:break-word;
   margin-top:8px;line-height:1.6;}
+
+/* 월별 조회수 추이 꺾은선 ('26.7.30 사용자 지시) — 막대는 오르내림이 안 읽혀 교체.
+   선은 SVG로(가로로 늘어나도 굵기 유지), 점과 값 라벨은 HTML로 겹쳐 올린다 */
+.dk-trend{flex:1;display:flex;flex-direction:column;min-height:0;}
+.dk-trend .dk-trend-plot{flex:1;min-height:0;}
+.dk-trend-plot{position:relative;flex:1;min-height:clamp(96px,26vh,280px);
+  margin:6px clamp(30px,4vw,56px) 0 clamp(34px,4vw,58px);}
+.dk-trend-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
+.dk-trend-grid{stroke:rgba(255,255,255,.10);stroke-width:.5;vector-effect:non-scaling-stroke;}
+.dk-trend-line{fill:none;stroke-width:2.5;vector-effect:non-scaling-stroke;
+  stroke-linecap:round;stroke-linejoin:round;}
+/* 그려지는 연출은 선 자체가 아니라 판 전체를 좌에서 우로 훑어서 낸다 —
+   viewBox를 가로로 늘인 상태에서 stroke-dasharray를 쓰면 점선처럼 끊겨 보였다 ('26.7.30) */
+.dk-trend-svg{animation:dkWipe .9s cubic-bezier(.22,.61,.36,1) both;}
+@keyframes dkWipe{from{clip-path:inset(0 100% 0 0);}to{clip-path:inset(0 -2% 0 0);}}
+/* 세로 눈금 값 */
+.dk-trend-ytick{position:absolute;left:0;transform:translate(-100%,-50%);padding-right:9px;
+  font-size:10.5px;font-weight:600;color:var(--dk-dim);font-variant-numeric:tabular-nums;
+  white-space:nowrap;opacity:.75;}
+.dk-trend-dot{position:absolute;width:7px;height:7px;border-radius:50%;
+  transform:translate(-50%,-50%);box-shadow:0 0 0 2.5px rgba(7,40,31,.85);
+  animation:dkFade .4s ease-out both;}
+.dk-trend-val{position:absolute;transform:translate(-50%,-160%);white-space:nowrap;
+  font-size:clamp(11px,1.15vw,14px);font-weight:800;letter-spacing:-0.02em;
+  font-variant-numeric:tabular-nums;animation:dkFade .4s ease-out both;}
+/* 마지막 점은 선 끝 오른쪽에 붙여 세로로 겹치지 않게 */
+.dk-trend-val.last{transform:translate(12px,-50%);}
+.dk-trend-x{display:flex;margin-top:12px;flex:none;
+  padding:0 clamp(30px,4vw,56px) 0 clamp(34px,4vw,58px);}
+.dk-trend-x span{flex:1;text-align:center;font-size:11.5px;font-weight:600;color:var(--dk-dim);}
+.dk-trend-x span:first-child{text-align:left;}
+.dk-trend-x span:last-child{text-align:right;}
+.dk-trend-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin-top:10px;flex:none;flex-wrap:wrap;}
+.dk-trend-foot .dk-unit{margin-top:0;}
+.dk-trend-leg{display:flex;gap:clamp(10px,1.6vw,20px);flex-wrap:wrap;}
+.dk-trend-leg span{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;
+  color:var(--dk-fg);}
+.dk-trend-leg span::before{content:'';width:14px;height:3px;border-radius:2px;background:var(--c);}
+@media (max-width:840px){
+  /* 모바일 무대는 4:3이라 세로가 짧다 — 판이 무대를 넘지 않게 여백과 최소 높이를 줄인다 */
+  .dk-trend-plot{margin:2px clamp(24px,7vw,42px) 0 clamp(26px,7vw,44px);min-height:88px;}
+  .dk-trend-x{padding:0 clamp(24px,7vw,42px) 0 clamp(26px,7vw,44px);margin-top:7px;}
+  .dk-trend-x span{font-size:10.5px;}
+  .dk-trend-foot{margin-top:6px;}
+  .dk-trend-val{font-size:10.5px;}
+  .dk-trend-ytick{font-size:9.5px;padding-right:6px;}
+  .dk-trend-leg span{font-size:10.5px;}
+}
+@media (prefers-reduced-motion:reduce){
+  .dk-trend-svg{animation:none;clip-path:none;}
+  .dk-trend-dot,.dk-trend-val{animation:none;}
+}
