@@ -11,6 +11,7 @@ import RmnPage from './RmnPage.jsx'
 import SettlePage from './SettlePage.jsx'
 import ShareReport from './ShareReport.jsx'
 import { LogoMark } from './Logo.jsx'
+import ErrorBoundary from './ErrorBoundary.jsx'
 import { getSession, onAuthChange, signOut } from './lib/auth.js'
 import { storageMode } from './lib/store.js'
 import { ADMIN_EMAILS, SETTLE_EMAILS } from './config.js'
@@ -115,6 +116,9 @@ export default function App() {
         )}
       </aside>
       <div className="shell-main">
+        {/* 탭 본문만 감쌈 ('26.7.30) — 한 화면의 렌더 오류가 사이트 전체를 흰 화면으로
+            만들던 것을 막는다. 탭을 옮기면 자동 복구 */}
+        <ErrorBoundary resetKey={tab}>
         {tab === 'home' && <Celebration />}
         {tab === 'home' && <HomePage onGo={go} canSettle={isSettle && storageMode === 'supabase'} onOpenSpec={openSpec} />}
         {tab === 'calendar' && <CalendarPage onOpenSpec={openSpec} initialView={calView} />}
@@ -125,6 +129,7 @@ export default function App() {
         {tab === 'rmn' && <RmnPage />}
         {tab === 'settle' && isSettle && <SettlePage />}
         {tab === 'admin' && isAdmin && <AdminPage />}
+        </ErrorBoundary>
       </div>
     </div>
   )

@@ -3,6 +3,7 @@ import { CHANNELS, TEAM_TYPES, TEAM_KEYWORDS, channelById, TARGET_CH, targetLast
 import { parseQuick, toISO, fromISO, displayTitle } from './lib/parse.js'
 import { listEvents, createEvent, updateEvent, updateEventImages, deleteEvent, renameCampaign, listHistory, listDeleted, resolveNotionGone, storageMode } from './lib/store.js'
 import ImageAttach from './ImageAttach.jsx'
+import ModalShell from './ModalShell.jsx'
 import { getSession, onAuthChange } from './lib/auth.js'
 import { resolveSpecMedia } from './lib/specLink.js'
 import { findPerformance } from './lib/perf.js'
@@ -270,8 +271,7 @@ function ConfirmSheet({ draft, sim, dup = [], onConfirm, onCancel, shootOnly = f
   const needChannel = !draft.channel
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+    <ModalShell onClose={onCancel}>
         <div className="md-ch">등록 전 확인</div>
         <div className="md-title sm">{draft.title}</div>
         {needChannel && (
@@ -321,8 +321,7 @@ function ConfirmSheet({ draft, sim, dup = [], onConfirm, onCancel, shootOnly = f
             onClick={() => onConfirm({ ...draft, channel: channel || (team ? '팀기타' : '기타'), campaign })}
           >등록</button>
         </div>
-      </div>
-    </div>
+    </ModalShell>
   )
 }
 
@@ -629,8 +628,7 @@ function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister, closed
   const [openGrp, setOpenGrp] = useState(null)
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal day-sheet" onClick={e => e.stopPropagation()}>
+    <ModalShell onClose={onClose} className="day-sheet">
         <div className="md-ch">하루 일정 {list.length}건</div>
         <div className="md-title">{fmtDot(iso)}
           {closed && <small className="day-closed"> {closed}</small>}
@@ -687,8 +685,7 @@ function DaySheet({ iso, events, readOnly, onClose, onSelect, onRegister, closed
           <div className="md-spacer" />
           <button className="btn-ghost" onClick={onClose}>닫기</button>
         </div>
-      </div>
-    </div>
+    </ModalShell>
   )
 }
 
@@ -1169,8 +1166,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+    <ModalShell onClose={onClose}>
         {!editing ? (
           <>
             <div className="md-ch"><ChannelIcon id={event.channel} /> {channelById(event.channel)?.label || event.channel}
@@ -1386,8 +1382,7 @@ function EventModal({ event, campaigns, onClose, onSave, onDelete, onCreate, rea
             </div>
           </>
         )}
-      </div>
-    </div>
+    </ModalShell>
   )
 }
 
@@ -1867,8 +1862,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
       )}
 
       {groupSel && (
-        <div className="modal-overlay" onClick={() => setGroupSel(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+        <ModalShell onClose={() => setGroupSel(null)}>
             <div className="md-ch"><ChannelIcon id="타겟APP" /> 타겟APP {groupSel.length}개 매체 동시 집행</div>
             <div className="md-title">{displayTitle(groupSel[0].title, groupSel[0].channel)}</div>
             <dl className="md-grid"><dt>일자</dt><dd>{fmtRange(groupSel[0])}</dd></dl>
@@ -1884,8 +1878,7 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
               <div className="md-spacer" />
               <button className="btn-ghost" onClick={() => setGroupSel(null)}>닫기</button>
             </div>
-          </div>
-        </div>
+        </ModalShell>
       )}
 
     </div>

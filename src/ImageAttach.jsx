@@ -5,6 +5,7 @@
    (여러 개 열리면 같은 캡처가 전부에 올라감) */
 import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useModal } from './lib/useModal.js'
 import { uploadEventImage, removeEventImage, imageUrl, MAX_IMAGES } from './lib/eventImages.js'
 
 export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onChange, hint = '시안과 결과 보고용' }) {
@@ -52,12 +53,14 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
      삭제로 장수가 줄면 인덱스를 범위 안으로 당김 */
   const view = viewIdx >= 0 ? imgs[Math.min(viewIdx, imgs.length - 1)] : null
   const step = d => setViewIdx(i => (i + d + imgs.length) % imgs.length)
+  /* Esc는 useModal 스택이 처리 — 모달 안에서 라이트박스를 열었을 때
+     Esc 한 번에 둘 다 닫히던 것을 막는다 (맨 위 하나만 닫힘) */
+  useModal(() => setViewIdx(-1), { enabled: viewIdx >= 0 })
   useEffect(() => {
-    if (viewIdx < 0) return
+    if (viewIdx < 0 || imgs.length < 2) return
     const onKey = e => {
-      if (e.key === 'Escape') setViewIdx(-1)
-      else if (e.key === 'ArrowLeft' && imgs.length > 1) step(-1)
-      else if (e.key === 'ArrowRight' && imgs.length > 1) step(1)
+      if (e.key === 'ArrowLeft') step(-1)
+      else if (e.key === 'ArrowRight') step(1)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)

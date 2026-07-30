@@ -60,6 +60,11 @@
 - `npm run verify` — test + 프로덕션 빌드
 - `npm run smoke` — **브라우저 자동 스모크** (UI 변경 시 실행): config 백업→로컬 모드
   빌드→핵심 플로우 확인→**config 원복·재빌드까지 전자동**. playwright 없는 환경은 자동 생략
+- `npm run audit` — **UI 전수 조사** ('26.7.30 추가, 레이아웃·스타일을 건드렸으면 실행):
+  탭 9개 × 폭 4개(360·390·820·1440) × 공유 뷰 2개를 돌며 JS 오류·콘솔 경고·화면 밖으로
+  나간 요소·가로 스크롤·문자열 규칙 위반·이름 없는 버튼·깨진 이미지를 모은다.
+  시드 데이터를 가짜 응답으로 주입해 실 Supabase에 접속하지 않는다.
+  `npm run audit:long`은 같은 화면을 아주 긴 제목으로 밀어붙여 말줄임 처리를 확인
 - CI: `.github/workflows/verify.yml` — main·claude/** push마다 자동
 
 ## 3-1. 스킬 (.claude/skills/) — 작업 유형별 사고 절차

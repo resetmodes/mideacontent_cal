@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
+import { copyText } from './lib/clipboard.js'
 import { MEDIA, TARGET_COMMON, GROUP_NOTES, COMMON_GUIDE } from './data/media.js'
 import { MIRROR_URL } from './config.js'
 import { withLiveMetrics } from './lib/specMetrics.js'
@@ -20,8 +21,7 @@ function CopyMediaLink({ name }) {
   const [copied, setCopied] = useState(false)
   const copy = async e => {
     e.stopPropagation()
-    try { await navigator.clipboard.writeText(externalMediaLink(name)) }
-    catch { window.prompt('아래 주소를 복사하세요', externalMediaLink(name)); return }
+    if (!await copyText(externalMediaLink(name))) return
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }

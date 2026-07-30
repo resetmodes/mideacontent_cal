@@ -852,6 +852,9 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .rmn-done-q::placeholder{color:var(--g400);}
 .rmn-cancel-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--g100);}
 .rmn-cancel-row .rmn-camp-meta{margin-left:auto;}
+/* 취소 건도 캠페인명이 길면 행 밖으로 나갔다 ('26.7.30) — 이름만 줄어들게 */
+.rmn-cancel-row .rmn-line-name{flex:1 1 auto;min-width:0;overflow:hidden;}
+.rmn-cancel-row .rmn-line-name .mute{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
 .rmn-year{font-size:11px;font-weight:800;color:var(--g600);background:var(--g100);
   border-radius:5px;padding:1px 6px;margin-right:4px;font-variant-numeric:tabular-nums;}
 /* 정산 요약 연도 필터 + 엑셀 */
@@ -887,7 +890,10 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
 .rmn-camp-head{display:flex;align-items:center;gap:10px;cursor:pointer;}
 .rmn-camp-dots{display:inline-flex;gap:3px;flex-shrink:0;}
 .rmn-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
-.rmn-camp-name{font-size:14px;color:var(--ink);min-width:0;flex-shrink:0;}
+/* 광고주·캠페인명이 길면 기간·금액과 화살표를 밀어내 행 밖으로 나갔다 ('26.7.30 수리) —
+   이름이 줄어들며 말줄임 되도록 (모바일은 아래 블록에서 두 줄로 접힘) */
+.rmn-camp-name{font-size:14px;color:var(--ink);flex:1 1 auto;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rmn-camp-name b{font-weight:800;}
 .rmn-gtag{margin-left:7px;font-size:10.5px;font-weight:700;color:var(--g600);
   border:1px solid var(--g200);border-radius:5px;padding:1px 6px;vertical-align:1px;}
@@ -899,11 +905,15 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
    화살표는 이름줄 우측 고정 ('26.7 수정) */
 @media (max-width:560px){
   .rmn-camp-head{flex-wrap:wrap;}
-  .rmn-camp-name{flex:1 1 auto;flex-shrink:1;}
+  /* 이름이 nowrap이라 화살표가 아랫줄로 밀려 혼자 떠 있었다 ('26.7.30) — 0 기준으로 줄여
+     같은 줄에 남게 */
+  .rmn-camp-name{flex:1 1 0;min-width:0;}
   .rmn-camp-chev{order:1;margin-left:auto;}
   .rmn-camp-meta{order:2;flex-basis:100%;white-space:normal;margin:4px 0 0 19px;}
 }
-.rmn-camp-ctl{display:flex;align-items:center;gap:8px;margin:9px 0 0 19px;}
+.rmn-camp-ctl{display:flex;align-items:center;gap:8px;margin:9px 0 0 19px;flex-wrap:wrap;}
+/* 좁은 화면에서 버튼 글자가 한 글자씩 세로로 쪼개졌다 ('26.7.30) */
+.rmn-camp-ctl button,.rmn-camp-ctl select{white-space:nowrap;}
 .rmn-camp-ctl .rmn-status{padding:4px 6px;}
 .rmn-camp-items{margin:11px 0 2px;border-top:1px solid var(--g200);}
 .rmn-item{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--g100);}
@@ -2154,3 +2164,17 @@ body.dk-locked{overflow:hidden;}
   .rmn-cp-note{align-self:flex-start;}
   .adm-row label{min-width:0;}
 }
+
+/* 렌더 오류 안내 ('26.7.30) — ErrorBoundary가 잡은 화면 */
+.err-box{max-width:520px;margin:60px auto;padding:26px 28px;text-align:center;
+  background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--glass-border);border-radius:22px;box-shadow:var(--glass-shadow);}
+.err-t{font-size:18px;font-weight:800;letter-spacing:-0.02em;}
+.err-d{font-size:13.5px;color:var(--g500);line-height:1.65;margin:8px 0 18px;}
+.err-more{margin-top:16px;text-align:left;}
+.err-more>summary{font-size:12px;font-weight:600;color:var(--g400);cursor:pointer;list-style:none;}
+.err-more>summary::-webkit-details-marker{display:none;}
+.err-more>summary::before{content:"+ ";font-weight:800;}
+.err-more[open]>summary::before{content:"− ";}
+.err-more pre{font-size:11.5px;color:var(--g500);white-space:pre-wrap;word-break:break-word;
+  margin-top:8px;line-height:1.6;}

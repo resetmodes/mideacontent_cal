@@ -379,8 +379,10 @@ function Highlight({ onGo }) {
         <div className="home-vids">
           {yt.map(v => (
             <a key={v.url} className="home-vid" href={v.url} target="_blank" rel="noreferrer">
+              {/* 썸네일이 404면(영상 삭제·비공개) 깨진 이미지 아이콘이 남는다 — 아이콘으로 대체 */}
               {v.thumb
-                ? <img src={v.thumb} alt="" loading="lazy" />
+                ? <img src={v.thumb} alt="" loading="lazy"
+                    onError={e => { e.currentTarget.style.display = 'none' }} />
                 : <span className="home-vid-noimg"><ChannelIcon id="유튜브" /></span>}
               <span className="home-vid-body">
                 <b>{v.title}</b>
