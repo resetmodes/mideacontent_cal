@@ -658,21 +658,38 @@ export default function ChannelDashboard({ channelKey, onBack }) {
     })
   }, [total])
 
+  /* 유사 전체화면 ('26.7.30) — iOS 사파리는 영상이 아닌 요소에 requestFullscreen을
+     구현하지 않아 아이폰에서 버튼이 아무 일도 하지 않았다. 네이티브가 없으면
+     무대를 화면 전체에 고정하는 방식으로 대체한다 */
+  const [faux, setFaux] = useState(false)
+
   useEffect(() => {
     const onKey = e => {
       if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); go(1) }
       else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1) }
-      else if (e.key === 'Escape' && !document.fullscreenElement) onBack()
+      else if (e.key === 'Escape') {
+        if (faux) setFaux(false)
+        else if (!document.fullscreenElement) onBack()
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [go, onBack])
+  }, [go, onBack, faux])
+
+  useEffect(() => {
+    document.body.classList.toggle('dk-locked', faux)
+    return () => document.body.classList.remove('dk-locked')
+  }, [faux])
 
   const full = () => {
     const el = stage.current
     if (!el) return
-    if (document.fullscreenElement) document.exitFullscreen?.()
-    else el.requestFullscreen?.()
+    if (document.fullscreenElement) { document.exitFullscreen?.(); return }
+    if (faux) { setFaux(false); return }
+    if (typeof el.requestFullscreen === 'function') {
+      /* 사파리는 메서드가 있어도 거부할 수 있어 실패하면 유사 전체화면으로 내려간다 */
+      Promise.resolve(el.requestFullscreen()).catch(() => setFaux(true))
+    } else setFaux(true)
   }
 
   if (!ch && !overview) return null
@@ -684,12 +701,13 @@ export default function ChannelDashboard({ channelKey, onBack }) {
         <button className="dk-back" onClick={onBack}>채널 지표로</button>
         <div className="dk-bar-r">
           <span className="dk-count">{idx + 1} / {total}</span>
-          <button className="dk-btn" onClick={full}>전체화면</button>
+          <button className="dk-btn" onClick={full}>{faux ? '전체화면 끄기' : '전체화면'}</button>
         </div>
       </div>
 
+      {faux && <button className="dk-exit" onClick={() => setFaux(false)}>닫기</button>}
       <div
-        className="dk-stage" ref={stage}
+        className={'dk-stage' + (faux ? ' faux' : '')} ref={stage}
         onTouchStart={e => { touch.current = e.touches[0].clientX }}
         onTouchEnd={e => {
           if (touch.current == null) return
