@@ -396,5 +396,32 @@ for (const m of MEDIA) {
   }
 }
 
+/* 12. 캠페인 태그 없는 일정 자동 묶음 ('26.7.30) — 상투어로 묶이거나
+   "미아 25주년"이 "25주년" 하나로 뭉개지는 회귀를 감시 */
+{
+  const { autoGroups } = await import('../src/lib/autoGroup.js')
+  const ev = (id, title) => ({ id, title, date: '2026-08-01', channel: '인스타' })
+  const names = g => g.map(x => x.name)
+
+  const g1 = autoGroups([
+    ev(1, '웨딩페어 인스타 릴스'), ev(2, '웨딩페어 카톡 발송'), ev(3, '웨딩페어 APP팝업'),
+    ev(4, '미아 25주년 팝업 배너'), ev(5, '미아 25주년 유튜브 영상'), ev(6, '여름 신상 캐러셀'),
+  ])
+  if (!names(g1).includes('웨딩페어') || !names(g1).includes('미아 25주년'))
+    bad(`autoGroup: 제목이 겹치는 일정을 못 묶음 (${names(g1).join(', ')})`)
+  if (g1.some(x => x.list.some(e => e.title === '여름 신상 캐러셀')))
+    bad('autoGroup: 혼자인 일정이 묶임')
+
+  if (autoGroups([ev(1, '인스타 릴스 업로드'), ev(2, '카톡 팝업 오픈 안내'), ev(3, '유튜브 영상 게시')]).length)
+    bad('autoGroup: 채널·포맷 상투어로 묶임 (서로 무관한 일정이 한 덩어리가 된다)')
+
+  const g3 = autoGroups([
+    ev(1, '미아 25주년 팝업'), ev(2, '미아 25주년 카톡'),
+    ev(3, '천호 25주년 배너'), ev(4, '천호 25주년 릴스'),
+  ])
+  if (g3.length !== 2 || !names(g3).includes('미아 25주년') || !names(g3).includes('천호 25주년'))
+    bad(`autoGroup: 점포가 다른데 "25주년"으로 뭉개짐 (${names(g3).join(', ')})`)
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)

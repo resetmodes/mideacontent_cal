@@ -8,6 +8,7 @@ import { YT } from './data/sns/youtube.js'
 import { IG } from './data/sns/instagram.js'
 import { buildHighlights } from './MonitorPage.jsx'
 import ChannelIcon from './ChannelIcon.jsx'
+import { autoGroups } from './lib/autoGroup.js'
 
 /* 홈 ('26.7) — 접속 첫 화면. 중요도순: ⓪ 이번 주 요약 히어로(큰 숫자) ① 오늘·내일 팀원 근태
    ② 주요 콘텐츠 D-day(캠페인) ③ 이번 주 촬영 ④ 채널 이슈(모니터링 하이라이트 재사용)
@@ -236,19 +237,29 @@ function WorkDeadlines({ events, today, onGo }) {
 function CampaignDday({ events, today, onGo }) {
   const groups = useMemo(() => {
     const horizon = addDays(today, 21)
-    const map = {}
-    for (const e of events) {
-      if (e.kind || !e.campaign) continue
+    /* 3주 창 안의 매체 일정만 (팀·촬영 제외) */
+    const inWindow = events.filter(e => {
+      if (e.kind) return false
       const end = e.endDate || e.date
-      if (end < today || e.date > horizon) continue   // 지난 것·3주 밖 제외
+      return end >= today && e.date <= horizon
+    })
+
+    const map = {}
+    for (const e of inWindow) {
+      if (!e.campaign) continue
       ;(map[e.campaign] = map[e.campaign] || []).push(e)
     }
-    return Object.entries(map).map(([name, list]) => {
-      list.sort((a, b) => a.date.localeCompare(b.date))
+    const tagged = Object.entries(map).map(([name, list]) => ({ name, list, auto: false }))
+    /* 태그가 없어도 제목이 겹치면 묶어서 보여준다 ('26.7.30 사용자 지시) —
+       사람이 붙인 태그가 항상 우선이라 태그 없는 것만 넘긴다 */
+    const auto = autoGroups(inWindow.filter(e => !e.campaign))
+
+    return [...tagged, ...auto].map(g => {
+      const list = [...g.list].sort((a, b) => a.date.localeCompare(b.date))
       const next = list.find(e => e.date >= today)
       const ongoing = list.some(e => e.date <= today && today <= (e.endDate || e.date))
       const dday = next ? Math.round((fromISO(next.date) - fromISO(today)) / 86400000) : null
-      return { name, list, next, ongoing, dday }
+      return { ...g, list, next, ongoing, dday }
     }).sort((a, b) => (a.dday ?? -1) - (b.dday ?? -1)).slice(0, 6)
   }, [events, today])
 
@@ -259,9 +270,11 @@ function CampaignDday({ events, today, onGo }) {
         주요 콘텐츠
         <button className="home-more" onClick={() => onGo('calendar')}>매체 캘린더</button>
       </div>
-      <div className="home-sec-d">캠페인 단위 다음 게시 기준 (3주 내)</div>
+      <div className="home-sec-d">
+        캠페인 단위 다음 게시 기준 (3주 내). 태그가 없어도 제목이 겹치면 자동으로 묶어 보여줍니다.
+      </div>
       {groups.map(g => (
-        <div key={g.name} className="home-trow camp">
+        <div key={(g.auto ? 'a:' : 'c:') + g.name} className="home-trow camp">
           <span className={'home-dday' + (g.ongoing && (g.dday == null || g.dday > 0) ? ' run' : '')}>
             {g.ongoing && (g.dday == null || g.dday > 0) ? '진행중' : g.dday === 0 ? 'D-day' : `D-${g.dday}`}
           </span>
@@ -272,10 +285,12 @@ function CampaignDday({ events, today, onGo }) {
               <span className="home-ttl">
                 <ChannelIcon id={g.next.channel} /> {displayTitle(g.next.title, g.next.channel)}
               </span>
-              <span className="home-camp">#{g.name}</span>
+              <span className={'home-camp' + (g.auto ? ' auto' : '')}>
+                {g.auto ? g.name : '#' + g.name}
+              </span>
             </>
           ) : (
-            <span className="home-ttl">#{g.name}</span>
+            <span className="home-ttl">{g.auto ? g.name : '#' + g.name}</span>
           )}
           <span className="home-sub">{g.next ? fmtK(g.next.date) : ''}{g.list.length > 1 ? ` 외 ${g.list.length - 1}건` : ''}</span>
         </div>
