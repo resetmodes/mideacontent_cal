@@ -303,9 +303,15 @@ function StudioBoard() {
   const tMap = {}
   scope.forEach(k => (chans[k].traffic || []).forEach(t => { tMap[t.source] = (tMap[t.source] || 0) + (t.views || 0) }))
   const tTotal = Object.values(tMap).reduce((a, v) => a + v, 0)
+  /* 1위가 99%를 먹는 채널이 있어 반올림하면 나머지가 전부 0%로 뭉개진다 ('26.7.31) —
+     작은 비중일수록 자릿수를 늘려 6.9만과 1.1만이 구분되게 한다 */
+  const sharePct = v => {
+    if (!tTotal) return ''
+    const s = v / tTotal * 100
+    return (s >= 10 ? Math.round(s) : s >= 1 ? s.toFixed(1) : s.toFixed(2)) + '%'
+  }
   const traffic = Object.entries(tMap).sort((a, b) => b[1] - a[1]).slice(0, 7).map(([src, v]) => ({
-    name: trafficKo(src), value: v,
-    disp: compact(v), unit: tTotal ? Math.round(v / tTotal * 100) + '%' : '',
+    name: trafficKo(src), value: v, disp: compact(v), unit: sharePct(v),
   }))
   /* 기기 */
   const dMap = {}

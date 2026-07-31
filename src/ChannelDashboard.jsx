@@ -83,7 +83,10 @@ function Hero({ value, label, sub, hl = true }) {
 const em = t => t.split('**').map((seg, i) => (i % 2 ? <b key={i}>{seg}</b> : seg))
 
 /* ── 막대 (그린 단색 · 축 가로선만) ─────────────────────────── */
-function BarChart({ rows, unit = '회', series = null, baseline = true, delta = true }) {
+/* sqrt = 한 항목이 나머지를 압도할 때 ('26.7.31 유입 경로 — 광고가 99%라 나머지 다섯이
+   전부 바닥 선으로 눌렸다). 눈금을 바꾸면 단위 줄에 명시한다 */
+function BarChart({ rows, unit = '회', series = null, baseline = true, delta = true, sqrt = false }) {
+  const sc = v => (sqrt ? Math.sqrt(Math.max(0, v)) : v)
   const max = Math.max(...rows.flatMap(r => [r.v, r.v2 || 0]), 1)
   const avg = rows.reduce((s, r) => s + r.v, 0) / (rows.length || 1)
   return (
@@ -112,16 +115,16 @@ function BarChart({ rows, unit = '회', series = null, baseline = true, delta = 
               )}
             </div>
             <div className="dk-bar-track">
-              <div className={'dk-bar-fill' + (r.v === max ? ' max' : '')} style={{ height: `${Math.max((r.v / max) * 100, r.v > 0 ? 1.5 : 0)}%`, animationDelay: `${i * 70}ms` }} />
+              <div className={'dk-bar-fill' + (r.v === max ? ' max' : '')} style={{ height: `${Math.max((sc(r.v) / sc(max)) * 100, r.v > 0 ? 1.5 : 0)}%`, animationDelay: `${i * 70}ms` }} />
               {r.v2 != null && (
-                <div className="dk-bar-fill alt" style={{ height: `${Math.max((r.v2 / max) * 100, r.v2 > 0 ? 1.5 : 0)}%`, animationDelay: `${i * 70 + 40}ms` }} />
+                <div className="dk-bar-fill alt" style={{ height: `${Math.max((sc(r.v2) / sc(max)) * 100, r.v2 > 0 ? 1.5 : 0)}%`, animationDelay: `${i * 70 + 40}ms` }} />
               )}
             </div>
             <div className="dk-bar-l">{r.label}</div>
           </div>
         )})}
       </div>
-      <div className="dk-unit">단위: {unit}</div>
+      <div className="dk-unit">단위: {unit}{sqrt ? ', 세로축 제곱근 눈금' : ''}</div>
     </div>
   )
 }
@@ -652,7 +655,7 @@ export default function ChannelDashboard({ channelKey, onBack }) {
           <Hero value={`${Math.round((top1.views / tot) * 100)}%`}
             label={`${trafficKo(top1.source)} 유입 비중`}
             sub={`${num(top1.views)}회, 전체 ${num(tot)}회 중 최다 경로`} />
-          <BarChart rows={rows} baseline={false} delta={false} />
+          <BarChart rows={rows} baseline={false} delta={false} sqrt />
         </>
       ),
     })
