@@ -167,6 +167,19 @@ async function main() {
   const start = new Date(end); start.setMonth(start.getMonth() - MONTHS)
   const token = await getToken()
 
+  /* dry-run에서는 이 토큰이 실제로 무엇을 소유로 보는지 먼저 찍는다.
+     스튜디오 권한으로 초대만 받은 채널은 여기 안 나오고 실적 조회에서 403이 된다 —
+     "권한을 줬는데 왜 못 찾느냐"를 가르는 유일한 근거 ('26.7.31) */
+  if (DRY) {
+    try {
+      const mine = await api('https://www.googleapis.com/youtube/v3/channels?part=id,snippet&mine=true&maxResults=50', token)
+      const list = mine.items || []
+      console.log(`이 토큰이 소유로 보는 채널 ${list.length}개`)
+      for (const i of list) console.log(`  ${i.snippet?.title} ${i.snippet?.customUrl || ''} ${i.id}`)
+      if (!list.length) console.log('  없음 (동의할 때 브랜드 계정이 아니라 개인 계정을 골랐을 가능성)')
+    } catch (e) { console.warn(`소유 채널 목록 조회 실패 ${e.message.replace(/\s+/g, ' ')}`) }
+  }
+
   const channels = {}
   const denied = []
   let ok = 0
