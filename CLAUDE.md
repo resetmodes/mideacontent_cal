@@ -1,5 +1,6 @@
 # CLAUDE.md — 매체 스펙 라이브러리 + 매체 일정 캘린더 (media-spec-library)
 
+> **계정 이관 시: `docs/handover-account-move.md`** — 연동 자격증명·SQL 확인표·미완료 항목.
 > **작업 전 필독: `PLAYBOOK.md`** — 작업 절차·금지선·파일 지도·검증 도구('26.7 하네스).
 > 코드 수정 후에는 반드시 `npm run verify` (파서·가드 테스트 + 빌드) 통과 확인.
 
