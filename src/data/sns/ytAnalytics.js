@@ -1,22 +1,15 @@
 /* 자동 생성 — scripts/sns/yt-analytics.mjs 로 갱신. 직접 수정 금지 */
 export const YTA = {
  "source": "youtube-analytics-api-v2",
- "generatedAt": "2026-07-31T04:51:59.791Z",
+ "generatedAt": "2026-07-31T04:53:42.284Z",
  "range": {
-  "start": "2026-03-31",
+  "start": "2026-04-01",
   "end": "2026-07-31"
  },
- "note": "YouTube 스튜디오 기준 2026-03-31~2026-07-31. 노출수·CTR은 API 미제공(스튜디오 전용).",
+ "note": "YouTube 스튜디오 기준 2026-04-01~2026-07-31. 노출수·CTR은 API 미제공(스튜디오 전용).",
  "channels": {
   "the_hyundai": {
    "monthly": [
-    {
-     "month": "2026-03",
-     "views": 3373,
-     "minutes": 4664,
-     "subsNet": -5,
-     "avgViewSec": 83
-    },
     {
      "month": "2026-04",
      "views": 16549412,
@@ -47,14 +40,14 @@ export const YTA = {
     }
    ],
    "totals": {
-    "views": 29620658,
-    "minutes": 5369490,
-    "subsNet": -603,
-    "avgViewSec": 26,
-    "avgViewPct": 72.2,
-    "likes": 4969,
+    "views": 29617285,
+    "minutes": 5364826,
+    "subsNet": -598,
+    "avgViewSec": 25,
+    "avgViewPct": 72.3,
+    "likes": 4954,
     "comments": 223,
-    "shares": 1770
+    "shares": 1747
    },
    "top": [
     {
@@ -121,63 +114,63 @@ export const YTA = {
    "traffic": [
     {
      "source": "ADVERTISING",
-     "views": 29422159,
-     "minutes": 5029639
+     "views": 29419835,
+     "minutes": 5027651
     },
     {
      "source": "PLAYLIST",
-     "views": 68776,
-     "minutes": 112931
+     "views": 68637,
+     "minutes": 112665
     },
     {
      "source": "YT_SEARCH",
-     "views": 51896,
-     "minutes": 58964
+     "views": 51516,
+     "minutes": 58278
     },
     {
      "source": "SUBSCRIBER",
-     "views": 27291,
-     "minutes": 65166
+     "views": 27120,
+     "minutes": 64428
     },
     {
      "source": "NO_LINK_OTHER",
-     "views": 13688,
-     "minutes": 16928
+     "views": 13566,
+     "minutes": 16800
     },
     {
      "source": "EXT_URL",
-     "views": 11549,
-     "minutes": 10408
+     "views": 11490,
+     "minutes": 10378
     },
     {
      "source": "SHORTS",
-     "views": 11110,
-     "minutes": 1605
+     "views": 11098,
+     "minutes": 1603
     },
     {
      "source": "RELATED_VIDEO",
-     "views": 10900,
-     "minutes": 56467
+     "views": 10805,
+     "minutes": 55871
     },
     {
      "source": "YT_CHANNEL",
-     "views": 8471,
-     "minutes": 8945
+     "views": 8432,
+     "minutes": 8917
     },
     {
      "source": "YT_OTHER_PAGE",
-     "views": 2287,
-     "minutes": 7445
+     "views": 2267,
+     "minutes": 7320
     },
     {
      "source": "NOTIFICATION",
-     "views": 484,
+     "views": 483,
      "minutes": 362
     },
     {
      "source": "SHORTS_CONTENT_LINKS",
-     "views": 310,
-     "minutes": 898
+     "views": 307,
+     "minutes": 878
     },
     {
      "source": "HASHTAGS",
@@ -186,8 +179,8 @@ export const YTA = {
     },
     {
      "source": "END_SCREEN",
-     "views": 75,
-     "minutes": 355
+     "views": 73,
+     "minutes": 314
     },
     {
      "source": "SOUND_PAGE",
@@ -204,7 +197,7 @@ export const YTA = {
     {
      "age": "age45-54",
      "gender": "female",
-     "pct": 25.8
+     "pct": 25.9
     },
     {
      "age": "age25-34",
@@ -229,7 +222,7 @@ export const YTA = {
     {
      "age": "age45-54",
      "gender": "male",
-     "pct": 2.4
+     "pct": 2.3
     },
     {
      "age": "age55-64",
@@ -295,31 +288,24 @@ export const YTA = {
    "device": [
     {
      "type": "MOBILE",
-     "views": 14841844
+     "views": 14838900
     },
     {
      "type": "DESKTOP",
-     "views": 8362124
+     "views": 8361913
     },
     {
      "type": "TABLET",
-     "views": 5571971
+     "views": 5571862
     },
     {
      "type": "TV",
-     "views": 602280
+     "views": 602177
     }
    ]
   },
   "wazitwine": {
    "monthly": [
-    {
-     "month": "2026-03",
-     "views": 1738,
-     "minutes": 6052,
-     "subsNet": 5,
-     "avgViewSec": 209
-    },
     {
      "month": "2026-04",
      "views": 211193,
@@ -350,14 +336,14 @@ export const YTA = {
     }
    ],
    "totals": {
-    "views": 3173908,
-    "minutes": 2566773,
-    "subsNet": 2875,
+    "views": 3172170,
+    "minutes": 2560720,
+    "subsNet": 2870,
     "avgViewSec": 94,
     "avgViewPct": 35.3,
-    "likes": 21806,
-    "comments": 1813,
-    "shares": 2458
+    "likes": 21796,
+    "comments": 1812,
+    "shares": 2455
    },
    "top": [
     {
@@ -424,58 +410,58 @@ export const YTA = {
    "traffic": [
     {
      "source": "SHORTS",
-     "views": 2635738,
-     "minutes": 627922
+     "views": 2635513,
+     "minutes": 627882
     },
     {
      "source": "SUBSCRIBER",
-     "views": 210140,
-     "minutes": 904479
+     "views": 209699,
+     "minutes": 902039
     },
     {
      "source": "YT_SEARCH",
-     "views": 120141,
-     "minutes": 146462
+     "views": 119462,
+     "minutes": 145672
     },
     {
      "source": "YT_CHANNEL",
-     "views": 89004,
-     "minutes": 195352
+     "views": 88919,
+     "minutes": 194967
     },
     {
      "source": "RELATED_VIDEO",
-     "views": 42783,
-     "minutes": 478495
+     "views": 42612,
+     "minutes": 476355
     },
     {
      "source": "YT_OTHER_PAGE",
-     "views": 40439,
-     "minutes": 67741
+     "views": 40425,
+     "minutes": 67659
     },
     {
      "source": "NO_LINK_OTHER",
-     "views": 10259,
-     "minutes": 31268
+     "views": 10198,
+     "minutes": 31216
     },
     {
      "source": "NOTIFICATION",
-     "views": 7453,
-     "minutes": 4379
+     "views": 7430,
+     "minutes": 4373
     },
     {
      "source": "SHORTS_CONTENT_LINKS",
-     "views": 6593,
-     "minutes": 48958
+     "views": 6580,
+     "minutes": 48910
     },
     {
      "source": "EXT_URL",
-     "views": 6005,
-     "minutes": 11573
+     "views": 5987,
+     "minutes": 11554
     },
     {
      "source": "PLAYLIST",
-     "views": 3708,
-     "minutes": 40547
+     "views": 3705,
+     "minutes": 40470
     },
     {
      "source": "END_SCREEN",
@@ -598,31 +584,24 @@ export const YTA = {
    "device": [
     {
      "type": "MOBILE",
-     "views": 2741331
+     "views": 2740029
     },
     {
      "type": "DESKTOP",
-     "views": 278367
+     "views": 278074
     },
     {
      "type": "TABLET",
-     "views": 101242
+     "views": 101162
     },
     {
      "type": "TV",
-     "views": 52411
+     "views": 52353
     }
    ]
   },
   "roomnumber": {
    "monthly": [
-    {
-     "month": "2026-03",
-     "views": 0,
-     "minutes": 0,
-     "subsNet": 0,
-     "avgViewSec": 0
-    },
     {
      "month": "2026-04",
      "views": 8827,
@@ -657,7 +636,7 @@ export const YTA = {
     "minutes": 2600845,
     "subsNet": 6650,
     "avgViewSec": 190,
-    "avgViewPct": 19.4,
+    "avgViewPct": 19.3,
     "likes": 19112,
     "comments": 2011,
     "shares": 1124
@@ -727,27 +706,27 @@ export const YTA = {
    "traffic": [
     {
      "source": "SUBSCRIBER",
-     "views": 546743,
-     "minutes": 1679289
+     "views": 546746,
+     "minutes": 1679200
     },
     {
      "source": "SHORTS",
-     "views": 525533,
-     "minutes": 164150
+     "views": 525572,
+     "minutes": 164147
     },
     {
      "source": "YT_CHANNEL",
      "views": 57904,
-     "minutes": 199395
+     "minutes": 199394
     },
     {
      "source": "RELATED_VIDEO",
      "views": 35907,
-     "minutes": 293221
+     "minutes": 293159
     },
     {
      "source": "YT_OTHER_PAGE",
-     "views": 18670,
+     "views": 18669,
      "minutes": 88680
     },
     {
@@ -757,8 +736,8 @@ export const YTA = {
     },
     {
      "source": "NO_LINK_OTHER",
-     "views": 13683,
-     "minutes": 50311
+     "views": 13682,
+     "minutes": 50297
     },
     {
      "source": "EXT_URL",
@@ -871,19 +850,19 @@ export const YTA = {
    "device": [
     {
      "type": "MOBILE",
-     "views": 900759
+     "views": 900798
     },
     {
      "type": "DESKTOP",
-     "views": 202556
+     "views": 202557
     },
     {
      "type": "TABLET",
-     "views": 81713
+     "views": 81712
     },
     {
      "type": "TV",
-     "views": 39822
+     "views": 39823
     }
    ]
   }
