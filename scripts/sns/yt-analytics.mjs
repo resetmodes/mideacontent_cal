@@ -32,11 +32,6 @@ const MONTHS = Number((process.argv.find(a => a.startsWith('--months=')) || '').
 const iso = d => d.toISOString().slice(0, 10)
 const kstNow = () => new Date(Date.now() + 9 * 3600e3)
 
-/* 월 단위 조회는 시작일이 그 달 1일, 종료일이 말일이어야 한다 ('26.7.31 수리 —
-   오늘이 31일일 때 4개월 전이 3월 31일로 잡혀 전 채널이 400으로 떨어졌다) */
-const firstOfMonth = d => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-01`
-const lastOfMonth = (d, back = 0) => iso(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1 - back, 0)))
-
 async function getToken() {
   const res = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -88,14 +83,14 @@ async function resolveChannelId(token, c) {
   return null
 }
 
-/* reports.query — 채널 1개 분량. start·end는 하루 단위 문자열, mStart·mEnd는 월 경계 */
-async function channelReport(token, channelId, start, end, mStart, mEnd, mEndPrev) {
+/* reports.query — 채널 1개 분량 */
+async function channelReport(token, channelId, start, end) {
   const base = 'https://youtubeanalytics.googleapis.com/v2/reports'
   const q = extra => `${base}?ids=channel%3D%3D${channelId}&startDate=${start}&endDate=${end}&${extra}`
-  /* ① 월별 추이 — 이번 달 말일이 미래라 거절되면 지난달 말일까지로 물러선다 */
-  const mq = e => `${base}?ids=channel%3D%3D${channelId}&startDate=${mStart}&endDate=${e}`
-    + '&dimensions=month&metrics=views,estimatedMinutesWatched,subscribersGained,subscribersLost,averageViewDuration&sort=month'
-  const monthly = await api(mq(mEnd), token).catch(() => api(mq(mEndPrev), token))
+  /* ① 일별 추이 — 월별로 묶는 건 아래에서 직접 한다.
+     month 차원은 시작·종료가 달 경계에 딱 맞아야 하는데 경계를 맞춰도 거절하는 경우가 있어
+     ('26.7.31 전 채널 400) 아무 날짜나 받는 day 차원으로 바꿨다 */
+  const daily = await api(q('dimensions=day&metrics=views,estimatedMinutesWatched,subscribersGained,subscribersLost&sort=day'), token)
   /* ② 기간 합계 */
   const totals = await api(q('metrics=views,estimatedMinutesWatched,subscribersGained,subscribersLost,averageViewDuration,averageViewPercentage,likes,comments,shares'), token)
   /* ③ 영상별 상위 10 */
@@ -112,8 +107,22 @@ async function channelReport(token, channelId, start, end, mStart, mEnd, mEndPre
      .catch(() => ({ rows: [], columnHeaders: [] }))
 
   const row = (r, cols) => Object.fromEntries(cols.map((c, i) => [c.name, r[i]]))
-  const mRows = (monthly.rows || []).map(r => row(r, monthly.columnHeaders))
   const tRow = (totals.rows || [])[0] ? row(totals.rows[0], totals.columnHeaders) : {}
+
+  /* 일별 행을 달로 접는다. 평균 시청 시간은 날짜별 평균의 평균이 아니라
+     그 달 전체 시청시간을 조회수로 나눈 값이어야 한다 */
+  const byMonth = new Map()
+  for (const r0 of (daily.rows || [])) {
+    const r = row(r0, daily.columnHeaders)
+    const key = String(r.day).slice(0, 7)
+    const m = byMonth.get(key) || { month: key, views: 0, minutes: 0, gained: 0, lost: 0 }
+    m.views += r.views || 0
+    m.minutes += r.estimatedMinutesWatched || 0
+    m.gained += r.subscribersGained || 0
+    m.lost += r.subscribersLost || 0
+    byMonth.set(key, m)
+  }
+  const mRows = [...byMonth.values()].sort((a, b) => a.month.localeCompare(b.month))
   const topRows = (top.rows || []).map(r => row(r, top.columnHeaders))
   const trafficRows = (traffic.rows || []).map(r => row(r, traffic.columnHeaders))
   const demoRows = (demo.rows || []).map(r => row(r, demo.columnHeaders))
@@ -129,9 +138,9 @@ async function channelReport(token, channelId, start, end, mStart, mEnd, mEndPre
 
   return {
     monthly: mRows.map(r => ({
-      month: r.month, views: r.views, minutes: r.estimatedMinutesWatched,
-      subsNet: (r.subscribersGained || 0) - (r.subscribersLost || 0),
-      avgViewSec: Math.round(r.averageViewDuration || 0),
+      month: r.month, views: r.views, minutes: r.minutes,
+      subsNet: r.gained - r.lost,
+      avgViewSec: r.views ? Math.round(r.minutes * 60 / r.views) : 0,
     })),
     totals: {
       views: tRow.views || 0, minutes: tRow.estimatedMinutesWatched || 0,
@@ -156,9 +165,6 @@ async function main() {
   }
   const end = kstNow()
   const start = new Date(end); start.setMonth(start.getMonth() - MONTHS)
-  const mStart = firstOfMonth(start)
-  const mEnd = lastOfMonth(end)
-  const mEndPrev = lastOfMonth(end, 1)
   const token = await getToken()
 
   const channels = {}
@@ -167,7 +173,7 @@ async function main() {
     const cid = await resolveChannelId(token, c)
     if (!cid) { console.warn(`· ${c.key}: 채널 ID를 찾지 못함 (핸들 변경이면 accounts.mjs url 갱신)`); continue }
     try {
-      channels[c.key] = await channelReport(token, cid, iso(start), iso(end), mStart, mEnd, mEndPrev)
+      channels[c.key] = await channelReport(token, cid, iso(start), iso(end))
       ok++
     } catch (e) {
       /* 응답 본문의 줄바꿈을 눕혀야 여러 채널 경고가 뒤섞이지 않는다 */
