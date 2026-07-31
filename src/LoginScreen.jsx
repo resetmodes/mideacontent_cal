@@ -17,9 +17,11 @@ export default function LoginScreen({ viewer = false }) {
     finally { setLoading(false) }
   }
 
+  /* 화면 가운데 배치 ('26.7.31 사용자 지시) — 본문 폭(.wrap) 기준 좌상단이라
+     빈 화면에 카드만 왼쪽에 떠 있었다 */
   return (
-    <div className="wrap cal-wrap">
-      <header>
+    <div className="login-screen">
+      <div className="login-inner">
         <LogoLockup height={52} color="var(--green)" className="login-logo" />
         <h1>로그인</h1>
         <div className="masthead-sub">
@@ -27,17 +29,17 @@ export default function LoginScreen({ viewer = false }) {
             ? '읽기 전용 공유 뷰입니다. 전달받은 뷰어 계정으로 로그인하세요. 계정은 미디어콘텐츠팀에 문의하세요.'
             : '팀 계정으로 로그인하세요. 계정 발급은 담당자에게 문의하세요.'}
         </div>
-      </header>
-      <form className="login-card" onSubmit={submit}>
-        <label>이메일
-          <input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} required />
-        </label>
-        <label>비밀번호
-          <input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
-        </label>
-        {err && <div className="qa-err">{err}</div>}
-        <button className="btn-solid" type="submit" disabled={loading}>{loading ? '확인 중' : '로그인'}</button>
-      </form>
+        <form className="login-card" onSubmit={submit}>
+          <label>이메일
+            <input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} required />
+          </label>
+          <label>비밀번호
+            <input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
+          </label>
+          {err && <div className="qa-err">{err}</div>}
+          <button className="btn-solid" type="submit" disabled={loading}>{loading ? '확인 중' : '로그인'}</button>
+        </form>
+      </div>
     </div>
   )
 }

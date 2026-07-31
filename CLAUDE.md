@@ -408,6 +408,10 @@
   indexByDay)에도 적용해 가드 이전 저장분도 화면에선 바로잡혀 보임
 - 주의: Supabase 연동 전에는 localStorage(브라우저별 분리) — 서로 다른 브라우저에서는 일정·캠페인이
   안 보이는 게 정상. 기능 미동작으로 오인하기 쉬움
+- **로그인 화면 가운데 배치 ('26.7.31 사용자 지시)**: 본문 폭(.wrap) 안에 얹혀 있어 빈 화면에
+  카드만 좌상단에 떠 있었다. `.login-screen`(min-height 100dvh + flex 가운데) +
+  `.login-inner`(로고, 제목, 설명, 카드를 한 덩어리로 중앙 정렬). 카드 안쪽만 좌측 정렬(입력 폼).
+  모바일(≤560px)은 상단 14vh 기준 — 키보드가 올라와도 카드가 밀려 사라지지 않게
 - 로그인 게이트 ('26.7): `src/lib/auth.js` — Supabase Auth REST 직접 호출(email/password),
   세션은 localStorage + 자동 갱신(만료 1분 전 refresh_token 사용). REMOTE 모드에서는
   미러(?view=mirror) 포함 캘린더 전체가 로그인 필수 (URL 조작으로 내부 일정 접근 불가).

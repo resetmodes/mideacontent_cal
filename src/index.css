@@ -2272,3 +2272,18 @@ body.dk-locked{overflow:hidden;}
   .dk-trend-svg{animation:none;clip-path:none;}
   .dk-trend-dot,.dk-trend-val{animation:none;}
 }
+
+/* ═══════════ 로그인 화면 ('26.7.31 사용자 지시 — 좌상단에서 가운데로) ═══════════
+   본문 폭(.wrap) 안에 얹혀 있어 빈 화면에 카드만 왼쪽 위에 떠 있었다.
+   화면 전체를 기준으로 가로세로 가운데. 카드 안쪽은 좌측 정렬(입력 폼이라) */
+.login-screen{min-height:100dvh;display:flex;align-items:center;justify-content:center;
+  padding:40px 20px;}
+.login-inner{width:100%;max-width:380px;text-align:center;}
+.login-inner .login-logo{display:block;margin:0 auto;}
+.login-inner h1{margin:20px 0 8px;}
+.login-inner .masthead-sub{line-height:1.65;}
+.login-inner .login-card{margin:26px auto 0;text-align:left;max-width:none;}
+@media (max-width:560px){
+  .login-screen{padding:28px 18px;align-items:flex-start;padding-top:14vh;}
+  .login-inner .login-logo{height:44px;}
+}
