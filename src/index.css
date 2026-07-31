@@ -511,6 +511,10 @@ footer{margin-top:60px;font-size:12px;color:var(--grey);border-top:2px solid var
   min-width:52px;white-space:nowrap;}
 .home-dday.run{color:var(--green);}
 .home-camp{font-size:14px;font-weight:700;color:var(--green);white-space:nowrap;}
+/* 자동 묶음 ('26.7.30) — 사람이 붙인 태그와 구분되게 점선 테두리에 회색.
+   추론이라 틀릴 수 있다는 걸 생김새로 알린다 */
+.home-camp.auto{color:var(--g500);font-weight:600;font-size:12.5px;
+  border:1px dashed var(--g300);border-radius:12px;padding:2px 9px;}
 .home-vids{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;padding:12px 0 4px;}
 .home-vid{display:block;text-decoration:none;min-width:0;}
 .home-vid img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--g100);}
