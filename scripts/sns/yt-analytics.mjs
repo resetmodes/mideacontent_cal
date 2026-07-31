@@ -168,6 +168,7 @@ async function main() {
   const token = await getToken()
 
   const channels = {}
+  const denied = []
   let ok = 0
   for (const c of YT_CHANNELS) {
     const cid = await resolveChannelId(token, c)
@@ -176,10 +177,17 @@ async function main() {
       channels[c.key] = await channelReport(token, cid, iso(start), iso(end))
       ok++
     } catch (e) {
-      /* 응답 본문의 줄바꿈을 눕혀야 여러 채널 경고가 뒤섞이지 않는다 */
-      console.warn(`⚠ ${c.key}: ${e.message.replace(/\s+/g, ' ')} (권한 없는 채널이면 해당 계정으로 재동의 필요)`)
+      /* 403은 채널 접근 권한 문제라 원인이 분명하다. 나머지는 응답 원문을 남기되
+         줄바꿈을 눕혀야 여러 채널 경고가 뒤섞이지 않는다 */
+      if (/ 403:/.test(e.message)) {
+        console.warn(`⚠ ${c.key}: 이 계정에 채널 실적 권한 없음 (스튜디오 권한에서 수집 계정을 뷰어 이상으로 초대할 것)`)
+        denied.push(c.key)
+      } else {
+        console.warn(`⚠ ${c.key}: ${e.message.replace(/\s+/g, ' ')}`)
+      }
     }
   }
+  if (denied.length) console.warn(`권한 없는 채널 ${denied.length}개: ${denied.join(', ')} (docs/yt-analytics-setup.md 7장)`)
   if (!ok) { console.error('❌ 수집 0채널 — 기존 파일 보존'); process.exit(1) }
 
   const out = {
