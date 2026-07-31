@@ -59,6 +59,9 @@ jobs:
           YT_OAUTH_CLIENT_ID: ${{ secrets.YT_OAUTH_CLIENT_ID }}
           YT_OAUTH_CLIENT_SECRET: ${{ secrets.YT_OAUTH_CLIENT_SECRET }}
           YT_OAUTH_REFRESH_TOKEN: ${{ secrets.YT_OAUTH_REFRESH_TOKEN }}
+          YT_OAUTH_REFRESH_TOKEN_2: ${{ secrets.YT_OAUTH_REFRESH_TOKEN_2 }}
+          YT_OAUTH_REFRESH_TOKEN_3: ${{ secrets.YT_OAUTH_REFRESH_TOKEN_3 }}
+          YT_OAUTH_REFRESH_TOKEN_4: ${{ secrets.YT_OAUTH_REFRESH_TOKEN_4 }}
         run: |
           if [ -z "$YT_OAUTH_REFRESH_TOKEN" ]; then
             echo "YT_OAUTH_* 시크릿 미설정 — 스튜디오 지표 수집 생략 (docs/yt-analytics-setup.md)"

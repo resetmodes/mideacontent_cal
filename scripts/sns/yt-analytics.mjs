@@ -26,16 +26,20 @@ const OUT = join(OUT_DIR, 'ytAnalytics.js')
 
 try { process.loadEnvFile(join(ROOT, '.env')) } catch { /* CI는 환경변수 */ }
 const { YT_OAUTH_CLIENT_ID: CID, YT_OAUTH_CLIENT_SECRET: CSEC, YT_OAUTH_REFRESH_TOKEN: RTOK } = process.env
+/* 채널마다 관리 신분이 다르면 토큰 하나로는 못 본다 ('26.7.31 — 브랜드 계정 관리자인 채널은
+   그 채널로 로그인한 토큰에서만 보이고, 초대로 붙은 채널은 초대받은 계정 토큰에서만 보인다).
+   YT_OAUTH_REFRESH_TOKEN_2 부터 _5 까지 있으면 채널마다 되는 토큰을 찾아 쓴다 */
+const RTOKS = [RTOK, ...[2, 3, 4, 5].map(n => process.env[`YT_OAUTH_REFRESH_TOKEN_${n}`])].filter(Boolean)
 const DRY = process.argv.includes('--dry-run')
 const MONTHS = Number((process.argv.find(a => a.startsWith('--months=')) || '').split('=')[1]) || 4
 
 const iso = d => d.toISOString().slice(0, 10)
 const kstNow = () => new Date(Date.now() + 9 * 3600e3)
 
-async function getToken() {
+async function getToken(rtok = RTOK) {
   const res = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ client_id: CID, client_secret: CSEC, refresh_token: RTOK, grant_type: 'refresh_token' }),
+    body: new URLSearchParams({ client_id: CID, client_secret: CSEC, refresh_token: rtok, grant_type: 'refresh_token' }),
   })
   if (!res.ok) {
     const body = (await res.text()).slice(0, 200)
@@ -165,19 +169,27 @@ async function main() {
   }
   const end = kstNow()
   const start = new Date(end); start.setMonth(start.getMonth() - MONTHS)
-  const token = await getToken()
+  /* 토큰이 여럿이면 전부 교환해 둔다. 하나가 죽어도 나머지로 계속 간다 */
+  const tokens = []
+  for (const [i, rt] of RTOKS.entries()) {
+    try { tokens.push({ n: i + 1, access: await getToken(rt) }) }
+    catch (e) { console.warn(`토큰 ${i + 1} 교환 실패 ${e.message.split('\n')[0]}`) }
+  }
+  if (!tokens.length) { console.error('❌ 쓸 수 있는 토큰 없음'); process.exit(1) }
+  const token = tokens[0].access
 
-  /* dry-run에서는 이 토큰이 실제로 무엇을 소유로 보는지 먼저 찍는다.
-     스튜디오 권한으로 초대만 받은 채널은 여기 안 나오고 실적 조회에서 403이 된다 —
-     "권한을 줬는데 왜 못 찾느냐"를 가르는 유일한 근거 ('26.7.31) */
+  /* dry-run에서는 토큰마다 무엇을 소유로 보는지 먼저 찍는다.
+     초대로 붙은 채널은 여기 안 나오면서도 실적 조회는 되고, 브랜드 계정 관리자인 채널은
+     그 채널로 받은 토큰에서만 나온다 — "권한을 줬는데 왜 못 찾느냐"를 가르는 근거 ('26.7.31) */
   if (DRY) {
-    try {
-      const mine = await api('https://www.googleapis.com/youtube/v3/channels?part=id,snippet&mine=true&maxResults=50', token)
-      const list = mine.items || []
-      console.log(`이 토큰이 소유로 보는 채널 ${list.length}개`)
-      for (const i of list) console.log(`  ${i.snippet?.title} ${i.snippet?.customUrl || ''} ${i.id}`)
-      if (!list.length) console.log('  없음 (동의할 때 브랜드 계정이 아니라 개인 계정을 골랐을 가능성)')
-    } catch (e) { console.warn(`소유 채널 목록 조회 실패 ${e.message.replace(/\s+/g, ' ')}`) }
+    for (const t of tokens) {
+      try {
+        const mine = await api('https://www.googleapis.com/youtube/v3/channels?part=id,snippet&mine=true&maxResults=50', t.access)
+        const list = mine.items || []
+        console.log(`토큰 ${t.n}이 소유로 보는 채널 ${list.length}개`)
+        for (const i of list) console.log(`  ${i.snippet?.title} ${i.snippet?.customUrl || ''} ${i.id}`)
+      } catch (e) { console.warn(`토큰 ${t.n} 소유 채널 조회 실패 ${e.message.replace(/\s+/g, ' ')}`) }
+    }
   }
 
   const channels = {}
@@ -186,18 +198,26 @@ async function main() {
   for (const c of YT_CHANNELS) {
     const cid = await resolveChannelId(token, c)
     if (!cid) { console.warn(`· ${c.key}: 채널 ID를 찾지 못함 (핸들 변경이면 accounts.mjs url 갱신)`); continue }
-    try {
-      channels[c.key] = await channelReport(token, cid, iso(start), iso(end))
-      ok++
-    } catch (e) {
-      /* 403은 채널 접근 권한 문제라 원인이 분명하다. 나머지는 응답 원문을 남기되
-         줄바꿈을 눕혀야 여러 채널 경고가 뒤섞이지 않는다 */
-      if (/ 403:/.test(e.message)) {
-        console.warn(`⚠ ${c.key}: 이 계정에 채널 실적 권한 없음 (스튜디오 권한에서 수집 계정을 뷰어 이상으로 초대할 것)`)
-        denied.push(c.key)
-      } else {
-        console.warn(`⚠ ${c.key}: ${e.message.replace(/\s+/g, ' ')}`)
+    /* 되는 토큰을 찾을 때까지 순서대로 시도한다. 403은 그 토큰에 권한이 없다는 뜻일 뿐이다 */
+    let done = false, lastErr = null
+    for (const t of tokens) {
+      try {
+        channels[c.key] = await channelReport(t.access, cid, iso(start), iso(end))
+        if (tokens.length > 1) console.log(`· ${c.key}: 토큰 ${t.n}로 수집`)
+        ok++; done = true; break
+      } catch (e) {
+        lastErr = e
+        if (!/ 403:/.test(e.message)) break /* 권한 외 오류는 다른 토큰으로도 같다 */
       }
+    }
+    if (done) continue
+    /* 403은 채널 접근 권한 문제라 원인이 분명하다. 나머지는 응답 원문을 남기되
+       줄바꿈을 눕혀야 여러 채널 경고가 뒤섞이지 않는다 */
+    if (/ 403:/.test(lastErr?.message || '')) {
+      console.warn(`⚠ ${c.key}: 어느 토큰에도 채널 실적 권한 없음`)
+      denied.push(c.key)
+    } else {
+      console.warn(`⚠ ${c.key}: ${(lastErr?.message || '알 수 없는 오류').replace(/\s+/g, ' ')}`)
     }
   }
   if (denied.length) console.warn(`권한 없는 채널 ${denied.length}개: ${denied.join(', ')} (docs/yt-analytics-setup.md 7장)`)
