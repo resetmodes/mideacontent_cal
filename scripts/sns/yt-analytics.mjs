@@ -168,7 +168,10 @@ async function main() {
     process.exit(1)
   }
   const end = kstNow()
-  const start = new Date(end); start.setMonth(start.getMonth() - MONTHS)
+  /* 시작을 달의 1일로 맞춘다 ('26.7.31 — 오늘이 31일이면 4개월 전이 3월 31일이라
+     3월 버킷에 하루치만 담겨 추이 차트에서 바닥으로 찍혔다). MONTHS개 달을 온전히 담고
+     마지막 달만 진행 중인 형태가 된다 */
+  const start = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth() - (MONTHS - 1), 1))
   /* 토큰이 여럿이면 전부 교환해 둔다. 하나가 죽어도 나머지로 계속 간다 */
   const tokens = []
   for (const [i, rt] of RTOKS.entries()) {
