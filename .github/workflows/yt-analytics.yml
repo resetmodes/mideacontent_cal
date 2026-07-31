@@ -1,0 +1,63 @@
+name: 유튜브 스튜디오 지표
+
+# 주간 수집(sns-collect.yml)에 이미 같은 단계가 들어 있다. 이 워크플로는 **수동 확인용** —
+# 연동 직후 어느 채널에 권한이 있는지 보거나, 토큰을 새로 발급한 뒤 바로 검증할 때 쓴다.
+# sns-collect를 통째로 돌리면 Apify 수집이 같이 돌아 회당 ~$3.5가 나가므로 분리했다.
+#
+# mode
+#   dry-run  기본. 채널별 권한만 확인하고 파일은 저장하지 않음
+#   collect  실제 수집 후 src/data/sns/ytAnalytics.js 커밋
+#
+# 로그에는 채널 키와 채널 ID만 남기고 실적 수치는 출력하지 않는다 (공개 저장소)
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '실행 모드'
+        type: choice
+        options: [dry-run, collect]
+        default: dry-run
+
+permissions:
+  contents: write
+
+concurrency:
+  group: yt-analytics
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 스튜디오 지표 수집
+        env:
+          YT_OAUTH_CLIENT_ID: ${{ secrets.YT_OAUTH_CLIENT_ID }}
+          YT_OAUTH_CLIENT_SECRET: ${{ secrets.YT_OAUTH_CLIENT_SECRET }}
+          YT_OAUTH_REFRESH_TOKEN: ${{ secrets.YT_OAUTH_REFRESH_TOKEN }}
+        run: |
+          if [ -z "$YT_OAUTH_REFRESH_TOKEN" ]; then
+            echo "YT_OAUTH_* 시크릿 미설정 (docs/yt-analytics-setup.md)"
+            exit 1
+          fi
+          if [ "${{ inputs.mode }}" = "collect" ]; then
+            node scripts/sns/yt-analytics.mjs
+          else
+            node scripts/sns/yt-analytics.mjs --dry-run
+          fi
+
+      - name: 결과 커밋
+        if: ${{ inputs.mode == 'collect' }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/sns/ytAnalytics.js
+          git diff --staged --quiet && echo "변경 없음" && exit 0
+          git commit -m "유튜브 스튜디오 지표 갱신"
+          git push
