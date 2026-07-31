@@ -32,6 +32,11 @@ const MONTHS = Number((process.argv.find(a => a.startsWith('--months=')) || '').
 const iso = d => d.toISOString().slice(0, 10)
 const kstNow = () => new Date(Date.now() + 9 * 3600e3)
 
+/* 월 단위 조회는 시작일이 그 달 1일, 종료일이 말일이어야 한다 ('26.7.31 수리 —
+   오늘이 31일일 때 4개월 전이 3월 31일로 잡혀 전 채널이 400으로 떨어졌다) */
+const firstOfMonth = d => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-01`
+const lastOfMonth = (d, back = 0) => iso(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1 - back, 0)))
+
 async function getToken() {
   const res = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -83,12 +88,14 @@ async function resolveChannelId(token, c) {
   return null
 }
 
-/* reports.query — 채널 1개 분량 */
-async function channelReport(token, channelId, start, end) {
+/* reports.query — 채널 1개 분량. start·end는 하루 단위 문자열, mStart·mEnd는 월 경계 */
+async function channelReport(token, channelId, start, end, mStart, mEnd, mEndPrev) {
   const base = 'https://youtubeanalytics.googleapis.com/v2/reports'
   const q = extra => `${base}?ids=channel%3D%3D${channelId}&startDate=${start}&endDate=${end}&${extra}`
-  /* ① 월별 추이 */
-  const monthly = await api(q('dimensions=month&metrics=views,estimatedMinutesWatched,subscribersGained,subscribersLost,averageViewDuration&sort=month'), token)
+  /* ① 월별 추이 — 이번 달 말일이 미래라 거절되면 지난달 말일까지로 물러선다 */
+  const mq = e => `${base}?ids=channel%3D%3D${channelId}&startDate=${mStart}&endDate=${e}`
+    + '&dimensions=month&metrics=views,estimatedMinutesWatched,subscribersGained,subscribersLost,averageViewDuration&sort=month'
+  const monthly = await api(mq(mEnd), token).catch(() => api(mq(mEndPrev), token))
   /* ② 기간 합계 */
   const totals = await api(q('metrics=views,estimatedMinutesWatched,subscribersGained,subscribersLost,averageViewDuration,averageViewPercentage,likes,comments,shares'), token)
   /* ③ 영상별 상위 10 */
@@ -149,6 +156,9 @@ async function main() {
   }
   const end = kstNow()
   const start = new Date(end); start.setMonth(start.getMonth() - MONTHS)
+  const mStart = firstOfMonth(start)
+  const mEnd = lastOfMonth(end)
+  const mEndPrev = lastOfMonth(end, 1)
   const token = await getToken()
 
   const channels = {}
@@ -157,10 +167,11 @@ async function main() {
     const cid = await resolveChannelId(token, c)
     if (!cid) { console.warn(`· ${c.key}: 채널 ID를 찾지 못함 (핸들 변경이면 accounts.mjs url 갱신)`); continue }
     try {
-      channels[c.key] = await channelReport(token, cid, iso(start), iso(end))
+      channels[c.key] = await channelReport(token, cid, iso(start), iso(end), mStart, mEnd, mEndPrev)
       ok++
     } catch (e) {
-      console.warn(`⚠ ${c.key}: ${e.message} (권한 없는 채널이면 해당 계정으로 재동의 필요)`)
+      /* 응답 본문의 줄바꿈을 눕혀야 여러 채널 경고가 뒤섞이지 않는다 */
+      console.warn(`⚠ ${c.key}: ${e.message.replace(/\s+/g, ' ')} (권한 없는 채널이면 해당 계정으로 재동의 필요)`)
     }
   }
   if (!ok) { console.error('❌ 수집 0채널 — 기존 파일 보존'); process.exit(1) }
