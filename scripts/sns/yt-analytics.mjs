@@ -37,7 +37,18 @@ async function getToken() {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ client_id: CID, client_secret: CSEC, refresh_token: RTOK, grant_type: 'refresh_token' }),
   })
-  if (!res.ok) throw new Error(`토큰 교환 실패 ${res.status}: ${(await res.text()).slice(0, 200)}`)
+  if (!res.ok) {
+    const body = (await res.text()).slice(0, 200)
+    /* invalid_grant은 원인이 여럿인데 구글은 사유를 안 알려준다 — 확인 순서를 안내에 담는다 */
+    const hint = body.includes('invalid_grant')
+      ? '\n  확인 순서\n'
+        + '  1 리프레시 토큰 칸에 액세스 토큰(ya29 로 시작)을 넣지 않았는지\n'
+        + '  2 토큰을 발급한 클라이언트와 시크릿의 클라이언트 ID·보안 비밀이 같은 것인지\n'
+        + '  3 동의 화면이 테스트 상태면 7일 만에 만료되므로 프로덕션으로 게시했는지\n'
+        + '  4 위가 모두 맞으면 토큰이 취소된 것이므로 재발급 (docs/yt-analytics-setup.md)'
+      : ''
+    throw new Error(`토큰 교환 실패 ${res.status}: ${body}${hint}`)
+  }
   return (await res.json()).access_token
 }
 

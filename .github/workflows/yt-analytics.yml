@@ -36,16 +36,45 @@ jobs:
         with:
           node-version: '22'
 
+      # 시크릿 값은 절대 출력하지 않는다. 길이와 형태만 보고 어느 칸이 어긋났는지 가른다
+      - name: 시크릿 형태 점검
+        env:
+          YT_OAUTH_CLIENT_ID: ${{ secrets.YT_OAUTH_CLIENT_ID }}
+          YT_OAUTH_CLIENT_SECRET: ${{ secrets.YT_OAUTH_CLIENT_SECRET }}
+          YT_OAUTH_REFRESH_TOKEN: ${{ secrets.YT_OAUTH_REFRESH_TOKEN }}
+        run: |
+          fail=0
+          case "$YT_OAUTH_CLIENT_ID" in
+            *.apps.googleusercontent.com) echo "클라이언트 ID 형태 정상 (길이 ${#YT_OAUTH_CLIENT_ID})" ;;
+            "") echo "클라이언트 ID 비어 있음"; fail=1 ;;
+            *) echo "클라이언트 ID가 .apps.googleusercontent.com 으로 끝나지 않음 (길이 ${#YT_OAUTH_CLIENT_ID})"; fail=1 ;;
+          esac
+          case "$YT_OAUTH_CLIENT_SECRET" in
+            GOCSPX-*) echo "클라이언트 보안 비밀 형태 정상 (길이 ${#YT_OAUTH_CLIENT_SECRET})" ;;
+            "") echo "클라이언트 보안 비밀 비어 있음"; fail=1 ;;
+            *) echo "클라이언트 보안 비밀이 GOCSPX- 로 시작하지 않음 (길이 ${#YT_OAUTH_CLIENT_SECRET})"; fail=1 ;;
+          esac
+          case "$YT_OAUTH_REFRESH_TOKEN" in
+            "") echo "리프레시 토큰 비어 있음"; fail=1 ;;
+            ya29.*) echo "리프레시 토큰 칸에 액세스 토큰이 들어 있음 (ya29 로 시작, 길이 ${#YT_OAUTH_REFRESH_TOKEN})"; fail=1 ;;
+            1//*) echo "리프레시 토큰 형태 정상 (길이 ${#YT_OAUTH_REFRESH_TOKEN})" ;;
+            *) echo "리프레시 토큰이 1// 로 시작하지 않음 (길이 ${#YT_OAUTH_REFRESH_TOKEN})"; fail=1 ;;
+          esac
+          case "$YT_OAUTH_REFRESH_TOKEN" in
+            *[[:space:]]*|*'"'*|*,*) echo "리프레시 토큰에 공백이나 따옴표, 쉼표가 섞여 있음"; fail=1 ;;
+          esac
+          if [ "$fail" = "1" ]; then
+            echo "docs/yt-analytics-setup.md 의 시크릿 등록 절차를 다시 확인할 것"
+            exit 1
+          fi
+          echo "세 시크릿 형태 모두 정상 — 실패하면 값 자체가 만료되었거나 다른 클라이언트에서 발급된 것"
+
       - name: 스튜디오 지표 수집
         env:
           YT_OAUTH_CLIENT_ID: ${{ secrets.YT_OAUTH_CLIENT_ID }}
           YT_OAUTH_CLIENT_SECRET: ${{ secrets.YT_OAUTH_CLIENT_SECRET }}
           YT_OAUTH_REFRESH_TOKEN: ${{ secrets.YT_OAUTH_REFRESH_TOKEN }}
         run: |
-          if [ -z "$YT_OAUTH_REFRESH_TOKEN" ]; then
-            echo "YT_OAUTH_* 시크릿 미설정 (docs/yt-analytics-setup.md)"
-            exit 1
-          fi
           if [ "${{ inputs.mode }}" = "collect" ]; then
             node scripts/sns/yt-analytics.mjs
           else
