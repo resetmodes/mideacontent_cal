@@ -42,6 +42,9 @@ jobs:
           YT_OAUTH_CLIENT_ID: ${{ secrets.YT_OAUTH_CLIENT_ID }}
           YT_OAUTH_CLIENT_SECRET: ${{ secrets.YT_OAUTH_CLIENT_SECRET }}
           YT_OAUTH_REFRESH_TOKEN: ${{ secrets.YT_OAUTH_REFRESH_TOKEN }}
+          YT_OAUTH_REFRESH_TOKEN_2: ${{ secrets.YT_OAUTH_REFRESH_TOKEN_2 }}
+          YT_OAUTH_REFRESH_TOKEN_3: ${{ secrets.YT_OAUTH_REFRESH_TOKEN_3 }}
+          YT_OAUTH_REFRESH_TOKEN_4: ${{ secrets.YT_OAUTH_REFRESH_TOKEN_4 }}
         run: |
           fail=0
           case "$YT_OAUTH_CLIENT_ID" in
@@ -63,11 +66,21 @@ jobs:
           case "$YT_OAUTH_REFRESH_TOKEN" in
             *[[:space:]]*|*'"'*|*,*) echo "리프레시 토큰에 공백이나 따옴표, 쉼표가 섞여 있음"; fail=1 ;;
           esac
+          # 채널마다 관리 신분이 다를 때 쓰는 추가 토큰. 없으면 넘어간다
+          n=2
+          for extra in "$YT_OAUTH_REFRESH_TOKEN_2" "$YT_OAUTH_REFRESH_TOKEN_3" "$YT_OAUTH_REFRESH_TOKEN_4"; do
+            case "$extra" in
+              "") ;;
+              1//*) echo "추가 리프레시 토큰 $n 형태 정상 (길이 ${#extra})" ;;
+              *) echo "추가 리프레시 토큰 $n 이 1// 로 시작하지 않음 (길이 ${#extra})"; fail=1 ;;
+            esac
+            n=$((n + 1))
+          done
           if [ "$fail" = "1" ]; then
             echo "docs/yt-analytics-setup.md 의 시크릿 등록 절차를 다시 확인할 것"
             exit 1
           fi
-          echo "세 시크릿 형태 모두 정상"
+          echo "시크릿 형태 모두 정상"
 
           # 클라이언트 자격과 토큰 중 무엇이 잘못됐는지 가른다.
           # 일부러 틀린 토큰으로 교환을 시도하면 구글은 클라이언트 ID·보안 비밀이 틀렸을 때만
@@ -92,6 +105,9 @@ jobs:
           YT_OAUTH_CLIENT_ID: ${{ secrets.YT_OAUTH_CLIENT_ID }}
           YT_OAUTH_CLIENT_SECRET: ${{ secrets.YT_OAUTH_CLIENT_SECRET }}
           YT_OAUTH_REFRESH_TOKEN: ${{ secrets.YT_OAUTH_REFRESH_TOKEN }}
+          YT_OAUTH_REFRESH_TOKEN_2: ${{ secrets.YT_OAUTH_REFRESH_TOKEN_2 }}
+          YT_OAUTH_REFRESH_TOKEN_3: ${{ secrets.YT_OAUTH_REFRESH_TOKEN_3 }}
+          YT_OAUTH_REFRESH_TOKEN_4: ${{ secrets.YT_OAUTH_REFRESH_TOKEN_4 }}
         run: |
           if [ "${{ inputs.mode }}" = "collect" ]; then
             node scripts/sns/yt-analytics.mjs
