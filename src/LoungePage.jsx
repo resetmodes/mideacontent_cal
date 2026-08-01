@@ -13,7 +13,9 @@ import {
   APP_SLOTS, appSlotById, PUSH_TYPES, LANDING_KINDS, APP_MENUS,
   AUDIENCE_KINDS, CARD_GRADES, EXCEL_NOTE, DEFAULT_OWNERS,
   LOUNGE_STATUS, STATUS_REJECT,
-  leadCheck, hasEmoji, overLines, ratioOff, isoOf, transferText,
+  TARGET_APPS, targetSpec, maxTargetLead, targetCaution, parseSize,
+  leadCheck, bizDeadline, fmtKday, handoffPlan,
+  hasEmoji, overLines, ratioOff, isoOf, transferText,
 } from './data/lounge.js'
 import {
   listRequests, createRequest, updateRequest, deleteRequest,
@@ -30,7 +32,7 @@ const fmtMd = iso => (iso ? `${+iso.slice(5, 7)}/${+iso.slice(8, 10)}` : '')
 const EMPTY = {
   dept: '', name: '', email: '', agenda: '',
   sellPoints: [], sellNote: '', goal: '',
-  media: [], recommend: false, appSlot: '',
+  media: [], recommend: false, appSlot: '', targetApps: [],
   eventStart: '', eventEnd: '', wishDate: '', wishEnd: '', wishTime: '',
   ready: 'done', branches: '',
   title: '', body: '', pushType: '', adKind: '광고',
@@ -49,8 +51,13 @@ export function LoungeForm({ todayCount, onDone }) {
 
   const slot = f.media.includes('백화점APP') ? appSlotById(f.appSlot) : null
   const isPush = slot?.id === 'push'
+  const isTarget = f.media.includes('타겟APP')
   const today = isoOf(new Date())
-  const lead = slot ? leadCheck(today, f.wishDate, f.ready) : null
+  /* 리드타임 — 구좌는 소재 준비 3단, 타겟APP은 선택 앱 중 최장 D-N (media.js 기준) */
+  const tLead = isTarget && !slot ? maxTargetLead(f.targetApps) : null
+  const lead = slot ? leadCheck(today, f.wishDate, f.ready)
+    : tLead ? leadCheck(today, f.wishDate, null, tLead.need) : null
+  const dueDate = lead && f.wishDate ? bizDeadline(f.wishDate, lead.need) : null
   const popupLong = slot?.maxDays && f.wishDate && f.wishEnd
     && (new Date(f.wishEnd) - new Date(f.wishDate)) / 86400000 + 1 > slot.maxDays
 
@@ -65,7 +72,11 @@ export function LoungeForm({ todayCount, onDone }) {
   const toggleIn = (key, v) => set({ [key]: f[key].includes(v) ? f[key].filter(x => x !== v) : [...f[key], v] })
   const toggleMedia = id => {
     const media = f.media.includes(id) ? f.media.filter(x => x !== id) : [...f.media, id]
-    set({ media, recommend: false, appSlot: media.includes('백화점APP') ? f.appSlot : '' })
+    set({
+      media, recommend: false,
+      appSlot: media.includes('백화점APP') ? f.appSlot : '',
+      targetApps: media.includes('타겟APP') ? f.targetApps : [],
+    })
   }
 
   /* 브랜드 소스 — 선택 즉시 업로드 + 우측 목업 미리보기 */
@@ -108,6 +119,7 @@ export function LoungeForm({ todayCount, onDone }) {
     setBusy(true)
     try {
       const details = {}
+      if (isTarget && f.targetApps.length) details.targetApps = f.targetApps
       if (slot) {
         Object.assign(details, {
           appSlot: slot.id, ready: f.ready, branches: f.branches,
@@ -137,13 +149,21 @@ export function LoungeForm({ todayCount, onDone }) {
     } catch (err) { toast(err.message, { danger: true }) } finally { setBusy(false) }
   }
 
+  const plan = (f.media.length || f.recommend)
+    ? handoffPlan({ ...f, appSlot: slot ? f.appSlot : '', targetApps: isTarget ? f.targetApps : [] })
+    : null
+
   if (done) return (
     <div className="lg-done">
       <div className="lg-done-t">접수되었습니다</div>
       <div className="lg-done-no">{done.reqNo}</div>
-      <p>담당자가 배정되면 팀즈로 연락드립니다, 보통 영업일 1일 이내입니다.<br />
-        계획안 등 관련 문서는 그때 담당자에게 직접 공유해 주세요.</p>
-      <button className="lg-btn" onClick={() => { setDone(null); setF(EMPTY); setPreview(null) }}>새 신청 작성</button>
+      <p>담당자가 배정되면 팀즈로 연락드립니다, 보통 영업일 1일 이내입니다.</p>
+      {plan && <HandoffGuide plan={plan} done />}
+      <div className="lg-done-acts">
+        <button className="lg-btn" onClick={async () => { if (await copyText(transferText(done))) toast('접수 내용이 복사됨') }}>접수 내용 복사</button>
+        <button className="lg-btn" onClick={() => { setDone(null); setF(EMPTY); setPreview(null) }}>새 신청 작성</button>
+      </div>
+      <p className="lg-done-tip">복사한 내용을 팀즈에 보관해 두면 담당자와 소통할 때 그대로 쓸 수 있습니다</p>
     </div>
   )
 
@@ -209,6 +229,39 @@ export function LoungeForm({ todayCount, onDone }) {
           </div>
         )}
 
+        {isTarget && (
+          <div className="lg-fld">
+            <label>타겟 앱 선택<span className="lg-hint">여러 앱 동시 집행 가능, 안 고르면 담당자가 목적에 맞게 제안</span></label>
+            <div className="lg-chips">
+              {TARGET_APPS.map(a => (
+                <button key={a} type="button" className={`lg-chip${f.targetApps.includes(a) ? ' on' : ''}`}
+                  onClick={() => toggleIn('targetApps', a)}>{a}</button>
+              ))}
+              <button type="button" className="lg-chip ghost"
+                onClick={() => set({ targetApps: f.targetApps.length === TARGET_APPS.length ? [] : [...TARGET_APPS] })}>
+                {f.targetApps.length === TARGET_APPS.length ? '전체 해제' : '전체 선택'}</button>
+            </div>
+            {f.targetApps.length > 0 && (
+              <div className="lg-ta-rows">
+                {f.targetApps.map(a => {
+                  const sp = targetSpec(a)
+                  const caution = targetCaution(a)
+                  return (
+                    <div className="lg-ta-row" key={a}>
+                      <b>{a}</b>
+                      {sp ? (<>
+                        <span className="lg-ta-lead">{sp.lead.replace(' (영업일)', ' 영업일')}</span>
+                        <span className="lg-ta-slots">{sp.slots.map(s => `${s.name} ${s.size}`).join(', ')}</span>
+                        {caution && <span className="lg-ta-caution">{caution}</span>}
+                      </>) : <span className="lg-ta-slots">스펙 미등록, 접수 후 담당자와 협의</span>}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="lg-fld">
           <label>일정<em>*</em></label>
           <div className="lg-row2">
@@ -222,6 +275,12 @@ export function LoungeForm({ todayCount, onDone }) {
           </div>
           {popupLong && (
             <div className="lg-warn on">메인팝업은 매일 노출되어 피로감이 높은 구좌라 최대 1주 노출을 권장합니다. 기간이 이를 넘어 담당자와 협의가 필요합니다.</div>
+          )}
+          {tLead && lead && !lead.ok && (
+            <div className="lg-warn on">선택한 앱 중 {tLead.from} 기준 게시 {lead.need}영업일 전까지 소재 전달이 필요합니다. 희망 게시일까지 영업일 {lead.left}일이라 일정 협의가 필요할 수 있습니다. 접수는 그대로 가능합니다.</div>
+          )}
+          {tLead && lead && lead.ok && (
+            <div className="lg-ok">소재 전달 마감 {fmtKday(dueDate)}, {tLead.from} 기준 게시 {lead.need}영업일 전</div>
           )}
         </div>
 
@@ -237,7 +296,7 @@ export function LoungeForm({ todayCount, onDone }) {
             {lead && !lead.ok && (
               <div className="lg-warn on">이 구좌는 {readyById(f.ready).label} 기준 게시희망일 {lead.need}영업일 전까지 전달이 필요합니다. 희망 게시일까지 영업일 {lead.left}일이라 일정 협의가 필요할 수 있습니다. 접수는 그대로 가능합니다.</div>
             )}
-            {lead && lead.ok && <div className="lg-ok">전달 마감 여유 있음, 희망 게시일까지 영업일 {lead.left}일</div>}
+            {lead && lead.ok && <div className="lg-ok">소재 전달 마감 {fmtKday(dueDate)}, 희망 게시일까지 영업일 {lead.left}일</div>}
           </div>
         )}
 
@@ -373,6 +432,7 @@ export function LoungeForm({ todayCount, onDone }) {
             <span>계획안이 있습니다<span className="lg-check-d">담당자 배정 후 팀즈로 개별 공유해 주시면 됩니다</span></span></label>
         </div>
 
+        {plan && <HandoffGuide plan={plan} />}
         {missing.length > 0 && <div className="lg-missing">미입력 {missing.join(', ')}</div>}
         <button className="lg-submit" disabled={busy || missing.length > 0} onClick={submit}>
           {busy ? '접수 중' : '신청 접수'}
@@ -380,22 +440,107 @@ export function LoungeForm({ todayCount, onDone }) {
       </div>
 
       <SlotMock slot={slot} media={f.media} recommend={f.recommend} preview={preview}
-        title={f.title} body={f.body} ready={f.ready} />
+        title={f.title} body={f.body} ready={f.ready} targetApps={f.targetApps} />
+    </div>
+  )
+}
+
+/* ── 전달 경로 안내 ('26.8 2차) — "무엇이 이 접수로 끝나고 무엇을 팀즈로 따로
+   보내야 하는지"를 폼 하단과 접수 완료 화면에 같은 내용으로 보여준다 ── */
+function HandoffGuide({ plan, done }) {
+  return (
+    <div className={`lg-handoff${done ? ' in-done' : ''}`}>
+      <div className="lg-ho-t">전달 안내</div>
+      <div className="lg-ho-cols">
+        <div>
+          <div className="lg-ho-h">이 접수로 전달되는 것</div>
+          {plan.now.map((n, i) => <div className="lg-ho-item ok" key={i}>{n}</div>)}
+        </div>
+        <div>
+          <div className="lg-ho-h">팀즈로 따로 전달할 것</div>
+          {plan.later.length === 0 && <div className="lg-ho-item">없음, 이 접수로 끝입니다</div>}
+          {plan.later.map((l, i) => (
+            <div className="lg-ho-item later" key={i}>
+              <b>{l.label}</b>
+              <span>{l.to}{l.due ? `, 마감 ${fmtKday(l.due)}` : ''}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── 타겟APP 목업 — media.js 타겟형 스펙과 가이드 지면 이미지(ta-*.jpg) 재사용.
+   앱 탭으로 전환, 지면 탭으로 이미지 전환, 비율 검사는 보고 있는 지면 규격 기준 ── */
+function TargetMock({ apps, preview }) {
+  const [app, setApp] = useState(apps[0])
+  const cur = apps.includes(app) ? app : apps[0]
+  const sp = targetSpec(cur)
+  const slots = sp?.slots || []
+  const [si, setSi] = useState(0)
+  const slot = slots[Math.min(si, Math.max(0, slots.length - 1))] || null
+  const size = slot ? parseSize(slot.size) : null
+  const off = preview && size ? ratioOff(preview.w, preview.h, size.w, size.h) : 0
+  const caution = targetCaution(cur)
+  return (
+    <div className="lg-mock">
+      <div className="lg-mk-head">타겟APP 게재 예시</div>
+      <div className="lg-mk-sub">가이드라인의 지면 목업입니다, 앱과 지면을 눌러 넘겨 보세요</div>
+      {apps.length > 1 && (
+        <div className="lg-chips lg-mt">
+          {apps.map(a => (
+            <button key={a} type="button" className={`lg-chip sm${a === cur ? ' on' : ''}`}
+              onClick={() => { setApp(a); setSi(0) }}>{a}</button>
+          ))}
+        </div>
+      )}
+      {!sp && <div className="lg-mk-empty">{cur}는 스펙 미등록입니다<br />접수 후 담당자와 규격을 협의합니다</div>}
+      {sp && (<>
+        {slots.length > 1 && (
+          <div className="lg-chips lg-mt">
+            {slots.map((s, i) => (
+              <button key={s.name} type="button" className={`lg-chip sm${i === si ? ' on' : ''}`}
+                onClick={() => setSi(i)}>{s.name}</button>
+            ))}
+          </div>
+        )}
+        {slot?.ref
+          ? <div className="lg-ta-shot"><img src={`${import.meta.env.BASE_URL}media-ref/${slot.ref}`} alt={`${cur} ${slot.name} 목업`} /></div>
+          : <div className="lg-mk-empty">이 지면은 목업 이미지가 없습니다</div>}
+        {preview && size && off > 0.05 && (
+          <div className="lg-ratio bad">{slot.name}은 {size.w} × {size.h}입니다. 올리신 이미지는 {preview.w} × {preview.h}라 이 지면에는 리사이즈가 필요합니다. 지면마다 규격이 달라 최종 소재는 담당자와 지면 확정 후 맞추면 됩니다.</div>
+        )}
+        {preview && size && off <= 0.05 && <div className="lg-ratio ok">{slot.name} 규격 비율과 일치합니다</div>}
+        <div className="lg-specs">
+          {slot && <div className="lg-spec"><span>규격</span><b>{slot.size}</b></div>}
+          {slot?.cap && <div className="lg-spec"><span>용량</span><b>{slot.cap}</b></div>}
+          {slot?.img && <div className="lg-spec"><span>형식</span><b>{slot.img}</b></div>}
+          <div className="lg-spec"><span>전달 마감</span><b>게시 {sp.lead.replace(' (영업일)', '')} 영업일</b></div>
+          {slot?.note && <div className="lg-spec note"><span>주의</span><b>{slot.note}</b></div>}
+          {caution && <div className="lg-spec note"><span>주의</span><b>{caution}</b></div>}
+        </div>
+      </>)}
+      <div className="lg-mk-note">전체 규격과 진행 절차는 매체 스펙 탭에서 확인할 수 있습니다</div>
     </div>
   )
 }
 
 /* ── 우측 목업 — 구좌별 게재 예시 + 비율 검사 ── */
-function SlotMock({ slot, media, recommend, preview, title, body, ready }) {
+function SlotMock({ slot, media, recommend, preview, title, body, ready, targetApps }) {
+  if (!slot && media.includes('타겟APP') && targetApps?.length)
+    return <TargetMock apps={targetApps} preview={preview} />
   if (!slot) return (
     <div className="lg-mock">
       <div className="lg-mk-head">{recommend ? '매체 추천 요청' : media.length ? '접수 후 협의' : '게재 예시'}</div>
       <div className="lg-mk-empty">
         {recommend
           ? '아젠다와 목적을 보고 담당자가 맞는 매체를 제안합니다'
-          : media.length
-            ? '이 매체는 접수 후 담당자와 소재 규격을 협의합니다'
-            : '희망 매체를 고르면 여기에 게재 예시와 규격이 보입니다'}
+          : media.includes('타겟APP')
+            ? '타겟 앱을 고르면 지면 목업과 규격이 보입니다'
+            : media.length
+              ? '이 매체는 접수 후 담당자와 소재 규격을 협의합니다'
+              : '희망 매체를 고르면 여기에 게재 예시와 규격이 보입니다'}
       </div>
       <div className="lg-mk-note">전체 규격과 진행 절차는 매체 스펙 탭에서 확인할 수 있습니다</div>
     </div>
@@ -570,14 +715,22 @@ function ReqDetail({ r, onReload, onClose }) {
     if (!date) throw new Error('게시일이 없어 캘린더 등록이 안 됩니다')
     const camp = (r.agenda || '').replace(/\s+/g, '').slice(0, 20)
     const subFor = m => (m === '백화점APP' ? ({ push: '푸쉬', popup: '팝업' }[d.appSlot] || null) : null)
+    const memo = `바이럴 라운지 접수${r.reqNo ? ` ${r.reqNo}` : ''}, 신청 ${r.dept} ${r.name}`
+    const base = {
+      title: r.agenda, date, endDate: r.wishEnd || null, campaign: camp || null,
+      owner: r.owner || owner || null, memo,
+    }
     const ids = []
     for (const m of list) {
-      const ev = await createEvent({
-        title: r.agenda, date, endDate: r.wishEnd || null,
-        channel: m, sub: subFor(m), campaign: camp || null,
-        owner: r.owner || owner || null,
-        memo: `바이럴 라운지 접수${r.reqNo ? ` ${r.reqNo}` : ''}, 신청 ${r.dept} ${r.name}`,
-      })
+      /* 타겟APP은 캘린더의 1건=1세부 모델 그대로 — 선택 앱마다 한 건 (셀에서는 ×N 묶임) */
+      if (m === '타겟APP' && d.targetApps?.length) {
+        for (const a of d.targetApps) {
+          const ev = await createEvent({ ...base, channel: m, sub: a })
+          ids.push(ev.id)
+        }
+        continue
+      }
+      const ev = await createEvent({ ...base, channel: m, sub: subFor(m) })
       ids.push(ev.id)
     }
     await updateRequest(r.id, { status: '확정', linked_events: ids })
@@ -598,7 +751,12 @@ function ReqDetail({ r, onReload, onClose }) {
     return idx
   })()
   const today = isoOf(new Date())
-  const lead = slot && r.wishDate ? leadCheck(today, r.wishDate, d.ready) : null
+  const tNeed = d.targetApps?.length ? maxTargetLead(d.targetApps) : null
+  const lead = r.wishDate
+    ? (slot ? leadCheck(today, r.wishDate, d.ready)
+      : tNeed ? leadCheck(today, r.wishDate, null, tNeed.need) : null)
+    : null
+  const due = lead ? bizDeadline(r.wishDate, lead.need) : null
 
   return (
     <div className="lg-detail">
@@ -621,12 +779,19 @@ function ReqDetail({ r, onReload, onClose }) {
           {r.goal && (<><span className="k">목적</span><span>{r.goal}</span></>)}
           <span className="k">희망 매체</span>
           <span>{r.media.length ? r.media.join(', ') : '추천 요청'}{slot ? ` (${slot.name})` : ''}</span>
+          {d.targetApps?.length > 0 && (<>
+            <span className="k">타겟 앱</span><span>{d.targetApps.join(', ')}</span>
+          </>)}
           {r.eventStart && (<><span className="k">행사 기간</span><span>{fmtMd(r.eventStart)}{r.eventEnd ? ` 부터 ${fmtMd(r.eventEnd)}` : ''}</span></>)}
           {r.wishDate && (<>
             <span className="k">희망 게시</span>
             <span>{fmtMd(r.wishDate)}{r.wishEnd ? ` 부터 ${fmtMd(r.wishEnd)}` : ''}{d.wishTime ? ` ${d.wishTime}` : ''}
               {lead && !lead.ok && <span className="lg-leadflag"> 리드타임 경고 접수됨, 필요 {lead.need}영업일에 잔여 {lead.left}일</span>}
             </span>
+          </>)}
+          {due && (<>
+            <span className="k">소재 마감</span>
+            <span>{fmtKday(due)}{tNeed ? `, ${tNeed.from} 기준 게시 ${lead.need}영업일 전` : `, 게시 ${lead.need}영업일 전`}</span>
           </>)}
           {d.branches && (<><span className="k">지점</span><span>{d.branches}</span></>)}
           {d.title && (<><span className="k">제목</span><span>{d.title.split('\n').join(', ')}</span></>)}
