@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import SpecLibrary from './SpecLibrary.jsx'
 import CalendarPage from './CalendarPage.jsx'
 import MonitorPage from './MonitorPage.jsx'
@@ -10,6 +10,8 @@ import AdminPage from './AdminPage.jsx'
 import RmnPage from './RmnPage.jsx'
 import SettlePage from './SettlePage.jsx'
 import ShareReport from './ShareReport.jsx'
+/* 바이럴 라운지 ('26.8) — 어드민 게이트 뒤 1차 비공개, 동적 로드 (비대상 계정 비용 0) */
+const LoungePage = React.lazy(() => import('./LoungePage.jsx'))
 import { LogoMark } from './Logo.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { getSession, onAuthChange, signOut } from './lib/auth.js'
@@ -42,6 +44,7 @@ export default function App() {
     if (window.location.hash === '#admin') return 'admin'
     if (window.location.hash === '#rmn') return 'rmn'
     if (window.location.hash === '#settle') return 'settle'
+    if (window.location.hash === '#lounge') return 'lounge'
     return 'home'   // '26.7: 홈이 접속 첫 화면
   })
   /* calView: 매체 캘린더의 하위 세그(월간·캠페인) — 홈 KPI에서 캠페인으로 바로 진입 ('26.7.29) */
@@ -50,7 +53,7 @@ export default function App() {
     setTab(t)
     setCalView(view)
     /* home = 기본 탭(해시 없음). 나머지는 딥링크 해시 */
-    const HASH = { spec: '#spec', monitor: '#monitor', shoot: '#shoot', calendar: '#calendar', team: '#team', admin: '#admin', rmn: '#rmn', settle: '#settle' }
+    const HASH = { spec: '#spec', monitor: '#monitor', shoot: '#shoot', calendar: '#calendar', team: '#team', admin: '#admin', rmn: '#rmn', settle: '#settle', lounge: '#lounge' }
     window.history.replaceState(null, '', HASH[t] || window.location.pathname + window.location.search)
   }
 
@@ -104,6 +107,9 @@ export default function App() {
             <button className={tab === 'settle' ? 'on' : ''} onClick={() => go('settle')}>정산</button>
           )}
           {isAdmin && (
+            <button className={tab === 'lounge' ? 'on' : ''} onClick={() => go('lounge')}>바이럴 라운지</button>
+          )}
+          {isAdmin && (
             <button className={tab === 'admin' ? 'on' : ''} onClick={() => go('admin')}>어드민</button>
           )}
         </nav>
@@ -128,6 +134,9 @@ export default function App() {
         {tab === 'monitor' && <MonitorPage />}
         {tab === 'rmn' && <RmnPage />}
         {tab === 'settle' && isSettle && <SettlePage />}
+        {tab === 'lounge' && isAdmin && (
+          <Suspense fallback={null}><LoungePage /></Suspense>
+        )}
         {tab === 'admin' && isAdmin && <AdminPage />}
         </ErrorBoundary>
       </div>

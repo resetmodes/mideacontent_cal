@@ -423,5 +423,55 @@ for (const m of MEDIA) {
     bad(`autoGroup: 점포가 다른데 "25주년"으로 뭉개짐 (${names(g3).join(', ')})`)
 }
 
+/* 13. 바이럴 라운지 ('26.8) — APP 광고 가이드 규칙(영업일 계산, 글자수, 이모지,
+   접수번호, 기본 담당)이 코드에 정확히 실렸는지 감시 */
+{
+  const L = await import('../src/data/lounge.js')
+
+  /* 영업일 — '26.8.14(금) 기준: 8/15(토, 광복절), 8/16(일), 8/17(월, 대체공휴일) 전부 제외.
+     8/14 → 8/21 사이 영업일은 18, 19, 20, 21 네 날 */
+  if (L.isBusinessDay('2026-08-17')) bad('lounge: 대체공휴일(8/17)을 영업일로 계산')
+  if (L.isBusinessDay('2026-08-16')) bad('lounge: 일요일을 영업일로 계산')
+  if (!L.isBusinessDay('2026-08-18')) bad('lounge: 평일(8/18)을 휴일로 계산')
+  const biz = L.bizDaysBetween('2026-08-14', '2026-08-21')
+  if (biz !== 4) bad(`lounge: 연휴 낀 영업일 계산 오류 (기대 4, 실제 ${biz})`)
+
+  /* 리드타임 3단 — 완성 +3 / 이미지 +5 / 페이지 +10 (가이드 원문) */
+  const leads = L.READY_STATES.map(r => r.lead).join(',')
+  if (leads !== '3,5,10') bad(`lounge: 리드타임 3단이 가이드와 다름 (${leads})`)
+  const lc = L.leadCheck('2026-08-14', '2026-08-21', 'image')
+  if (!lc || lc.ok || lc.left !== 4 || lc.need !== 5)
+    bad(`lounge: 리드타임 대조 오류 (need ${lc?.need}, left ${lc?.left})`)
+
+  /* 글자수, 이모지 — 푸시 제목 30자, 내용 줄당 30자, 이모지 불가 */
+  const push = L.appSlotById('push')
+  if (!push || push.push.titleMax !== 30 || push.push.bodyMax !== 60 || push.push.bodyPerLine !== 30)
+    bad('lounge: 푸시 글자수 규칙이 가이드와 다름')
+  if (!L.hasEmoji('오늘만 특가 🎁')) bad('lounge: 이모지를 감지하지 못함')
+  if (L.hasEmoji('현대백화점 VIP고객, 3.18~24')) bad('lounge: 일반 한글 문장을 이모지로 오인')
+  const ov = L.overLines('공백 포함 열한자 넘는 긴 제목입니다\n짧은 줄', 11)
+  if (ov.length !== 1 || ov[0] !== 1) bad(`lounge: 줄 글자수 검사 오류 (${ov.join(',')})`)
+
+  /* 구좌 규격 — 가이드 확정값 */
+  const sizes = L.APP_SLOTS.map(s => `${s.id}:${s.w}x${s.h}`).join(' ')
+  if (sizes !== 'shopping:750x750 banner:650x242 popup:720x512 push:500x250')
+    bad(`lounge: 구좌 규격이 가이드와 다름 (${sizes})`)
+  if (L.APP_MENUS.length !== 8) bad(`lounge: APP 메뉴가 8종이 아님 (${L.APP_MENUS.length})`)
+
+  /* 접수번호, 기본 담당 */
+  if (L.makeReqNo('2026-08-01', 3) !== 'MR-260801-03') bad('lounge: 접수번호 형식 오류')
+  if (L.DEFAULT_OWNERS['백화점APP']?.main !== '이수정 선임')
+    bad('lounge: 백화점APP 기본 담당이 가이드(정 이수정 선임)와 다름')
+
+  /* 전달 양식 — 핵심 필드 누락 감시 */
+  const txt = L.transferText({
+    agenda: '위스키 페어', dept: '영패션팀', name: '김현대', email: 'hd@thehyundai.com',
+    media: ['백화점APP'], wishDate: '2026-08-21', eventStart: '2026-08-14',
+    details: { appSlot: 'push', pushType: '행사안내', landingKind: 'prism', prismNo: 'E110', prismApproved: true },
+  })
+  for (const k of ['위스키 페어', '영패션팀', '앱 푸시', '행사안내', '프리즘 행사카드', '승인 완료'])
+    if (!txt.includes(k)) bad(`lounge: 전달 양식에 ${k} 누락`)
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)
