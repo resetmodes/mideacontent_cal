@@ -529,5 +529,22 @@ for (const m of MEDIA) {
   if (!txt.includes('소재 마감:') || !txt.includes('위버스 D-20')) bad('lounge2: 전달 양식에 소재 마감 누락')
 }
 
+/* 15. 라운지 공개 보드 뷰 ('26.8 전사 공개) — 무로그인 보드에 개인정보와 내부 정보가
+   새지 않는지 SQL 정의를 직접 감시 (뷰에 컬럼 하나 추가하는 실수가 곧 유출) */
+{
+  const fs = await import('node:fs')
+  const sql = fs.readFileSync(new URL('../data/lounge-setup.sql', import.meta.url), 'utf8')
+  const m = sql.match(/create or replace view lounge_board as([\s\S]*?);/)
+  if (!m) bad('lounge3: lounge-setup.sql에 공개 보드 뷰 정의가 없음')
+  else {
+    const view = m[1]
+    for (const col of ['email', 'details', 'sources', 'source_link', 'reject_reason', 'memo', 'linked_events'])
+      if (new RegExp(`\\b${col}\\b`).test(view)) bad(`lounge3: 공개 보드 뷰에 비공개 컬럼 ${col}이 들어감`)
+    for (const col of ['agenda', 'status', 'dept'])
+      if (!new RegExp(`\\b${col}\\b`).test(view)) bad(`lounge3: 공개 보드 뷰에 ${col} 누락`)
+    if (!/grant select on lounge_board to anon/.test(sql)) bad('lounge3: 보드 뷰 anon 권한 부여 누락')
+  }
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)

@@ -2018,6 +2018,8 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
    타 팀 매체 신청 폼 + 접수 관리함. v2 글래스 언어 그대로 — 유리 패널, 그린 칩,
    경고는 형광 틴트(리드타임)와 클레이(비율, 반려)로 구분 */
 .lounge .cal-desc{margin-top:6px;font-size:14px;color:var(--g500);line-height:1.6;}
+.lounge .cal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;}
+.lg-btn.share{margin-top:4px;flex:none;}
 .lg-seg{margin:16px 0 20px;display:inline-flex;}
 .lg-cols{display:grid;grid-template-columns:1.1fr .9fr;gap:26px;align-items:start;}
 .lounge input[type=text],.lounge input[type=email],.lounge input[type=url],

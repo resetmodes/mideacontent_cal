@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { LogoMark } from './Logo.jsx'
 import SpecLibrary from './SpecLibrary.jsx'
 import CalendarPage from './CalendarPage.jsx'
+/* 바이럴 라운지 신청 ('26.8 전사 공개) — 폼과 진행 현황만, 관리함은 본 사이트 전용 */
+const LoungePublic = React.lazy(() => import('./LoungePage.jsx').then(m => ({ default: m.LoungePublic })))
 
 /* 미러 전용 사이트 — 로그인 없는 읽기 전용 별도 배포 (타 팀 공유용)
    빌드 분기: VITE_MIRROR=1 (Vercel 두 번째 프로젝트의 환경변수) → main.jsx가 App 대신 이걸 렌더.
@@ -16,7 +18,11 @@ export default function MirrorApp() {
   const isExternal = params.get('view') === 'external'
   const mediaParam = params.get('media')
 
-  const [tab, setTab] = useState(() => (window.location.hash === '#spec' ? 'spec' : 'calendar'))
+  const [tab, setTab] = useState(() => {
+    if (window.location.hash === '#spec') return 'spec'
+    if (window.location.hash === '#lounge') return 'lounge'
+    return 'calendar'
+  })
   useEffect(() => {
     document.title = isExternal
       ? '매체 스펙'
@@ -29,7 +35,8 @@ export default function MirrorApp() {
 
   const go = t => {
     setTab(t)
-    window.history.replaceState(null, '', t === 'spec' ? '#spec' : window.location.pathname)
+    const HASH = { spec: '#spec', lounge: '#lounge' }
+    window.history.replaceState(null, '', HASH[t] || window.location.pathname)
   }
 
   /* 일정 모달 → 매체 스펙 딥링크 (본 사이트와 동일 동작) */
@@ -47,11 +54,13 @@ export default function MirrorApp() {
           <LogoMark size={18} color="var(--green)" className="mini-logo" />
           <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
           <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
+          <button className={tab === 'lounge' ? 'on' : ''} onClick={() => go('lounge')}>바이럴 라운지</button>
           <span className="mini-ro">읽기 전용 공유 뷰</span>
         </div>
       </nav>
       {tab === 'calendar' && <CalendarPage readOnly onOpenSpec={openSpec} />}
       {tab === 'spec' && <SpecLibrary isExternal={false} mirror focusMedia={specFocus.name} focusSeq={specFocus.seq} />}
+      {tab === 'lounge' && <Suspense fallback={null}><LoungePublic /></Suspense>}
     </>
   )
 }
