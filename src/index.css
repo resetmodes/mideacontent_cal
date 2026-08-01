@@ -2150,6 +2150,36 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .lg-done-acts{display:flex;gap:10px;justify-content:center;}
 .lg-done-tip{margin-top:14px;font-size:12.5px;}
 @media (max-width:560px){ .lg-ho-cols{grid-template-columns:1fr;} }
+/* 공개 진행 현황 보드 ('26.8 카드형) — 처음 온 사람에게 "활발히 돌아간다"가 보이게:
+   KPI 히어로(mon-stat 재사용) + 진행 중 카드 + 게시 완료 사례(결과 이미지).
+   균질한 흰 카드 나열 금지 원칙 — 유리 패널 + 타이포 위계 + 진행/완료 밀도 차이 */
+.lg-bd-hero{margin-bottom:6px;}
+.lg-bd-label{padding:22px 0 12px;}
+.lg-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;}
+.lg-cards.compact{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));align-items:start;}
+.lg-card{background:var(--glass);border:1px solid var(--glass-border);border-radius:22px;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);padding:16px 18px;
+  display:flex;flex-direction:column;gap:7px;min-width:0;}
+.lg-card h3{font-size:16.5px;font-weight:800;letter-spacing:-.015em;line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lg-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.lg-card-ics{display:flex;gap:5px;align-items:center;}
+.lg-card-ic{width:22px;height:22px;border-radius:7px;}
+.lg-card-ic svg{width:14px;height:14px;}
+.lg-card-rec{font-size:12px;color:var(--g500);font-weight:600;}
+.lg-new{font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--ink);
+  background:var(--hl);border-radius:9px;padding:3px 8px;}
+.lg-card-meta{font-size:12.5px;color:var(--g500);}
+.lg-card-foot{margin-top:auto;padding-top:6px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.lg-card-dday{font-size:12.5px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums;}
+.lg-card.done{padding:0;overflow:hidden;gap:0;}
+.lg-card-img{aspect-ratio:16/10;background:rgba(11,67,54,.06);}
+.lg-card-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.lg-card-body{padding:13px 16px 15px;display:flex;flex-direction:column;gap:6px;}
+.lg-card.done h3{font-size:15px;}
+@media (max-width:560px){ .lg-cards,.lg-cards.compact{grid-template-columns:1fr 1fr;}
+  .lg-card h3{font-size:14.5px;} }
+
 /* 관리함 */
 .lg-sums{display:flex;gap:10px;margin:0 0 18px;flex-wrap:wrap;}
 .lg-sum{font:inherit;background:rgba(255,255,255,.7);border:1px solid var(--g100);border-radius:16px;
