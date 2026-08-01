@@ -54,12 +54,15 @@ create policy "lounge delete writers" on media_requests
 -- 미러(무로그인)에서 모든 팀이 신청 현황을 본다. 원본 테이블의 anon SELECT는 계속 없음,
 -- 대신 공개해도 되는 컬럼만 담은 뷰를 anon에 연다.
 -- 제외: email(연락처), details(문안·타겟 상세), sources(비공개 버킷 경로), source_link,
---       reject_reason(민감), memo(팀 내부), linked_events
+--       reject_reason(민감), memo(팀 내부)
+-- linked_events(확정 시 등록한 캘린더 일정 id)는 포함 — 게시 완료 카드가 집행 결과
+-- 이미지(일정 첨부, event-images 공개 버킷)를 보여주는 데 쓴다. 일정 자체가 미러
+-- 캘린더 anon SELECT로 이미 공개인 데이터라 id 노출은 추가 공개가 아니다
 -- 이미 lounge-setup.sql을 실행했다면 이 블록만 다시 실행하면 된다 (create or replace = 재실행 안전)
 create or replace view lounge_board as
   select id, req_no, dept, name, agenda, media, goal,
          event_start, event_end, wish_date, wish_end,
-         status, owner, created_at
+         status, owner, linked_events, created_at
   from media_requests;
 grant select on lounge_board to anon, authenticated;
 

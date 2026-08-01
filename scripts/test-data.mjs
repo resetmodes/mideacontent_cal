@@ -538,7 +538,8 @@ for (const m of MEDIA) {
   if (!m) bad('lounge3: lounge-setup.sql에 공개 보드 뷰 정의가 없음')
   else {
     const view = m[1]
-    for (const col of ['email', 'details', 'sources', 'source_link', 'reject_reason', 'memo', 'linked_events'])
+    /* linked_events는 의도적 포함 — 미러 캘린더에서 이미 anon 공개인 일정의 id뿐 (결과 이미지용) */
+    for (const col of ['email', 'details', 'sources', 'source_link', 'reject_reason', 'memo'])
       if (new RegExp(`\\b${col}\\b`).test(view)) bad(`lounge3: 공개 보드 뷰에 비공개 컬럼 ${col}이 들어감`)
     for (const col of ['agenda', 'status', 'dept'])
       if (!new RegExp(`\\b${col}\\b`).test(view)) bad(`lounge3: 공개 보드 뷰에 ${col} 누락`)

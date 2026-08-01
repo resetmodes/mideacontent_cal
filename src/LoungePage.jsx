@@ -19,9 +19,10 @@ import {
 } from './data/lounge.js'
 import {
   listRequests, createRequest, updateRequest, deleteRequest,
-  uploadLoungeSource, loungeSourceUrl, listBoard,
+  uploadLoungeSource, loungeSourceUrl, listBoard, listBoardImages,
 } from './lib/loungeStore.js'
 import { MIRROR_URL } from './config.js'
+import ChannelIcon from './ChannelIcon.jsx'
 import { createEvent } from './lib/store.js'
 import { TEAM } from './data/team.js'
 import { toast } from './lib/toast.js'
@@ -613,36 +614,97 @@ function SlotMock({ slot, media, recommend, preview, title, body, ready, targetA
    미러(무로그인)에서 모든 팀이 본다 — 누가 무엇을 신청했고 어디까지 진행됐는지.
    데이터는 lounge_board 뷰 (이메일, 문안 상세, 소스, 반려 사유, 메모 제외) */
 export function LoungeBoard({ rows }) {
+  /* 게시 완료 카드의 집행 결과 이미지 — 연결 일정의 첨부(공개 버킷)를 한 번에 조회 */
+  const doneRows = (rows || []).filter(r => r.status === '게시 완료')
+  const [evImgs, setEvImgs] = useState({})
+  useEffect(() => {
+    const ids = doneRows.flatMap(r => r.linkedEvents || [])
+    if (!ids.length) return
+    let dead = false
+    listBoardImages(ids).then(m => { if (!dead) setEvImgs(m) })
+    return () => { dead = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows])
+
   if (rows === null) return <div className="lg-empty">진행 현황을 준비 중입니다</div>
   if (!rows?.length) return <div className="lg-empty">아직 접수된 신청이 없습니다, 첫 신청을 올려보세요</div>
+
   const live = rows.filter(r => r.status !== STATUS_REJECT)
-  const doing = live.filter(r => r.status !== '게시 완료').length
-  const doneN = live.filter(r => r.status === '게시 완료').length
+  const doing = live.filter(r => r.status !== '게시 완료')
+  const rejected = rows.length - live.length
+  const year = String(new Date().getFullYear())
+  const yearN = live.filter(r => (r.createdAt || '').startsWith(year)).length
+  const isNew = r => r.createdAt && (Date.now() - new Date(r.createdAt)) < 7 * 86400000
+  const dday = r => {
+    if (!r.wishDate) return ''
+    const n = Math.round((new Date(`${r.wishDate}T12:00:00`) - new Date(`${isoOf(new Date())}T12:00:00`)) / 86400000)
+    return n > 0 ? `게시 D-${n}` : n === 0 ? '오늘 게시' : `게시 ${fmtMd(r.wishDate)}`
+  }
+  const imgOf = r => {
+    for (const id of r.linkedEvents || []) if (evImgs[id]?.length) return evImgs[id][0]
+    return null
+  }
+  const icons = r => (
+    <span className="lg-card-ics">
+      {r.media.length
+        ? r.media.slice(0, 4).map(m => <ChannelIcon key={m} id={m} className="lg-card-ic" />)
+        : <span className="lg-card-rec">매체 협의 중</span>}
+    </span>
+  )
+
   return (
     <div>
-      <div className="lg-sums">
-        <span className="lg-sum"><b>{doing}</b>진행 중</span>
-        <span className="lg-sum"><b>{doneN}</b>게시 완료</span>
+      <div className="mon-hero lg-bd-hero">
+        <div className="mon-stat"><div className="mon-label">올해 접수</div><div className="mon-value">{yearN}<small>건</small></div></div>
+        <div className="mon-stat"><div className="mon-label">지금 진행 중</div><div className="mon-value">{doing.length}<small>건</small></div></div>
+        <div className="mon-stat"><div className="mon-label">게시 완료</div><div className="mon-value">{doneRows.length}<small>건</small></div></div>
       </div>
-      <div className="lg-tblwrap">
-        <table className="lg-tbl">
-          <thead><tr><th>접수</th><th>아젠다</th><th>신청</th><th>매체</th><th>게시</th><th>담당</th><th>상태</th></tr></thead>
-          <tbody>
-            {rows.map(r => (
-              <tr key={r.id}>
-                <td>{fmtMd(r.createdAt?.slice(0, 10))}</td>
-                <td><b>{r.agenda}</b></td>
-                <td>{r.dept}{r.name ? ` ${r.name}` : ''}</td>
-                <td>{r.media.length ? r.media.join(', ') : '추천 요청'}</td>
-                <td>{fmtMd(r.wishDate)}{r.wishEnd ? ` 부터 ${fmtMd(r.wishEnd)}` : ''}</td>
-                <td>{r.owner || ''}</td>
-                <td><span className={`lg-st ${stClass(r.status)}`}>{r.status}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="lg-mk-note">접수와 배정, 진행은 미디어콘텐츠팀이 관리합니다</div>
+
+      {doing.length > 0 && (<>
+        <div className="group-label lg-bd-label">진행 중인 신청</div>
+        <div className="lg-cards">
+          {doing.map(r => (
+            <article className="lg-card" key={r.id}>
+              <div className="lg-card-top">
+                {icons(r)}
+                {isNew(r) && <span className="lg-new">NEW</span>}
+              </div>
+              <h3>{r.agenda}</h3>
+              <div className="lg-card-meta">{r.dept}{r.name ? ` ${r.name}` : ''}</div>
+              <div className="lg-card-foot">
+                <span className={`lg-st ${stClass(r.status)}`}>{r.status}</span>
+                <span className="lg-card-dday">{dday(r)}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </>)}
+
+      {doneRows.length > 0 && (<>
+        <div className="group-label lg-bd-label">최근 게시 완료</div>
+        <div className="lg-cards compact">
+          {doneRows.map(r => {
+            const img = imgOf(r)
+            return (
+              <article className="lg-card done" key={r.id}>
+                {img && (
+                  <div className="lg-card-img">
+                    <img src={img} alt={`${r.agenda} 집행 결과`} loading="lazy"
+                      onError={e => { e.currentTarget.parentElement.style.display = 'none' }} />
+                  </div>
+                )}
+                <div className="lg-card-body">
+                  <div className="lg-card-top">{icons(r)}</div>
+                  <h3>{r.agenda}</h3>
+                  <div className="lg-card-meta">{r.dept}{r.wishDate ? `, 게시 ${fmtMd(r.wishDate)}` : ''}</div>
+                </div>
+              </article>
+            )
+          })}
+        </div>
+      </>)}
+
+      <div className="lg-mk-note">접수와 배정, 진행은 미디어콘텐츠팀이 관리합니다{rejected > 0 ? `, 반려 ${rejected}건 제외` : ''}</div>
     </div>
   )
 }

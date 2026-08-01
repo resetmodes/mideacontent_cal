@@ -5,6 +5,7 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config.js'
 import { getAccessToken } from './auth.js'
 import { compressImage } from './settleStore.js'
+import { imageUrl } from './eventImages.js'
 import { makeReqNo, isoOf } from '../data/lounge.js'
 
 const REMOTE = !!(SUPABASE_URL && SUPABASE_ANON_KEY)
@@ -122,9 +123,28 @@ export async function listBoard() {
       media: r.media || [], goal: r.goal,
       eventStart: r.event_start, eventEnd: r.event_end,
       wishDate: r.wish_date, wishEnd: r.wish_end,
-      status: r.status, owner: r.owner, createdAt: r.created_at,
+      status: r.status, owner: r.owner,
+      linkedEvents: r.linked_events || [], createdAt: r.created_at,
     }))
   } catch { return null }
+}
+
+/* 게시 완료 카드의 집행 결과 이미지 — 확정 시 등록한 캘린더 일정의 첨부(공개 버킷)를
+   재사용. 일정 읽기는 미러 anon SELECT 정책 기준이라 정책 미설정이면 조용히 빈 값 */
+export async function listBoardImages(eventIds) {
+  if (!REMOTE || !eventIds?.length) return {}
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/media_events?id=in.(${eventIds.join(',')})&select=id,images`,
+      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } },
+    )
+    if (!res.ok) return {}
+    const rows = await res.json()
+    const map = {}
+    for (const r of rows)
+      if (Array.isArray(r.images) && r.images.length) map[r.id] = r.images.map(i => imageUrl(i.path))
+    return map
+  } catch { return {} }
 }
 
 /* 비공개 버킷이라 <img src>로 직접 못 씀 — 토큰 fetch 후 blob URL (관리함 열람용) */
