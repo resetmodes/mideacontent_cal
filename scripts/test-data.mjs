@@ -473,5 +473,61 @@ for (const m of MEDIA) {
     if (!txt.includes(k)) bad(`lounge: 전달 양식에 ${k} 누락`)
 }
 
+/* 14. 라운지 2차 ('26.8) — 타겟APP 스펙 재사용(media.js 단일 소스), 마감 실날짜 역산,
+   전달 경로 체크리스트가 선택 상태를 정확히 반영하는지 감시 */
+{
+  const L = await import('../src/data/lounge.js')
+
+  /* 타겟APP — 앱 목록은 channels.js와 동일, 스펙은 media.js에서 (K-Ride만 미등록) */
+  for (const a of L.TARGET_APPS) {
+    const sp = L.targetSpec(a)
+    if (a === 'K-Ride') { if (sp) bad('lounge2: K-Ride가 media.js에 있는데 미등록 처리 중'); continue }
+    if (!sp) bad(`lounge2: 타겟 앱 ${a}의 스펙이 media.js에 없음`)
+    else if (!L.leadDaysOf(sp)) bad(`lounge2: ${a} 리드타임(D-N) 파싱 실패 (${sp.lead})`)
+  }
+  const ml = L.maxTargetLead(['아파트너', '위버스', '바이비'])
+  if (!ml || ml.need !== 20 || ml.from !== '위버스')
+    bad(`lounge2: 최장 리드타임 계산 오류 (${ml?.from} ${ml?.need})`)
+  if (!L.targetCaution('데일리샷')) bad('lounge2: 데일리샷 주류 검수 주의가 사라짐')
+  if (L.targetCaution('아파트너')) bad('lounge2: 아파트너에 주류 주의가 붙음')
+  const ps = L.parseSize('1080 × 720')
+  if (!ps || ps.w !== 1080 || ps.h !== 720) bad('lounge2: 지면 규격 파싱 오류')
+
+  /* 마감 실날짜 — 8/21(금) 게시, D-5 영업일이면 광복절 연휴(15~17)를 건너 8/13(목) */
+  const due = L.bizDeadline('2026-08-21', 5)
+  if (due !== '2026-08-13') bad(`lounge2: 마감 역산 오류 (기대 2026-08-13, 실제 ${due})`)
+  if (L.bizDaysBetween(due, '2026-08-21') !== 5) bad('lounge2: 역산 마감이 영업일 수와 안 맞음')
+  if (L.fmtKday('2026-08-13') !== '8/13(목)') bad(`lounge2: 요일 표기 오류 (${L.fmtKday('2026-08-13')})`)
+
+  /* 전달 경로 체크리스트 — 선택 상태별 later 항목 */
+  const p1 = L.handoffPlan({
+    appSlot: 'push', ready: 'done', wishDate: '2026-08-21',
+    sources: [], sourceLink: '', sourceLater: false,
+    hasPlan: true, audienceKind: 'excel', landingKind: 'prism', prismApproved: false,
+  })
+  const labels = p1.later.map(l => l.label).join('|')
+  for (const k of ['완성 소재', '계획안', '타겟 고객번호', '행사카드'])
+    if (!labels.includes(k)) bad(`lounge2: 전달 체크리스트에 ${k} 누락 (${labels})`)
+  const mat = p1.later.find(l => l.label === '완성 소재')
+  if (mat?.due !== '2026-08-18') bad(`lounge2: 완성 소재 마감 오류 (기대 2026-08-18, 실제 ${mat?.due})`)
+
+  const p2 = L.handoffPlan({
+    targetApps: ['위버스'], wishDate: '2026-08-21',
+    sources: [{ name: 'a.jpg' }], sourceLink: '', sourceLater: false,
+    hasPlan: false, audienceKind: '', landingKind: '', prismApproved: false,
+  })
+  if (p2.later.some(l => l.label === '완성 소재')) bad('lounge2: 소재를 이미 첨부했는데 따로 전달 목록에 남음')
+  if (!p2.now.some(n => n.includes('브랜드 소스'))) bad('lounge2: 첨부한 소스가 접수 목록에 없음')
+
+  /* 전달 양식 — 타겟 앱과 소재 마감 병기 */
+  const txt = L.transferText({
+    agenda: '썸머위크', dept: '아울렛기획팀', name: '이썸머', email: 's@thehyundai.com',
+    media: ['타겟APP'], wishDate: '2026-08-21', reqNo: 'MR-260801-02',
+    details: { targetApps: ['아파트너', '위버스'] },
+  })
+  if (!txt.includes('타겟 앱: 아파트너, 위버스')) bad('lounge2: 전달 양식에 타겟 앱 누락')
+  if (!txt.includes('소재 마감:') || !txt.includes('위버스 D-20')) bad('lounge2: 전달 양식에 소재 마감 누락')
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)

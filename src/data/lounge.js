@@ -7,6 +7,8 @@
    - 담당 배정 기본값(DEFAULT_OWNERS)은 가이드 명시 담당 체계, 수기 지정 가능
    ───────────────────────────────────────────────────────────── */
 import { HOLIDAYS } from './holidays.js'
+import { MEDIA } from './media.js'
+import { CHANNELS } from './channels.js'
 
 /* ── 신청 가능 매체 — 캘린더 채널 id와 동일 (확정 시 캘린더 등록에 그대로 사용).
    RMN(유료 판매)은 제외 ('26.7 사용자 확정) */
@@ -95,6 +97,45 @@ export const DEFAULT_OWNERS = {
   '백화점APP': { main: '이수정 선임', subs: ['백채은 선임', '하지훈 책임'] },
 }
 
+/* ─────────────────────────────────────────────────────────────
+   타겟APP ('26.8 2차) — 스펙은 media.js 타겟형 매체가 단일 소스 (중복 등재 금지).
+   앱 목록은 channels.js 세부와 동일 (캘린더 등록 sub 값으로 그대로 사용).
+   media.js에 없는 앱(K-Ride)은 스펙 미등록으로 표기하고 접수는 받는다
+   ───────────────────────────────────────────────────────────── */
+export const TARGET_APPS = CHANNELS.find(c => c.id === '타겟APP')?.subs || []
+
+export function targetSpec(name) {
+  return MEDIA.find(m => m.group === '타겟형 매체' && m.name === name) || null
+}
+
+/* "D-7 (영업일)" → 7. 형식이 다르면 null (계산 불가 시 경고 생략) */
+export function leadDaysOf(entry) {
+  const m = entry?.lead?.match(/D-(\d+)/)
+  return m ? +m[1] : null
+}
+
+/* 선택 앱 중 가장 긴 리드타임 — 경고는 최장 기준 (그 앱 이름 병기) */
+export function maxTargetLead(names) {
+  let best = null
+  for (const n of names || []) {
+    const d = leadDaysOf(targetSpec(n))
+    if (d != null && (!best || d > best.need)) best = { need: d, from: n }
+  }
+  return best
+}
+
+/* 주류 등 표현 검수가 필요한 앱 — media.js target 문구에서 파생 (별도 목록 유지 안 함) */
+export function targetCaution(name) {
+  const t = targetSpec(name)?.target || ''
+  return t.includes('주류') ? '주류 매체, 표현 검수 필수' : null
+}
+
+/* "1080 × 720" → {w, h}. 규격 미기재 지면은 null */
+export function parseSize(size) {
+  const m = (size || '').match(/(\d+)\s*×\s*(\d+)/)
+  return m ? { w: +m[1], h: +m[2] } : null
+}
+
 /* ── 상태 — 저장값. 파이프라인 표시의 "담당 배정" 단계는 owner 유무로 파생 ── */
 export const LOUNGE_STATUS = ['접수', '협의', '확정', '게시 완료']
 export const STATUS_REJECT = '반려'
@@ -127,12 +168,31 @@ export function bizDaysBetween(fromIso, toIso) {
   return n
 }
 
-/* 리드타임 대조 — 경고만, 접수는 막지 않음 */
-export function leadCheck(todayIso, wishIso, readyId) {
+/* 리드타임 대조 — 경고만, 접수는 막지 않음. needOverride = 타겟APP 등 구좌 외 기준 */
+export function leadCheck(todayIso, wishIso, readyId, needOverride) {
   if (!wishIso) return null
-  const need = readyById(readyId).lead
+  const need = needOverride ?? readyById(readyId).lead
   const left = bizDaysBetween(todayIso, wishIso)
   return { need, left, ok: left >= need }
+}
+
+/* 전달 마감 실날짜 — 게시희망일에서 영업일 n일 역산 ('26.8 2차).
+   "D-5 영업일"만 보여주면 신청자가 날짜로 환산을 못 한다, 달력 날짜로 박아준다 */
+export function bizDeadline(wishIso, n) {
+  if (!wishIso || !n) return null
+  const d = dateOf(wishIso)
+  let count = 0
+  while (count < n) {
+    d.setDate(d.getDate() - 1)
+    if (isBusinessDay(isoOf(d))) count++
+  }
+  return isoOf(d)
+}
+
+const KDAY = ['일', '월', '화', '수', '목', '금', '토']
+export function fmtKday(iso) {
+  if (!iso) return ''
+  return `${+iso.slice(5, 7)}/${+iso.slice(8, 10)}(${KDAY[dateOf(iso).getDay()]})`
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -162,16 +222,51 @@ export function makeReqNo(iso, seq) {
   return `MR-${iso.slice(2, 4)}${iso.slice(5, 7)}${iso.slice(8, 10)}-${pad(seq)}`
 }
 
+/* ─────────────────────────────────────────────────────────────
+   전달 경로 체크리스트 ('26.8 2차) — "무엇을 여기 올리고 무엇을 팀즈로 따로
+   보내는지" 신청자가 알 수 없던 문제. 선택 상태에서 두 목록을 파생한다:
+   now = 이 접수로 끝나는 것 / later = 담당자 배정 후 팀즈로 따로 전달할 것.
+   폼 하단과 접수 완료 화면에 같은 목록을 보여준다 (약속의 단일 소스)
+   ───────────────────────────────────────────────────────────── */
+export function handoffPlan(f) {
+  const now = ['신청 내용과 일정 (이 접수로 전달 완료)']
+  if (f.sources?.length) now.push(`브랜드 소스 이미지 ${f.sources.length}장`)
+  if (f.sourceLink) now.push('소스 공유 링크')
+
+  const later = []
+  /* 소재 마감 — 구좌(3단 리드타임) 또는 타겟APP(앱별 D-N 최장) 기준 실날짜 역산 */
+  const slot = appSlotById(f.appSlot)
+  const need = slot ? readyById(f.ready).lead : maxTargetLead(f.targetApps)?.need
+  const due = f.wishDate && need ? bizDeadline(f.wishDate, need) : null
+  if (f.sourceLater || (!f.sources?.length && !f.sourceLink))
+    later.push({ label: '완성 소재', to: '담당자에게 팀즈로', due })
+  if (f.hasPlan)
+    later.push({ label: '계획안 문서', to: '담당자 배정 후 팀즈 개별 공유' })
+  if (f.audienceKind === 'excel')
+    later.push({ label: '타겟 고객번호 엑셀', to: '개인정보라 담당자에게 별도 전달, 5만 명 단위 분할' })
+  if (f.landingKind === 'prism' && !f.prismApproved)
+    later.push({ label: '행사카드 승인 후 카드번호', to: '승인 완료를 확인하고 담당자에게 전달' })
+  return { now, later, due }
+}
+
 /* ── 전달 양식 텍스트 ('26.8 — 관리함 "전달 양식으로 복사") — 가이드의 요청 템플릿 순서.
-   담당자가 앱 어드민 등록이나 커뮤니케이션팀 전달에 그대로 쓴다 */
+   담당자가 앱 어드민 등록이나 커뮤니케이션팀 전달에 그대로 쓴다.
+   접수 완료 화면의 "접수 내용 복사"도 같은 텍스트 (신청자 보관, 팀즈 소통용) */
 export function transferText(r) {
   const d = r.details || {}
   const slot = appSlotById(d.appSlot)
   const L = []
   L.push(`[매체 신청 전달] ${r.agenda}`)
+  if (r.reqNo) L.push(`접수번호: ${r.reqNo}`)
   L.push(`신청: ${r.dept} ${r.name} (${r.email})`)
   if (slot) L.push(`구좌: ${slot.name} (${slot.w}x${slot.h})`)
   else if (r.media?.length) L.push(`매체: ${r.media.join(', ')}`)
+  if (d.targetApps?.length) {
+    L.push(`타겟 앱: ${d.targetApps.join(', ')}`)
+    const ml = maxTargetLead(d.targetApps)
+    if (ml && r.wishDate)
+      L.push(`소재 마감: ${fmtKday(bizDeadline(r.wishDate, ml.need))} (${ml.from} D-${ml.need} 영업일 기준)`)
+  }
   if (r.wishDate) L.push(`게시희망: ${r.wishDate}${d.wishTime ? ` ${d.wishTime}` : ''}${r.wishEnd ? ` ~ ${r.wishEnd}` : ''}`)
   if (r.eventStart) L.push(`행사기간: ${r.eventStart}${r.eventEnd ? ` ~ ${r.eventEnd}` : ''}`)
   if (d.branches) L.push(`지점: ${d.branches}`)
