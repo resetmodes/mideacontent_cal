@@ -462,3 +462,21 @@ Supabase SQL Editor에서 **`data/rmn-share-setup.sql` 전체를 1회 실행**.
 - 미실행 시: "광고주 공유" 발급만 실패 (안내 문구), 다른 기능 무영향
 - 원본 `rmn_bookings`/`rmn_ga_daily`는 anon이 접근 불가 — 유출 경로는 스냅샷 RPC뿐이고
   스냅샷엔 다른 광고주 데이터가 존재하지 않음
+
+## 13. 월간 운영 리포트 스냅샷 ('26.7.31)
+
+어드민의 월간 리포트에서 "저장"을 누르면 그 시점의 수치와 서술이 고정 보관됩니다.
+
+1. Supabase → SQL Editor → `data/report-setup.sql` 전체 붙여넣기 → Run (1회)
+2. 확인: Table Editor에 `monthly_reports` 테이블이 보이면 완료
+
+미실행 시 리포트 생성과 열람은 되고 저장만 실패합니다 (다른 기능 무영향).
+
+서술 생성(모델 호출)은 별도로 **Vercel 환경변수** 하나가 필요합니다.
+
+1. Vercel → 프로젝트 → Settings → Environment Variables
+2. `ANTHROPIC_API_KEY` 추가 (console.anthropic.com 에서 발급)
+3. 재배포 후 어드민 → 월간 운영 리포트 → 서술 생성
+
+미설정이면 수치 슬라이드는 전부 나오고 서술 문단만 안내 문구가 뜹니다.
+비용은 1회 생성에 약 $0.1, 문단 다시 쓰기는 회당 약 $0.01입니다.

@@ -1001,9 +1001,16 @@
 7. ~~매체 일정 캘린더~~ — **완료 ('26.7)**. 위 "캘린더 구조" 참조
 8. ~~Supabase 연동~~ — **완료**. `src/config.js`에 키 입력됨 (팀 공유 DB + 로그인 게이트 활성)
 9. ~~`src/data/team.js` 팀원 명단 채우기~~ — **완료 ('26.7, 20명)**. 인원 변동 시 한 줄 수정
-10. 월간 집행 리포트 — **규빈의 별도 양식 베이스로 제작 예정** (양식 전달받으면 착수, '26.7 합의).
-    데이터 계층은 선행 구현 완료('26.7): `src/lib/report.js` + 계약 문서
-    `docs/report-data-contract.md` — 양식 오면 매핑·렌더만 하면 됨
+10. ~~월간 집행 리포트~~ — **구현 완료 ('26.7.31, 시안 승인 후)**. 어드민 4번째 항목
+    "월간 운영 리포트" = 16:9 덱 12장(채널 덱 언어 — 딥 그린 무대·히어로 1개·형광은
+    최대값과 번호 전용·라일락 강조). **수치 = `src/lib/reportDeck.js` 전량 코드 계산**
+    (report.js + YTA 월 버킷 + trend + UGC + 타겟APP + RMN + 전월 비교, 데이터 없는
+    슬라이드 자동 생략 — 날조 없음), **서술 = `api/report-narrate.js`** (Vercel 함수,
+    claude-opus-5, digest 문자열의 숫자만 인용 가능 — `checkNarration`이 서술 속 미확인
+    숫자를 경고 배지로. 회당 약 $0.1). 문단별 "다시 쓰기", 저장 = `monthly_reports`
+    스냅샷(수치 동결, **사용자 액션: data/report-setup.sql 1회 — setup.md 13장** +
+    **Vercel 환경변수 ANTHROPIC_API_KEY**), 인쇄 = window.print(슬라이드당 1페이지).
+    test-report.mjs가 덱 계산·서술 검증 회귀 감시. 내부 전용(어드민 게이트)
 11. AI 어시스턴트 — 설계 확정('26.7): `docs/ai-assistant-design.md` + 비활성 스캐폴드
     `api/assistant.js`. **구현은 Opus 세션 예약** (화면 노출 현재 0)
 

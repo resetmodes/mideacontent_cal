@@ -1922,6 +1922,98 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 }
 
 
+
+/* ═══════════ 월간 운영 리포트 덱 ('26.7.31) — ReportDeck.jsx ═══════════
+   채널 덱과 같은 무대 언어 (딥 그린, 히어로 1개, 형광 = 최대값과 번호 전용, 라일락 = 강조·비교) */
+.rpt-wrap{margin-top:14px;}
+.rpt-bar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.rpt-frozen{font-size:12.5px;color:var(--lilac-ink);font-weight:600;}
+.rpt-stage{position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;
+  background:linear-gradient(158deg,#0E4234 0%,#0A2F25 55%,#071F19 100%);
+  color:#EDF4EF;box-shadow:0 18px 50px rgba(11,67,54,.35);}
+.rpt-slide{position:absolute;inset:0;padding:44px 52px 36px;display:none;flex-direction:column;}
+.rpt-slide.on{display:flex;animation:rptIn .4s ease both;}
+@keyframes rptIn{from{opacity:0;transform:translateX(24px);}to{opacity:1;transform:none;}}
+.rpt-head{display:flex;align-items:baseline;gap:12px;margin-bottom:4px;}
+.rpt-head .t{font-size:21px;font-weight:700;letter-spacing:-.01em;}
+.rpt-head .b{font-size:12px;color:rgba(237,244,239,.55);}
+.rpt-hero{margin:auto 0;}
+.rpt-hero.sm{margin:auto 0 6px;}
+.rpt-hero .v{font-size:clamp(52px,7vw,96px);font-weight:800;letter-spacing:-.035em;line-height:1;
+  font-variant-numeric:tabular-nums;}
+.rpt-hero .v small{font-size:.4em;font-weight:600;color:rgba(237,244,239,.55);margin-left:5px;}
+.rpt-hero .ub{width:130px;height:8px;background:var(--neon,#EDFF5B);margin-top:12px;border-radius:2px;}
+.rpt-hero .l{margin-top:12px;font-size:15px;font-weight:600;}
+.rpt-hero .s{margin-top:4px;font-size:13px;color:rgba(237,244,239,.55);}
+.rpt-cols{display:grid;grid-template-columns:1.15fr 1fr;gap:40px;flex:1;min-height:0;}
+.rpt-cols .rpt-hero{margin:auto 0;}
+.rpt-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:18px 0 22px;}
+.rpt-kpis b{display:block;font-size:32px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+.rpt-kpis span{display:block;margin-top:3px;font-size:12.5px;color:rgba(237,244,239,.55);}
+.rpt-hbars{display:flex;flex-direction:column;gap:11px;justify-content:center;}
+.rpt-hb{display:grid;grid-template-columns:90px 1fr 78px;gap:10px;align-items:center;font-size:13.5px;}
+.rpt-hb .n{color:rgba(237,244,239,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rpt-hb .t{height:11px;background:rgba(237,244,239,.09);border-radius:3px;overflow:hidden;}
+.rpt-hb .f{height:100%;background:rgba(237,244,239,.88);border-radius:3px;}
+.rpt-hb .f.max{background:#EDFF5B;}
+.rpt-hb .f.lilac{background:var(--lilac);}
+.rpt-hb .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;}
+.rpt-table{border-collapse:collapse;width:100%;font-size:13.5px;align-self:center;}
+.rpt-table th{text-align:left;font-weight:500;color:rgba(237,244,239,.55);font-size:12px;padding:0 8px 8px 0;}
+.rpt-table th.r,.rpt-table td.r{text-align:right;}
+.rpt-table td{padding:9px 8px 9px 0;border-top:1px solid rgba(237,244,239,.16);font-variant-numeric:tabular-nums;}
+.rpt-table td.up{color:#EDFF5B;font-weight:700;}
+.rpt-table td.dn{color:var(--lilac);}
+.rpt-insight{border-top:1px solid rgba(237,244,239,.16);padding-top:13px;display:flex;gap:14px;align-items:flex-start;}
+.rpt-insight .no{color:#EDFF5B;font-weight:800;font-size:13px;padding-top:2px;letter-spacing:.04em;}
+.rpt-insight .body{flex:1;}
+.rpt-insight p{font-size:13.5px;line-height:1.6;max-width:860px;}
+.rpt-insight p b{color:var(--lilac);font-weight:700;}
+.rpt-insight p.empty{color:rgba(237,244,239,.4);}
+.rpt-redo{background:rgba(237,244,239,.08);color:#EDF4EF;border:1px solid rgba(237,244,239,.16);
+  font-size:12px;padding:5px 11px;cursor:pointer;white-space:nowrap;}
+.rpt-redo:hover{background:rgba(237,244,239,.16);}
+.rpt-warn{margin-top:6px;font-size:12px;color:#EDFF5B;}
+.rpt-list{display:flex;flex-direction:column;justify-content:center;}
+.rpt-list .li{display:grid;grid-template-columns:1fr auto;gap:14px;padding:11px 0;
+  border-top:1px solid rgba(237,244,239,.16);font-size:13.5px;align-items:baseline;}
+.rpt-list .li:first-child{border-top:0;}
+.rpt-list .li .m{color:rgba(237,244,239,.55);font-size:12.5px;font-variant-numeric:tabular-nums;}
+.rpt-fin{display:flex;flex-direction:column;flex:1;justify-content:center;}
+.rpt-fin .row{display:grid;grid-template-columns:54px 1fr;gap:18px;padding:18px 0;
+  border-top:1px solid rgba(237,244,239,.16);}
+.rpt-fin .row:first-child{border-top:0;}
+.rpt-fin .no{font-size:19px;font-weight:800;color:#EDFF5B;}
+.rpt-fin h3{font-size:17px;font-weight:700;margin-bottom:5px;}
+.rpt-fin p{font-size:13.5px;line-height:1.6;color:rgba(237,244,239,.72);max-width:840px;}
+.rpt-fin p b{color:#EDF4EF;}
+.rpt-fin p.empty{color:rgba(237,244,239,.4);}
+.rpt-cover{display:flex;flex-direction:column;justify-content:center;height:100%;}
+.rpt-cover .lg{font-size:15px;font-weight:700;margin-bottom:34px;}
+.rpt-cover h1{font-size:clamp(36px,4.6vw,56px);font-weight:800;letter-spacing:-.03em;line-height:1.18;}
+.rpt-cover .sub{margin-top:18px;font-size:14px;color:rgba(237,244,239,.55);line-height:1.7;}
+.rpt-cover .ft{margin-top:auto;font-size:12px;color:rgba(237,244,239,.3);}
+.rpt-nav{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
+.rpt-dots{display:flex;gap:6px;}
+.rpt-dot{width:8px;height:8px;border-radius:50%;background:rgba(19,32,25,.2);border:0;cursor:pointer;padding:0;}
+.rpt-dot.on{background:var(--green);width:20px;border-radius:5px;}
+.rpt-nav-r{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--g500);
+  font-variant-numeric:tabular-nums;}
+@media (max-width:840px){
+  .rpt-stage{aspect-ratio:auto;}
+  .rpt-slide{position:static;padding:26px 20px 22px;}
+  .rpt-slide.on{display:flex;}
+  .rpt-cols{grid-template-columns:1fr;gap:22px;}
+  .rpt-kpis{grid-template-columns:repeat(2,1fr);}
+}
+/* 인쇄 — 전 슬라이드를 세로로 풀어 한 장씩 */
+@media print{
+  body.rpt-printing .side,body.rpt-printing .rpt-bar,body.rpt-printing .rpt-nav{display:none!important;}
+  body.rpt-printing .rpt-stage{aspect-ratio:auto;box-shadow:none;border-radius:0;
+    print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+  body.rpt-printing .rpt-slide{position:static;display:flex;min-height:96vh;break-after:page;}
+}
+
 /* ═══════════ 곡률 통일 ('26.7.29 2차) ═══════════
    패널·캘린더 22px, 사이드바 26px, 상세 24px 대비 컨트롤이 7~10px로 각져 있었음.
    버튼·입력은 18px(알약 직전), 작은 칩은 12px, 세그 내부는 14px로 계열을 맞춤 */
