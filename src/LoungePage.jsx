@@ -23,6 +23,7 @@ import {
 } from './lib/loungeStore.js'
 import { MIRROR_URL } from './config.js'
 import ChannelIcon from './ChannelIcon.jsx'
+import ModalShell from './ModalShell.jsx'
 import { createEvent } from './lib/store.js'
 import { TEAM } from './data/team.js'
 import { toast } from './lib/toast.js'
@@ -617,6 +618,8 @@ export function LoungeBoard({ rows }) {
   /* 게시 완료 카드의 집행 결과 이미지 — 연결 일정의 첨부(공개 버킷)를 한 번에 조회 */
   const doneRows = (rows || []).filter(r => r.status === '게시 완료')
   const [evImgs, setEvImgs] = useState({})
+  const [openId, setOpenId] = useState(null)
+  const openCard = doneRows.find(r => r.id === openId) || null
   useEffect(() => {
     const ids = doneRows.flatMap(r => r.linkedEvents || [])
     if (!ids.length) return
@@ -686,7 +689,9 @@ export function LoungeBoard({ rows }) {
           {doneRows.map(r => {
             const img = imgOf(r)
             return (
-              <article className="lg-card done" key={r.id}>
+              <article className="lg-card done tap" key={r.id} role="button" tabIndex={0}
+                onClick={() => setOpenId(r.id)}
+                onKeyDown={e => { if (e.key === 'Enter') setOpenId(r.id) }}>
                 {img && (
                   <div className="lg-card-img">
                     <img src={img} alt={`${r.agenda} 집행 결과`} loading="lazy"
@@ -705,7 +710,47 @@ export function LoungeBoard({ rows }) {
       </>)}
 
       <div className="lg-mk-note">접수와 배정, 진행은 미디어콘텐츠팀이 관리합니다{rejected > 0 ? `, 반려 ${rejected}건 제외` : ''}</div>
+
+      {openCard && (
+        <BoardDetail r={openCard}
+          imgs={(openCard.linkedEvents || []).flatMap(id => evImgs[id] || [])}
+          onClose={() => setOpenId(null)} />
+      )}
     </div>
+  )
+}
+
+/* 완료 카드 상세 ('26.8 — 사용자 승인) — 어떤 매체로 어떻게 나갔는지.
+   공개 보드 뷰의 컬럼과 결과 이미지만 사용, 문안과 소재 원본은 계속 비공개 */
+function BoardDetail({ r, imgs, onClose }) {
+  return (
+    <ModalShell onClose={onClose} className="lg-bdm">
+      <div className="lg-bdm-head">
+        <span className="lg-card-ics">
+          {r.media.map(m => <ChannelIcon key={m} id={m} className="lg-card-ic" />)}
+        </span>
+        <h3>{r.agenda}</h3>
+        <div className="lg-card-meta">{r.dept}{r.name ? ` ${r.name}` : ''} 신청{r.reqNo ? `, ${r.reqNo}` : ''}</div>
+      </div>
+      {imgs.length > 0 && (
+        <div className={`lg-bdm-imgs${imgs.length === 1 ? ' one' : ''}`}>
+          {imgs.map((u, i) => (
+            <img key={i} src={u} alt={`${r.agenda} 집행 결과 ${i + 1}`} loading="lazy"
+              onError={e => { e.currentTarget.style.display = 'none' }} />
+          ))}
+        </div>
+      )}
+      <div className="lg-kv lg-bdm-kv">
+        <span className="k">매체</span><span>{r.media.length ? r.media.join(', ') : '팀 추천으로 집행'}</span>
+        {r.goal && (<><span className="k">목적</span><span>{r.goal}</span></>)}
+        {r.eventStart && (<><span className="k">행사 기간</span><span>{fmtMd(r.eventStart)}{r.eventEnd ? ` 부터 ${fmtMd(r.eventEnd)}` : ''}</span></>)}
+        {r.wishDate && (<><span className="k">게시</span><span>{fmtMd(r.wishDate)}{r.wishEnd ? ` 부터 ${fmtMd(r.wishEnd)}` : ''}</span></>)}
+        {r.owner && (<><span className="k">담당</span><span>{r.owner} (미디어콘텐츠팀)</span></>)}
+        {r.createdAt && (<><span className="k">접수일</span><span>{fmtMd(r.createdAt.slice(0, 10))}</span></>)}
+      </div>
+      <div className="lg-mk-note">비슷한 집행을 원하면 신청 접수에서 이 매체를 골라 접수해 주세요</div>
+      <button className="lg-btn lg-bdm-close" onClick={onClose}>닫기</button>
+    </ModalShell>
   )
 }
 
