@@ -562,5 +562,77 @@ for (const m of MEDIA) {
   }
 }
 
+/* 16. 라운지 초기 시드 ('26.8.1 팀즈 이력 16건) — 소급 입력 SQL이 실제 스키마와
+   맞는지, 지어낸 값(이메일)이 섞이지 않았는지 감시 */
+{
+  const fs = await import('node:fs')
+  const sql = fs.readFileSync(new URL('../data/lounge-seed.sql', import.meta.url), 'utf8')
+  const { CHANNELS } = await import('../src/data/channels.js')
+  const L = await import('../src/data/lounge.js')
+
+  if (!/^\s*delete from media_requests where req_no like 'MR-260801-%';/m.test(sql))
+    bad('seed: 재실행 안전을 위한 delete 선행이 없음')
+
+  const nos = [...sql.matchAll(/\('(MR-260801-\d\d)'/g)].map(m => m[1])
+  if (nos.length !== 16) bad(`seed: 접수번호 행이 16건이 아님 (${nos.length})`)
+  if (new Set(nos).size !== nos.length) bad('seed: 접수번호 중복')
+
+  /* 이메일은 팀즈 원문에 없다 — 지어낸 주소가 들어가면 실패 */
+  if (/@(thehyundai|hmall)\.com'/.test(sql.split('insert into')[1] || ''))
+    bad('seed: 원문에 없는 이메일이 들어감 (지어내지 않기로 함)')
+
+  /* 매체 id와 타겟 앱 이름이 실제 목록에 있는지 */
+  const ids = new Set(CHANNELS.map(c => c.id))
+  const mediaCells = [...sql.matchAll(/'\[((?:"[^"]+",?)+)\]'::jsonb\s*,\s*\n?\s*(?:'\d{4}-\d\d-\d\d'|null)/g)]
+  if (mediaCells.length !== 16) bad(`seed: 희망 매체 열을 16건 찾지 못함 (${mediaCells.length})`)
+  for (const m of mediaCells) {
+    for (const v of m[1].split(',').map(s => s.replace(/"/g, '').trim()))
+      if (!ids.has(v)) bad(`seed: 알 수 없는 매체 id ${v}`)
+  }
+
+  /* 열 개수 대조 — 값 개수가 하나만 어긋나도 Supabase에서 통째로 실패한다.
+     문자열과 jsonb 안의 쉼표는 세지 않도록 따옴표를 추적하며 최상위 쉼표만 센다 */
+  const bare = sql.split('\n').filter(l => !/^\s*--/.test(l)).join('\n')   // 주석 속 괄호 제외
+  const head = bare.match(/insert into media_requests\s*\(([\s\S]*?)\)\s*values/)
+  const cols = head[1].split(',').map(s => s.trim()).filter(Boolean).length
+  const body = bare.slice(head.index + head[0].length)
+  let depth = 0, q = false, cells = 1, tuples = 0
+  for (let i = 0; i < body.length; i++) {
+    const c = body[i]
+    if (q) { if (c === "'") { if (body[i + 1] === "'") i++; else q = false } continue }
+    if (c === "'") { q = true; continue }
+    if (c === '(') { if (depth === 0) cells = 1; depth++; continue }
+    if (c === ')') {
+      depth--
+      if (depth === 0) {
+        tuples++
+        if (cells !== cols) bad(`seed: ${tuples}번째 행의 값 개수 ${cells}, 열 개수 ${cols}`)
+      }
+      continue
+    }
+    if (c === ',' && depth === 1) cells++
+    if (c === ';' && depth === 0) break
+  }
+  if (tuples !== 16) bad(`seed: values 행이 16건이 아님 (${tuples})`)
+  for (const m of sql.matchAll(/"targetApps":\[([^\]]+)\]/g)) {
+    for (const v of m[1].split(',').map(s => s.replace(/"/g, '').trim()))
+      if (!L.TARGET_APPS.includes(v)) bad(`seed: 알 수 없는 타겟 앱 ${v}`)
+  }
+  for (const m of sql.matchAll(/"appSlot":"([^"]+)"/g))
+    if (!L.appSlotById(m[1])) bad(`seed: 알 수 없는 구좌 ${m[1]}`)
+
+  /* 상태는 파이프라인 값만 */
+  const OK = new Set([...L.LOUNGE_STATUS, L.STATUS_REJECT])
+  for (const m of sql.matchAll(/,\s*'(접수|협의|확정|게시 완료|반려|[가-힣 ]+)',\s*\n?\s*'팀즈 소급 입력/g))
+    if (!OK.has(m[1])) bad(`seed: 알 수 없는 상태 ${m[1]}`)
+
+  /* 날짜는 ISO, 게시 종료가 시작보다 앞서면 안 됨 */
+  const rows = sql.split(/\('MR-260801-/).slice(1)
+  for (const r of rows) {
+    const ds = [...r.matchAll(/'(\d{4}-\d\d-\d\d)'/g)].map(m => m[1])
+    for (const d of ds) if (Number.isNaN(Date.parse(d))) bad(`seed: 날짜 형식 오류 ${d}`)
+  }
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)
