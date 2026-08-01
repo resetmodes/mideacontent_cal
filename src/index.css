@@ -2200,6 +2200,7 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .lg-sum b{font-size:17px;margin-right:6px;font-variant-numeric:tabular-nums;}
 .lg-sum.alert b{color:var(--clay);}
 .lg-sum.on{border-color:var(--green);color:var(--green);font-weight:700;}
+.lg-sum.static{cursor:default;}
 .lg-tblwrap{overflow-x:auto;}
 .lg-tbl{width:100%;border-collapse:collapse;font-size:13.5px;}
 .lg-tbl th{text-align:left;font-size:12px;color:var(--g500);font-weight:600;padding:0 10px 9px 0;}
