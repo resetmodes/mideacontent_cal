@@ -249,6 +249,38 @@ export function handoffPlan(f) {
   return { now, later, due }
 }
 
+/* ── 집행 결과 회신 텍스트 ('26.8 — 관리함 "결과 회신 복사") — 게시 완료 건을
+   신청 부서에 팀즈로 회신하는 카드. perf = campaignPerf.buildCampaignPerf 결과
+   (수치가 있는 매체만 싣고 나머지는 집계 확인 중 — 추정, 환산 없음).
+   boardUrl = 미러 진행 현황 (결과 이미지는 완료 카드 상세에서) */
+export function resultReply(r, perf, boardUrl) {
+  const d = r.details || {}
+  const L = []
+  L.push(`[집행 결과 회신] ${r.agenda}`)
+  L.push(`신청: ${r.dept} ${r.name}${r.reqNo ? ` (${r.reqNo})` : ''}`)
+  const media = r.media?.length ? r.media.join(', ') : ''
+  if (media) L.push(`집행 매체: ${media}${d.targetApps?.length ? ` (${d.targetApps.join(', ')})` : ''}`)
+  if (r.wishDate) L.push(`게시: ${r.wishDate}${r.wishEnd ? ` ~ ${r.wishEnd}` : ''}`)
+  if (perf?.rows?.length) {
+    const measured = perf.rows.filter(x => x.exp != null || x.act != null)
+    if (measured.length) {
+      L.push('성과 (수집 기준):')
+      for (const x of measured) {
+        const parts = []
+        if (x.exp != null) parts.push(`노출 ${x.exp.toLocaleString()}`)
+        if (x.act != null) parts.push(`${x.ch === '타겟APP' ? '클릭' : '반응'} ${x.act.toLocaleString()}`)
+        L.push(`- ${x.label}: ${parts.join(', ')}${x.note ? ` (${x.note})` : ''}`)
+      }
+    }
+    if (perf.pending?.length) L.push(`집계 확인 중: ${perf.pending.join(', ')}`)
+  } else {
+    L.push('성과: 집계 확인 중')
+  }
+  if (boardUrl) L.push(`결과 이미지와 전체 현황: ${boardUrl}`)
+  if (r.owner) L.push(`담당: 미디어콘텐츠팀 ${r.owner}`)
+  return L.join('\n')
+}
+
 /* ── 전달 양식 텍스트 ('26.8 — 관리함 "전달 양식으로 복사") — 가이드의 요청 템플릿 순서.
    담당자가 앱 어드민 등록이나 커뮤니케이션팀 전달에 그대로 쓴다.
    접수 완료 화면의 "접수 내용 복사"도 같은 텍스트 (신청자 보관, 팀즈 소통용) */

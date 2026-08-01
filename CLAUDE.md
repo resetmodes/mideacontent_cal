@@ -169,6 +169,14 @@
   **anon 접수 수리 ('26.8.1 점검)**: anon은 원본 SELECT 정책이 없어 return=representation이
   INSERT째 거부됨(RETURNING이 SELECT 권한 요구) — 무로그인이면 return=minimal + 로컬 구성.
   팀즈 메시지 자동 인입 워크플로는 검토 후 사용자 기각 ('26.8.1 — 팀즈 습관 영구화 역효과)
+- **결과 회신 카드 ('26.8.1)**: 관리함 게시 완료 건 "결과 회신 복사" — 신청 부서 팀즈
+  회신용 텍스트(lounge.js resultReply). 성과 = campaignPerf.buildCampaignPerf 재사용
+  (linked_events 우선, 없으면 캠페인 태그로 일정 수집 — 수치 있는 매체만 싣고 나머지는
+  "집계 확인 중", 추정 없음) + 미러 보드 링크 + 담당. SNS 수집분은 버튼 클릭 시에만
+  동적 import. 신청 → 게시 → 결과 회신 루프의 마지막 조각
+- **홈 라운지 위젯 ('26.8.1 — 기본 숨김)**: HomePage LoungeWidget (미배정 N건, 이번 주
+  게시 N건 → 라운지 탭 이동, 정산 배지 패턴). **config.js `LOUNGE_HOME_WIDGET = false`가
+  게이트** — 실험 종료 후 true 한 줄이면 홈에 노출 (사용자 지시로 현재 비노출)
 - **거버넌스**: 신청자 무계정 원칙 유지 — `media_requests`는 **anon INSERT만** 열고
   SELECT는 로그인 전용(신청자는 남의 신청 못 봄), 수정·삭제는 team_writers.
   계획안 등 기밀 문서는 파일로 안 받음(보유 체크만 → 담당 배정 후 팀즈 개별 공유),

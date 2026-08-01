@@ -9,6 +9,7 @@ import { IG } from './data/sns/instagram.js'
 import { buildHighlights } from './MonitorPage.jsx'
 import ChannelIcon from './ChannelIcon.jsx'
 import { autoGroups } from './lib/autoGroup.js'
+import { LOUNGE_HOME_WIDGET } from './config.js'
 
 /* 홈 ('26.7) — 접속 첫 화면. 중요도순: ⓪ 이번 주 요약 히어로(큰 숫자) ① 오늘·내일 팀원 근태
    ② 주요 콘텐츠 D-day(캠페인) ③ 이번 주 촬영 ④ 채널 이슈(모니터링 하이라이트 재사용)
@@ -443,6 +444,32 @@ function SettleBadge({ onGo }) {
   )
 }
 
+/* ── 바이럴 라운지 위젯 ('26.8 — 실험 중, config.js LOUNGE_HOME_WIDGET로 숨김) —
+   팀이 접수를 놓치는 유일한 실패 모드(미배정 방치) 방어. 정산 배지와 같은 패턴 */
+function LoungeWidget({ onGo }) {
+  const [n, setN] = useState(null)
+  useEffect(() => {
+    let alive = true
+    import('./lib/loungeStore.js').then(m => m.listRequests()).then(rows => {
+      if (!alive || !Array.isArray(rows)) return
+      const un = rows.filter(r => r.status === '접수' && !r.owner).length
+      const end = toISO(new Date(Date.now() + 7 * 86400000))
+      const week = rows.filter(r => r.status === '확정' && r.wishDate && r.wishDate <= end).length
+      setN({ un, week })
+    }).catch(() => {})
+    return () => { alive = false }
+  }, [])
+  if (!n || (!n.un && !n.week)) return null
+  const parts = []
+  if (n.un) parts.push(`미배정 ${n.un}건`)
+  if (n.week) parts.push(`이번 주 게시 ${n.week}건`)
+  return (
+    <button className="stl-badge" onClick={() => onGo('lounge')}>
+      바이럴 라운지 <b>{parts.join(', ')}</b>
+    </button>
+  )
+}
+
 /* RMN 영업 현황 카드는 '26.7.28 사용자 지시로 홈에서 제거 — 매출·미수금은 RMN 탭에서만 */
 
 /* ── 통합 검색 ('26.7.29) — 홈 우측 상단 하나. 일정, 매체 스펙, RMN 부킹을 한 번에.
@@ -569,6 +596,7 @@ export default function HomePage({ onGo, canSettle, onOpenSpec }) {
       </header>
 
       {canSettle && <SettleBadge onGo={onGo} />}
+      {LOUNGE_HOME_WIDGET && <LoungeWidget onGo={onGo} />}
       <WeekHero s={s} onGo={onGo} />
       <div className="home-cols">
         <div className="home-main">

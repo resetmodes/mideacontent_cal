@@ -527,6 +527,21 @@ for (const m of MEDIA) {
   })
   if (!txt.includes('타겟 앱: 아파트너, 위버스')) bad('lounge2: 전달 양식에 타겟 앱 누락')
   if (!txt.includes('소재 마감:') || !txt.includes('위버스 D-20')) bad('lounge2: 전달 양식에 소재 마감 누락')
+
+  /* 결과 회신 — 수치 있는 매체만 싣고 나머지는 집계 확인 중 (날조 금지) */
+  const reply = L.resultReply(
+    { agenda: '위스키 페어', dept: '영패션팀', name: '김현대', reqNo: 'MR-260801-01',
+      media: ['인스타', '버스광고'], wishDate: '2026-08-21', owner: '이수정 선임', details: {} },
+    { rows: [
+      { ch: '인스타', label: '인스타', exp: 12345, act: 678, note: '' },
+      { ch: '버스광고', label: 'BUS', exp: null, act: null, note: '' },
+    ], pending: ['BUS'] },
+    'https://mirror.example/#lounge',
+  )
+  for (const k of ['집행 결과 회신', '인스타: 노출 12,345, 반응 678', '집계 확인 중: BUS', '담당: 미디어콘텐츠팀 이수정 선임'])
+    if (!reply.includes(k)) bad(`lounge2: 결과 회신에 ${k} 누락`)
+  const empty = L.resultReply({ agenda: 'a', dept: 'b', name: 'c', media: [], details: {} }, null, '')
+  if (!empty.includes('성과: 집계 확인 중')) bad('lounge2: 성과 없음 회신 문구 누락')
 }
 
 /* 15. 라운지 공개 보드 뷰 ('26.8 전사 공개) — 무로그인 보드에 개인정보와 내부 정보가
