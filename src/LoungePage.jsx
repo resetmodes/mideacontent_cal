@@ -967,7 +967,8 @@ function ReqDetail({ r, onReload, onClose }) {
             </div>
           )}
         <div className="lg-kv">
-          <span className="k">신청</span><span>{r.dept} {r.name} ({r.email})</span>
+          {/* 팀즈 소급 입력 건은 이메일이 없다 — 빈 괄호가 뜨지 않게 */}
+          <span className="k">신청</span><span>{r.dept} {r.name}{r.email ? ` (${r.email})` : ''}</span>
           {(r.sellPoints.length > 0 || r.sellNote) && (<>
             <span className="k">소구점</span><span>{[r.sellPoints.join(', '), r.sellNote].filter(Boolean).join(', ')}</span>
           </>)}
