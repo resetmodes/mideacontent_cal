@@ -19,8 +19,9 @@ import {
 } from './data/lounge.js'
 import {
   listRequests, createRequest, updateRequest, deleteRequest,
-  uploadLoungeSource, loungeSourceUrl,
+  uploadLoungeSource, loungeSourceUrl, listBoard,
 } from './lib/loungeStore.js'
+import { MIRROR_URL } from './config.js'
 import { createEvent } from './lib/store.js'
 import { TEAM } from './data/team.js'
 import { toast } from './lib/toast.js'
@@ -608,6 +609,75 @@ function SlotMock({ slot, media, recommend, preview, title, body, ready, targetA
   )
 }
 
+/* ═══════════════ 공개 진행 현황 보드 ('26.8 전사 공개) ═══════════════
+   미러(무로그인)에서 모든 팀이 본다 — 누가 무엇을 신청했고 어디까지 진행됐는지.
+   데이터는 lounge_board 뷰 (이메일, 문안 상세, 소스, 반려 사유, 메모 제외) */
+export function LoungeBoard({ rows }) {
+  if (rows === null) return <div className="lg-empty">진행 현황을 준비 중입니다</div>
+  if (!rows?.length) return <div className="lg-empty">아직 접수된 신청이 없습니다, 첫 신청을 올려보세요</div>
+  const live = rows.filter(r => r.status !== STATUS_REJECT)
+  const doing = live.filter(r => r.status !== '게시 완료').length
+  const doneN = live.filter(r => r.status === '게시 완료').length
+  return (
+    <div>
+      <div className="lg-sums">
+        <span className="lg-sum"><b>{doing}</b>진행 중</span>
+        <span className="lg-sum"><b>{doneN}</b>게시 완료</span>
+      </div>
+      <div className="lg-tblwrap">
+        <table className="lg-tbl">
+          <thead><tr><th>접수</th><th>아젠다</th><th>신청</th><th>매체</th><th>게시</th><th>담당</th><th>상태</th></tr></thead>
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.id}>
+                <td>{fmtMd(r.createdAt?.slice(0, 10))}</td>
+                <td><b>{r.agenda}</b></td>
+                <td>{r.dept}{r.name ? ` ${r.name}` : ''}</td>
+                <td>{r.media.length ? r.media.join(', ') : '추천 요청'}</td>
+                <td>{fmtMd(r.wishDate)}{r.wishEnd ? ` 부터 ${fmtMd(r.wishEnd)}` : ''}</td>
+                <td>{r.owner || ''}</td>
+                <td><span className={`lg-st ${stClass(r.status)}`}>{r.status}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="lg-mk-note">접수와 배정, 진행은 미디어콘텐츠팀이 관리합니다</div>
+    </div>
+  )
+}
+
+/* 미러 사이트용 공개 화면 — 신청 폼 + 진행 현황 (관리함 없음) */
+export function LoungePublic() {
+  const [seg, setSeg] = useState('form')
+  const [board, setBoard] = useState(undefined)
+  const reload = async () => setBoard(await listBoard())
+  useEffect(() => { reload() }, [])
+  const todayCount = useMemo(() => {
+    if (!Array.isArray(board)) return null
+    const today = isoOf(new Date())
+    return board.filter(r => r.createdAt?.slice(0, 10) === today).length
+  }, [board])
+  return (
+    <div className="wrap lounge">
+      <header className="cal-head">
+        <div>
+          <h1>미디어 바이럴 라운지</h1>
+          <p className="cal-desc">현대백화점 미디어콘텐츠팀의 매체에 광고와 바이럴을 신청하는 창구입니다<br />접수 후 담당자가 배정되면 팀즈로 연락드립니다</p>
+        </div>
+      </header>
+      <div className="seg lg-seg">
+        <button className={seg === 'form' ? 'on' : ''} onClick={() => setSeg('form')}>신청 접수</button>
+        <button className={seg === 'board' ? 'on' : ''} onClick={() => { setSeg('board'); reload() }}>진행 현황</button>
+      </div>
+      {seg === 'form' && <LoungeForm todayCount={todayCount} onDone={reload} />}
+      {seg === 'board' && (board === undefined
+        ? <div className="lg-empty">불러오는 중</div>
+        : <LoungeBoard rows={board} />)}
+    </div>
+  )
+}
+
 /* ═══════════════ 접수 관리함 ═══════════════ */
 const PIPE = ['접수', '담당 배정', '협의', '확정', '게시 완료']
 const stClass = s => ({ '접수': 's0', '협의': 's1', '확정': 's2', '게시 완료': 's3', [STATUS_REJECT]: 'sr' }[s] || 's0')
@@ -898,8 +968,11 @@ export default function LoungePage() {
       <header className="cal-head">
         <div>
           <h1>미디어 바이럴 라운지</h1>
-          <p className="cal-desc">타 팀의 매체 광고, 바이럴 신청 접수와 진행 관리<br />지금은 팀 내부 검증 단계라 신청도 팀이 대신 입력합니다</p>
+          <p className="cal-desc">타 팀의 매체 광고, 바이럴 신청 접수와 진행 관리<br />신청 폼과 진행 현황은 미러 사이트에 전사 공개되어 있습니다</p>
         </div>
+        <button className="lg-btn share" onClick={async () => {
+          if (await copyText(`${MIRROR_URL}/#lounge`)) toast('신청 링크가 복사됨, 팀즈에 공유해 주세요')
+        }}>신청 링크 복사</button>
       </header>
       <div className="seg lg-seg">
         <button className={seg === 'inbox' ? 'on' : ''} onClick={() => setSeg('inbox')}>접수 관리</button>

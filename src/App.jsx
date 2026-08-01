@@ -106,9 +106,8 @@ export default function App() {
           {isSettle && (
             <button className={tab === 'settle' ? 'on' : ''} onClick={() => go('settle')}>정산</button>
           )}
-          {isAdmin && (
-            <button className={tab === 'lounge' ? 'on' : ''} onClick={() => go('lounge')}>바이럴 라운지</button>
-          )}
+          {/* 라운지 ('26.8 전사 공개 전환) — 접수 관리는 팀 로그인 전체, 쓰기 권한은 RLS(team_writers) */}
+          <button className={tab === 'lounge' ? 'on' : ''} onClick={() => go('lounge')}>바이럴 라운지</button>
           {isAdmin && (
             <button className={tab === 'admin' ? 'on' : ''} onClick={() => go('admin')}>어드민</button>
           )}
@@ -134,7 +133,7 @@ export default function App() {
         {tab === 'monitor' && <MonitorPage />}
         {tab === 'rmn' && <RmnPage />}
         {tab === 'settle' && isSettle && <SettlePage />}
-        {tab === 'lounge' && isAdmin && (
+        {tab === 'lounge' && (
           <Suspense fallback={null}><LoungePage /></Suspense>
         )}
         {tab === 'admin' && isAdmin && <AdminPage />}

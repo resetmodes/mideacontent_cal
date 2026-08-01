@@ -106,6 +106,27 @@ export async function uploadLoungeSource(file) {
   return { name: f.name, path, size: f.size }
 }
 
+/* ── 공개 진행 현황 보드 ('26.8 전사 공개) — lounge_board 뷰 (개인정보 컬럼 제외).
+   anon 키만으로 읽힘 (미러 무로그인). 뷰 미생성이면 null → 안내 문구 */
+export async function listBoard() {
+  if (!REMOTE) return null
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/lounge_board?select=*&order=created_at.desc&limit=100`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    })
+    if (!res.ok) return null
+    const rows = await res.json()
+    if (!Array.isArray(rows)) return null
+    return rows.map(r => ({
+      id: r.id, reqNo: r.req_no, dept: r.dept, name: r.name, agenda: r.agenda,
+      media: r.media || [], goal: r.goal,
+      eventStart: r.event_start, eventEnd: r.event_end,
+      wishDate: r.wish_date, wishEnd: r.wish_end,
+      status: r.status, owner: r.owner, createdAt: r.created_at,
+    }))
+  } catch { return null }
+}
+
 /* 비공개 버킷이라 <img src>로 직접 못 씀 — 토큰 fetch 후 blob URL (관리함 열람용) */
 export async function loungeSourceUrl(path) {
   const res = await req(`${STORE()}/authenticated/${BUCKET}/${path}`)
