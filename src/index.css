@@ -2177,6 +2177,19 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .lg-card-img img{width:100%;height:100%;object-fit:cover;display:block;}
 .lg-card-body{padding:13px 16px 15px;display:flex;flex-direction:column;gap:6px;}
 .lg-card.done h3{font-size:15px;}
+.lg-card.tap{cursor:pointer;transition:border-color .15s ease,transform .15s ease;}
+.lg-card.tap:hover{border-color:var(--green);transform:translateY(-2px);}
+@media (prefers-reduced-motion:reduce){ .lg-card.tap{transition:none;} .lg-card.tap:hover{transform:none;} }
+/* 완료 카드 상세 모달 */
+.lg-bdm{max-width:600px;}
+.lg-bdm-head h3{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-top:8px;}
+.lg-bdm-head .lg-card-meta{margin-top:4px;}
+.lg-bdm-imgs{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.lg-bdm-imgs.one{grid-template-columns:1fr;}
+.lg-bdm-imgs img{width:100%;max-height:340px;object-fit:cover;border-radius:14px;
+  border:1px solid var(--g100);display:block;}
+.lg-bdm-kv{margin-top:16px;}
+.lg-bdm-close{width:100%;margin-top:14px;}
 @media (max-width:560px){ .lg-cards,.lg-cards.compact{grid-template-columns:1fr 1fr;}
   .lg-card h3{font-size:14.5px;} }
 

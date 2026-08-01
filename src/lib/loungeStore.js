@@ -62,17 +62,29 @@ export async function listRequests() {
   } catch { return null }
 }
 
-/* 접수 — 접수번호는 오늘 등록 건수 기준 순번. 신청자는 SELECT 권한이 없어 순번 조회가
-   불가하므로 todayCount는 호출측(내부 화면)이 넘기고, 없으면 시각 기반 폴백 */
+/* 접수 — 접수번호는 오늘 등록 건수 기준 순번 (todayCount는 호출측이 공개 보드에서 계산).
+   주의('26.8 점검에서 발견): anon(미러 무로그인)은 원본 테이블 SELECT 정책이 없어
+   return=representation이 INSERT째 거부된다 (RETURNING이 SELECT 권한을 요구) —
+   무로그인이면 최소 응답으로 넣고 화면용 객체는 로컬에서 구성한다 */
 export async function createRequest(r, todayCount) {
   const today = isoOf(new Date())
   const seq = todayCount != null ? todayCount + 1
     : (new Date().getHours() * 60 + new Date().getMinutes()) % 99 + 1
   const reqNo = makeReqNo(today, seq)
+  const body = JSON.stringify({ ...toDb(r), req_no: reqNo })
+  const token = await getAccessToken()
+  if (!token) {
+    await req(API(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body,
+    })
+    return { ...r, reqNo, status: '접수', createdAt: new Date().toISOString() }
+  }
   const res = await req(API(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Prefer: 'return=representation' },
-    body: JSON.stringify({ ...toDb(r), req_no: reqNo }),
+    body,
   })
   const rows = await res.json()
   return fromDb(rows[0])
