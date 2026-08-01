@@ -22,6 +22,10 @@ export const NOTION_REVIEW_EMAILS = [
   'kyuvin@thehyundai.com',   // 노규빈 선임
 ]
 
+/* 홈 화면 바이럴 라운지 위젯 ('26.8 — 실험 중이라 기본 숨김, 사용자 지시)
+   true로 바꾸면 홈 상단에 "미배정, 이번 주 게시" 배지가 노출됨 */
+export const LOUNGE_HOME_WIDGET = false
+
 /* 정산 탭('#settle') 접근 계정 ('26.7 테스트 — 3인. 전 팀 오픈 시 목록 확장 또는 게이트 제거) */
 export const SETTLE_EMAILS = [
   'kyuvin@thehyundai.com',    // 노규빈 선임

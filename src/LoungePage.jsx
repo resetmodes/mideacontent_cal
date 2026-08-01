@@ -14,7 +14,7 @@ import {
   AUDIENCE_KINDS, CARD_GRADES, EXCEL_NOTE, DEFAULT_OWNERS,
   LOUNGE_STATUS, STATUS_REJECT,
   TARGET_APPS, targetSpec, maxTargetLead, targetCaution, parseSize,
-  leadCheck, bizDeadline, fmtKday, handoffPlan,
+  leadCheck, bizDeadline, fmtKday, handoffPlan, resultReply,
   hasEmoji, overLines, ratioOff, isoOf, transferText,
 } from './data/lounge.js'
 import {
@@ -24,7 +24,7 @@ import {
 import { MIRROR_URL } from './config.js'
 import ChannelIcon from './ChannelIcon.jsx'
 import ModalShell from './ModalShell.jsx'
-import { createEvent } from './lib/store.js'
+import { createEvent, listEvents } from './lib/store.js'
 import { TEAM } from './data/team.js'
 import { toast } from './lib/toast.js'
 import { copyText } from './lib/clipboard.js'
@@ -920,6 +920,24 @@ function ReqDetail({ r, onReload, onClose }) {
 
   const copyTransfer = async () => { if (await copyText(transferText(r))) toast('전달 양식이 복사됨') }
 
+  /* 결과 회신 ('26.8) — 게시 완료 건을 신청 부서에 팀즈로 회신하는 카드 텍스트.
+     성과는 캠페인 통합 성과와 같은 계산(campaignPerf — 수치 없는 매체는 집계 확인 중),
+     무거운 SNS 수집분은 버튼을 눌렀을 때만 불러온다 */
+  const copyReply = () => act(async () => {
+    const camp = (r.agenda || '').replace(/\s+/g, '').slice(0, 20)
+    const [perfMod, taMod] = await Promise.all([
+      import('./lib/campaignPerf.js'), import('./lib/targetappStore.js'),
+    ])
+    const all = await listEvents().catch(() => [])
+    const ids = new Set(r.linkedEvents || [])
+    let evs = all.filter(e => ids.has(e.id))
+    if (!evs.length && camp) evs = all.filter(e => (e.campaign || '') === camp)
+    const taRows = await taMod.listTargetApp().catch(() => null)
+    const perf = evs.length ? perfMod.buildCampaignPerf(evs, { taRows, campaign: camp }) : null
+    if (await copyText(resultReply(r, perf, `${MIRROR_URL}/#lounge`)))
+      toast('결과 회신이 복사됨, 팀즈로 신청 부서에 전달해 주세요')
+  })
+
   const doneIdx = (() => {
     if (r.status === STATUS_REJECT) return -1
     const map = { '접수': 0, '협의': 2, '확정': 3, '게시 완료': 4 }
@@ -1047,6 +1065,9 @@ function ReqDetail({ r, onReload, onClose }) {
         )}
 
         <div className="lg-actrow lg-mt">
+          {r.status === '게시 완료' && (
+            <button className="lg-act primary2" disabled={busy} onClick={copyReply}>결과 회신 복사</button>
+          )}
           <button className="lg-act" onClick={copyTransfer}>전달 양식으로 복사</button>
           {!delArm
             ? <button className="lg-act" onClick={() => setDelArm(true)}>삭제</button>
