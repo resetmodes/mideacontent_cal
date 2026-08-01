@@ -798,10 +798,13 @@ function LoungeInbox({ rows, onReload }) {
     <div className="lg-empty">라운지 테이블이 아직 설정되지 않았습니다, data/lounge-setup.sql 실행 후 사용할 수 있습니다 (setup.md 14장)</div>
   )
   const live = rows.filter(r => r.status !== STATUS_REJECT)
-  const unassigned = live.filter(r => !r.owner && r.status === '접수')
+  /* 미배정 = 담당 없는 미완료 건 전부 ('26.8.1 수리 — 접수 상태만 세면 소급 입력처럼
+     협의, 확정인데 담당이 빈 건들이 요약에서 사라진다) */
+  const unassigned = live.filter(r => !r.owner && r.status !== '게시 완료')
   const talking = live.filter(r => r.status === '협의')
+  const today = isoOf(new Date())
   const weekEnd = isoOf(new Date(Date.now() + 7 * 86400000))
-  const thisWeek = live.filter(r => r.status === '확정' && r.wishDate && r.wishDate <= weekEnd)
+  const thisWeek = live.filter(r => r.status === '확정' && r.wishDate && r.wishDate >= today && r.wishDate <= weekEnd)
   const shown = filter === 'un' ? unassigned : filter === 'talk' ? talking : filter === 'week' ? thisWeek : rows
 
   return (
@@ -947,7 +950,8 @@ function ReqDetail({ r, onReload, onClose }) {
   })()
   const today = isoOf(new Date())
   const tNeed = d.targetApps?.length ? maxTargetLead(d.targetApps) : null
-  const lead = r.wishDate
+  /* 게시일이 이미 지난 건(소급 입력 등)은 리드타임 경고가 소음이라 계산하지 않음 */
+  const lead = r.wishDate && r.wishDate >= today
     ? (slot ? leadCheck(today, r.wishDate, d.ready)
       : tNeed ? leadCheck(today, r.wishDate, null, tNeed.need) : null)
     : null

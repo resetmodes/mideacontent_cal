@@ -1,10 +1,13 @@
-# 계정 이관 인수인계 ('26.7.31)
+# 계정 이관 인수인계 ('26.7.31 작성, '26.8.1 갱신)
 
 회사 정책으로 다른 Claude 계정에서 이 프로젝트를 이어가기 위한 문서입니다.
 **코드와 데이터는 그대로 있고, 옮겨야 하는 것은 접근 권한과 자격증명뿐입니다.**
 
 사이트 https://mediacontent-cal.vercel.app
 저장소 resetmodes/mideacontent_cal
+
+'26.8.1 갱신분: **미디어 바이럴 라운지**(전사 매체 신청 창구)가 추가되었습니다.
+관련 SQL 2건(14장, 14-1장)과 미러 사이트 우선순위 상승이 이 문서에 반영돼 있습니다.
 
 ---
 
@@ -36,7 +39,7 @@
 |---|---|
 | `docs/runbook.md` | 장애 대응. 수집 실패, 배포 이상, 데이터 소실 |
 | `docs/team-guide.md` | 팀원에게 사용법을 안내할 때 |
-| `data/supabase-setup.md` | DB 테이블과 정책. 12개 장, 기능별로 나뉨 |
+| `data/supabase-setup.md` | DB 테이블과 정책. 14개 장, 기능별로 나뉨 |
 | `data/mirror-setup.md` | 미러 사이트 배포 절차 |
 | `docs/teams-webhook-setup.md` | 팀즈 아침 브리핑 웹훅 재발급 |
 | `docs/yt-analytics-setup.md` | 유튜브 스튜디오 지표 연동. 토큰 만료 시 재발급 |
@@ -58,6 +61,30 @@
 | `data/media-kit-2025.md` | THE HYUNDAI 미디어킷 원본 정리 |
 | `data/app-guja-request.md` | 앱 구좌 신청 프로세스 |
 | `docs/handover-2607.md` | 이전 세션 스냅샷. 과거 기록용 |
+
+### 바이럴 라운지 파일 지도 ('26.8.1 추가)
+
+전사 타 팀이 매체 광고, 바이럴을 신청하는 창구입니다. 신청 폼과 진행 현황 보드는
+미러 사이트(무로그인)에 공개, 접수 관리함은 본 사이트 팀 로그인 전용입니다.
+상세 사양은 CLAUDE.md "미디어 바이럴 라운지" 절에 있습니다.
+
+| 파일 | 내용 |
+|---|---|
+| `src/LoungePage.jsx` | 신청 폼, 접수 관리함, 공개 보드(카드형), 완료 상세 모달 |
+| `src/data/lounge.js` | APP 광고 가이드 규칙 단일 소스. 구좌 4종, 리드타임 3단, 영업일 계산, 전달 양식, 결과 회신 |
+| `src/lib/loungeStore.js` | media_requests CRUD, 브랜드 소스 업로드, 공개 보드 조회 |
+| `data/lounge-setup.sql` | 테이블, RLS, 비공개 버킷, 공개 보드 뷰 (setup.md 14장) |
+| `data/lounge-seed.sql` | 팀즈 이력 16건 소급 입력 (setup.md 14-1장) |
+
+주의할 설계 결정 세 가지입니다.
+
+- 신청자는 무계정입니다 (계정 발급 금지 거버넌스). 신청 INSERT만 anon에 열려 있고
+  전사 공개 조회는 `lounge_board` 뷰뿐입니다. **뷰에 컬럼을 추가하면 곧 전사 공개**이므로
+  test-data 15가 비공개 컬럼 유입을 감시합니다
+- 계획안 등 기밀 문서와 푸시 타겟 고객번호 파일은 시스템에 받지 않습니다 (보유 체크만,
+  담당 배정 후 팀즈 개별 공유)
+- 팀즈 메시지 자동 인입은 검토 후 기각됐습니다 (팀즈 습관 영구화 역효과). 다시 꺼내려면
+  사용자와 재논의가 필요합니다
 
 ---
 
@@ -171,6 +198,9 @@ Vercel과 GitHub Actions 모두 비공개 저장소에서 동작합니다. Actio
 | 10 | 일정 이미지 첨부 | `media_events.images` 컬럼, `event-images` 버킷 |
 | 11 | 노션 동기화 | `media_events.notion_id`, `notion_gone` 컬럼 |
 | 12 | 광고주 공유 리포트 | `rmn_share` 테이블 |
+| 13 | 월간 리포트 스냅샷 | `monthly_reports` 테이블 |
+| 14 | 바이럴 라운지 | `media_requests` 테이블, `lounge_board` 뷰, `lounge-src` 버킷 |
+| 14-1 | 라운지 팀즈 이력 시드 | `media_requests`에 `MR-260801-%` 16건 |
 
 **10장은 반드시 3회로 나눠 실행하세요.** 한 번에 Run 하면 뒤쪽 정책문이 실패할 때 앞의 버킷 생성까지 롤백되어, 성공 메시지를 봐도 버킷이 없는 상태가 됩니다.
 
@@ -183,6 +213,8 @@ Vercel과 GitHub Actions 모두 비공개 저장소에서 동작합니다. Actio
 | 8-x | 해당 기능 저장만 실패 |
 | 10장 | 이미지 첨부 저장만 실패 |
 | 12장 | 광고주 공유 링크 발급만 실패 |
+| 13장 | 월간 리포트 저장만 실패 |
+| 14장 | 라운지 탭이 안내 문구만 표시 |
 
 **다른 기능은 영향받지 않습니다.** 실패해도 사이트가 죽지 않게 설계돼 있습니다.
 
@@ -221,13 +253,21 @@ Vercel과 GitHub Actions 모두 비공개 저장소에서 동작합니다. Actio
 |---|---|
 | 저장소 비공개 전환 | 미실행. 3-3 참조 |
 | 유튜브 이야호 채널 | 토큰 미등록. `YT_OAUTH_REFRESH_TOKEN_4` 추가하면 붙음 |
-| 미러 사이트 | Vercel 프로젝트 생성과 Supabase anon 정책 대기. `data/mirror-setup.md` |
+| **미러 사이트** | Vercel 프로젝트 생성과 Supabase anon 정책 대기. `data/mirror-setup.md`. **라운지 전사 공개의 입구라 우선순위가 올라감** |
+| 바이럴 라운지 DB | `data/lounge-setup.sql` 1회 실행 대기 (setup.md 14장). 미실행 시 라운지 탭 안내 문구만 |
+| 라운지 초기 데이터 | `data/lounge-seed.sql` 1회 실행 대기 (setup.md 14-1장). 팀즈 이력 16건, 상태와 담당은 관리함에서 보정 |
 | 월간 리포트 서술 생성 | Vercel 환경변수 `ANTHROPIC_API_KEY` 등록 대기 (setup.md 13장) |
 | 월간 리포트 스냅샷 | `data/report-setup.sql` 1회 실행 대기 (setup.md 13장) |
+| 홈 라운지 위젯 | 구현 완료, 실험 중이라 숨김. `src/config.js LOUNGE_HOME_WIDGET = true` 한 줄로 노출 |
+| 라운지 신청 수정 폼 | B안(신청 폼 재사용) 제안까지. 사용자 승인 대기 |
+| 라운지 알림 | Supabase Database Webhook + Power Automate 제안까지 (팀 새 신청 알림, 신청자 배정 메일). Power Automate HTTP 트리거 라이선스 확인 대기 |
+| 팀즈 브리핑 새 신청 한 줄 | 제안까지. 공식 채널 금지선이 있어 사용자 승인 필요 |
 | AI 어시스턴트 | 설계만. 구현 미착수 |
 | 정산 계정과목 | 임시 5종. 실목록 대기 |
 | 고지물(PMS) 스펙 | 가안 유지. 파트 확인 대기 |
-| 앱 구좌, Shopping info 규격 | 아이랩 확인 대기 |
+
+'26.7.31판에 있던 "앱 구좌, Shopping info 규격 아이랩 확인 대기"는 해소됐습니다 —
+APP 광고 가이드로 750×750 확정, media.js 반영 완료.
 
 ---
 

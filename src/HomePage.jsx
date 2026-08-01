@@ -452,9 +452,10 @@ function LoungeWidget({ onGo }) {
     let alive = true
     import('./lib/loungeStore.js').then(m => m.listRequests()).then(rows => {
       if (!alive || !Array.isArray(rows)) return
-      const un = rows.filter(r => r.status === '접수' && !r.owner).length
+      const un = rows.filter(r => !r.owner && r.status !== '게시 완료' && r.status !== '반려').length
+      const today = toISO(new Date())
       const end = toISO(new Date(Date.now() + 7 * 86400000))
-      const week = rows.filter(r => r.status === '확정' && r.wishDate && r.wishDate <= end).length
+      const week = rows.filter(r => r.status === '확정' && r.wishDate && r.wishDate >= today && r.wishDate <= end).length
       setN({ un, week })
     }).catch(() => {})
     return () => { alive = false }
