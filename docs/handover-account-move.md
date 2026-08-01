@@ -222,7 +222,8 @@ Vercel과 GitHub Actions 모두 비공개 저장소에서 동작합니다. Actio
 | 저장소 비공개 전환 | 미실행. 3-3 참조 |
 | 유튜브 이야호 채널 | 토큰 미등록. `YT_OAUTH_REFRESH_TOKEN_4` 추가하면 붙음 |
 | 미러 사이트 | Vercel 프로젝트 생성과 Supabase anon 정책 대기. `data/mirror-setup.md` |
-| 월간 집행 리포트 | 규빈 님 양식 전달 대기. 데이터 계층은 완료 |
+| 월간 리포트 서술 생성 | Vercel 환경변수 `ANTHROPIC_API_KEY` 등록 대기 (setup.md 13장) |
+| 월간 리포트 스냅샷 | `data/report-setup.sql` 1회 실행 대기 (setup.md 13장) |
 | AI 어시스턴트 | 설계만. 구현 미착수 |
 | 정산 계정과목 | 임시 5종. 실목록 대기 |
 | 고지물(PMS) 스펙 | 가안 유지. 파트 확인 대기 |

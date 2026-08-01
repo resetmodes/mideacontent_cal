@@ -3,6 +3,7 @@ import { CHANNELS, channelById } from './data/channels.js'
 import { listEvents, updateEvent, deleteEvent, createEvent, listDeleted, storageMode } from './lib/store.js'
 import { listTargetApp, createTargetApp, updateTargetApp, deleteTargetApp, deleteAllTargetApp } from './lib/targetappStore.js'
 import ChannelIcon from './ChannelIcon.jsx'
+const ReportDeck = React.lazy(() => import('./ReportDeck.jsx'))
 
 /* 어드민 페이지 ('26.7) — #admin, config.js ADMIN_EMAILS 계정만 탭 노출.
    ① 일정 일괄 관리(필터·다중 선택 → 일괄 삭제·캠페인 변경) ② 최근 삭제 복원
@@ -458,12 +459,18 @@ export default function AdminPage() {
       <header>
         <h1>어드민</h1>
         <div className="masthead-sub">
-          일정 일괄 관리와 삭제 복원, 타겟APP 실적 입력 (지정 계정 전용)
+          일정 일괄 관리와 삭제 복원, 타겟APP 실적 입력, 월간 리포트 (지정 계정 전용)
         </div>
       </header>
       <BulkEvents />
       <RestoreDeleted />
       <TargetAppAdmin />
+      {/* 월간 운영 리포트 ('26.7.31) — 수치는 코드 계산, 서술만 모델. 동적 import 로 비진입 시 비용 0 */}
+      <AdmSection title="월간 운영 리포트" count="16:9 덱, 서술 생성과 저장">
+        <React.Suspense fallback={<div className="mon-note">불러오는 중</div>}>
+          <ReportDeck />
+        </React.Suspense>
+      </AdmSection>
     </div>
   )
 }

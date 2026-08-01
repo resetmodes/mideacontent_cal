@@ -1,8 +1,8 @@
 # 월간 집행 리포트 — 데이터 계약 ('26.7 선행 설계·구현)
 
-> 상태: **데이터 계층 구현 완료** (`src/lib/report.js` + `scripts/test-report.mjs`).
-> **UI·출력물은 미착수** — 규빈의 별도 양식을 받으면 이 계약 위에 매핑만 하면 된다 ('26.7 합의).
-> 양식 매핑·렌더는 고가 모델 세션 권장 (PLAYBOOK 8장).
+> 상태: **전체 구현 완료 ('26.7.31)** — 덱 렌더는 `src/ReportDeck.jsx`(어드민),
+> 확장 집계는 `src/lib/reportDeck.js`, 서술 생성은 `api/report-narrate.js`.
+> 이 문서의 귀속 규칙은 계속 계약 원본 (reportDeck.js 도 이 규칙 위에서 계산).
 
 ## 데이터 소스
 
