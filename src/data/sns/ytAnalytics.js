@@ -1,22 +1,15 @@
 /* 자동 생성 — scripts/sns/yt-analytics.mjs 로 갱신. 직접 수정 금지 */
 export const YTA = {
  "source": "youtube-analytics-api-v2",
- "generatedAt": "2026-07-31T04:53:42.284Z",
+ "generatedAt": "2026-08-02T22:26:01.914Z",
  "range": {
-  "start": "2026-04-01",
-  "end": "2026-07-31"
+  "start": "2026-05-01",
+  "end": "2026-08-03"
  },
- "note": "YouTube 스튜디오 기준 2026-04-01~2026-07-31. 노출수·CTR은 API 미제공(스튜디오 전용).",
+ "note": "YouTube 스튜디오 기준 2026-05-01~2026-08-03. 노출수·CTR은 API 미제공(스튜디오 전용).",
  "channels": {
   "the_hyundai": {
    "monthly": [
-    {
-     "month": "2026-04",
-     "views": 16549412,
-     "minutes": 2333447,
-     "subsNet": -165,
-     "avgViewSec": 8
-    },
     {
      "month": "2026-05",
      "views": 10985822,
@@ -26,243 +19,243 @@ export const YTA = {
     },
     {
      "month": "2026-06",
-     "views": 792750,
-     "minutes": 640399,
+     "views": 792864,
+     "minutes": 640359,
      "subsNet": -107,
      "avgViewSec": 48
     },
     {
      "month": "2026-07",
-     "views": 1289301,
-     "minutes": 384154,
-     "subsNet": -164,
+     "views": 1294650,
+     "minutes": 392634,
+     "subsNet": -178,
      "avgViewSec": 18
     }
    ],
    "totals": {
-    "views": 29617285,
-    "minutes": 5364826,
-    "subsNet": -598,
-    "avgViewSec": 25,
-    "avgViewPct": 72.3,
-    "likes": 4954,
-    "comments": 223,
-    "shares": 1747
+    "views": 13073336,
+    "minutes": 3039802,
+    "subsNet": -447,
+    "avgViewSec": 33,
+    "avgViewPct": 66,
+    "likes": 3839,
+    "comments": 146,
+    "shares": 1266
    },
    "top": [
     {
-     "videoId": "P_tw0198lcI",
-     "title": "HiHi, 더현대Hi 4/6 GRAND OPENING",
-     "views": 9594189,
-     "minutes": 1459606
-    },
-    {
-     "videoId": "6D6S4YlqGmg",
-     "title": "더현대Hi 4/6 GRAND OPENING",
-     "views": 4499784,
-     "minutes": 650281
-    },
-    {
      "videoId": "NWs6NnJCXmw",
      "title": "[더현대Hi] 이이담의 감각적인 취향이 궁금하다면? 아이콘샵에 놀러와!👀",
-     "views": 1770143,
-     "minutes": 83044
+     "views": 1701822,
+     "minutes": 80145
     },
     {
      "videoId": "beJW0LNr_ns",
      "title": "[더현대Hi]  홍태준처럼 입고싶어? 아이콘샵에 놀러와!👀",
-     "views": 1659801,
-     "minutes": 67009
+     "views": 1542023,
+     "minutes": 62447
     },
     {
      "videoId": "DHp_vjKkiTo",
      "title": "[더현대Hi]  홍태준처럼 입고싶어? 아이콘샵에 놀러와!👀",
-     "views": 1491623,
-     "minutes": 526521
+     "views": 1462672,
+     "minutes": 515866
     },
     {
      "videoId": "-rdHIec8Mmw",
      "title": "[더현대Hi] 이이담의 감각적인 취향이 궁금하다면? 아이콘샵에 놀러와!👀",
-     "views": 1442306,
-     "minutes": 519552
+     "views": 1406163,
+     "minutes": 507017
     },
     {
      "videoId": "41lDtT15OYA",
      "title": "[더현대Hi] 배우 이이담이 좋아하는 것들과 인사해👋",
-     "views": 1336772,
-     "minutes": 277163
+     "views": 1311162,
+     "minutes": 271738
     },
     {
      "videoId": "RGfRZ4kOfhU",
      "title": "[더현대Hi] 모델 홍태준이 좋아하는 것들과 인사해👋",
-     "views": 1318145,
-     "minutes": 273886
+     "views": 1287783,
+     "minutes": 267513
     },
     {
      "videoId": "CD5b_uXJG0w",
      "title": "[더현대Hi] 배우 이이담이 좋아하는 것들과 인사해👋",
-     "views": 1096949,
-     "minutes": 39705
+     "views": 1055441,
+     "minutes": 38267
     },
     {
      "videoId": "eSWfwqwGbdM",
      "title": "[더현대Hi] 모델 홍태준이 좋아하는 것들과 인사해👋",
-     "views": 1045875,
-     "minutes": 34554
+     "views": 999621,
+     "minutes": 32608
+    },
+    {
+     "videoId": "kMqKdnUNP58",
+     "title": "오늘은 뭐 입지? 어떡해?",
+     "views": 660343,
+     "minutes": 181977
+    },
+    {
+     "videoId": "dGywWczseWs",
+     "title": "지금 현대 ㅣ돌체앤가바나 Dolce&Gabbana",
+     "views": 349862,
+     "minutes": 382091
     }
    ],
    "traffic": [
     {
      "source": "ADVERTISING",
-     "views": 29419835,
-     "minutes": 5027651
+     "views": 12907972,
+     "minutes": 2759756
     },
     {
      "source": "PLAYLIST",
-     "views": 68637,
-     "minutes": 112665
+     "views": 68849,
+     "minutes": 107600
     },
     {
      "source": "YT_SEARCH",
-     "views": 51516,
-     "minutes": 58278
+     "views": 38642,
+     "minutes": 43294
     },
     {
      "source": "SUBSCRIBER",
-     "views": 27120,
-     "minutes": 64428
+     "views": 21697,
+     "minutes": 51143
     },
     {
      "source": "NO_LINK_OTHER",
-     "views": 13566,
-     "minutes": 16800
+     "views": 10249,
+     "minutes": 13997
     },
     {
      "source": "EXT_URL",
-     "views": 11490,
-     "minutes": 10378
-    },
-    {
-     "source": "SHORTS",
-     "views": 11098,
-     "minutes": 1603
+     "views": 9591,
+     "minutes": 8552
     },
     {
      "source": "RELATED_VIDEO",
-     "views": 10805,
-     "minutes": 55871
+     "views": 8292,
+     "minutes": 42390
+    },
+    {
+     "source": "SHORTS",
+     "views": 7890,
+     "minutes": 1108
     },
     {
      "source": "YT_CHANNEL",
-     "views": 8432,
-     "minutes": 8917
+     "views": 6028,
+     "minutes": 6143
     },
     {
      "source": "YT_OTHER_PAGE",
-     "views": 2267,
-     "minutes": 7320
+     "views": 1782,
+     "minutes": 5386
     },
     {
      "source": "NOTIFICATION",
-     "views": 483,
-     "minutes": 362
+     "views": 332,
+     "minutes": 333
     },
     {
      "source": "SHORTS_CONTENT_LINKS",
-     "views": 307,
-     "minutes": 878
+     "views": 202,
+     "minutes": 495
     },
     {
      "source": "HASHTAGS",
-     "views": 94,
-     "minutes": 71
+     "views": 83,
+     "minutes": 68
     },
     {
      "source": "END_SCREEN",
-     "views": 73,
-     "minutes": 314
+     "views": 60,
+     "minutes": 293
     },
     {
      "source": "SOUND_PAGE",
-     "views": 11,
-     "minutes": 1
+     "views": 3,
+     "minutes": 0
     },
     {
      "source": "ANNOTATION",
-     "views": 3,
-     "minutes": 14
+     "views": 2,
+     "minutes": 9
     }
    ],
    "demo": [
     {
      "age": "age45-54",
      "gender": "female",
-     "pct": 25.9
+     "pct": 20.3
     },
     {
      "age": "age25-34",
      "gender": "female",
-     "pct": 23.5
-    },
-    {
-     "age": "age35-44",
-     "gender": "female",
-     "pct": 15.5
+     "pct": 18.2
     },
     {
      "age": "age25-34",
      "gender": "male",
-     "pct": 14.1
+     "pct": 15
+    },
+    {
+     "age": "age35-44",
+     "gender": "female",
+     "pct": 11.9
     },
     {
      "age": "age35-44",
      "gender": "male",
-     "pct": 10.5
+     "pct": 11.3
     },
     {
      "age": "age45-54",
      "gender": "male",
-     "pct": 2.3
+     "pct": 4.8
     },
     {
      "age": "age55-64",
      "gender": "male",
-     "pct": 2
+     "pct": 4.5
     },
     {
      "age": "age18-24",
+     "gender": "male",
+     "pct": 3.7
+    },
+    {
+     "age": "age18-24",
+     "gender": "female",
+     "pct": 2.1
+    },
+    {
+     "age": "age55-64",
+     "gender": "female",
+     "pct": 2.1
+    },
+    {
+     "age": "age65-",
+     "gender": "male",
+     "pct": 2.1
+    },
+    {
+     "age": "age13-17",
      "gender": "male",
      "pct": 1.7
     },
     {
-     "age": "age18-24",
-     "gender": "female",
-     "pct": 1
-    },
-    {
-     "age": "age55-64",
-     "gender": "female",
-     "pct": 0.9
-    },
-    {
-     "age": "age65-",
-     "gender": "male",
-     "pct": 0.9
-    },
-    {
-     "age": "age13-17",
-     "gender": "male",
-     "pct": 0.7
-    },
-    {
      "age": "age65-",
      "gender": "female",
-     "pct": 0.5
+     "pct": 1.2
     },
     {
      "age": "age13-17",
      "gender": "female",
-     "pct": 0.4
+     "pct": 1.1
     },
     {
      "age": "age18-24",
@@ -288,31 +281,24 @@ export const YTA = {
    "device": [
     {
      "type": "MOBILE",
-     "views": 14838900
+     "views": 6104966
     },
     {
      "type": "DESKTOP",
-     "views": 8361913
+     "views": 3748095
     },
     {
      "type": "TABLET",
-     "views": 5571862
+     "views": 2393648
     },
     {
      "type": "TV",
-     "views": 602177
+     "views": 586227
     }
    ]
   },
   "wazitwine": {
    "monthly": [
-    {
-     "month": "2026-04",
-     "views": 211193,
-     "minutes": 353049,
-     "subsNet": 150,
-     "avgViewSec": 100
-    },
     {
      "month": "2026-05",
      "views": 2246673,
@@ -322,161 +308,161 @@ export const YTA = {
     },
     {
      "month": "2026-06",
-     "views": 345049,
-     "minutes": 458880,
+     "views": 344950,
+     "minutes": 458761,
      "subsNet": 124,
      "avgViewSec": 80
     },
     {
      "month": "2026-07",
-     "views": 369255,
-     "minutes": 711444,
-     "subsNet": 693,
-     "avgViewSec": 116
+     "views": 389695,
+     "minutes": 761111,
+     "subsNet": 743,
+     "avgViewSec": 117
     }
    ],
    "totals": {
-    "views": 3172170,
-    "minutes": 2560720,
-    "subsNet": 2870,
-    "avgViewSec": 94,
-    "avgViewPct": 35.3,
-    "likes": 21796,
-    "comments": 1812,
-    "shares": 2455
+    "views": 2981318,
+    "minutes": 2257207,
+    "subsNet": 2770,
+    "avgViewSec": 89,
+    "avgViewPct": 36.1,
+    "likes": 19909,
+    "comments": 1583,
+    "shares": 2103
    },
    "top": [
     {
      "videoId": "3C-UKxOcm_M",
      "title": "와인잔 잡는 법",
-     "views": 954344,
-     "minutes": 187813
+     "views": 954366,
+     "minutes": 187817
     },
     {
      "videoId": "3gL0uPPOT2Y",
      "title": "빵 썰어먹지 마세요",
-     "views": 352462,
-     "minutes": 53933
+     "views": 352472,
+     "minutes": 53934
     },
     {
      "videoId": "jhIq0LN_JUQ",
      "title": "레스토랑 깔개(?) 사용법",
-     "views": 201280,
-     "minutes": 69306
+     "views": 201285,
+     "minutes": 69308
     },
     {
      "videoId": "Bsu59ey6Lqw",
      "title": "내빵내물 찾는 법",
-     "views": 137022,
-     "minutes": 31878
+     "views": 137028,
+     "minutes": 31879
     },
     {
      "videoId": "K8W1D98erDA",
      "title": "브랜디와 위스키 차이",
-     "views": 85057,
-     "minutes": 29332
+     "views": 85288,
+     "minutes": 29418
     },
     {
      "videoId": "5XuTHpMkrvQ",
      "title": "화이트와인에 생선을 먹는 이유",
-     "views": 78202,
-     "minutes": 23194
+     "views": 78208,
+     "minutes": 23196
     },
     {
      "videoId": "hvVShNwmIKg",
      "title": "와인은 언제 마시는 게 좋아요?",
-     "views": 63274,
-     "minutes": 17575
+     "views": 63279,
+     "minutes": 17576
     },
     {
      "videoId": "ihIOTV2EzaY",
      "title": "와인 색 확인하는 법",
-     "views": 53867,
+     "views": 53869,
      "minutes": 14358
-    },
-    {
-     "videoId": "wVAW1kf4ADk",
-     "title": "와인 멋있게 따는 법",
-     "views": 49164,
-     "minutes": 15122
     },
     {
      "videoId": "BnoxOTsIsj0",
      "title": "소믈리에는 와인을 다 외운다",
-     "views": 37874,
-     "minutes": 9773
+     "views": 37902,
+     "minutes": 9781
+    },
+    {
+     "videoId": "wVAW1kf4ADk",
+     "title": "와인 멋있게 따는 법",
+     "views": 37839,
+     "minutes": 11820
     }
    ],
    "traffic": [
     {
      "source": "SHORTS",
-     "views": 2635513,
-     "minutes": 627882
+     "views": 2520008,
+     "minutes": 596793
     },
     {
      "source": "SUBSCRIBER",
-     "views": 209699,
-     "minutes": 902039
+     "views": 176652,
+     "minutes": 764275
     },
     {
      "source": "YT_SEARCH",
-     "views": 119462,
-     "minutes": 145672
+     "views": 98231,
+     "minutes": 118486
     },
     {
      "source": "YT_CHANNEL",
-     "views": 88919,
-     "minutes": 194967
-    },
-    {
-     "source": "RELATED_VIDEO",
-     "views": 42612,
-     "minutes": 476355
+     "views": 82313,
+     "minutes": 171347
     },
     {
      "source": "YT_OTHER_PAGE",
-     "views": 40425,
-     "minutes": 67659
+     "views": 38140,
+     "minutes": 59450
+    },
+    {
+     "source": "RELATED_VIDEO",
+     "views": 36717,
+     "minutes": 415471
     },
     {
      "source": "NO_LINK_OTHER",
-     "views": 10198,
-     "minutes": 31216
+     "views": 7044,
+     "minutes": 25918
     },
     {
      "source": "NOTIFICATION",
-     "views": 7430,
-     "minutes": 4373
+     "views": 6594,
+     "minutes": 3756
     },
     {
      "source": "SHORTS_CONTENT_LINKS",
-     "views": 6580,
-     "minutes": 48910
+     "views": 6074,
+     "minutes": 46541
     },
     {
      "source": "EXT_URL",
-     "views": 5987,
-     "minutes": 11554
+     "views": 4945,
+     "minutes": 10091
     },
     {
      "source": "PLAYLIST",
-     "views": 3705,
-     "minutes": 40470
+     "views": 3165,
+     "minutes": 35821
     },
     {
      "source": "END_SCREEN",
-     "views": 1021,
-     "minutes": 9198
+     "views": 926,
+     "minutes": 8955
     },
     {
      "source": "SOUND_PAGE",
-     "views": 139,
-     "minutes": 48
+     "views": 136,
+     "minutes": 47
     },
     {
      "source": "HASHTAGS",
-     "views": 56,
-     "minutes": 11
+     "views": 48,
+     "minutes": 8
     },
     {
      "source": "ANNOTATION",
@@ -493,27 +479,27 @@ export const YTA = {
     {
      "age": "age25-34",
      "gender": "male",
-     "pct": 42.3
+     "pct": 42.8
     },
     {
      "age": "age35-44",
      "gender": "male",
-     "pct": 28.3
+     "pct": 28.4
     },
     {
      "age": "age45-54",
      "gender": "male",
-     "pct": 11.1
+     "pct": 10.9
     },
     {
      "age": "age18-24",
      "gender": "male",
-     "pct": 8
+     "pct": 8.1
     },
     {
      "age": "age25-34",
      "gender": "female",
-     "pct": 3
+     "pct": 2.9
     },
     {
      "age": "age55-64",
@@ -523,12 +509,12 @@ export const YTA = {
     {
      "age": "age35-44",
      "gender": "female",
-     "pct": 2
+     "pct": 1.9
     },
     {
      "age": "age45-54",
      "gender": "female",
-     "pct": 1
+     "pct": 0.9
     },
     {
      "age": "age18-24",
@@ -584,31 +570,24 @@ export const YTA = {
    "device": [
     {
      "type": "MOBILE",
-     "views": 2740029
+     "views": 2585868
     },
     {
      "type": "DESKTOP",
-     "views": 278074
+     "views": 259130
     },
     {
      "type": "TABLET",
-     "views": 101162
+     "views": 92159
     },
     {
      "type": "TV",
-     "views": 52353
+     "views": 43709
     }
    ]
   },
   "roomnumber": {
    "monthly": [
-    {
-     "month": "2026-04",
-     "views": 8827,
-     "minutes": 8709,
-     "subsNet": 350,
-     "avgViewSec": 59
-    },
     {
      "month": "2026-05",
      "views": 42849,
@@ -618,160 +597,160 @@ export const YTA = {
     },
     {
      "month": "2026-06",
-     "views": 74177,
-     "minutes": 333812,
+     "views": 74175,
+     "minutes": 333819,
      "subsNet": 1738,
      "avgViewSec": 270
     },
     {
      "month": "2026-07",
-     "views": 1099355,
-     "minutes": 2172507,
-     "subsNet": 4068,
-     "avgViewSec": 119
+     "views": 1263026,
+     "minutes": 2472696,
+     "subsNet": 4441,
+     "avgViewSec": 117
     }
    ],
    "totals": {
-    "views": 1225208,
-    "minutes": 2600845,
-    "subsNet": 6650,
-    "avgViewSec": 190,
-    "avgViewPct": 19.3,
-    "likes": 19112,
-    "comments": 2011,
-    "shares": 1124
+    "views": 1380050,
+    "minutes": 2892332,
+    "subsNet": 6673,
+    "avgViewSec": 191,
+    "avgViewPct": 19.4,
+    "likes": 20767,
+    "comments": 2020,
+    "shares": 1203
    },
    "top": [
     {
      "videoId": "D49hOr7mq48",
      "title": "인간 발사대가 된 건에 대하여 #슈카 #룸넘버 #아빠와딸 #루시아",
-     "views": 93389,
-     "minutes": 37098
+     "views": 101020,
+     "minutes": 40068
     },
     {
      "videoId": "r-u3pG2_K4o",
      "title": "10년간 결방한 적 없는 유튜버의 삶",
-     "views": 89974,
-     "minutes": 48963
+     "views": 98417,
+     "minutes": 53333
     },
     {
      "videoId": "zEypy8A6O-w",
      "title": "이런 애도 결혼하는데...나는 왜? #룸넘버 #슈카 #루시아",
-     "views": 75993,
-     "minutes": 33989
+     "views": 84033,
+     "minutes": 37394
     },
     {
      "videoId": "9QAqxU-o05M",
      "title": "상승장 기회는 또 옵니다.  그럼 지금 사요? 팔아요? 뭐 어뜨케요?",
-     "views": 70021,
-     "minutes": 464184
+     "views": 74618,
+     "minutes": 485666
     },
     {
      "videoId": "BL8sygt6dgw",
      "title": "수익 -60%에서 멘탈 관리하는 법..?? 주식 물린 사람들 들어오세요",
-     "views": 61833,
-     "minutes": 416948
+     "views": 63213,
+     "minutes": 426706
     },
     {
      "videoId": "f3aEogGEeVo",
      "title": "370만 유튜버의 20년째 트라우마 #슈카",
-     "views": 52708,
-     "minutes": 20833
+     "views": 62185,
+     "minutes": 24838
     },
     {
      "videoId": "fvLM-XiTQMk",
      "title": "회사 생활 vs 유튜버 생활 슈카의 선택은? #룸넘버",
-     "views": 42829,
-     "minutes": 12073
+     "views": 51505,
+     "minutes": 14227
     },
     {
      "videoId": "2FJp9XmBaPU",
      "title": "연애 고픈 직장인 필수 시청 🚨 프로 사랑꾼(?)들이 알려주는 애프터 성공 공식",
-     "views": 41525,
-     "minutes": 243231
+     "views": 43164,
+     "minutes": 252323
     },
     {
      "videoId": "lEXW0T6ZQ3w",
      "title": "슈카가 더이상 악플러를 안 만나는 이유... #룸넘버",
-     "views": 36737,
-     "minutes": 7688
+     "views": 42471,
+     "minutes": 8887
     },
     {
      "videoId": "-1Q-P6Gxel8",
      "title": "아메리카노 안 먹고 주식 사는 거 의미 없다....",
-     "views": 33783,
-     "minutes": 5813
+     "views": 37428,
+     "minutes": 6442
     }
    ],
    "traffic": [
     {
-     "source": "SUBSCRIBER",
-     "views": 546746,
-     "minutes": 1679200
+     "source": "SHORTS",
+     "views": 611533,
+     "minutes": 188814
     },
     {
-     "source": "SHORTS",
-     "views": 525572,
-     "minutes": 164147
+     "source": "SUBSCRIBER",
+     "views": 603030,
+     "minutes": 1850346
     },
     {
      "source": "YT_CHANNEL",
-     "views": 57904,
-     "minutes": 199394
+     "views": 63054,
+     "minutes": 221062
     },
     {
      "source": "RELATED_VIDEO",
-     "views": 35907,
-     "minutes": 293159
+     "views": 38095,
+     "minutes": 325706
     },
     {
      "source": "YT_OTHER_PAGE",
-     "views": 18669,
-     "minutes": 88680
+     "views": 20997,
+     "minutes": 101698
     },
     {
      "source": "YT_SEARCH",
-     "views": 14403,
-     "minutes": 68149
+     "views": 15887,
+     "minutes": 81815
     },
     {
      "source": "NO_LINK_OTHER",
-     "views": 13682,
-     "minutes": 50297
-    },
-    {
-     "source": "EXT_URL",
-     "views": 3641,
-     "minutes": 8751
+     "views": 14726,
+     "minutes": 58674
     },
     {
      "source": "NOTIFICATION",
-     "views": 3126,
-     "minutes": 6211
+     "views": 3522,
+     "minutes": 8100
+    },
+    {
+     "source": "EXT_URL",
+     "views": 3269,
+     "minutes": 9370
     },
     {
      "source": "PLAYLIST",
-     "views": 2453,
-     "minutes": 25452
+     "views": 2625,
+     "minutes": 28374
     },
     {
      "source": "SHORTS_CONTENT_LINKS",
-     "views": 1602,
-     "minutes": 7188
+     "views": 1783,
+     "minutes": 8010
     },
     {
      "source": "END_SCREEN",
-     "views": 1196,
-     "minutes": 9770
+     "views": 1215,
+     "minutes": 9909
     },
     {
      "source": "HASHTAGS",
-     "views": 101,
-     "minutes": 156
+     "views": 109,
+     "minutes": 157
     },
     {
      "source": "SOUND_PAGE",
-     "views": 19,
+     "views": 20,
      "minutes": 5
     }
    ],
@@ -779,32 +758,32 @@ export const YTA = {
     {
      "age": "age35-44",
      "gender": "male",
-     "pct": 33.2
+     "pct": 33.1
     },
     {
      "age": "age25-34",
      "gender": "male",
-     "pct": 31.7
+     "pct": 32.1
     },
     {
      "age": "age45-54",
      "gender": "male",
-     "pct": 10.4
+     "pct": 10.1
     },
     {
      "age": "age35-44",
      "gender": "female",
-     "pct": 7.7
+     "pct": 7.6
     },
     {
      "age": "age25-34",
      "gender": "female",
-     "pct": 6.8
+     "pct": 6.9
     },
     {
      "age": "age45-54",
      "gender": "female",
-     "pct": 4.3
+     "pct": 4.2
     },
     {
      "age": "age18-24",
@@ -850,19 +829,19 @@ export const YTA = {
    "device": [
     {
      "type": "MOBILE",
-     "views": 900798
+     "views": 1017352
     },
     {
      "type": "DESKTOP",
-     "views": 202557
+     "views": 228713
     },
     {
      "type": "TABLET",
-     "views": 81712
+     "views": 90113
     },
     {
      "type": "TV",
-     "views": 39823
+     "views": 43549
     }
    ]
   }
