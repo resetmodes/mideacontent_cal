@@ -16,8 +16,9 @@ export const CHANNELS = [
   { id: '백화점APP', label: '백화점 APP', color: '#171719', subs: ['푸쉬', '팝업'] },
   { id: '카카오톡',  label: '카톡',      color: '#FEE500', fg: '#191919', subs: ['대표계정', '친구톡'] },
   { id: '아파트LCD', label: 'APT LCD',   color: '#E8730C', subs: [] },
+  { id: 'H.Point',   label: 'H.Point',   color: '#6B4FA0', subs: [] },
   { id: '기타',      label: '기타',      color: '#878A93',
-    subs: ['홈페이지', '웹진', '신문', '고지물', 'H.Point', 'TVCF 라디오', '네이버', '토스', '카카오'] },
+    subs: ['홈페이지', '웹진', '신문', '고지물', 'TVCF 라디오', '네이버', '토스', '카카오'] },
 ]
 
 /* ── 팀 일정 유형 ('26.7) — 팀 일정 탭(연차·외근·교육·기념일) 전용 분류.
@@ -146,10 +147,10 @@ export const KEYWORDS = [
   ['신문', '기타', '신문'],
   ['고지물', '기타', '고지물'],
   ['PMS', '기타', '고지물'],
-  ['H.Point', '기타', 'H.Point'],
-  ['에이치포인트', '기타', 'H.Point'],
-  ['h포인트', '기타', 'H.Point'],
-  ['hpoint', '기타', 'H.Point'],
+  ['H.Point', 'H.Point', null],
+  ['에이치포인트', 'H.Point', null],
+  ['h포인트', 'H.Point', null],
+  ['hpoint', 'H.Point', null],
   ['TVCF', '기타', 'TVCF 라디오'],
   ['라디오', '기타', 'TVCF 라디오'],
   /* '26.7 추가 — 비정기 집행 매체. '카카오'는 카카오골프·카톡·카카오톡보다 반드시 뒤
@@ -184,6 +185,7 @@ export const TITLE_STRIP = {
   '백화점APP': ['APP'],
   '아파트LCD': ['APT LCD'],
   '타겟APP': ['타겟앱'],
+  'H.Point': ['H.Point'],
   /* 팀 일정 유형은 여기에 넣지 않는다 ('26.7 확정) — 팀 일정은 "김상수, 정소미 목동 외근"처럼
      쓴 그대로(이름+유형) 캘린더에 표기되어야 함. 유형 인식은 TEAM_KEYWORDS가 담당 */
 }
@@ -256,7 +258,7 @@ export const TITLE_ALIASES = [
 export const TARGET_CH = '타겟APP'
 export const MEDIA_RANK = {
   '인스타': 1, '유튜브': 1,
-  '백화점APP': 2, '카카오톡': 2, '기타': 2,
+  '백화점APP': 2, '카카오톡': 2, '기타': 2, 'H.Point': 2,
   '아파트LCD': 3, '버스광고': 3,
   '타겟APP': 4,
 }
