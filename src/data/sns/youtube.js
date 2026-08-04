@@ -2,7 +2,7 @@
 export const YT = {
  "source": "streamers/youtube-channel-scraper",
  "platform": "youtube",
- "generatedAt": "2026-07-27T01:44:29.023Z",
+ "generatedAt": "2026-08-02T22:25:55.755Z",
  "note": "영상별 좋아요와 댓글은 제공되지 않아 조회수만 표기합니다. 날짜는 상대 표기이고 제목은 원본 기준입니다.",
  "channels": [
   {
@@ -13,15 +13,15 @@ export const YT = {
    "isMain": true,
    "subscribers": 148000,
    "totalVideos": 948,
-   "totalViews": 90718408,
+   "totalViews": 90727739,
    "collected": 50,
    "videoCount": 30,
    "shortsCount": 20,
-   "avgViews": 534651,
-   "avgViewsVideo": 809219,
-   "avgViewsShorts": 122799,
+   "avgViews": 534671,
+   "avgViewsVideo": 809252,
+   "avgViewsShorts": 122800,
    "maxViews": 9500000,
-   "viewsPer1kSubs": 3612.5
+   "viewsPer1kSubs": 3612.6
   },
   {
    "key": "wazitwine",
@@ -30,16 +30,16 @@ export const YT = {
    "url": "https://www.youtube.com/@wazitwine",
    "isMain": false,
    "subscribers": 115000,
-   "totalVideos": 989,
-   "totalViews": 7620144,
+   "totalVideos": 998,
+   "totalViews": 7665844,
    "collected": 50,
    "videoCount": 30,
    "shortsCount": 20,
-   "avgViews": 7886,
-   "avgViewsVideo": 6760,
-   "avgViewsShorts": 9575,
-   "maxViews": 37000,
-   "viewsPer1kSubs": 68.6
+   "avgViews": 6904,
+   "avgViewsVideo": 7023,
+   "avgViewsShorts": 6725,
+   "maxViews": 21000,
+   "viewsPer1kSubs": 60
   },
   {
    "key": "roomnumber",
@@ -47,62 +47,38 @@ export const YT = {
    "channelName": "룸넘버 ROOM NUMBER",
    "url": "https://www.youtube.com/@%EB%A3%B8%EB%84%98%EB%B2%84ROOMNUMBER",
    "isMain": false,
-   "subscribers": 6340,
-   "totalVideos": 60,
-   "totalViews": 961457,
-   "collected": 33,
-   "videoCount": 13,
+   "subscribers": 7200,
+   "totalVideos": 69,
+   "totalViews": 1340448,
+   "collected": 34,
+   "videoCount": 14,
    "shortsCount": 20,
-   "avgViews": 21173,
-   "avgViewsVideo": 18931,
-   "avgViewsShorts": 22630,
-   "maxViews": 82000,
-   "viewsPer1kSubs": 3339.6
+   "avgViews": 22891,
+   "avgViewsVideo": 21193,
+   "avgViewsShorts": 24080,
+   "maxViews": 106000,
+   "viewsPer1kSubs": 3179.3
   },
   {
    "key": "yiyaho_studio",
    "name": "이야호스튜디오",
-   "channelName": "이야호스튜디오",
+   "channelName": "야호스튜디오",
    "url": "https://www.youtube.com/@yiyaho_studio",
    "isMain": false,
-   "subscribers": 224,
+   "subscribers": 226,
    "totalVideos": 48,
-   "totalViews": 128046,
+   "totalViews": 128776,
    "collected": 39,
    "videoCount": 19,
    "shortsCount": 20,
-   "avgViews": 2788,
-   "avgViewsVideo": 4938,
-   "avgViewsShorts": 745,
+   "avgViews": 2824,
+   "avgViewsVideo": 5006,
+   "avgViewsShorts": 752,
    "maxViews": 45000,
-   "viewsPer1kSubs": 12446.4
+   "viewsPer1kSubs": 12495.6
   }
  ],
  "videos": [
-  {
-   "channel": "the_hyundai",
-   "title": "잠깐… 설마 도쿄로 오는거야? | 더현대 도쿄 웹드라마 'Meet Your Seoul'",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/I6AXQFFLJNs",
-   "videoId": "I6AXQFFLJNs",
-   "thumb": "https://i.ytimg.com/vi/I6AXQFFLJNs/hqdefault.jpg",
-   "views": 201000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-08"
-  },
-  {
-   "channel": "the_hyundai",
-   "title": "이름도 모르는 너를 말이야 | 더현대 도쿄 웹드라마 'Meet Your Seoul'",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/qe_E7V0HWno",
-   "videoId": "qe_E7V0HWno",
-   "thumb": "https://i.ytimg.com/vi/qe_E7V0HWno/hqdefault.jpg",
-   "views": 127000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-06"
-  },
   {
    "channel": "the_hyundai",
    "title": "Meet Your Seoul 밋 유어 서울 | 더현대 도쿄 애니메이션 웹 드라마",
@@ -117,18 +93,6 @@ export const YT = {
   },
   {
    "channel": "the_hyundai",
-   "title": "Meet Your Seoul｜ザヒョンデ 東京 ウェブドラマ",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/I9_mtPyQ8kg",
-   "videoId": "I9_mtPyQ8kg",
-   "thumb": "https://i.ytimg.com/vi/I9_mtPyQ8kg/hqdefault.jpg",
-   "views": 170000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-03"
-  },
-  {
-   "channel": "the_hyundai",
    "title": "THE HYUNDAI x TOKYO 'OMOKADO' with TWS",
    "type": "Video",
    "url": "https://www.youtube.com/watch?v=EQA9m5cwX8Y",
@@ -137,19 +101,7 @@ export const YT = {
    "views": 73000,
    "duration": "1:00",
    "durationSec": 60,
-   "date": "3 weeks ago"
-  },
-  {
-   "channel": "the_hyundai",
-   "title": "바이어의 굿나잇 다이어리 EP.2🌙",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/hbUbtcnEmQc",
-   "videoId": "hbUbtcnEmQc",
-   "thumb": "https://i.ytimg.com/vi/hbUbtcnEmQc/hqdefault.jpg",
-   "views": 1200,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-06-04"
+   "date": "1 month ago"
   },
   {
    "channel": "the_hyundai",
@@ -161,7 +113,7 @@ export const YT = {
    "views": 660000,
    "duration": "0:26",
    "durationSec": 26,
-   "date": "3 weeks ago"
+   "date": "1 month ago"
   },
   {
    "channel": "the_hyundai",
@@ -177,18 +129,6 @@ export const YT = {
   },
   {
    "channel": "the_hyundai",
-   "title": "바이어의 굿나잇 다이어리 EP.1 🌙",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/9Qcp5AmRcKY",
-   "videoId": "9Qcp5AmRcKY",
-   "thumb": "https://i.ytimg.com/vi/9Qcp5AmRcKY/hqdefault.jpg",
-   "views": 1000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-06-04"
-  },
-  {
-   "channel": "the_hyundai",
    "title": "아무도 없는 디즈니스토어, 토이스토리 친구들이 뭉친 이유는? ㅣ 토이스토리 스톱모션 비디오",
    "type": "Video",
    "url": "https://www.youtube.com/watch?v=LmFL1q6FQH0",
@@ -197,19 +137,7 @@ export const YT = {
    "views": 246000,
    "duration": "1:29",
    "durationSec": 89,
-   "date": "1 month ago"
-  },
-  {
-   "channel": "the_hyundai",
-   "title": "HiHi, 더현대Hi 4/6 GRAND OPENING",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/FPrSt2HE4fg",
-   "videoId": "FPrSt2HE4fg",
-   "thumb": "https://i.ytimg.com/vi/FPrSt2HE4fg/hqdefault.jpg",
-   "views": 961000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-04-06"
+   "date": "2 months ago"
   },
   {
    "channel": "the_hyundai",
@@ -225,18 +153,6 @@ export const YT = {
   },
   {
    "channel": "the_hyundai",
-   "title": "HiHi, 더현대Hi 4/6 GRAND OPENING",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/20qXJ62an8g",
-   "videoId": "20qXJ62an8g",
-   "thumb": "https://i.ytimg.com/vi/20qXJ62an8g/hqdefault.jpg",
-   "views": 977000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-04-06"
-  },
-  {
-   "channel": "the_hyundai",
    "title": "[더현대Hi] 모델 홍태준이 좋아하는 것들과 인사해👋",
    "type": "Video",
    "url": "https://www.youtube.com/watch?v=RGfRZ4kOfhU",
@@ -246,18 +162,6 @@ export const YT = {
    "duration": "0:16",
    "durationSec": 16,
    "date": "2 months ago"
-  },
-  {
-   "channel": "the_hyundai",
-   "title": "당신의 앰배서더 '이수인'에 투표하세요",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/zwoyvfDtBu0",
-   "videoId": "zwoyvfDtBu0",
-   "thumb": "https://i.ytimg.com/vi/zwoyvfDtBu0/hqdefault.jpg",
-   "views": 2000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-03-18"
   },
   {
    "channel": "the_hyundai",
@@ -285,18 +189,6 @@ export const YT = {
   },
   {
    "channel": "the_hyundai",
-   "title": "당신의 앰배서더 '이민혁'에 투표하세요",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/v-srXJyMsBI",
-   "videoId": "v-srXJyMsBI",
-   "thumb": "https://i.ytimg.com/vi/v-srXJyMsBI/hqdefault.jpg",
-   "views": 231,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-03-18"
-  },
-  {
-   "channel": "the_hyundai",
    "title": "HiHi, 더현대Hi 4/6 GRAND OPENING",
    "type": "Video",
    "url": "https://www.youtube.com/watch?v=P_tw0198lcI",
@@ -306,30 +198,6 @@ export const YT = {
    "duration": "0:16",
    "durationSec": 16,
    "date": "3 months ago"
-  },
-  {
-   "channel": "the_hyundai",
-   "title": "당신의 앰배서더 '이예린'에 투표하세요",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/iQThhxRhdEE",
-   "videoId": "iQThhxRhdEE",
-   "thumb": "https://i.ytimg.com/vi/iQThhxRhdEE/hqdefault.jpg",
-   "views": 1800,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-03-18"
-  },
-  {
-   "channel": "the_hyundai",
-   "title": "당신의 앰배서더 '곽용진'에 투표하세요",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/dYKmUgghJLs",
-   "videoId": "dYKmUgghJLs",
-   "thumb": "https://i.ytimg.com/vi/dYKmUgghJLs/hqdefault.jpg",
-   "views": 683,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-03-18"
   },
   {
    "channel": "the_hyundai",
@@ -345,30 +213,6 @@ export const YT = {
   },
   {
    "channel": "the_hyundai",
-   "title": "당신의 앰배서더 '선우학'에 투표하세요",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/UKTAtjYC1ic",
-   "videoId": "UKTAtjYC1ic",
-   "thumb": "https://i.ytimg.com/vi/UKTAtjYC1ic/hqdefault.jpg",
-   "views": 969,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-03-18"
-  },
-  {
-   "channel": "the_hyundai",
-   "title": "당신의 앰배서더 '전장현'에 투표하세요",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/Jp0fnXvRcRk",
-   "videoId": "Jp0fnXvRcRk",
-   "thumb": "https://i.ytimg.com/vi/Jp0fnXvRcRk/hqdefault.jpg",
-   "views": 542,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-03-18"
-  },
-  {
-   "channel": "the_hyundai",
    "title": "될 테야 될 테야 ATTAG! 앰배서더 될 테야 | 첫 번째 앰배서더 최종 결정전",
    "type": "Video",
    "url": "https://www.youtube.com/watch?v=C51VvAimdTk",
@@ -378,30 +222,6 @@ export const YT = {
    "duration": "10:55",
    "durationSec": 655,
    "date": "4 months ago"
-  },
-  {
-   "channel": "the_hyundai",
-   "title": "당신의 앰배서더 '이승민'에 투표하세요",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/K3fNODbsAm8",
-   "videoId": "K3fNODbsAm8",
-   "thumb": "https://i.ytimg.com/vi/K3fNODbsAm8/hqdefault.jpg",
-   "views": 1600,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-03-18"
-  },
-  {
-   "channel": "the_hyundai",
-   "title": "당신의 앰배서더 '마야'에 투표하세요",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/9zHtKtNUR-s",
-   "videoId": "9zHtKtNUR-s",
-   "thumb": "https://i.ytimg.com/vi/9zHtKtNUR-s/hqdefault.jpg",
-   "views": 1300,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-03-18"
   },
   {
    "channel": "the_hyundai",
@@ -417,18 +237,6 @@ export const YT = {
   },
   {
    "channel": "the_hyundai",
-   "title": "당신의 앰배서더 '이연서'에 투표하세요",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/CWSAx2UHrQQ",
-   "videoId": "CWSAx2UHrQQ",
-   "thumb": "https://i.ytimg.com/vi/CWSAx2UHrQQ/hqdefault.jpg",
-   "views": 258,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-03-18"
-  },
-  {
-   "channel": "the_hyundai",
    "title": "[더현대 서울] Hello Seoul Vol.1",
    "type": "Video",
    "url": "https://www.youtube.com/watch?v=o8-R7_yY2To",
@@ -438,18 +246,6 @@ export const YT = {
    "duration": "2:15",
    "durationSec": 135,
    "date": "5 months ago"
-  },
-  {
-   "channel": "the_hyundai",
-   "title": "현대백화점 열정장학생 이야기, 피겨 꿈나무를 응원하다",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/TSDuTM7_hrA",
-   "videoId": "TSDuTM7_hrA",
-   "thumb": "https://i.ytimg.com/vi/TSDuTM7_hrA/hqdefault.jpg",
-   "views": 1800,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-01-05"
   },
   {
    "channel": "the_hyundai",
@@ -465,24 +261,12 @@ export const YT = {
   },
   {
    "channel": "the_hyundai",
-   "title": "2025년 팝업스토어 가장 인기 분야는?",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/hWuVtIInF4k",
-   "videoId": "hWuVtIInF4k",
-   "thumb": "https://i.ytimg.com/vi/hWuVtIInF4k/hqdefault.jpg",
-   "views": 2200,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-01-02"
-  },
-  {
-   "channel": "the_hyundai",
    "title": "[더현대 대구] THANKS FOR 3 YEARS",
    "type": "Video",
    "url": "https://www.youtube.com/watch?v=fr_HPd30hxk",
    "videoId": "fr_HPd30hxk",
    "thumb": "https://i.ytimg.com/vi/fr_HPd30hxk/hqdefault.jpg",
-   "views": 361,
+   "views": 365,
    "duration": "0:54",
    "durationSec": 54,
    "date": "6 months ago"
@@ -501,18 +285,6 @@ export const YT = {
   },
   {
    "channel": "the_hyundai",
-   "title": "2025년 팝업스토어는 얼마나 인기였을까?",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/S4QWQmwdkqE",
-   "videoId": "S4QWQmwdkqE",
-   "thumb": "https://i.ytimg.com/vi/S4QWQmwdkqE/hqdefault.jpg",
-   "views": 2400,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-01-02"
-  },
-  {
-   "channel": "the_hyundai",
    "title": "새해 아침, 가족의 브런치 테이블 | 2026 설 더 현대적인 선물",
    "type": "Video",
    "url": "https://www.youtube.com/watch?v=zJDIy-vG0u0",
@@ -522,18 +294,6 @@ export const YT = {
    "duration": "1:01",
    "durationSec": 61,
    "date": "6 months ago"
-  },
-  {
-   "channel": "the_hyundai",
-   "title": "2026년 팝업스토어 트렌드는?",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/D6iAyQ5ovb4",
-   "videoId": "D6iAyQ5ovb4",
-   "thumb": "https://i.ytimg.com/vi/D6iAyQ5ovb4/hqdefault.jpg",
-   "views": 2000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-01-02"
   },
   {
    "channel": "the_hyundai",
@@ -614,7 +374,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=cTeCI8pAZp8",
    "videoId": "cTeCI8pAZp8",
    "thumb": "https://i.ytimg.com/vi/cTeCI8pAZp8/hqdefault.jpg",
-   "views": 38000,
+   "views": 39000,
    "duration": "8:01",
    "durationSec": 481,
    "date": "7 months ago"
@@ -641,7 +401,7 @@ export const YT = {
    "views": 27000,
    "duration": "9:51",
    "durationSec": 591,
-   "date": "7 months ago"
+   "date": "8 months ago"
   },
   {
    "channel": "the_hyundai",
@@ -680,16 +440,268 @@ export const YT = {
    "date": "8 months ago"
   },
   {
+   "channel": "the_hyundai",
+   "title": "잠깐… 설마 도쿄로 오는거야? | 더현대 도쿄 웹드라마 'Meet Your Seoul'",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/I6AXQFFLJNs",
+   "videoId": "I6AXQFFLJNs",
+   "thumb": "https://i.ytimg.com/vi/I6AXQFFLJNs/hqdefault.jpg",
+   "views": 201000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-08"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "이름도 모르는 너를 말이야 | 더현대 도쿄 웹드라마 'Meet Your Seoul'",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/qe_E7V0HWno",
+   "videoId": "qe_E7V0HWno",
+   "thumb": "https://i.ytimg.com/vi/qe_E7V0HWno/hqdefault.jpg",
+   "views": 127000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-06"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "Meet Your Seoul｜ザヒョンデ 東京 ウェブドラマ",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/I9_mtPyQ8kg",
+   "videoId": "I9_mtPyQ8kg",
+   "thumb": "https://i.ytimg.com/vi/I9_mtPyQ8kg/hqdefault.jpg",
+   "views": 170000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-03"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "바이어의 굿나잇 다이어리 EP.2🌙",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/hbUbtcnEmQc",
+   "videoId": "hbUbtcnEmQc",
+   "thumb": "https://i.ytimg.com/vi/hbUbtcnEmQc/hqdefault.jpg",
+   "views": 1200,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-06-04"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "바이어의 굿나잇 다이어리 EP.1 🌙",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/9Qcp5AmRcKY",
+   "videoId": "9Qcp5AmRcKY",
+   "thumb": "https://i.ytimg.com/vi/9Qcp5AmRcKY/hqdefault.jpg",
+   "views": 1000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-06-04"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "HiHi, 더현대Hi 4/6 GRAND OPENING",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/FPrSt2HE4fg",
+   "videoId": "FPrSt2HE4fg",
+   "thumb": "https://i.ytimg.com/vi/FPrSt2HE4fg/hqdefault.jpg",
+   "views": 961000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-04-06"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "HiHi, 더현대Hi 4/6 GRAND OPENING",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/20qXJ62an8g",
+   "videoId": "20qXJ62an8g",
+   "thumb": "https://i.ytimg.com/vi/20qXJ62an8g/hqdefault.jpg",
+   "views": 977000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-04-06"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "당신의 앰배서더 '이수인'에 투표하세요",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/zwoyvfDtBu0",
+   "videoId": "zwoyvfDtBu0",
+   "thumb": "https://i.ytimg.com/vi/zwoyvfDtBu0/hqdefault.jpg",
+   "views": 2000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-03-18"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "당신의 앰배서더 '이민혁'에 투표하세요",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/v-srXJyMsBI",
+   "videoId": "v-srXJyMsBI",
+   "thumb": "https://i.ytimg.com/vi/v-srXJyMsBI/hqdefault.jpg",
+   "views": 232,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-03-18"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "당신의 앰배서더 '이예린'에 투표하세요",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/iQThhxRhdEE",
+   "videoId": "iQThhxRhdEE",
+   "thumb": "https://i.ytimg.com/vi/iQThhxRhdEE/hqdefault.jpg",
+   "views": 1800,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-03-18"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "당신의 앰배서더 '곽용진'에 투표하세요",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/dYKmUgghJLs",
+   "videoId": "dYKmUgghJLs",
+   "thumb": "https://i.ytimg.com/vi/dYKmUgghJLs/hqdefault.jpg",
+   "views": 686,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-03-18"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "당신의 앰배서더 '선우학'에 투표하세요",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/UKTAtjYC1ic",
+   "videoId": "UKTAtjYC1ic",
+   "thumb": "https://i.ytimg.com/vi/UKTAtjYC1ic/hqdefault.jpg",
+   "views": 970,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-03-18"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "당신의 앰배서더 '전장현'에 투표하세요",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/Jp0fnXvRcRk",
+   "videoId": "Jp0fnXvRcRk",
+   "thumb": "https://i.ytimg.com/vi/Jp0fnXvRcRk/hqdefault.jpg",
+   "views": 547,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-03-18"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "당신의 앰배서더 '이승민'에 투표하세요",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/K3fNODbsAm8",
+   "videoId": "K3fNODbsAm8",
+   "thumb": "https://i.ytimg.com/vi/K3fNODbsAm8/hqdefault.jpg",
+   "views": 1600,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-03-18"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "당신의 앰배서더 '마야'에 투표하세요",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/9zHtKtNUR-s",
+   "videoId": "9zHtKtNUR-s",
+   "thumb": "https://i.ytimg.com/vi/9zHtKtNUR-s/hqdefault.jpg",
+   "views": 1300,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-03-18"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "당신의 앰배서더 '이연서'에 투표하세요",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/CWSAx2UHrQQ",
+   "videoId": "CWSAx2UHrQQ",
+   "thumb": "https://i.ytimg.com/vi/CWSAx2UHrQQ/hqdefault.jpg",
+   "views": 259,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-03-18"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "현대백화점 열정장학생 이야기, 피겨 꿈나무를 응원하다",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/TSDuTM7_hrA",
+   "videoId": "TSDuTM7_hrA",
+   "thumb": "https://i.ytimg.com/vi/TSDuTM7_hrA/hqdefault.jpg",
+   "views": 1800,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-01-05"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "2025년 팝업스토어 가장 인기 분야는?",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/hWuVtIInF4k",
+   "videoId": "hWuVtIInF4k",
+   "thumb": "https://i.ytimg.com/vi/hWuVtIInF4k/hqdefault.jpg",
+   "views": 2200,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-01-02"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "2025년 팝업스토어는 얼마나 인기였을까?",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/S4QWQmwdkqE",
+   "videoId": "S4QWQmwdkqE",
+   "thumb": "https://i.ytimg.com/vi/S4QWQmwdkqE/hqdefault.jpg",
+   "views": 2400,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-01-02"
+  },
+  {
+   "channel": "the_hyundai",
+   "title": "2026년 팝업스토어 트렌드는?",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/D6iAyQ5ovb4",
+   "videoId": "D6iAyQ5ovb4",
+   "thumb": "https://i.ytimg.com/vi/D6iAyQ5ovb4/hqdefault.jpg",
+   "views": 2000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-01-02"
+  },
+  {
    "channel": "wazitwine",
-   "title": "소주 좋아하는 직장동료 데리고 도쿄 와인 풀코스",
+   "title": "도쿄 와인바에서 떠드는 와인 회생방안",
+   "type": "Video",
+   "url": "https://www.youtube.com/watch?v=CgHDeXyUXzQ",
+   "videoId": "CgHDeXyUXzQ",
+   "thumb": "https://i.ytimg.com/vi/CgHDeXyUXzQ/hqdefault.jpg",
+   "views": 2600,
+   "duration": "30:30",
+   "durationSec": 1830,
+   "date": "12 hours ago"
+  },
+  {
+   "channel": "wazitwine",
+   "title": "와인 광인이 일본 출장 갔을 때 vlog",
    "type": "Video",
    "url": "https://www.youtube.com/watch?v=z6NoUkxlBjE",
    "videoId": "z6NoUkxlBjE",
    "thumb": "https://i.ytimg.com/vi/z6NoUkxlBjE/hqdefault.jpg",
-   "views": 4500,
+   "views": 9600,
    "duration": "32:48",
    "durationSec": 1968,
-   "date": "15 hours ago"
+   "date": "7 days ago"
   },
   {
    "channel": "wazitwine",
@@ -698,10 +710,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=I7e86Brjkgk",
    "videoId": "I7e86Brjkgk",
    "thumb": "https://i.ytimg.com/vi/I7e86Brjkgk/hqdefault.jpg",
-   "views": 7500,
+   "views": 8400,
    "duration": "20:11",
    "durationSec": 1211,
-   "date": "7 days ago"
+   "date": "2 weeks ago"
   },
   {
    "channel": "wazitwine",
@@ -710,10 +722,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=hxxMY1mVpKA",
    "videoId": "hxxMY1mVpKA",
    "thumb": "https://i.ytimg.com/vi/hxxMY1mVpKA/hqdefault.jpg",
-   "views": 18000,
+   "views": 21000,
    "duration": "40:14",
    "durationSec": 2414,
-   "date": "2 weeks ago"
+   "date": "3 weeks ago"
   },
   {
    "channel": "wazitwine",
@@ -722,10 +734,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=Tfq8TajhK98",
    "videoId": "Tfq8TajhK98",
    "thumb": "https://i.ytimg.com/vi/Tfq8TajhK98/hqdefault.jpg",
-   "views": 8700,
+   "views": 9000,
    "duration": "16:39",
    "durationSec": 999,
-   "date": "3 weeks ago"
+   "date": "4 weeks ago"
   },
   {
    "channel": "wazitwine",
@@ -734,10 +746,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=geMCPUP6cFw",
    "videoId": "geMCPUP6cFw",
    "thumb": "https://i.ytimg.com/vi/geMCPUP6cFw/hqdefault.jpg",
-   "views": 4000,
+   "views": 4100,
    "duration": "1:09:46",
    "durationSec": 4186,
-   "date": "4 weeks ago"
+   "date": "1 month ago"
   },
   {
    "channel": "wazitwine",
@@ -746,7 +758,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=tkrGO0rigcw",
    "videoId": "tkrGO0rigcw",
    "thumb": "https://i.ytimg.com/vi/tkrGO0rigcw/hqdefault.jpg",
-   "views": 4800,
+   "views": 4900,
    "duration": "24:01",
    "durationSec": 1441,
    "date": "1 month ago"
@@ -758,7 +770,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=9R-MGSrBDTA",
    "videoId": "9R-MGSrBDTA",
    "thumb": "https://i.ytimg.com/vi/9R-MGSrBDTA/hqdefault.jpg",
-   "views": 4200,
+   "views": 4300,
    "duration": "9:05",
    "durationSec": 545,
    "date": "1 month ago"
@@ -770,7 +782,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=XBmjsKU3b4I",
    "videoId": "XBmjsKU3b4I",
    "thumb": "https://i.ytimg.com/vi/XBmjsKU3b4I/hqdefault.jpg",
-   "views": 7500,
+   "views": 7800,
    "duration": "53:01",
    "durationSec": 3181,
    "date": "1 month ago"
@@ -782,10 +794,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=4HvPW474hME",
    "videoId": "4HvPW474hME",
    "thumb": "https://i.ytimg.com/vi/4HvPW474hME/hqdefault.jpg",
-   "views": 5400,
+   "views": 5500,
    "duration": "9:45",
    "durationSec": 585,
-   "date": "1 month ago"
+   "date": "2 months ago"
   },
   {
    "channel": "wazitwine",
@@ -794,7 +806,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=oj35ewYq3vU",
    "videoId": "oj35ewYq3vU",
    "thumb": "https://i.ytimg.com/vi/oj35ewYq3vU/hqdefault.jpg",
-   "views": 7600,
+   "views": 7700,
    "duration": "26:55",
    "durationSec": 1615,
    "date": "2 months ago"
@@ -806,7 +818,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=_AsBR8N5Qqk",
    "videoId": "_AsBR8N5Qqk",
    "thumb": "https://i.ytimg.com/vi/_AsBR8N5Qqk/hqdefault.jpg",
-   "views": 4000,
+   "views": 4100,
    "duration": "19:20",
    "durationSec": 1160,
    "date": "2 months ago"
@@ -842,7 +854,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=IX1F8hdUXaY",
    "videoId": "IX1F8hdUXaY",
    "thumb": "https://i.ytimg.com/vi/IX1F8hdUXaY/hqdefault.jpg",
-   "views": 6600,
+   "views": 6700,
    "duration": "27:25",
    "durationSec": 1645,
    "date": "2 months ago"
@@ -854,7 +866,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=AvwIWLVaLjE",
    "videoId": "AvwIWLVaLjE",
    "thumb": "https://i.ytimg.com/vi/AvwIWLVaLjE/hqdefault.jpg",
-   "views": 9400,
+   "views": 9700,
    "duration": "19:16",
    "durationSec": 1156,
    "date": "3 months ago"
@@ -866,7 +878,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=TpuaMHYhdDk",
    "videoId": "TpuaMHYhdDk",
    "thumb": "https://i.ytimg.com/vi/TpuaMHYhdDk/hqdefault.jpg",
-   "views": 4800,
+   "views": 4900,
    "duration": "23:45",
    "durationSec": 1425,
    "date": "3 months ago"
@@ -878,7 +890,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=7z2jn9xr4Yk",
    "videoId": "7z2jn9xr4Yk",
    "thumb": "https://i.ytimg.com/vi/7z2jn9xr4Yk/hqdefault.jpg",
-   "views": 8500,
+   "views": 8600,
    "duration": "22:56",
    "durationSec": 1376,
    "date": "3 months ago"
@@ -917,7 +929,7 @@ export const YT = {
    "views": 5300,
    "duration": "8:32",
    "durationSec": 512,
-   "date": "6 months ago"
+   "date": "7 months ago"
   },
   {
    "channel": "wazitwine",
@@ -974,10 +986,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=x6UH9ZwlDyw",
    "videoId": "x6UH9ZwlDyw",
    "thumb": "https://i.ytimg.com/vi/x6UH9ZwlDyw/hqdefault.jpg",
-   "views": 3700,
+   "views": 3800,
    "duration": "23:22",
    "durationSec": 1402,
-   "date": "7 months ago"
+   "date": "8 months ago"
   },
   {
    "channel": "wazitwine",
@@ -998,7 +1010,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=i7bZPEYMHIs",
    "videoId": "i7bZPEYMHIs",
    "thumb": "https://i.ytimg.com/vi/i7bZPEYMHIs/hqdefault.jpg",
-   "views": 4600,
+   "views": 4700,
    "duration": "33:50",
    "durationSec": 2030,
    "date": "8 months ago"
@@ -1025,19 +1037,91 @@ export const YT = {
    "views": 6900,
    "duration": "36:23",
    "durationSec": 2183,
-   "date": "8 months ago"
+   "date": "9 months ago"
   },
   {
    "channel": "wazitwine",
-   "title": "구독자 소통 방송 (댓글읽기, 직업이 뭔가요, 연프 섭외 썰, 럭키박스 의혹, 비하인드, 샴페인 추천)",
-   "type": "Video",
-   "url": "https://www.youtube.com/watch?v=BnJWA0oY4mc",
-   "videoId": "BnJWA0oY4mc",
-   "thumb": "https://i.ytimg.com/vi/BnJWA0oY4mc/hqdefault.jpg",
-   "views": 5700,
-   "duration": "21:16",
-   "durationSec": 1276,
-   "date": "9 months ago"
+   "title": "회식에 와인이냐 소주냐",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/G0UwszNQbws",
+   "videoId": "G0UwszNQbws",
+   "thumb": "https://i.ytimg.com/vi/G0UwszNQbws/hqdefault.jpg",
+   "views": 1900,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-08-02"
+  },
+  {
+   "channel": "wazitwine",
+   "title": "한국보다 200만원 싼 와인 발견",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/u-2WmswFpt0",
+   "videoId": "u-2WmswFpt0",
+   "thumb": "https://i.ytimg.com/vi/u-2WmswFpt0/hqdefault.jpg",
+   "views": 2900,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-08-01"
+  },
+  {
+   "channel": "wazitwine",
+   "title": "아아 대신 미니모엣",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/6jvpeyYC6Zk",
+   "videoId": "6jvpeyYC6Zk",
+   "thumb": "https://i.ytimg.com/vi/6jvpeyYC6Zk/hqdefault.jpg",
+   "views": 4100,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-31"
+  },
+  {
+   "channel": "wazitwine",
+   "title": "감자를 병에 어떻게 넣었을까",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/y6hs4fUwBpY",
+   "videoId": "y6hs4fUwBpY",
+   "thumb": "https://i.ytimg.com/vi/y6hs4fUwBpY/hqdefault.jpg",
+   "views": 3600,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-31"
+  },
+  {
+   "channel": "wazitwine",
+   "title": "입문자가 마시기 좋은 (와인) 하이볼",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/NdmKurfy7IM",
+   "videoId": "NdmKurfy7IM",
+   "thumb": "https://i.ytimg.com/vi/NdmKurfy7IM/hqdefault.jpg",
+   "views": 2400,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-30"
+  },
+  {
+   "channel": "wazitwine",
+   "title": "일본 와인vs사케",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/4ytMINsgpE4",
+   "videoId": "4ytMINsgpE4",
+   "thumb": "https://i.ytimg.com/vi/4ytMINsgpE4/hqdefault.jpg",
+   "views": 5300,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-28"
+  },
+  {
+   "channel": "wazitwine",
+   "title": "일본 출장 간 와인덕후",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/KwmPfgR6YS8",
+   "videoId": "KwmPfgR6YS8",
+   "thumb": "https://i.ytimg.com/vi/KwmPfgR6YS8/hqdefault.jpg",
+   "views": 5300,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-27"
   },
   {
    "channel": "wazitwine",
@@ -1046,7 +1130,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/WwDLHLfLyh4",
    "videoId": "WwDLHLfLyh4",
    "thumb": "https://i.ytimg.com/vi/WwDLHLfLyh4/hqdefault.jpg",
-   "views": 1500,
+   "views": 3100,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-26"
@@ -1058,7 +1142,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/AYsP5RMKvks",
    "videoId": "AYsP5RMKvks",
    "thumb": "https://i.ytimg.com/vi/AYsP5RMKvks/hqdefault.jpg",
-   "views": 3000,
+   "views": 4800,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-25"
@@ -1070,7 +1154,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/XG05IH83CYI",
    "videoId": "XG05IH83CYI",
    "thumb": "https://i.ytimg.com/vi/XG05IH83CYI/hqdefault.jpg",
-   "views": 1100,
+   "views": 1500,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-24"
@@ -1082,7 +1166,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/Nljf4ncFiq4",
    "videoId": "Nljf4ncFiq4",
    "thumb": "https://i.ytimg.com/vi/Nljf4ncFiq4/hqdefault.jpg",
-   "views": 7400,
+   "views": 8700,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-23"
@@ -1094,7 +1178,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/5a19hBOoQAI",
    "videoId": "5a19hBOoQAI",
    "thumb": "https://i.ytimg.com/vi/5a19hBOoQAI/hqdefault.jpg",
-   "views": 2500,
+   "views": 2600,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-22"
@@ -1130,7 +1214,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/WbIpm2GQxBM",
    "videoId": "WbIpm2GQxBM",
    "thumb": "https://i.ytimg.com/vi/WbIpm2GQxBM/hqdefault.jpg",
-   "views": 14000,
+   "views": 15000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-19"
@@ -1166,7 +1250,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/b6DMtPfocNQ",
    "videoId": "b6DMtPfocNQ",
    "thumb": "https://i.ytimg.com/vi/b6DMtPfocNQ/hqdefault.jpg",
-   "views": 8800,
+   "views": 9000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-17"
@@ -1190,94 +1274,22 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/nWjyMuAJ5jo",
    "videoId": "nWjyMuAJ5jo",
    "thumb": "https://i.ytimg.com/vi/nWjyMuAJ5jo/hqdefault.jpg",
-   "views": 5400,
+   "views": 5500,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-14"
   },
   {
-   "channel": "wazitwine",
-   "title": "와인의 기준 프랑스",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/hTSSUXTbfwI",
-   "videoId": "hTSSUXTbfwI",
-   "thumb": "https://i.ytimg.com/vi/hTSSUXTbfwI/hqdefault.jpg",
-   "views": 7600,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-13"
-  },
-  {
-   "channel": "wazitwine",
-   "title": "와인이름 암기법",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/UIUClb9Bvwk",
-   "videoId": "UIUClb9Bvwk",
-   "thumb": "https://i.ytimg.com/vi/UIUClb9Bvwk/hqdefault.jpg",
-   "views": 3300,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-12"
-  },
-  {
-   "channel": "wazitwine",
-   "title": "소믈리에 좋은 예 나쁜 예",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/6fSByxxxqlU",
-   "videoId": "6fSByxxxqlU",
-   "thumb": "https://i.ytimg.com/vi/6fSByxxxqlU/hqdefault.jpg",
-   "views": 6700,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-09"
-  },
-  {
-   "channel": "wazitwine",
-   "title": "소믈리에는 와인을 다 외운다",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/BnoxOTsIsj0",
-   "videoId": "BnoxOTsIsj0",
-   "thumb": "https://i.ytimg.com/vi/BnoxOTsIsj0/hqdefault.jpg",
-   "views": 37000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-08"
-  },
-  {
-   "channel": "wazitwine",
-   "title": "안 깐 와인 보관법",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/r84YwY7Atjk",
-   "videoId": "r84YwY7Atjk",
-   "thumb": "https://i.ytimg.com/vi/r84YwY7Atjk/hqdefault.jpg",
-   "views": 12000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-07"
-  },
-  {
-   "channel": "wazitwine",
-   "title": "와인 상태 체크법",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/OEdSyx2nBB0",
-   "videoId": "OEdSyx2nBB0",
-   "thumb": "https://i.ytimg.com/vi/OEdSyx2nBB0/hqdefault.jpg",
-   "views": 8400,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-06"
-  },
-  {
-   "channel": "wazitwine",
-   "title": "소믈리에 병따개 아닙니다",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/Du5By_Tcw9I",
-   "videoId": "Du5By_Tcw9I",
-   "thumb": "https://i.ytimg.com/vi/Du5By_Tcw9I/hqdefault.jpg",
-   "views": 14000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-05"
+   "channel": "roomnumber",
+   "title": "결혼이란 무엇인가? 서초구 기생오라비 출신 석재쌤 특강",
+   "type": "Video",
+   "url": "https://www.youtube.com/watch?v=s4gxXedV7WY",
+   "videoId": "s4gxXedV7WY",
+   "thumb": "https://i.ytimg.com/vi/s4gxXedV7WY/hqdefault.jpg",
+   "views": 13000,
+   "duration": "18:56",
+   "durationSec": 1136,
+   "date": "21 hours ago"
   },
   {
    "channel": "roomnumber",
@@ -1286,22 +1298,22 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=9QAqxU-o05M",
    "videoId": "9QAqxU-o05M",
    "thumb": "https://i.ytimg.com/vi/9QAqxU-o05M/hqdefault.jpg",
-   "views": 53000,
+   "views": 76000,
    "duration": "23:14",
    "durationSec": 1394,
-   "date": "1 day ago"
+   "date": "7 days ago"
   },
   {
    "channel": "roomnumber",
-   "title": "아기한테 쓸 비용 아껴서 레버리지 사고 싶다면... 주미새인가요?",
+   "title": "육아비 아껴서 주식 사고 싶다면... 주미새인가요?",
    "type": "Video",
    "url": "https://www.youtube.com/watch?v=CZAVgpV9mzk",
    "videoId": "CZAVgpV9mzk",
    "thumb": "https://i.ytimg.com/vi/CZAVgpV9mzk/hqdefault.jpg",
-   "views": 18000,
+   "views": 20000,
    "duration": "18:36",
    "durationSec": 1116,
-   "date": "8 days ago"
+   "date": "2 weeks ago"
   },
   {
    "channel": "roomnumber",
@@ -1310,10 +1322,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=BL8sygt6dgw",
    "videoId": "BL8sygt6dgw",
    "thumb": "https://i.ytimg.com/vi/BL8sygt6dgw/hqdefault.jpg",
-   "views": 58000,
+   "views": 63000,
    "duration": "24:05",
    "durationSec": 1445,
-   "date": "2 weeks ago"
+   "date": "3 weeks ago"
   },
   {
    "channel": "roomnumber",
@@ -1322,10 +1334,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=2FJp9XmBaPU",
    "videoId": "2FJp9XmBaPU",
    "thumb": "https://i.ytimg.com/vi/2FJp9XmBaPU/hqdefault.jpg",
-   "views": 39000,
+   "views": 44000,
    "duration": "24:48",
    "durationSec": 1488,
-   "date": "3 weeks ago"
+   "date": "4 weeks ago"
   },
   {
    "channel": "roomnumber",
@@ -1334,10 +1346,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=M12YvzzlDbU",
    "videoId": "M12YvzzlDbU",
    "thumb": "https://i.ytimg.com/vi/M12YvzzlDbU/hqdefault.jpg",
-   "views": 25000,
+   "views": 26000,
    "duration": "21:52",
    "durationSec": 1312,
-   "date": "4 weeks ago"
+   "date": "1 month ago"
   },
   {
    "channel": "roomnumber",
@@ -1346,7 +1358,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=OwkhvP0vJZE",
    "videoId": "OwkhvP0vJZE",
    "thumb": "https://i.ytimg.com/vi/OwkhvP0vJZE/hqdefault.jpg",
-   "views": 4600,
+   "views": 4700,
    "duration": "13:55",
    "durationSec": 835,
    "date": "1 month ago"
@@ -1358,7 +1370,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=kev2LmXTPLc",
    "videoId": "kev2LmXTPLc",
    "thumb": "https://i.ytimg.com/vi/kev2LmXTPLc/hqdefault.jpg",
-   "views": 9000,
+   "views": 9200,
    "duration": "14:41",
    "durationSec": 881,
    "date": "1 month ago"
@@ -1373,7 +1385,7 @@ export const YT = {
    "views": 3300,
    "duration": "15:27",
    "durationSec": 927,
-   "date": "1 month ago"
+   "date": "2 months ago"
   },
   {
    "channel": "roomnumber",
@@ -1382,7 +1394,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=sEGd8qcylEI",
    "videoId": "sEGd8qcylEI",
    "thumb": "https://i.ytimg.com/vi/sEGd8qcylEI/hqdefault.jpg",
-   "views": 5800,
+   "views": 6100,
    "duration": "19:22",
    "durationSec": 1162,
    "date": "2 months ago"
@@ -1394,7 +1406,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=6xPjSzq0e3M",
    "videoId": "6xPjSzq0e3M",
    "thumb": "https://i.ytimg.com/vi/6xPjSzq0e3M/hqdefault.jpg",
-   "views": 9700,
+   "views": 9900,
    "duration": "16:39",
    "durationSec": 999,
    "date": "2 months ago"
@@ -1406,7 +1418,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=oap3oDZeT-A",
    "videoId": "oap3oDZeT-A",
    "thumb": "https://i.ytimg.com/vi/oap3oDZeT-A/hqdefault.jpg",
-   "views": 7100,
+   "views": 7300,
    "duration": "14:47",
    "durationSec": 887,
    "date": "2 months ago"
@@ -1418,10 +1430,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=hheP7aAQB8c",
    "videoId": "hheP7aAQB8c",
    "thumb": "https://i.ytimg.com/vi/hheP7aAQB8c/hqdefault.jpg",
-   "views": 6200,
+   "views": 6400,
    "duration": "15:06",
    "durationSec": 906,
-   "date": "2 months ago"
+   "date": "3 months ago"
   },
   {
    "channel": "roomnumber",
@@ -1430,10 +1442,94 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=khQAmajPxNM",
    "videoId": "khQAmajPxNM",
    "thumb": "https://i.ytimg.com/vi/khQAmajPxNM/hqdefault.jpg",
-   "views": 7400,
+   "views": 7800,
    "duration": "13:54",
    "durationSec": 834,
    "date": "3 months ago"
+  },
+  {
+   "channel": "roomnumber",
+   "title": "돈으로 해결할 수 있는 게 가장 쉬운 문제다",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/pLTe4o1SkiM",
+   "videoId": "pLTe4o1SkiM",
+   "thumb": "https://i.ytimg.com/vi/pLTe4o1SkiM/hqdefault.jpg",
+   "views": 11000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-08-02"
+  },
+  {
+   "channel": "roomnumber",
+   "title": "도대체 어떻게 결혼하신거지..?",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/Pru7zE-POXc",
+   "videoId": "Pru7zE-POXc",
+   "thumb": "https://i.ytimg.com/vi/Pru7zE-POXc/hqdefault.jpg",
+   "views": 32000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-08-01"
+  },
+  {
+   "channel": "roomnumber",
+   "title": "팔아요? 말아요??",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/zEFrllBZ23A",
+   "videoId": "zEFrllBZ23A",
+   "thumb": "https://i.ytimg.com/vi/zEFrllBZ23A/hqdefault.jpg",
+   "views": 4200,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-31"
+  },
+  {
+   "channel": "roomnumber",
+   "title": "실례지만 너무 닮으셨어요",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/oYfhPBgz4J4",
+   "videoId": "oYfhPBgz4J4",
+   "thumb": "https://i.ytimg.com/vi/oYfhPBgz4J4/hqdefault.jpg",
+   "views": 14000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-30"
+  },
+  {
+   "channel": "roomnumber",
+   "title": "본격 대표님 띄어주기 방송",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/oEE8LLOR8vY",
+   "videoId": "oEE8LLOR8vY",
+   "thumb": "https://i.ytimg.com/vi/oEE8LLOR8vY/hqdefault.jpg",
+   "views": 8100,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-29"
+  },
+  {
+   "channel": "roomnumber",
+   "title": "긁히셨나요? 네니요...",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/dHvkXdGetdQ",
+   "videoId": "dHvkXdGetdQ",
+   "thumb": "https://i.ytimg.com/vi/dHvkXdGetdQ/hqdefault.jpg",
+   "views": 17000,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-28"
+  },
+  {
+   "channel": "roomnumber",
+   "title": "내일로 미루지 말고",
+   "type": "Shorts",
+   "url": "https://www.youtube.com/shorts/-E91mPls_IQ",
+   "videoId": "-E91mPls_IQ",
+   "thumb": "https://i.ytimg.com/vi/-E91mPls_IQ/hqdefault.jpg",
+   "views": 9700,
+   "duration": "",
+   "durationSec": 0,
+   "date": "2026-07-27"
   },
   {
    "channel": "roomnumber",
@@ -1442,7 +1538,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/m9x_-W0zAjI",
    "videoId": "m9x_-W0zAjI",
    "thumb": "https://i.ytimg.com/vi/m9x_-W0zAjI/hqdefault.jpg",
-   "views": 9000,
+   "views": 17000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-25"
@@ -1454,7 +1550,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/t6oVK8JHsAE",
    "videoId": "t6oVK8JHsAE",
    "thumb": "https://i.ytimg.com/vi/t6oVK8JHsAE/hqdefault.jpg",
-   "views": 13000,
+   "views": 18000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-24"
@@ -1466,7 +1562,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/KSc6wklovDw",
    "videoId": "KSc6wklovDw",
    "thumb": "https://i.ytimg.com/vi/KSc6wklovDw/hqdefault.jpg",
-   "views": 15000,
+   "views": 27000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-24"
@@ -1478,7 +1574,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/B-0mt4x6yNk",
    "videoId": "B-0mt4x6yNk",
    "thumb": "https://i.ytimg.com/vi/B-0mt4x6yNk/hqdefault.jpg",
-   "views": 20000,
+   "views": 31000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-24"
@@ -1490,7 +1586,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/WeszVYti_5M",
    "videoId": "WeszVYti_5M",
    "thumb": "https://i.ytimg.com/vi/WeszVYti_5M/hqdefault.jpg",
-   "views": 7600,
+   "views": 12000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-23"
@@ -1502,7 +1598,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/HSFizlQ9bQQ",
    "videoId": "HSFizlQ9bQQ",
    "thumb": "https://i.ytimg.com/vi/HSFizlQ9bQQ/hqdefault.jpg",
-   "views": 17000,
+   "views": 26000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-22"
@@ -1514,7 +1610,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/-1Q-P6Gxel8",
    "videoId": "-1Q-P6Gxel8",
    "thumb": "https://i.ytimg.com/vi/-1Q-P6Gxel8/hqdefault.jpg",
-   "views": 31000,
+   "views": 39000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-21"
@@ -1526,7 +1622,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/oqbdWHlO4hQ",
    "videoId": "oqbdWHlO4hQ",
    "thumb": "https://i.ytimg.com/vi/oqbdWHlO4hQ/hqdefault.jpg",
-   "views": 10000,
+   "views": 11000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-20"
@@ -1538,7 +1634,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/byh2gxaTUX4",
    "videoId": "byh2gxaTUX4",
    "thumb": "https://i.ytimg.com/vi/byh2gxaTUX4/hqdefault.jpg",
-   "views": 25000,
+   "views": 29000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-18"
@@ -1550,7 +1646,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/D49hOr7mq48",
    "videoId": "D49hOr7mq48",
    "thumb": "https://i.ytimg.com/vi/D49hOr7mq48/hqdefault.jpg",
-   "views": 82000,
+   "views": 106000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-18"
@@ -1562,7 +1658,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/01NIS-z13XQ",
    "videoId": "01NIS-z13XQ",
    "thumb": "https://i.ytimg.com/vi/01NIS-z13XQ/hqdefault.jpg",
-   "views": 6200,
+   "views": 6600,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-17"
@@ -1574,7 +1670,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/Efg_PuSGEhE",
    "videoId": "Efg_PuSGEhE",
    "thumb": "https://i.ytimg.com/vi/Efg_PuSGEhE/hqdefault.jpg",
-   "views": 19000,
+   "views": 27000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-16"
@@ -1586,94 +1682,10 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/4aXgXIw5Eus",
    "videoId": "4aXgXIw5Eus",
    "thumb": "https://i.ytimg.com/vi/4aXgXIw5Eus/hqdefault.jpg",
-   "views": 25000,
+   "views": 36000,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-15"
-  },
-  {
-   "channel": "roomnumber",
-   "title": "20대가 비정상인 이유 #슈카 #룸넘버 #아빠와딸 #루시아",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/6FyAkEsA-WU",
-   "videoId": "6FyAkEsA-WU",
-   "thumb": "https://i.ytimg.com/vi/6FyAkEsA-WU/hqdefault.jpg",
-   "views": 18000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-14"
-  },
-  {
-   "channel": "roomnumber",
-   "title": "현실에서 취준생인 내가 이세계에선 공대장? #슈카 #룸넘버 #아빠와딸 #루시아",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/UJ30U63ra-Y",
-   "videoId": "UJ30U63ra-Y",
-   "thumb": "https://i.ytimg.com/vi/UJ30U63ra-Y/hqdefault.jpg",
-   "views": 26000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-13"
-  },
-  {
-   "channel": "roomnumber",
-   "title": "40대 고민은 차원이 달라 병 #슈카 #룸넘버 #아빠와딸 #루시아",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/XAxiabzGsvE",
-   "videoId": "XAxiabzGsvE",
-   "thumb": "https://i.ytimg.com/vi/XAxiabzGsvE/hqdefault.jpg",
-   "views": 12000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-11"
-  },
-  {
-   "channel": "roomnumber",
-   "title": "떡잎부터 달랐던 수산물 유튜버의 선물 #룸넘버 #슈카 #루시아",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/9H-mZKlvPW0",
-   "videoId": "9H-mZKlvPW0",
-   "thumb": "https://i.ytimg.com/vi/9H-mZKlvPW0/hqdefault.jpg",
-   "views": 8800,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-09"
-  },
-  {
-   "channel": "roomnumber",
-   "title": "아빠메일 슈카의 헌팅 노하우 #룸넘버",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/u4Oa7u_iyPY",
-   "videoId": "u4Oa7u_iyPY",
-   "thumb": "https://i.ytimg.com/vi/u4Oa7u_iyPY/hqdefault.jpg",
-   "views": 18000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-08"
-  },
-  {
-   "channel": "roomnumber",
-   "title": "들어는봤나? 고민증폭소 #룸넘버 #슈카 #루시아",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/rWXrq9WNY7M",
-   "videoId": "rWXrq9WNY7M",
-   "thumb": "https://i.ytimg.com/vi/rWXrq9WNY7M/hqdefault.jpg",
-   "views": 24000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-07"
-  },
-  {
-   "channel": "roomnumber",
-   "title": "이런 애도 결혼하는데...나는 왜? #룸넘버 #슈카 #루시아",
-   "type": "Shorts",
-   "url": "https://www.youtube.com/shorts/zEypy8A6O-w",
-   "videoId": "zEypy8A6O-w",
-   "thumb": "https://i.ytimg.com/vi/zEypy8A6O-w/hqdefault.jpg",
-   "views": 66000,
-   "duration": "",
-   "durationSec": 0,
-   "date": "2026-07-06"
   },
   {
    "channel": "yiyaho_studio",
@@ -1682,10 +1694,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=VJR8jCfN8kI",
    "videoId": "VJR8jCfN8kI",
    "thumb": "https://i.ytimg.com/vi/VJR8jCfN8kI/hqdefault.jpg",
-   "views": 7,
+   "views": 31,
    "duration": "20:24",
    "durationSec": 1224,
-   "date": "8 days ago"
+   "date": "2 weeks ago"
   },
   {
    "channel": "yiyaho_studio",
@@ -1694,10 +1706,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=Dv0CwcPs4jw",
    "videoId": "Dv0CwcPs4jw",
    "thumb": "https://i.ytimg.com/vi/Dv0CwcPs4jw/hqdefault.jpg",
-   "views": 36,
+   "views": 42,
    "duration": "4:18",
    "durationSec": 258,
-   "date": "2 weeks ago"
+   "date": "3 weeks ago"
   },
   {
    "channel": "yiyaho_studio",
@@ -1706,10 +1718,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=suLomhn_q1U",
    "videoId": "suLomhn_q1U",
    "thumb": "https://i.ytimg.com/vi/suLomhn_q1U/hqdefault.jpg",
-   "views": 83,
+   "views": 86,
    "duration": "3:18",
    "durationSec": 198,
-   "date": "3 weeks ago"
+   "date": "4 weeks ago"
   },
   {
    "channel": "yiyaho_studio",
@@ -1718,10 +1730,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=EyhvMjCRdGo",
    "videoId": "EyhvMjCRdGo",
    "thumb": "https://i.ytimg.com/vi/EyhvMjCRdGo/hqdefault.jpg",
-   "views": 37,
+   "views": 46,
    "duration": "4:15",
    "durationSec": 255,
-   "date": "3 weeks ago"
+   "date": "4 weeks ago"
   },
   {
    "channel": "yiyaho_studio",
@@ -1730,7 +1742,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=p5fI86imch4",
    "videoId": "p5fI86imch4",
    "thumb": "https://i.ytimg.com/vi/p5fI86imch4/hqdefault.jpg",
-   "views": 48,
+   "views": 49,
    "duration": "4:48",
    "durationSec": 288,
    "date": "1 month ago"
@@ -1742,7 +1754,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=tjTp-khMd0Y",
    "videoId": "tjTp-khMd0Y",
    "thumb": "https://i.ytimg.com/vi/tjTp-khMd0Y/hqdefault.jpg",
-   "views": 62,
+   "views": 63,
    "duration": "1:20",
    "durationSec": 80,
    "date": "1 month ago"
@@ -1754,7 +1766,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=3fs1olhKCEA",
    "videoId": "3fs1olhKCEA",
    "thumb": "https://i.ytimg.com/vi/3fs1olhKCEA/hqdefault.jpg",
-   "views": 40,
+   "views": 42,
    "duration": "2:17",
    "durationSec": 137,
    "date": "1 month ago"
@@ -1769,7 +1781,7 @@ export const YT = {
    "views": 1500,
    "duration": "4:24",
    "durationSec": 264,
-   "date": "1 month ago"
+   "date": "2 months ago"
   },
   {
    "channel": "yiyaho_studio",
@@ -1778,7 +1790,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=zoGxXSmrY_M",
    "videoId": "zoGxXSmrY_M",
    "thumb": "https://i.ytimg.com/vi/zoGxXSmrY_M/hqdefault.jpg",
-   "views": 9400,
+   "views": 9600,
    "duration": "3:01",
    "durationSec": 181,
    "date": "2 months ago"
@@ -1817,7 +1829,7 @@ export const YT = {
    "views": 45000,
    "duration": "3:13",
    "durationSec": 193,
-   "date": "2 months ago"
+   "date": "3 months ago"
   },
   {
    "channel": "yiyaho_studio",
@@ -1826,10 +1838,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=TIQOPPWNVF8",
    "videoId": "TIQOPPWNVF8",
    "thumb": "https://i.ytimg.com/vi/TIQOPPWNVF8/hqdefault.jpg",
-   "views": 132,
+   "views": 133,
    "duration": "2:54",
    "durationSec": 174,
-   "date": "2 months ago"
+   "date": "3 months ago"
   },
   {
    "channel": "yiyaho_studio",
@@ -1838,7 +1850,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=53vTmxGPZSI",
    "videoId": "53vTmxGPZSI",
    "thumb": "https://i.ytimg.com/vi/53vTmxGPZSI/hqdefault.jpg",
-   "views": 153,
+   "views": 154,
    "duration": "2:52",
    "durationSec": 172,
    "date": "3 months ago"
@@ -1850,7 +1862,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=AA4LxhCoX_k",
    "videoId": "AA4LxhCoX_k",
    "thumb": "https://i.ytimg.com/vi/AA4LxhCoX_k/hqdefault.jpg",
-   "views": 191,
+   "views": 193,
    "duration": "3:15",
    "durationSec": 195,
    "date": "3 months ago"
@@ -1862,7 +1874,7 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=CIjBg3tGTLA",
    "videoId": "CIjBg3tGTLA",
    "thumb": "https://i.ytimg.com/vi/CIjBg3tGTLA/hqdefault.jpg",
-   "views": 32000,
+   "views": 33000,
    "duration": "4:45",
    "durationSec": 285,
    "date": "3 months ago"
@@ -1898,10 +1910,10 @@ export const YT = {
    "url": "https://www.youtube.com/watch?v=s0zkvpoxA6k",
    "videoId": "s0zkvpoxA6k",
    "thumb": "https://i.ytimg.com/vi/s0zkvpoxA6k/hqdefault.jpg",
-   "views": 765,
+   "views": 803,
    "duration": "10:19",
    "durationSec": 619,
-   "date": "3 months ago"
+   "date": "4 months ago"
   },
   {
    "channel": "yiyaho_studio",
@@ -1910,7 +1922,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/4h1iylyAgFw",
    "videoId": "4h1iylyAgFw",
    "thumb": "https://i.ytimg.com/vi/4h1iylyAgFw/hqdefault.jpg",
-   "views": 22,
+   "views": 33,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-20"
@@ -1922,7 +1934,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/3Qviji_t_lk",
    "videoId": "3Qviji_t_lk",
    "thumb": "https://i.ytimg.com/vi/3Qviji_t_lk/hqdefault.jpg",
-   "views": 42,
+   "views": 46,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-14"
@@ -1946,7 +1958,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/jlt_1LtNgLI",
    "videoId": "jlt_1LtNgLI",
    "thumb": "https://i.ytimg.com/vi/jlt_1LtNgLI/hqdefault.jpg",
-   "views": 50,
+   "views": 51,
    "duration": "",
    "durationSec": 0,
    "date": "2026-07-02"
@@ -1958,7 +1970,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/sUysHCBxczg",
    "videoId": "sUysHCBxczg",
    "thumb": "https://i.ytimg.com/vi/sUysHCBxczg/hqdefault.jpg",
-   "views": 430,
+   "views": 431,
    "duration": "",
    "durationSec": 0,
    "date": "2026-06-27"
@@ -2018,7 +2030,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/9wDgfWFM4fc",
    "videoId": "9wDgfWFM4fc",
    "thumb": "https://i.ytimg.com/vi/9wDgfWFM4fc/hqdefault.jpg",
-   "views": 132,
+   "views": 134,
    "duration": "",
    "durationSec": 0,
    "date": "2026-06-01"
@@ -2054,7 +2066,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/iW9idFMpAk0",
    "videoId": "iW9idFMpAk0",
    "thumb": "https://i.ytimg.com/vi/iW9idFMpAk0/hqdefault.jpg",
-   "views": 34,
+   "views": 35,
    "duration": "",
    "durationSec": 0,
    "date": "2026-05-29"
@@ -2066,7 +2078,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/9x5zZ9Fsyag",
    "videoId": "9x5zZ9Fsyag",
    "thumb": "https://i.ytimg.com/vi/9x5zZ9Fsyag/hqdefault.jpg",
-   "views": 74,
+   "views": 78,
    "duration": "",
    "durationSec": 0,
    "date": "2026-05-27"
@@ -2078,7 +2090,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/qiYj5zny78o",
    "videoId": "qiYj5zny78o",
    "thumb": "https://i.ytimg.com/vi/qiYj5zny78o/hqdefault.jpg",
-   "views": 178,
+   "views": 181,
    "duration": "",
    "durationSec": 0,
    "date": "2026-05-26"
@@ -2090,7 +2102,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/G-OBG6Lhhk8",
    "videoId": "G-OBG6Lhhk8",
    "thumb": "https://i.ytimg.com/vi/G-OBG6Lhhk8/hqdefault.jpg",
-   "views": 316,
+   "views": 318,
    "duration": "",
    "durationSec": 0,
    "date": "2026-05-22"
@@ -2102,7 +2114,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/ErqkaYKC4W0",
    "videoId": "ErqkaYKC4W0",
    "thumb": "https://i.ytimg.com/vi/ErqkaYKC4W0/hqdefault.jpg",
-   "views": 792,
+   "views": 793,
    "duration": "",
    "durationSec": 0,
    "date": "2026-05-21"
@@ -2114,7 +2126,7 @@ export const YT = {
    "url": "https://www.youtube.com/shorts/8Yeuy8Kvrko",
    "videoId": "8Yeuy8Kvrko",
    "thumb": "https://i.ytimg.com/vi/8Yeuy8Kvrko/hqdefault.jpg",
-   "views": 1000,
+   "views": 1100,
    "duration": "",
    "durationSec": 0,
    "date": "2026-05-20"

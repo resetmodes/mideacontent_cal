@@ -1,5 +1,5 @@
 {
- "count": 282,
+ "count": 408,
  "rows": [
   {
    "id": "af95fc60-a7c3-4f7d-9acd-d326e681b87e",
@@ -5929,6 +5929,2985 @@
     "end_date": null,
     "perf_url": null,
     "created_at": "2026-07-24T16:46:03.603014+00:00"
+   }
+  },
+  {
+   "id": "16ed4819-452b-4850-b90a-2601bf0ad625",
+   "event_id": "415974c1-137b-456a-810b-4069b019544b",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-26T23:25:39.685632+00:00",
+   "data": {
+    "id": "415974c1-137b-456a-810b-4069b019544b",
+    "sub": "공식",
+    "date": "2026-07-24",
+    "kind": null,
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "쿠키런",
+    "images": [
+     {
+      "name": "Reduce_number_of_people_2K_202607231302.jpeg",
+      "path": "415974c1-137b-456a-810b-4069b019544b/1785108337109_Reduce_number_of_people_2K_202607231302.jpeg",
+      "size": 545990
+     }
+    ],
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-20T23:57:38.585382+00:00"
+   }
+  },
+  {
+   "id": "ebcf3392-de38-4387-96bd-ec6bfa163d85",
+   "event_id": "415974c1-137b-456a-810b-4069b019544b",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-26T23:25:44.159855+00:00",
+   "data": {
+    "id": "415974c1-137b-456a-810b-4069b019544b",
+    "sub": "공식",
+    "date": "2026-07-24",
+    "kind": null,
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "쿠키런",
+    "images": [
+     {
+      "name": "Reduce_number_of_people_2K_202607231302.jpeg",
+      "path": "415974c1-137b-456a-810b-4069b019544b/1785108337109_Reduce_number_of_people_2K_202607231302.jpeg",
+      "size": 545990
+     },
+     {
+      "name": "IMG_0644.HEIC",
+      "path": "415974c1-137b-456a-810b-4069b019544b/1785108341555_IMG_0644.HEIC",
+      "size": 905181
+     }
+    ],
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-20T23:57:38.585382+00:00"
+   }
+  },
+  {
+   "id": "9fffa8c3-150e-4b59-b4dd-c41ba8969340",
+   "event_id": "415974c1-137b-456a-810b-4069b019544b",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-26T23:26:26.662452+00:00",
+   "data": {
+    "id": "415974c1-137b-456a-810b-4069b019544b",
+    "sub": "공식",
+    "date": "2026-07-24",
+    "kind": null,
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "쿠키런",
+    "images": [
+     {
+      "name": "Reduce_number_of_people_2K_202607231302.jpeg",
+      "path": "415974c1-137b-456a-810b-4069b019544b/1785108337109_Reduce_number_of_people_2K_202607231302.jpeg",
+      "size": 545990
+     }
+    ],
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-20T23:57:38.585382+00:00"
+   }
+  },
+  {
+   "id": "21af772e-916e-4eca-80ec-cfc1ed3552ca",
+   "event_id": "415974c1-137b-456a-810b-4069b019544b",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-26T23:26:39.560396+00:00",
+   "data": {
+    "id": "415974c1-137b-456a-810b-4069b019544b",
+    "sub": "공식",
+    "date": "2026-07-24",
+    "kind": null,
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "쿠키런",
+    "images": [
+     {
+      "name": "Reduce_number_of_people_2K_202607231302.jpeg",
+      "path": "415974c1-137b-456a-810b-4069b019544b/1785108337109_Reduce_number_of_people_2K_202607231302.jpeg",
+      "size": 545990
+     },
+     {
+      "name": "image.jpg",
+      "path": "415974c1-137b-456a-810b-4069b019544b/1785108397087_image.jpg",
+      "size": 502383
+     }
+    ],
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-20T23:57:38.585382+00:00"
+   }
+  },
+  {
+   "id": "ede6f32d-f1a8-4fea-be9b-81dd417fdb24",
+   "event_id": "415974c1-137b-456a-810b-4069b019544b",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-26T23:26:42.948611+00:00",
+   "data": {
+    "id": "415974c1-137b-456a-810b-4069b019544b",
+    "sub": "공식",
+    "date": "2026-07-24",
+    "kind": null,
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "쿠키런",
+    "images": [
+     {
+      "name": "Reduce_number_of_people_2K_202607231302.jpeg",
+      "path": "415974c1-137b-456a-810b-4069b019544b/1785108337109_Reduce_number_of_people_2K_202607231302.jpeg",
+      "size": 545990
+     }
+    ],
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-20T23:57:38.585382+00:00"
+   }
+  },
+  {
+   "id": "4c4e5d9a-e58b-4b5f-83ad-9b84045498ca",
+   "event_id": "415974c1-137b-456a-810b-4069b019544b",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-26T23:26:44.204057+00:00",
+   "data": {
+    "id": "415974c1-137b-456a-810b-4069b019544b",
+    "sub": "공식",
+    "date": "2026-07-24",
+    "kind": null,
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "쿠키런",
+    "images": [],
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-20T23:57:38.585382+00:00"
+   }
+  },
+  {
+   "id": "4afef3fc-2979-4b31-9f79-25c94557f4bb",
+   "event_id": "3dacb68f-9cf8-41df-8244-f83ef6ff9b5e",
+   "action": "INSERT",
+   "actor": "1607211@thehyundai.com",
+   "changed_at": "2026-07-27T00:01:56.920969+00:00",
+   "data": {
+    "id": "3dacb68f-9cf8-41df-8244-f83ef6ff9b5e",
+    "sub": null,
+    "date": "2026-07-30",
+    "kind": "팀",
+    "memo": "미디어믹스 업체 미팅 (딥씨이케이엠)",
+    "owner": "정소미 책임",
+    "title": "정소미 노규빈 판교점 외근",
+    "images": null,
+    "channel": "외근",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-27T00:01:56.920969+00:00"
+   }
+  },
+  {
+   "id": "00c3db49-9cfe-4df0-ba37-b032ffa3159b",
+   "event_id": "a9b92e6b-84b0-45da-a836-556f7050c6d8",
+   "action": "INSERT",
+   "actor": "jaesal@hmall.com",
+   "changed_at": "2026-07-27T01:03:29.099709+00:00",
+   "data": {
+    "id": "a9b92e6b-84b0-45da-a836-556f7050c6d8",
+    "sub": null,
+    "date": "2026-07-29",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이재상 팀장",
+    "title": "이재상 김상수 외근(슈카)",
+    "images": null,
+    "channel": "외근",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-27T01:03:29.099709+00:00"
+   }
+  },
+  {
+   "id": "52307cfd-a20c-43cd-81db-aa95b2b6a43d",
+   "event_id": "415974c1-137b-456a-810b-4069b019544b",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-27T02:06:49.567333+00:00",
+   "data": {
+    "id": "415974c1-137b-456a-810b-4069b019544b",
+    "sub": "공식",
+    "date": "2026-07-24",
+    "kind": null,
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "쿠키런",
+    "images": [],
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": "https://www.instagram.com/p/DbK3pPjh2Gr/",
+    "created_at": "2026-07-20T23:57:38.585382+00:00"
+   }
+  },
+  {
+   "id": "e7fcfc01-e2fe-4bde-ba2d-fac8657d2846",
+   "event_id": "d7a90715-1e08-4cf4-b9bc-472639374344",
+   "action": "INSERT",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-27T02:07:12.035195+00:00",
+   "data": {
+    "id": "d7a90715-1e08-4cf4-b9bc-472639374344",
+    "sub": "공식",
+    "date": "2026-07-24",
+    "kind": null,
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "더현서 케이리그 팝업(콜랍스)",
+    "images": null,
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-27T02:07:12.035195+00:00"
+   }
+  },
+  {
+   "id": "d4210fa8-87ae-47d2-9c0f-723abd1df53a",
+   "event_id": "fab33c05-4269-4158-b75a-334f1e43b3b0",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-27T02:18:44.67691+00:00",
+   "data": {
+    "id": "fab33c05-4269-4158-b75a-334f1e43b3b0",
+    "sub": "키즈노트",
+    "date": "2026-07-17",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "도쿄장난감미술관 시즌2",
+    "images": [
+     {
+      "name": "kidsnote.jpg",
+      "path": "fab33c05-4269-4158-b75a-334f1e43b3b0/1785118740909_kidsnote.jpg",
+      "size": 106990
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": "장난감미술관",
+    "end_date": "2026-08-02",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:04:33.417246+00:00"
+   }
+  },
+  {
+   "id": "e6155db7-7c38-4d4b-a05b-389057d48d38",
+   "event_id": "77696908-f14a-42bd-bce1-09de996b877a",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-27T02:20:59.620265+00:00",
+   "data": {
+    "id": "77696908-f14a-42bd-bce1-09de996b877a",
+    "sub": "아파트너",
+    "date": "2026-07-17",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "도쿄장난감미술관 시즌2",
+    "images": [
+     {
+      "name": "아파트.jpg",
+      "path": "77696908-f14a-42bd-bce1-09de996b877a/1785118875779_nst0.jpg",
+      "size": 100729
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": "장난감미술관",
+    "end_date": "2026-08-02",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:04:33.269718+00:00"
+   }
+  },
+  {
+   "id": "1d667403-fea5-410b-9020-a073632a924c",
+   "event_id": "75c274bc-b093-4faf-bef4-a5f447eb25b8",
+   "action": "INSERT",
+   "actor": "hanjumping@thehyundai.com",
+   "changed_at": "2026-07-27T04:29:39.126347+00:00",
+   "data": {
+    "id": "75c274bc-b093-4faf-bef4-a5f447eb25b8",
+    "sub": "룸넘버",
+    "date": "2026-07-30",
+    "kind": null,
+    "memo": null,
+    "owner": "한정빈 선임",
+    "title": "룸넘버 LIVE 방송",
+    "images": null,
+    "channel": "유튜브",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-27T04:29:39.126347+00:00"
+   }
+  },
+  {
+   "id": "bb52c476-4523-42e0-985a-d4d688948a4c",
+   "event_id": "e72a371d-b08a-4665-88b7-11036abd1b95",
+   "action": "INSERT",
+   "actor": "hanjumping@thehyundai.com",
+   "changed_at": "2026-07-27T04:30:18.627539+00:00",
+   "data": {
+    "id": "e72a371d-b08a-4665-88b7-11036abd1b95",
+    "sub": null,
+    "date": "2026-08-02",
+    "kind": null,
+    "memo": null,
+    "owner": "한정빈 선임",
+    "title": "룸넘버 롱폼",
+    "images": null,
+    "channel": "기타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-27T04:30:18.627539+00:00"
+   }
+  },
+  {
+   "id": "f0bb20b0-22e8-408b-a6ed-6adba8e24573",
+   "event_id": "e72a371d-b08a-4665-88b7-11036abd1b95",
+   "action": "UPDATE",
+   "actor": "hanjumping@thehyundai.com",
+   "changed_at": "2026-07-27T04:30:27.213122+00:00",
+   "data": {
+    "id": "e72a371d-b08a-4665-88b7-11036abd1b95",
+    "sub": null,
+    "date": "2026-08-02",
+    "kind": null,
+    "memo": null,
+    "owner": "한정빈 선임",
+    "title": "룸넘버 롱폼",
+    "images": null,
+    "channel": "유튜브",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-27T04:30:18.627539+00:00"
+   }
+  },
+  {
+   "id": "c4aba184-0855-4f28-805c-3b760972845a",
+   "event_id": "5e41fd1c-f572-48bd-8222-9d5773b5f135",
+   "action": "INSERT",
+   "actor": "hanjumping@thehyundai.com",
+   "changed_at": "2026-07-27T04:30:49.740418+00:00",
+   "data": {
+    "id": "5e41fd1c-f572-48bd-8222-9d5773b5f135",
+    "sub": "카카오",
+    "date": "2026-07-28",
+    "kind": null,
+    "memo": null,
+    "owner": "한정빈 선임",
+    "title": "피아제 유상 판매건",
+    "images": null,
+    "channel": "기타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-27T04:30:49.740418+00:00"
+   }
+  },
+  {
+   "id": "15d47836-a415-42ca-9e79-99166f3e94e6",
+   "event_id": "5e41fd1c-f572-48bd-8222-9d5773b5f135",
+   "action": "UPDATE",
+   "actor": "hanjumping@thehyundai.com",
+   "changed_at": "2026-07-27T04:30:57.704022+00:00",
+   "data": {
+    "id": "5e41fd1c-f572-48bd-8222-9d5773b5f135",
+    "sub": null,
+    "date": "2026-07-28",
+    "kind": null,
+    "memo": null,
+    "owner": "한정빈 선임",
+    "title": "피아제 유상 판매건",
+    "images": null,
+    "channel": "카카오톡",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-27T04:30:49.740418+00:00"
+   }
+  },
+  {
+   "id": "10c5eec1-9449-43af-b64c-a670ff0fdb9a",
+   "event_id": "5e41fd1c-f572-48bd-8222-9d5773b5f135",
+   "action": "UPDATE",
+   "actor": "hanjumping@thehyundai.com",
+   "changed_at": "2026-07-27T04:31:17.857449+00:00",
+   "data": {
+    "id": "5e41fd1c-f572-48bd-8222-9d5773b5f135",
+    "sub": null,
+    "date": "2026-07-28",
+    "kind": null,
+    "memo": null,
+    "owner": "한정빈 선임",
+    "title": "피아제 유상 판매건 (10:30)",
+    "images": null,
+    "channel": "카카오톡",
+    "campaign": null,
+    "end_date": "2026-07-28",
+    "perf_url": null,
+    "created_at": "2026-07-27T04:30:49.740418+00:00"
+   }
+  },
+  {
+   "id": "4c81c974-d14c-4a81-ae22-3bb023c78cc3",
+   "event_id": "037f7137-d001-427c-a6f9-4042a51eeaa0",
+   "action": "INSERT",
+   "actor": "hanjumping@thehyundai.com",
+   "changed_at": "2026-07-27T04:35:07.226968+00:00",
+   "data": {
+    "id": "037f7137-d001-427c-a6f9-4042a51eeaa0",
+    "sub": "카카오",
+    "date": "2026-07-21",
+    "kind": null,
+    "memo": null,
+    "owner": "한정빈 선임",
+    "title": "카카오톡 키즈 특집",
+    "images": null,
+    "channel": "기타",
+    "campaign": null,
+    "end_date": "2026-07-21",
+    "perf_url": null,
+    "created_at": "2026-07-27T04:35:07.226968+00:00"
+   }
+  },
+  {
+   "id": "24b42d49-7ccc-4644-8405-324d560ab003",
+   "event_id": "037f7137-d001-427c-a6f9-4042a51eeaa0",
+   "action": "UPDATE",
+   "actor": "hanjumping@thehyundai.com",
+   "changed_at": "2026-07-27T04:35:14.201911+00:00",
+   "data": {
+    "id": "037f7137-d001-427c-a6f9-4042a51eeaa0",
+    "sub": null,
+    "date": "2026-07-21",
+    "kind": null,
+    "memo": null,
+    "owner": "한정빈 선임",
+    "title": "카카오톡 키즈 특집",
+    "images": null,
+    "channel": "카카오톡",
+    "campaign": null,
+    "end_date": "2026-07-21",
+    "perf_url": null,
+    "created_at": "2026-07-27T04:35:07.226968+00:00"
+   }
+  },
+  {
+   "id": "19f3dbe3-75be-4630-a46c-9ac0c45a4cad",
+   "event_id": "0100b741-c00e-4e03-87b7-5d2592474dc6",
+   "action": "UPDATE",
+   "actor": "1607211@thehyundai.com",
+   "changed_at": "2026-07-27T08:29:31.145613+00:00",
+   "data": {
+    "id": "0100b741-c00e-4e03-87b7-5d2592474dc6",
+    "sub": "공식",
+    "date": "2026-07-28",
+    "kind": null,
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "moka 스케치",
+    "images": null,
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-15T01:58:35.656666+00:00"
+   }
+  },
+  {
+   "id": "ec608f2b-6a7b-46ca-a7eb-b004cb7746c6",
+   "event_id": "9d761f6f-3da4-4f60-86a8-1469ae842a4a",
+   "action": "INSERT",
+   "actor": "2319320@thehyundai.com",
+   "changed_at": "2026-07-27T10:15:39.581638+00:00",
+   "data": {
+    "id": "9d761f6f-3da4-4f60-86a8-1469ae842a4a",
+    "sub": null,
+    "date": "2026-07-28",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이수정 선임",
+    "title": "이수정 연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": "2026-07-28",
+    "perf_url": null,
+    "created_at": "2026-07-27T10:15:39.581638+00:00"
+   }
+  },
+  {
+   "id": "958127d8-91fe-4101-be97-8c05e76124a4",
+   "event_id": "016289c4-4def-40bb-bfa1-b0cefb7999be",
+   "action": "INSERT",
+   "actor": "2319320@thehyundai.com",
+   "changed_at": "2026-07-27T10:16:09.507486+00:00",
+   "data": {
+    "id": "016289c4-4def-40bb-bfa1-b0cefb7999be",
+    "sub": null,
+    "date": "2026-08-20",
+    "kind": "팀",
+    "memo": "여름휴가",
+    "owner": "이수정 선임",
+    "title": "이수정 연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": "2026-08-21",
+    "perf_url": null,
+    "created_at": "2026-07-27T10:16:09.507486+00:00"
+   }
+  },
+  {
+   "id": "b0f37336-a53b-4d17-8326-525d6212ac1b",
+   "event_id": "aa53eec9-c95b-4d07-acf6-9e91a36b9a5c",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-28T00:46:54.950342+00:00",
+   "data": {
+    "id": "aa53eec9-c95b-4d07-acf6-9e91a36b9a5c",
+    "sub": "와지트",
+    "date": "2026-07-26",
+    "kind": null,
+    "memo": null,
+    "owner": "mediacontents",
+    "title": "와지트 도쿄출장편",
+    "images": null,
+    "channel": "유튜브",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": "https://www.youtube.com/watch?v=z6NoUkxlBjE",
+    "created_at": "2026-07-09T11:24:08.241466+00:00"
+   }
+  },
+  {
+   "id": "c9c16d05-6176-4216-98b4-57ec5790bca0",
+   "event_id": "e2b55841-eeb4-4e30-82f0-b0f33dc5f16b",
+   "action": "INSERT",
+   "actor": "sangsu88926@thehyundai.com",
+   "changed_at": "2026-07-28T00:47:08.317346+00:00",
+   "data": {
+    "id": "e2b55841-eeb4-4e30-82f0-b0f33dc5f16b",
+    "sub": null,
+    "date": "2026-07-31",
+    "kind": "팀",
+    "memo": null,
+    "owner": "김상수 책임",
+    "title": "김상수연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": "2026-07-31",
+    "perf_url": null,
+    "created_at": "2026-07-28T00:47:08.317346+00:00"
+   }
+  },
+  {
+   "id": "df49914f-92af-4b03-8c83-ccf0bc2d4bf4",
+   "event_id": "842c92f0-758c-4094-ba0f-d6ea61c50a11",
+   "action": "INSERT",
+   "actor": "qlslekf11@thehyundai.com",
+   "changed_at": "2026-07-28T01:10:04.125729+00:00",
+   "data": {
+    "id": "842c92f0-758c-4094-ba0f-d6ea61c50a11",
+    "sub": null,
+    "date": "2026-07-27",
+    "kind": "팀",
+    "memo": null,
+    "owner": "박준영 전임",
+    "title": "박준영연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-28T01:10:04.125729+00:00"
+   }
+  },
+  {
+   "id": "76c71ad5-26e2-4641-a503-4282dae18a1b",
+   "event_id": "249684a8-dcde-4629-90a8-407c51444fd4",
+   "action": "INSERT",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-28T02:18:26.468393+00:00",
+   "data": {
+    "id": "249684a8-dcde-4629-90a8-407c51444fd4",
+    "sub": null,
+    "date": "2026-08-05",
+    "kind": "팀",
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "노규빈 점심 회식",
+    "images": null,
+    "channel": "팀기타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-28T02:18:26.468393+00:00"
+   }
+  },
+  {
+   "id": "839fecb4-a709-4b29-9c16-376882786a35",
+   "event_id": "249684a8-dcde-4629-90a8-407c51444fd4",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-28T02:18:34.219985+00:00",
+   "data": {
+    "id": "249684a8-dcde-4629-90a8-407c51444fd4",
+    "sub": null,
+    "date": "2026-08-05",
+    "kind": "팀",
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "팀 점심 회식",
+    "images": null,
+    "channel": "팀기타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-28T02:18:26.468393+00:00"
+   }
+  },
+  {
+   "id": "2eb2b2b5-6438-4681-b2b5-39a20252206e",
+   "event_id": "fb8e655d-7b66-4081-bbad-f1d6aa67aa9d",
+   "action": "INSERT",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-28T02:19:19.217304+00:00",
+   "data": {
+    "id": "fb8e655d-7b66-4081-bbad-f1d6aa67aa9d",
+    "sub": "생일",
+    "date": "2026-08-07",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "백채은 생일",
+    "images": null,
+    "channel": "기념일",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-28T02:19:19.217304+00:00"
+   }
+  },
+  {
+   "id": "279d909a-211f-4501-8bc4-c8704b8bf38b",
+   "event_id": "54d99401-d8af-423f-a041-815a99de30a4",
+   "action": "INSERT",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-28T02:19:22.000032+00:00",
+   "data": {
+    "id": "54d99401-d8af-423f-a041-815a99de30a4",
+    "sub": "생일",
+    "date": "2026-08-07",
+    "kind": "팀",
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "백채은 생일",
+    "images": null,
+    "channel": "기념일",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-28T02:19:22.000032+00:00"
+   }
+  },
+  {
+   "id": "9dc5b288-9f4c-414d-8198-f878aa0521f2",
+   "event_id": "64a8195f-cbb7-4698-85df-8922e90456fd",
+   "action": "INSERT",
+   "actor": "1607211@thehyundai.com",
+   "changed_at": "2026-07-28T05:19:08.863598+00:00",
+   "data": {
+    "id": "64a8195f-cbb7-4698-85df-8922e90456fd",
+    "sub": "오전",
+    "date": "2026-07-29",
+    "kind": "팀",
+    "memo": null,
+    "owner": "정소미 책임",
+    "title": "정소미 오전 반차",
+    "images": null,
+    "channel": "반차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-28T05:19:08.863598+00:00"
+   }
+  },
+  {
+   "id": "90add30a-dd4e-49e2-8674-a1cec83a8b19",
+   "event_id": "64a8195f-cbb7-4698-85df-8922e90456fd",
+   "action": "UPDATE",
+   "actor": "1607211@thehyundai.com",
+   "changed_at": "2026-07-28T05:19:16.807929+00:00",
+   "data": {
+    "id": "64a8195f-cbb7-4698-85df-8922e90456fd",
+    "sub": "오전",
+    "date": "2026-07-29",
+    "kind": "팀",
+    "memo": null,
+    "owner": "정소미 책임",
+    "title": "정소미 오전반차",
+    "images": null,
+    "channel": "반차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-28T05:19:08.863598+00:00"
+   }
+  },
+  {
+   "id": "93717088-a579-468f-985b-8853ea32b65e",
+   "event_id": "00cfcf53-38d1-45b2-a118-9236b1cfa5e8",
+   "action": "INSERT",
+   "actor": "gkdis8747@thehyundai.com",
+   "changed_at": "2026-07-28T05:23:11.244705+00:00",
+   "data": {
+    "id": "00cfcf53-38d1-45b2-a118-9236b1cfa5e8",
+    "sub": null,
+    "date": "2026-07-28",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이진경 전임",
+    "title": "이진경 오후반반차",
+    "images": null,
+    "channel": "반차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-28T05:23:11.244705+00:00"
+   }
+  },
+  {
+   "id": "157eb84e-4749-4775-8037-17580bc67baa",
+   "event_id": "d46d5f20-dd00-4635-b595-f333d271edfd",
+   "action": "INSERT",
+   "actor": "gkdis8747@thehyundai.com",
+   "changed_at": "2026-07-28T05:24:38.502686+00:00",
+   "data": {
+    "id": "d46d5f20-dd00-4635-b595-f333d271edfd",
+    "sub": null,
+    "date": "2026-10-02",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이진경 전임",
+    "title": "이진경 휴가",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": "2026-10-11",
+    "perf_url": null,
+    "created_at": "2026-07-28T05:24:38.502686+00:00"
+   }
+  },
+  {
+   "id": "7255a41e-3940-499a-a1ed-beac9c0067d1",
+   "event_id": "fb8e655d-7b66-4081-bbad-f1d6aa67aa9d",
+   "action": "DELETE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-28T07:15:35.038561+00:00",
+   "data": {
+    "id": "fb8e655d-7b66-4081-bbad-f1d6aa67aa9d",
+    "sub": "생일",
+    "date": "2026-08-07",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "백채은 생일",
+    "images": null,
+    "channel": "기념일",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-28T02:19:19.217304+00:00"
+   }
+  },
+  {
+   "id": "d9d67b47-8757-40d0-8210-f6caf6fd79ec",
+   "event_id": "005e4980-4d2e-4c5c-b1c8-b52854174d04",
+   "action": "INSERT",
+   "actor": "1802330@thehyundai.com",
+   "changed_at": "2026-07-28T07:17:51.197015+00:00",
+   "data": {
+    "id": "005e4980-4d2e-4c5c-b1c8-b52854174d04",
+    "sub": null,
+    "date": "2026-08-03",
+    "kind": "팀",
+    "memo": null,
+    "owner": "강혜린 전임",
+    "title": "강혜린 휴가",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": "2026-08-07",
+    "perf_url": null,
+    "created_at": "2026-07-28T07:17:51.197015+00:00"
+   }
+  },
+  {
+   "id": "e6bfea1a-edb6-46f3-8a0c-dd75fdd6f2cd",
+   "event_id": "21e61fe7-f4ff-410e-a616-986991b80f61",
+   "action": "DELETE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-28T07:37:21.30342+00:00",
+   "data": {
+    "id": "21e61fe7-f4ff-410e-a616-986991b80f61",
+    "sub": null,
+    "date": "2026-08-14",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "이승권 휴가ㆍ종료",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-22T10:00:22.609777+00:00"
+   }
+  },
+  {
+   "id": "2b947e59-6a76-4960-bde6-82a8cef79555",
+   "event_id": "0f2be90b-a5c9-4a6b-90a6-1a47ba4fa7db",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-28T07:37:36.015582+00:00",
+   "data": {
+    "id": "0f2be90b-a5c9-4a6b-90a6-1a47ba4fa7db",
+    "sub": null,
+    "date": "2026-08-11",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "이승권 휴가",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": "2026-08-14",
+    "perf_url": null,
+    "created_at": "2026-07-22T09:59:58.833286+00:00"
+   }
+  },
+  {
+   "id": "02796440-31a4-46c8-8246-1eaa20bd76f1",
+   "event_id": "e06da8e5-cd16-4c46-ba1d-0391879fb55c",
+   "action": "INSERT",
+   "actor": "2319320@thehyundai.com",
+   "changed_at": "2026-07-28T20:32:15.048553+00:00",
+   "data": {
+    "id": "e06da8e5-cd16-4c46-ba1d-0391879fb55c",
+    "sub": null,
+    "date": "2026-07-29",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이수정 선임",
+    "title": "이수정연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-28T20:32:15.048553+00:00"
+   }
+  },
+  {
+   "id": "912f1a44-60bc-43db-80b5-9596b66d62b5",
+   "event_id": "fc1fd444-856f-45ea-871a-73f58090c1ba",
+   "action": "UPDATE",
+   "actor": "umhyewon@thehyundai.com",
+   "changed_at": "2026-07-29T00:09:24.031184+00:00",
+   "data": {
+    "id": "fc1fd444-856f-45ea-871a-73f58090c1ba",
+    "sub": "와지트",
+    "date": "2026-07-29",
+    "kind": null,
+    "memo": null,
+    "owner": "엄혜원 선임",
+    "title": "와지트 gs25 ppl",
+    "images": null,
+    "channel": "유튜브",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-16T05:15:04.713641+00:00"
+   }
+  },
+  {
+   "id": "cf7a7b16-a2a2-45bf-8bb0-38dc2da311d1",
+   "event_id": "bb47d062-43b0-4e8a-9fd4-c7607ea6dc30",
+   "action": "INSERT",
+   "actor": "umhyewon@thehyundai.com",
+   "changed_at": "2026-07-29T00:10:05.960588+00:00",
+   "data": {
+    "id": "bb47d062-43b0-4e8a-9fd4-c7607ea6dc30",
+    "sub": null,
+    "date": "2026-08-01",
+    "kind": null,
+    "memo": null,
+    "owner": "엄혜원 선임",
+    "title": "미아점",
+    "images": null,
+    "channel": "아파트LCD",
+    "campaign": null,
+    "end_date": "2026-08-20",
+    "perf_url": null,
+    "created_at": "2026-07-29T00:10:05.960588+00:00"
+   }
+  },
+  {
+   "id": "15927ffe-2cf2-41f6-ac21-493236a720ea",
+   "event_id": "bb47d062-43b0-4e8a-9fd4-c7607ea6dc30",
+   "action": "UPDATE",
+   "actor": "umhyewon@thehyundai.com",
+   "changed_at": "2026-07-29T00:10:33.718294+00:00",
+   "data": {
+    "id": "bb47d062-43b0-4e8a-9fd4-c7607ea6dc30",
+    "sub": null,
+    "date": "2026-08-01",
+    "kind": null,
+    "memo": null,
+    "owner": "엄혜원 선임",
+    "title": "미아점 25주년",
+    "images": null,
+    "channel": "아파트LCD",
+    "campaign": null,
+    "end_date": "2026-08-20",
+    "perf_url": null,
+    "created_at": "2026-07-29T00:10:05.960588+00:00"
+   }
+  },
+  {
+   "id": "f8b521c8-cd96-4059-ae70-f3a074415b82",
+   "event_id": "7736eeb7-ff76-4ff9-98a6-dc797be3c3b1",
+   "action": "UPDATE",
+   "actor": "1607211@thehyundai.com",
+   "changed_at": "2026-07-29T04:04:33.053237+00:00",
+   "data": {
+    "id": "7736eeb7-ff76-4ff9-98a6-dc797be3c3b1",
+    "sub": "오후",
+    "date": "2026-08-06",
+    "kind": "팀",
+    "memo": null,
+    "owner": "정소미 책임",
+    "title": "정소미 연차",
+    "images": null,
+    "channel": "반차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-21T00:33:01.315321+00:00"
+   }
+  },
+  {
+   "id": "4a8f8299-90e6-42e1-978c-9db630b0e5d5",
+   "event_id": "24477a4f-4dfb-44bf-ad96-0422c9b48cee",
+   "action": "INSERT",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-29T08:01:38.094629+00:00",
+   "data": {
+    "id": "24477a4f-4dfb-44bf-ad96-0422c9b48cee",
+    "sub": "공식",
+    "date": "2026-08-19",
+    "kind": "촬영",
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "더현서 샤넬 카페 8,25 업로드",
+    "images": null,
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-29T08:01:38.094629+00:00"
+   }
+  },
+  {
+   "id": "12c0aabb-7d53-4f72-8cb6-fb527be5d05c",
+   "event_id": "24477a4f-4dfb-44bf-ad96-0422c9b48cee",
+   "action": "DELETE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-29T08:02:14.136062+00:00",
+   "data": {
+    "id": "24477a4f-4dfb-44bf-ad96-0422c9b48cee",
+    "sub": "공식",
+    "date": "2026-08-19",
+    "kind": "촬영",
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "더현서 샤넬 카페 8,25 업로드",
+    "images": null,
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-29T08:01:38.094629+00:00"
+   }
+  },
+  {
+   "id": "4a70bdb2-4a0f-4c33-a16b-e013fdf7a39a",
+   "event_id": "99114659-7eb6-40ef-8fab-e1c3e569e80c",
+   "action": "INSERT",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-29T08:02:27.874344+00:00",
+   "data": {
+    "id": "99114659-7eb6-40ef-8fab-e1c3e569e80c",
+    "sub": null,
+    "date": "2026-08-19",
+    "kind": "촬영",
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "더현서 샤넬 카페",
+    "images": null,
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-29T08:02:27.874344+00:00"
+   }
+  },
+  {
+   "id": "0f25e81f-c163-43ca-a0d8-2053282941a9",
+   "event_id": "5b48b9d3-f4c7-4b3e-83a7-67aa87e50e18",
+   "action": "INSERT",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-29T08:02:27.915107+00:00",
+   "data": {
+    "id": "5b48b9d3-f4c7-4b3e-83a7-67aa87e50e18",
+    "sub": null,
+    "date": "2026-08-25",
+    "kind": null,
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "더현서 샤넬 카페",
+    "images": null,
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-29T08:02:27.915107+00:00"
+   }
+  },
+  {
+   "id": "1a819f75-f898-48be-ad1d-44a51a16f022",
+   "event_id": "294508db-ca10-47a1-bfe7-05978d8afde5",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-29T10:57:34.070121+00:00",
+   "data": {
+    "id": "294508db-ca10-47a1-bfe7-05978d8afde5",
+    "sub": "와지트",
+    "date": "2026-07-08",
+    "kind": null,
+    "memo": null,
+    "owner": null,
+    "title": "와지트 나의와인선생님",
+    "images": null,
+    "channel": "유튜브",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": "https://www.youtube.com/watch?v=Tfq8TajhK98",
+    "created_at": "2026-07-07T07:41:36.802756+00:00"
+   }
+  },
+  {
+   "id": "1e3e48a6-e3f4-4056-8850-ee6004b3718e",
+   "event_id": "294508db-ca10-47a1-bfe7-05978d8afde5",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-29T10:57:36.086803+00:00",
+   "data": {
+    "id": "294508db-ca10-47a1-bfe7-05978d8afde5",
+    "sub": "와지트",
+    "date": "2026-07-05",
+    "kind": null,
+    "memo": null,
+    "owner": null,
+    "title": "와지트 나의와인선생님",
+    "images": null,
+    "channel": "유튜브",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": "https://www.youtube.com/watch?v=Tfq8TajhK98",
+    "created_at": "2026-07-07T07:41:36.802756+00:00"
+   }
+  },
+  {
+   "id": "7bbcc92d-b103-47ad-a19e-c06221f0b353",
+   "event_id": "85943185-71c4-4308-83ee-1719ab083e9a",
+   "action": "INSERT",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-29T10:57:54.927102+00:00",
+   "data": {
+    "id": "85943185-71c4-4308-83ee-1719ab083e9a",
+    "sub": null,
+    "date": "2026-07-30",
+    "kind": "팀",
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "노규빈 정소미 무역 외근 오전",
+    "images": null,
+    "channel": "외근",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-29T10:57:54.927102+00:00"
+   }
+  },
+  {
+   "id": "19ea2f1e-179e-4922-a8e5-20f3590f8c25",
+   "event_id": "85943185-71c4-4308-83ee-1719ab083e9a",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-29T10:58:01.059008+00:00",
+   "data": {
+    "id": "85943185-71c4-4308-83ee-1719ab083e9a",
+    "sub": null,
+    "date": "2026-07-31",
+    "kind": "팀",
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "노규빈 정소미 무역 외근 오전",
+    "images": null,
+    "channel": "외근",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-29T10:57:54.927102+00:00"
+   }
+  },
+  {
+   "id": "0f537c63-1518-4811-8c6c-6c5da4da0185",
+   "event_id": "d7a90715-1e08-4cf4-b9bc-472639374344",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-29T11:01:23.943903+00:00",
+   "data": {
+    "id": "d7a90715-1e08-4cf4-b9bc-472639374344",
+    "sub": "공식",
+    "date": "2026-07-24",
+    "kind": null,
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "더현서 케이리그 팝업(콜랍스)",
+    "images": null,
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": "https://www.instagram.com/p/DbDCX5CjKTi/",
+    "created_at": "2026-07-27T02:07:12.035195+00:00"
+   }
+  },
+  {
+   "id": "d9a21b27-1fac-4444-871d-60e4bfe01a5a",
+   "event_id": "67c339e1-31e6-4821-8751-c9f1b3531996",
+   "action": "DELETE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-29T21:27:07.035348+00:00",
+   "data": {
+    "id": "67c339e1-31e6-4821-8751-c9f1b3531996",
+    "sub": "공식",
+    "date": "2026-07-30",
+    "kind": null,
+    "memo": null,
+    "owner": null,
+    "title": "인스타 여름테마 포토",
+    "images": null,
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-07T06:38:44.818976+00:00"
+   }
+  },
+  {
+   "id": "5500aac2-aaa2-4b0d-8142-a0997e42b997",
+   "event_id": "dc178957-539b-4469-a8c9-192fd25d4d30",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:43:33.416189+00:00",
+   "data": {
+    "id": "dc178957-539b-4469-a8c9-192fd25d4d30",
+    "sub": "키즈노트",
+    "date": "2026-07-21",
+    "kind": null,
+    "memo": "별도비용 100만원(vat별도)",
+    "owner": "김자영 책임",
+    "title": "부산 과학탐험대",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:05:26.027166+00:00"
+   }
+  },
+  {
+   "id": "3c2182ad-3895-4407-b0f2-1bcda7097e19",
+   "event_id": "71cee407-59d9-4353-a8c5-125adaed0ace",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:45:12.203526+00:00",
+   "data": {
+    "id": "71cee407-59d9-4353-a8c5-125adaed0ace",
+    "sub": "리멤버",
+    "date": "2026-07-29",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "가산 하이디라오",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:11:34.096622+00:00"
+   }
+  },
+  {
+   "id": "8383686f-8c7e-430d-a19e-ea5bfe4f1351",
+   "event_id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:45:36.918736+00:00",
+   "data": {
+    "id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+    "sub": "키즈노트",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.321473+00:00"
+   }
+  },
+  {
+   "id": "56b51519-0446-47d0-8377-9512f6eda867",
+   "event_id": "19bc4168-6bbb-498c-ac91-bbe18d49c4e9",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:45:50.105041+00:00",
+   "data": {
+    "id": "19bc4168-6bbb-498c-ac91-bbe18d49c4e9",
+    "sub": "아파트너",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.252813+00:00"
+   }
+  },
+  {
+   "id": "6477e0fb-4ce0-45ae-83b2-63beddce9686",
+   "event_id": "2e18cf58-2c78-44ff-a6eb-164ad84a061f",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:45:57.219511+00:00",
+   "data": {
+    "id": "2e18cf58-2c78-44ff-a6eb-164ad84a061f",
+    "sub": "바이비",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.293209+00:00"
+   }
+  },
+  {
+   "id": "d8b4df30-12a4-4963-8932-d5a7fcf91982",
+   "event_id": "dd82e363-90b8-451b-b227-b52c1dc1b085",
+   "action": "INSERT",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:47:54.013767+00:00",
+   "data": {
+    "id": "dd82e363-90b8-451b-b227-b52c1dc1b085",
+    "sub": "아파트너",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": "타겟 APP 첫 집행",
+    "owner": "김자영 책임",
+    "title": "SPACE1 와일드 어드벤처",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-29T23:47:54.013767+00:00"
+   }
+  },
+  {
+   "id": "8d65e4bd-c31a-446a-a5ff-fbe5a7aebd61",
+   "event_id": "213a3af0-68e1-46c6-89c1-db93b3648c96",
+   "action": "INSERT",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:47:54.129667+00:00",
+   "data": {
+    "id": "213a3af0-68e1-46c6-89c1-db93b3648c96",
+    "sub": "바이비",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": "타겟 APP 첫 집행",
+    "owner": "김자영 책임",
+    "title": "SPACE1 와일드 어드벤처",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-29T23:47:54.129667+00:00"
+   }
+  },
+  {
+   "id": "251ec608-2ba3-4b7f-89af-ad3b718b204e",
+   "event_id": "7ba22b7e-df19-49ec-a111-7611a6a38aab",
+   "action": "INSERT",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:47:54.202412+00:00",
+   "data": {
+    "id": "7ba22b7e-df19-49ec-a111-7611a6a38aab",
+    "sub": "키즈노트",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": "타겟 APP 첫 집행",
+    "owner": "김자영 책임",
+    "title": "SPACE1 와일드 어드벤처",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-29T23:47:54.202412+00:00"
+   }
+  },
+  {
+   "id": "b4301ad0-748e-4ecc-b39e-67eb7bcf6e14",
+   "event_id": "df444534-4588-40df-9f1b-29afd2d37f6a",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:48:01.917658+00:00",
+   "data": {
+    "id": "df444534-4588-40df-9f1b-29afd2d37f6a",
+    "sub": "아파트너",
+    "date": "2026-07-30",
+    "kind": null,
+    "memo": "타겟 APP 첫 집행",
+    "owner": "김자영 책임",
+    "title": "김포 수로 리뉴얼",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-09",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:11:00.309375+00:00"
+   }
+  },
+  {
+   "id": "9819ff27-4145-4f68-9f26-94905a93e5ab",
+   "event_id": "9b5ee2c5-2f18-425b-b31d-ce65209bb178",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:48:07.542168+00:00",
+   "data": {
+    "id": "9b5ee2c5-2f18-425b-b31d-ce65209bb178",
+    "sub": "바이비",
+    "date": "2026-07-30",
+    "kind": null,
+    "memo": "타겟 APP 첫 집행",
+    "owner": "김자영 책임",
+    "title": "김포 수로 리뉴얼",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-09",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:11:00.359341+00:00"
+   }
+  },
+  {
+   "id": "1e704981-0529-4388-8392-26b47aaa4ed6",
+   "event_id": "a798df2d-f546-4e60-bd41-5a0abe3ee22a",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:48:13.127011+00:00",
+   "data": {
+    "id": "a798df2d-f546-4e60-bd41-5a0abe3ee22a",
+    "sub": "키즈노트",
+    "date": "2026-07-30",
+    "kind": null,
+    "memo": "타겟 APP 첫 집행",
+    "owner": "김자영 책임",
+    "title": "김포 수로 리뉴얼",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-09",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:11:00.398558+00:00"
+   }
+  },
+  {
+   "id": "9f44231d-924d-43a7-98f6-a6c28dff499d",
+   "event_id": "7c510c91-8b36-4eb9-9912-aa01aa681022",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:49:15.920761+00:00",
+   "data": {
+    "id": "7c510c91-8b36-4eb9-9912-aa01aa681022",
+    "sub": "아파트너",
+    "date": "2026-08-05",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "Hi 럭셔리 뷰티",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": "더현대하이",
+    "end_date": "2026-08-09",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:12:04.101912+00:00"
+   }
+  },
+  {
+   "id": "428dac28-9450-4cdf-a492-910c591a72bc",
+   "event_id": "942de6d3-24b4-4049-8936-03c9bd0f1b1e",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:49:21.916722+00:00",
+   "data": {
+    "id": "942de6d3-24b4-4049-8936-03c9bd0f1b1e",
+    "sub": "바이비",
+    "date": "2026-08-05",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "Hi 럭셔리 뷰티",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": "더현대하이",
+    "end_date": "2026-08-09",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:12:04.154827+00:00"
+   }
+  },
+  {
+   "id": "df3e516b-e3f2-45c2-a40e-411087822374",
+   "event_id": "a82c58c9-6517-4d1c-853d-ff7af569248d",
+   "action": "INSERT",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:52:47.108266+00:00",
+   "data": {
+    "id": "a82c58c9-6517-4d1c-853d-ff7af569248d",
+    "sub": "K-Ride",
+    "date": "2026-07-12",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "글로벌 여름테마",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-07-16",
+    "perf_url": null,
+    "created_at": "2026-07-29T23:52:47.108266+00:00"
+   }
+  },
+  {
+   "id": "cfb80388-72ed-4431-904c-4db4ff3e6959",
+   "event_id": "b40d2ad7-c3b7-4293-8a1a-e8a2dec7d512",
+   "action": "INSERT",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:53:14.637283+00:00",
+   "data": {
+    "id": "b40d2ad7-c3b7-4293-8a1a-e8a2dec7d512",
+    "sub": "K-Ride",
+    "date": "2026-07-17",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "글로벌 K-BIVE 테마",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-16",
+    "perf_url": null,
+    "created_at": "2026-07-29T23:53:14.637283+00:00"
+   }
+  },
+  {
+   "id": "be3aad56-0dcd-43be-bf7a-40d821f58129",
+   "event_id": "2e5a841a-3887-4770-bcf1-a8c7aee46097",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:55:40.943867+00:00",
+   "data": {
+    "id": "2e5a841a-3887-4770-bcf1-a8c7aee46097",
+    "sub": "아파트너",
+    "date": "2026-07-10",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "충청 로블록스",
+    "images": [
+     {
+      "name": "이미지 (39).jpg",
+      "path": "2e5a841a-3887-4770-bcf1-a8c7aee46097/1785369340221_dlxf.jpg",
+      "size": 28771
+     },
+     {
+      "name": "이미지 (38).jpg",
+      "path": "2e5a841a-3887-4770-bcf1-a8c7aee46097/1785369340909_ca6w.jpg",
+      "size": 31138
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-07-20",
+    "perf_url": null,
+    "created_at": "2026-07-21T05:52:41.119609+00:00"
+   }
+  },
+  {
+   "id": "dac8b58d-3915-4ffb-aa3f-38dd9112a151",
+   "event_id": "2e5a841a-3887-4770-bcf1-a8c7aee46097",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:55:57.437693+00:00",
+   "data": {
+    "id": "2e5a841a-3887-4770-bcf1-a8c7aee46097",
+    "sub": "아파트너",
+    "date": "2026-07-10",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "충청 로블록스",
+    "images": [
+     {
+      "name": "이미지 (39).jpg",
+      "path": "2e5a841a-3887-4770-bcf1-a8c7aee46097/1785369340221_dlxf.jpg",
+      "size": 28771
+     },
+     {
+      "name": "이미지 (38).jpg",
+      "path": "2e5a841a-3887-4770-bcf1-a8c7aee46097/1785369340909_ca6w.jpg",
+      "size": 31138
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-07-20",
+    "perf_url": null,
+    "created_at": "2026-07-21T05:52:41.119609+00:00"
+   }
+  },
+  {
+   "id": "263d3254-5923-4780-8095-879775908212",
+   "event_id": "a56beb3c-4410-47e8-bb92-a6ca41873731",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:56:22.904598+00:00",
+   "data": {
+    "id": "a56beb3c-4410-47e8-bb92-a6ca41873731",
+    "sub": "바이비",
+    "date": "2026-07-10",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "충청 로블록스",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "a56beb3c-4410-47e8-bb92-a6ca41873731/1785369382855_p79t.jpg",
+      "size": 32172
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-07-20",
+    "perf_url": null,
+    "created_at": "2026-07-21T05:52:41.226046+00:00"
+   }
+  },
+  {
+   "id": "fdac79b9-d948-4275-94b1-7677a26649a3",
+   "event_id": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:57:26.609825+00:00",
+   "data": {
+    "id": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437",
+    "sub": "리멤버",
+    "date": "2026-07-10",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "충청 로블록스",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437/1785369446501_p6cb.jpg",
+      "size": 39319
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-07-20",
+    "perf_url": null,
+    "created_at": "2026-07-21T05:52:41.274435+00:00"
+   }
+  },
+  {
+   "id": "9c27e0ea-11ab-4811-8722-9878b40d3814",
+   "event_id": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:57:32.83166+00:00",
+   "data": {
+    "id": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437",
+    "sub": "리멤버",
+    "date": "2026-07-10",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "충청 로블록스",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437/1785369446501_p6cb.jpg",
+      "size": 39319
+     },
+     {
+      "name": "image.jpg",
+      "path": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437/1785369452650_62j4.jpg",
+      "size": 42901
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-07-20",
+    "perf_url": null,
+    "created_at": "2026-07-21T05:52:41.274435+00:00"
+   }
+  },
+  {
+   "id": "d44e3333-7a35-4757-97d0-9e040f6c6d87",
+   "event_id": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:57:37.042855+00:00",
+   "data": {
+    "id": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437",
+    "sub": "리멤버",
+    "date": "2026-07-10",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "충청 로블록스",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437/1785369446501_p6cb.jpg",
+      "size": 39319
+     },
+     {
+      "name": "image.jpg",
+      "path": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437/1785369452650_62j4.jpg",
+      "size": 42901
+     },
+     {
+      "name": "image.jpg",
+      "path": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437/1785369456966_e7xl.jpg",
+      "size": 28700
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-07-20",
+    "perf_url": null,
+    "created_at": "2026-07-21T05:52:41.274435+00:00"
+   }
+  },
+  {
+   "id": "7d1c2a7c-fe08-42bb-b730-87013fe9519b",
+   "event_id": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-29T23:57:40.414764+00:00",
+   "data": {
+    "id": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437",
+    "sub": "리멤버",
+    "date": "2026-07-10",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "충청 로블록스",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437/1785369446501_p6cb.jpg",
+      "size": 39319
+     },
+     {
+      "name": "image.jpg",
+      "path": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437/1785369452650_62j4.jpg",
+      "size": 42901
+     },
+     {
+      "name": "image.jpg",
+      "path": "ffc5cd4a-3ee3-48ff-81b6-c9e18e6b7437/1785369456966_e7xl.jpg",
+      "size": 28700
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-07-20",
+    "perf_url": null,
+    "created_at": "2026-07-21T05:52:41.274435+00:00"
+   }
+  },
+  {
+   "id": "78025934-1b70-4090-9e82-b6d751c8d26a",
+   "event_id": "b37e439f-6c08-4d52-afe6-98f7c56c5cec",
+   "action": "INSERT",
+   "actor": "2018511@thehyundai.com",
+   "changed_at": "2026-07-30T00:37:09.981749+00:00",
+   "data": {
+    "id": "b37e439f-6c08-4d52-afe6-98f7c56c5cec",
+    "sub": null,
+    "date": "2026-08-03",
+    "kind": "팀",
+    "memo": null,
+    "owner": "김진희 전임",
+    "title": "김진희 연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T00:37:09.981749+00:00"
+   }
+  },
+  {
+   "id": "fb8bc8cc-8a34-4269-b92d-c14a243f4ddc",
+   "event_id": "9c1867fd-d2bf-4544-b0e6-a3d3f44596d0",
+   "action": "INSERT",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T00:44:08.428886+00:00",
+   "data": {
+    "id": "9c1867fd-d2bf-4544-b0e6-a3d3f44596d0",
+    "sub": "푸쉬",
+    "date": "2026-08-01",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아 25주년 APP푸쉬 발송",
+    "images": null,
+    "channel": "백화점APP",
+    "campaign": "미아25주년",
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T00:44:08.428886+00:00"
+   }
+  },
+  {
+   "id": "a0ad00b3-7ab2-4940-b964-1f3198e8daba",
+   "event_id": "077084c9-cd03-419d-ac3d-a9f379482db0",
+   "action": "INSERT",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T00:45:01.524812+00:00",
+   "data": {
+    "id": "077084c9-cd03-419d-ac3d-a9f379482db0",
+    "sub": null,
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아 25주년",
+    "images": null,
+    "channel": "버스광고",
+    "campaign": "미아25주년",
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T00:45:01.524812+00:00"
+   }
+  },
+  {
+   "id": "a84d92a7-0d4a-4237-aa6c-075dc196cb2f",
+   "event_id": "077084c9-cd03-419d-ac3d-a9f379482db0",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T00:46:05.227018+00:00",
+   "data": {
+    "id": "077084c9-cd03-419d-ac3d-a9f379482db0",
+    "sub": null,
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아 25주년",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "077084c9-cd03-419d-ac3d-a9f379482db0/1785372379419_uu1o.jpg",
+      "size": 74073
+     }
+    ],
+    "channel": "버스광고",
+    "campaign": "미아25주년",
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T00:45:01.524812+00:00"
+   }
+  },
+  {
+   "id": "0110b9ab-9d17-47e2-ab1b-76381f89244a",
+   "event_id": "077084c9-cd03-419d-ac3d-a9f379482db0",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T00:46:48.827619+00:00",
+   "data": {
+    "id": "077084c9-cd03-419d-ac3d-a9f379482db0",
+    "sub": null,
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아 25주년",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "077084c9-cd03-419d-ac3d-a9f379482db0/1785372379419_uu1o.jpg",
+      "size": 74073
+     }
+    ],
+    "channel": "버스광고",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-20",
+    "perf_url": null,
+    "created_at": "2026-07-30T00:45:01.524812+00:00"
+   }
+  },
+  {
+   "id": "65eb926f-e7ff-46e7-a739-ee03c82e6973",
+   "event_id": "077084c9-cd03-419d-ac3d-a9f379482db0",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T00:47:11.267826+00:00",
+   "data": {
+    "id": "077084c9-cd03-419d-ac3d-a9f379482db0",
+    "sub": null,
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아 25주년 버스광고",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "077084c9-cd03-419d-ac3d-a9f379482db0/1785372379419_uu1o.jpg",
+      "size": 74073
+     }
+    ],
+    "channel": "버스광고",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-20",
+    "perf_url": null,
+    "created_at": "2026-07-30T00:45:01.524812+00:00"
+   }
+  },
+  {
+   "id": "f3e0918d-8182-4652-8878-60a317cdbbf8",
+   "event_id": "600d9b68-dba9-43ed-8a0c-cae50ed11d12",
+   "action": "INSERT",
+   "actor": "1100442@thehyundai.com",
+   "changed_at": "2026-07-30T00:49:46.729783+00:00",
+   "data": {
+    "id": "600d9b68-dba9-43ed-8a0c-cae50ed11d12",
+    "sub": "홈페이지",
+    "date": "2026-07-28",
+    "kind": null,
+    "memo": "https://www.ehyundai.com/newPortal/DP/DP000000_V.do?branchCd=B00189900",
+    "owner": "김희진 책임",
+    "title": "홈페이지 도쿄 오모테산도점 메뉴 오픈",
+    "images": null,
+    "channel": "기타",
+    "campaign": "글로벌",
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T00:49:46.729783+00:00"
+   }
+  },
+  {
+   "id": "cefee867-7516-4276-bdcb-eb26e6efd92d",
+   "event_id": "a0427bb7-b94d-48d4-801f-6b344a762527",
+   "action": "INSERT",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-30T01:57:45.818574+00:00",
+   "data": {
+    "id": "a0427bb7-b94d-48d4-801f-6b344a762527",
+    "sub": "아파트너",
+    "date": "2026-08-14",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "울산 쥬라기 울산",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-25",
+    "perf_url": null,
+    "created_at": "2026-07-30T01:57:45.818574+00:00"
+   }
+  },
+  {
+   "id": "1aaf0982-1717-4d42-9768-d9e01bc572f1",
+   "event_id": "11dd8ad2-3454-496b-8bd5-6dd4573a9340",
+   "action": "INSERT",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-30T01:57:46.030153+00:00",
+   "data": {
+    "id": "11dd8ad2-3454-496b-8bd5-6dd4573a9340",
+    "sub": "바이비",
+    "date": "2026-08-14",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "울산 쥬라기 울산",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-25",
+    "perf_url": null,
+    "created_at": "2026-07-30T01:57:46.030153+00:00"
+   }
+  },
+  {
+   "id": "3286e5b6-4dbc-44d3-88bf-58b604ef9373",
+   "event_id": "0ee0c4fc-b0c2-4126-939e-3a5a4a6464b6",
+   "action": "INSERT",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-30T01:57:46.128279+00:00",
+   "data": {
+    "id": "0ee0c4fc-b0c2-4126-939e-3a5a4a6464b6",
+    "sub": "키즈노트",
+    "date": "2026-08-14",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "울산 쥬라기 울산",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-25",
+    "perf_url": null,
+    "created_at": "2026-07-30T01:57:46.128279+00:00"
+   }
+  },
+  {
+   "id": "c84b663e-fa16-4f8c-9e5f-a65322a48b85",
+   "event_id": "a82c58c9-6517-4d1c-853d-ff7af569248d",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-30T01:59:15.54239+00:00",
+   "data": {
+    "id": "a82c58c9-6517-4d1c-853d-ff7af569248d",
+    "sub": "K-Ride",
+    "date": "2026-07-12",
+    "kind": null,
+    "memo": "CX팀 이민혁 선임 담당 (영/중/일/대 외국어 페이지 랜딩)",
+    "owner": "김자영 책임",
+    "title": "글로벌 여름테마",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-07-16",
+    "perf_url": null,
+    "created_at": "2026-07-29T23:52:47.108266+00:00"
+   }
+  },
+  {
+   "id": "cd076f0c-d3bc-4af3-b635-2dd56235a10f",
+   "event_id": "b40d2ad7-c3b7-4293-8a1a-e8a2dec7d512",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-30T01:59:27.300632+00:00",
+   "data": {
+    "id": "b40d2ad7-c3b7-4293-8a1a-e8a2dec7d512",
+    "sub": "K-Ride",
+    "date": "2026-07-17",
+    "kind": null,
+    "memo": "CX팀 이민혁 선임 담당 (영/중/일/대 외국어 페이지 랜딩)",
+    "owner": "김자영 책임",
+    "title": "글로벌 K-BIVE 테마",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": null,
+    "end_date": "2026-08-16",
+    "perf_url": null,
+    "created_at": "2026-07-29T23:53:14.637283+00:00"
+   }
+  },
+  {
+   "id": "f955ab4d-4c18-4de2-96a6-9b3a803370d5",
+   "event_id": "2e18cf58-2c78-44ff-a6eb-164ad84a061f",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-30T01:59:49.79642+00:00",
+   "data": {
+    "id": "2e18cf58-2c78-44ff-a6eb-164ad84a061f",
+    "sub": "바이비",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.293209+00:00"
+   }
+  },
+  {
+   "id": "b3692700-9ab4-4b49-923e-909ccc1170f2",
+   "event_id": "19bc4168-6bbb-498c-ac91-bbe18d49c4e9",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-30T02:00:07.516928+00:00",
+   "data": {
+    "id": "19bc4168-6bbb-498c-ac91-bbe18d49c4e9",
+    "sub": "아파트너",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.252813+00:00"
+   }
+  },
+  {
+   "id": "b475bf4c-1667-4d1d-9c4f-dcb69bceb7c4",
+   "event_id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+   "action": "UPDATE",
+   "actor": "jykim84@thehyundai.com",
+   "changed_at": "2026-07-30T02:00:18.754929+00:00",
+   "data": {
+    "id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+    "sub": "키즈노트",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": null,
+    "channel": "타겟APP",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.321473+00:00"
+   }
+  },
+  {
+   "id": "7e8a6290-f151-4f8c-931d-e8448f414fb4",
+   "event_id": "bd9e9c16-0aff-4f53-b90d-2112dfa3e8ce",
+   "action": "INSERT",
+   "actor": "jaesal@hmall.com",
+   "changed_at": "2026-07-30T02:05:42.460181+00:00",
+   "data": {
+    "id": "bd9e9c16-0aff-4f53-b90d-2112dfa3e8ce",
+    "sub": null,
+    "date": "2026-08-25",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이재상 팀장",
+    "title": "마케팅회의 (오프라인)",
+    "images": null,
+    "channel": "업무",
+    "campaign": null,
+    "end_date": "2026-08-25",
+    "perf_url": null,
+    "created_at": "2026-07-30T02:05:42.460181+00:00"
+   }
+  },
+  {
+   "id": "95ad7ba5-7f5d-4b19-a6a5-fac6e0b73aff",
+   "event_id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+   "action": "INSERT",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:09:50.755817+00:00",
+   "data": {
+    "id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+    "sub": null,
+    "date": "2026-08-01",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아25주년",
+    "images": null,
+    "channel": "아파트LCD",
+    "campaign": "미아25주년",
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T02:09:50.755817+00:00"
+   }
+  },
+  {
+   "id": "83e1d3da-c749-492f-aff8-3f787d7bbde2",
+   "event_id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:10:08.405213+00:00",
+   "data": {
+    "id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+    "sub": null,
+    "date": "2026-08-01",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아25주년 APT LCD",
+    "images": null,
+    "channel": "아파트LCD",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-20",
+    "perf_url": null,
+    "created_at": "2026-07-30T02:09:50.755817+00:00"
+   }
+  },
+  {
+   "id": "6f974afc-5fb3-4a68-af5e-190433d04755",
+   "event_id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:10:28.573838+00:00",
+   "data": {
+    "id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+    "sub": null,
+    "date": "2026-08-01",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아25주년 아파트LCD",
+    "images": null,
+    "channel": "아파트LCD",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-20",
+    "perf_url": null,
+    "created_at": "2026-07-30T02:09:50.755817+00:00"
+   }
+  },
+  {
+   "id": "23eb9fec-9588-45dc-acbc-19578fd6bb4d",
+   "event_id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:14:30.666005+00:00",
+   "data": {
+    "id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+    "sub": null,
+    "date": "2026-08-01",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아25주년 아파트LCD",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "13ee298a-490a-42ca-ad64-fc147f927b81/1785377686018_0c2l.jpg",
+      "size": 65299
+     }
+    ],
+    "channel": "아파트LCD",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-20",
+    "perf_url": null,
+    "created_at": "2026-07-30T02:09:50.755817+00:00"
+   }
+  },
+  {
+   "id": "a9ec9e8b-6439-4997-988b-e999a6c0f93a",
+   "event_id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:14:40.023437+00:00",
+   "data": {
+    "id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+    "sub": null,
+    "date": "2026-08-01",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아25주년 아파트LCD",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "13ee298a-490a-42ca-ad64-fc147f927b81/1785377686018_0c2l.jpg",
+      "size": 65299
+     }
+    ],
+    "channel": "아파트LCD",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-20",
+    "perf_url": null,
+    "created_at": "2026-07-30T02:09:50.755817+00:00"
+   }
+  },
+  {
+   "id": "e3b33dcd-7935-4d8c-b759-5193473594a1",
+   "event_id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:22:16.05565+00:00",
+   "data": {
+    "id": "13ee298a-490a-42ca-ad64-fc147f927b81",
+    "sub": null,
+    "date": "2026-08-01",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아 25주년 아파트LCD",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "13ee298a-490a-42ca-ad64-fc147f927b81/1785377686018_0c2l.jpg",
+      "size": 65299
+     }
+    ],
+    "channel": "아파트LCD",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-20",
+    "perf_url": null,
+    "created_at": "2026-07-30T02:09:50.755817+00:00"
+   }
+  },
+  {
+   "id": "b8c75169-1c38-4441-8a2f-512a337d753f",
+   "event_id": "21658c76-0dca-458d-a989-4c9cc63542c7",
+   "action": "INSERT",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:22:29.950836+00:00",
+   "data": {
+    "id": "21658c76-0dca-458d-a989-4c9cc63542c7",
+    "sub": "공식",
+    "date": "2026-08-03",
+    "kind": null,
+    "memo": null,
+    "owner": "이승권 선임",
+    "title": "미아 25주년 이태리타올 촬영",
+    "images": null,
+    "channel": "인스타",
+    "campaign": "미아25주년",
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T02:22:29.950836+00:00"
+   }
+  },
+  {
+   "id": "565a60dc-d5e0-440e-8892-6dbd64b57e4f",
+   "event_id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:25:11.911906+00:00",
+   "data": {
+    "id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+    "sub": "키즈노트",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "ead8513b-efd3-4af0-8110-116affb11cdf/1785378327544_1a35.jpg",
+      "size": 118981
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.321473+00:00"
+   }
+  },
+  {
+   "id": "837b19ab-7c4d-49bb-99ee-b6c890c2ad57",
+   "event_id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:25:27.785228+00:00",
+   "data": {
+    "id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+    "sub": "키즈노트",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": [],
+    "channel": "타겟APP",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.321473+00:00"
+   }
+  },
+  {
+   "id": "b478e4e8-9ecd-4c93-8974-b0787e62aedc",
+   "event_id": "19bc4168-6bbb-498c-ac91-bbe18d49c4e9",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:25:32.389088+00:00",
+   "data": {
+    "id": "19bc4168-6bbb-498c-ac91-bbe18d49c4e9",
+    "sub": "아파트너",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "19bc4168-6bbb-498c-ac91-bbe18d49c4e9/1785378348840_5kqo.jpg",
+      "size": 118981
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.252813+00:00"
+   }
+  },
+  {
+   "id": "2c5dc4a2-7359-48ff-955a-16eda853fb50",
+   "event_id": "19bc4168-6bbb-498c-ac91-bbe18d49c4e9",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:25:34.97055+00:00",
+   "data": {
+    "id": "19bc4168-6bbb-498c-ac91-bbe18d49c4e9",
+    "sub": "아파트너",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "19bc4168-6bbb-498c-ac91-bbe18d49c4e9/1785378348840_5kqo.jpg",
+      "size": 118981
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.252813+00:00"
+   }
+  },
+  {
+   "id": "6c6ed007-7d50-46bd-929d-171a2767a791",
+   "event_id": "2e18cf58-2c78-44ff-a6eb-164ad84a061f",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:25:37.878527+00:00",
+   "data": {
+    "id": "2e18cf58-2c78-44ff-a6eb-164ad84a061f",
+    "sub": "바이비",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "2e18cf58-2c78-44ff-a6eb-164ad84a061f/1785378354375_k4e6.jpg",
+      "size": 118981
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.293209+00:00"
+   }
+  },
+  {
+   "id": "c0145766-40ea-4925-9f01-3d5a9db2e8ab",
+   "event_id": "2e18cf58-2c78-44ff-a6eb-164ad84a061f",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:25:39.995946+00:00",
+   "data": {
+    "id": "2e18cf58-2c78-44ff-a6eb-164ad84a061f",
+    "sub": "바이비",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "2e18cf58-2c78-44ff-a6eb-164ad84a061f/1785378354375_k4e6.jpg",
+      "size": 118981
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.293209+00:00"
+   }
+  },
+  {
+   "id": "75d640be-e15d-422d-b8ca-f9a4614bc96b",
+   "event_id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:25:53.974831+00:00",
+   "data": {
+    "id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+    "sub": "키즈노트",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "ead8513b-efd3-4af0-8110-116affb11cdf/1785378370556_1qgt.jpg",
+      "size": 32846
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.321473+00:00"
+   }
+  },
+  {
+   "id": "04119b47-5df3-44df-b689-e6a68349271d",
+   "event_id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+   "action": "UPDATE",
+   "actor": "sklee1031@thehyundai.com",
+   "changed_at": "2026-07-30T02:25:55.783225+00:00",
+   "data": {
+    "id": "ead8513b-efd3-4af0-8110-116affb11cdf",
+    "sub": "키즈노트",
+    "date": "2026-07-31",
+    "kind": null,
+    "memo": null,
+    "owner": "김자영 책임",
+    "title": "미아 25주년",
+    "images": [
+     {
+      "name": "image.jpg",
+      "path": "ead8513b-efd3-4af0-8110-116affb11cdf/1785378370556_1qgt.jpg",
+      "size": 32846
+     }
+    ],
+    "channel": "타겟APP",
+    "campaign": "미아25주년",
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T06:10:24.321473+00:00"
+   }
+  },
+  {
+   "id": "06712923-bdf8-470c-93ec-2f8a2886d644",
+   "event_id": "c4120296-fcfc-4b13-9407-23a238a71879",
+   "action": "INSERT",
+   "actor": "chaeeun@thehyundai.com",
+   "changed_at": "2026-07-30T06:25:07.859687+00:00",
+   "data": {
+    "id": "c4120296-fcfc-4b13-9407-23a238a71879",
+    "sub": null,
+    "date": "2026-08-06",
+    "kind": "팀",
+    "memo": null,
+    "owner": "백채은 선임",
+    "title": "백채은 연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T06:25:07.859687+00:00"
+   }
+  },
+  {
+   "id": "4c35ad48-3211-4724-94c0-50b9805d30f0",
+   "event_id": "9c611017-5c0e-46d2-965a-be89e3d01dfa",
+   "action": "INSERT",
+   "actor": "chaeeun@thehyundai.com",
+   "changed_at": "2026-07-30T06:25:13.040282+00:00",
+   "data": {
+    "id": "9c611017-5c0e-46d2-965a-be89e3d01dfa",
+    "sub": null,
+    "date": "2026-08-07",
+    "kind": "팀",
+    "memo": null,
+    "owner": "백채은 선임",
+    "title": "백채은 연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T06:25:13.040282+00:00"
+   }
+  },
+  {
+   "id": "7067fbc3-a749-4029-97ca-af97592d2375",
+   "event_id": "186cfc29-16cd-40a8-a98b-f7ec99186549",
+   "action": "INSERT",
+   "actor": "chaeeun@thehyundai.com",
+   "changed_at": "2026-07-30T06:26:01.607939+00:00",
+   "data": {
+    "id": "186cfc29-16cd-40a8-a98b-f7ec99186549",
+    "sub": null,
+    "date": "2026-09-04",
+    "kind": "팀",
+    "memo": null,
+    "owner": "백채은 선임",
+    "title": "백채은 연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": "2026-09-14",
+    "perf_url": null,
+    "created_at": "2026-07-30T06:26:01.607939+00:00"
+   }
+  },
+  {
+   "id": "8288a906-b6a3-4a06-ba6c-0da4fa3cc5d1",
+   "event_id": "95f5b9c1-fe1d-499d-a829-88f3c1ce9e0d",
+   "action": "INSERT",
+   "actor": "chaeeun@thehyundai.com",
+   "changed_at": "2026-07-30T06:26:37.41994+00:00",
+   "data": {
+    "id": "95f5b9c1-fe1d-499d-a829-88f3c1ce9e0d",
+    "sub": null,
+    "date": "2026-09-04",
+    "kind": "팀",
+    "memo": null,
+    "owner": "백채은 선임",
+    "title": "백채은 연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": "2026-09-14",
+    "perf_url": null,
+    "created_at": "2026-07-30T06:26:37.41994+00:00"
+   }
+  },
+  {
+   "id": "bb549a2c-8b82-4688-a23a-6acbb1b3d5c7",
+   "event_id": "95f5b9c1-fe1d-499d-a829-88f3c1ce9e0d",
+   "action": "DELETE",
+   "actor": "chaeeun@thehyundai.com",
+   "changed_at": "2026-07-30T06:26:43.349301+00:00",
+   "data": {
+    "id": "95f5b9c1-fe1d-499d-a829-88f3c1ce9e0d",
+    "sub": null,
+    "date": "2026-09-04",
+    "kind": "팀",
+    "memo": null,
+    "owner": "백채은 선임",
+    "title": "백채은 연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": "2026-09-14",
+    "perf_url": null,
+    "created_at": "2026-07-30T06:26:37.41994+00:00"
+   }
+  },
+  {
+   "id": "7e1b533a-b9cf-4dd2-82f4-c832af223aaa",
+   "event_id": "186cfc29-16cd-40a8-a98b-f7ec99186549",
+   "action": "UPDATE",
+   "actor": "chaeeun@thehyundai.com",
+   "changed_at": "2026-07-30T06:28:29.033446+00:00",
+   "data": {
+    "id": "186cfc29-16cd-40a8-a98b-f7ec99186549",
+    "sub": null,
+    "date": "2026-09-04",
+    "kind": "팀",
+    "memo": null,
+    "owner": "백채은 선임",
+    "title": "백채은 휴가",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": "2026-09-14",
+    "perf_url": null,
+    "created_at": "2026-07-30T06:26:01.607939+00:00"
+   }
+  },
+  {
+   "id": "505242ef-5922-4b59-867c-477b20f01ab8",
+   "event_id": "e8c0d4d0-e20a-48b2-837a-fa921b172900",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-30T12:22:40.781252+00:00",
+   "data": {
+    "id": "e8c0d4d0-e20a-48b2-837a-fa921b172900",
+    "sub": "공식",
+    "date": "2026-07-30",
+    "kind": null,
+    "memo": null,
+    "owner": "정소미 책임",
+    "title": "천호 어스본 키즈북 스케치",
+    "images": null,
+    "channel": "인스타",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-21T00:32:12.120537+00:00"
+   }
+  },
+  {
+   "id": "fdd122d6-f8a2-4ca0-a7ae-26f9c2ad7ae6",
+   "event_id": "43af7abb-2257-41a2-af00-08863b93150f",
+   "action": "INSERT",
+   "actor": "jaesal@hmall.com",
+   "changed_at": "2026-07-30T23:22:25.362578+00:00",
+   "data": {
+    "id": "43af7abb-2257-41a2-af00-08863b93150f",
+    "sub": null,
+    "date": "2026-08-13",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이재상 팀장",
+    "title": "경영전략회의",
+    "images": null,
+    "channel": "업무",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T23:22:25.362578+00:00"
+   }
+  },
+  {
+   "id": "b769ba04-38fb-4a94-b254-9fb02c6d0087",
+   "event_id": "43af7abb-2257-41a2-af00-08863b93150f",
+   "action": "UPDATE",
+   "actor": "jaesal@hmall.com",
+   "changed_at": "2026-07-30T23:22:42.928303+00:00",
+   "data": {
+    "id": "43af7abb-2257-41a2-af00-08863b93150f",
+    "sub": null,
+    "date": "2026-08-13",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이재상 팀장",
+    "title": "경영전략회의",
+    "images": null,
+    "channel": "업무",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T23:22:25.362578+00:00"
+   }
+  },
+  {
+   "id": "ab39d1cd-63ab-4c98-9cd2-43d1e25a97a5",
+   "event_id": "92d352bf-ff9e-4b44-947f-c13c485caeee",
+   "action": "INSERT",
+   "actor": "jaesal@hmall.com",
+   "changed_at": "2026-07-30T23:22:51.207849+00:00",
+   "data": {
+    "id": "92d352bf-ff9e-4b44-947f-c13c485caeee",
+    "sub": null,
+    "date": "2026-08-14",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이재상 팀장",
+    "title": "점장회의(실적)",
+    "images": null,
+    "channel": "업무",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T23:22:51.207849+00:00"
+   }
+  },
+  {
+   "id": "e3e469c9-28fd-406b-bad2-41c640808639",
+   "event_id": "f1808c34-35ab-4470-b9ae-0f8aa23c6f89",
+   "action": "INSERT",
+   "actor": "jaesal@hmall.com",
+   "changed_at": "2026-07-30T23:23:01.843786+00:00",
+   "data": {
+    "id": "f1808c34-35ab-4470-b9ae-0f8aa23c6f89",
+    "sub": null,
+    "date": "2026-08-26",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이재상 팀장",
+    "title": "주간전략회의",
+    "images": null,
+    "channel": "업무",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T23:23:01.843786+00:00"
+   }
+  },
+  {
+   "id": "01f07086-4535-4f14-88f5-6232ce2bafd4",
+   "event_id": "0ab86b63-25cd-4dcc-ab63-0df9c35f3147",
+   "action": "INSERT",
+   "actor": "jaesal@hmall.com",
+   "changed_at": "2026-07-30T23:23:14.78382+00:00",
+   "data": {
+    "id": "0ab86b63-25cd-4dcc-ab63-0df9c35f3147",
+    "sub": null,
+    "date": "2026-08-28",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이재상 팀장",
+    "title": "점장회의(Agenda)",
+    "images": null,
+    "channel": "업무",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T23:23:14.78382+00:00"
+   }
+  },
+  {
+   "id": "a0053bd6-c392-4706-8382-e9c0647450b6",
+   "event_id": "0ab86b63-25cd-4dcc-ab63-0df9c35f3147",
+   "action": "UPDATE",
+   "actor": "jaesal@hmall.com",
+   "changed_at": "2026-07-30T23:24:02.150035+00:00",
+   "data": {
+    "id": "0ab86b63-25cd-4dcc-ab63-0df9c35f3147",
+    "sub": null,
+    "date": "2026-08-28",
+    "kind": "팀",
+    "memo": "디지털 및 AI 전환 (AI, 옴니, 데이터, 디지털 등)",
+    "owner": "이재상 팀장",
+    "title": "점장회의(Agenda)",
+    "images": null,
+    "channel": "업무",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T23:23:14.78382+00:00"
+   }
+  },
+  {
+   "id": "598026a5-c655-4ef9-ad52-e36b18360f15",
+   "event_id": "3979a590-bb2d-4e9a-a51f-e97c07ccaefa",
+   "action": "INSERT",
+   "actor": "jaesal@hmall.com",
+   "changed_at": "2026-07-30T23:25:28.32428+00:00",
+   "data": {
+    "id": "3979a590-bb2d-4e9a-a51f-e97c07ccaefa",
+    "sub": null,
+    "date": "2026-09-08",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이재상 팀장",
+    "title": "팀장경연대회 (본사 1F)",
+    "images": null,
+    "channel": "업무",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-30T23:25:28.32428+00:00"
+   }
+  },
+  {
+   "id": "5b479bbb-a7a2-458c-a39c-a018ac9c6768",
+   "event_id": "fa9160f1-e341-4dc9-a6af-5c860f730cfb",
+   "action": "INSERT",
+   "actor": "umhyewon@thehyundai.com",
+   "changed_at": "2026-07-31T00:53:03.094957+00:00",
+   "data": {
+    "id": "fa9160f1-e341-4dc9-a6af-5c860f730cfb",
+    "sub": null,
+    "date": "2026-10-07",
+    "kind": "팀",
+    "memo": null,
+    "owner": "엄혜원 선임",
+    "title": "엄혜원 교육",
+    "images": null,
+    "channel": "교육",
+    "campaign": null,
+    "end_date": "2026-10-08",
+    "perf_url": null,
+    "created_at": "2026-07-31T00:53:03.094957+00:00"
+   }
+  },
+  {
+   "id": "2057739a-5137-45b2-86eb-aacf81ef078a",
+   "event_id": "d0e0441a-1e4e-46e1-b5dc-cf4e8bf85ec9",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-31T05:06:14.906528+00:00",
+   "data": {
+    "id": "d0e0441a-1e4e-46e1-b5dc-cf4e8bf85ec9",
+    "sub": null,
+    "date": "2026-07-31",
+    "kind": "팀",
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "팀장경연대회 자료",
+    "images": null,
+    "channel": "업무",
+    "campaign": null,
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T03:04:34.585136+00:00"
+   }
+  },
+  {
+   "id": "f89ee193-f410-43b4-9c04-a7a2f00f76b2",
+   "event_id": "d0e0441a-1e4e-46e1-b5dc-cf4e8bf85ec9",
+   "action": "UPDATE",
+   "actor": "kyuvin@thehyundai.com",
+   "changed_at": "2026-07-31T05:06:37.577172+00:00",
+   "data": {
+    "id": "d0e0441a-1e4e-46e1-b5dc-cf4e8bf85ec9",
+    "sub": null,
+    "date": "2026-08-10",
+    "kind": "팀",
+    "memo": null,
+    "owner": "노규빈 선임",
+    "title": "팀장경연대회 자료",
+    "images": null,
+    "channel": "업무",
+    "campaign": null,
+    "end_date": "2026-08-10",
+    "perf_url": null,
+    "created_at": "2026-07-21T03:04:34.585136+00:00"
+   }
+  },
+  {
+   "id": "456bdcf5-15ca-4ecf-94ae-3cf142469005",
+   "event_id": "3d9f5e05-8940-4ef7-b9cd-54acbea38891",
+   "action": "INSERT",
+   "actor": "2319320@thehyundai.com",
+   "changed_at": "2026-07-31T05:13:17.544585+00:00",
+   "data": {
+    "id": "3d9f5e05-8940-4ef7-b9cd-54acbea38891",
+    "sub": null,
+    "date": "2026-07-31",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이수정 선임",
+    "title": "이수정 오후 반반차",
+    "images": null,
+    "channel": "반차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-31T05:13:17.544585+00:00"
+   }
+  },
+  {
+   "id": "3c0ee068-4339-489c-adc2-4da0793faf7c",
+   "event_id": "3d9f5e05-8940-4ef7-b9cd-54acbea38891",
+   "action": "UPDATE",
+   "actor": "2319320@thehyundai.com",
+   "changed_at": "2026-07-31T07:42:56.665849+00:00",
+   "data": {
+    "id": "3d9f5e05-8940-4ef7-b9cd-54acbea38891",
+    "sub": null,
+    "date": "2026-07-31",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이수정 선임",
+    "title": "이수정 오후1시간반차",
+    "images": null,
+    "channel": "반차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-07-31T05:13:17.544585+00:00"
+   }
+  },
+  {
+   "id": "a18782e6-04aa-4c98-a9c1-bf6ac3147fc9",
+   "event_id": "e6533cb8-8b93-4131-b7a9-ca2111e428c3",
+   "action": "INSERT",
+   "actor": "2319320@thehyundai.com",
+   "changed_at": "2026-08-02T20:58:57.378869+00:00",
+   "data": {
+    "id": "e6533cb8-8b93-4131-b7a9-ca2111e428c3",
+    "sub": null,
+    "date": "2026-08-03",
+    "kind": "팀",
+    "memo": null,
+    "owner": "이수정 선임",
+    "title": "이수정 연차",
+    "images": null,
+    "channel": "연차",
+    "campaign": null,
+    "end_date": null,
+    "perf_url": null,
+    "created_at": "2026-08-02T20:58:57.378869+00:00"
    }
   }
  ]
