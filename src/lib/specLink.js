@@ -24,7 +24,7 @@ export const SPEC_LINK_MAP = {
   '기타|홈페이지': '홈페이지 (WEB)',
   '기타|웹진': '웹진 에디토리얼 디파트먼트',
   '기타|신문': '신문광고',
-  '기타|H.Point': 'H.Point 메인 배너',
+  'H.Point|': 'H.Point 메인 배너',
   '기타|고지물': '고지물 (PMS)',
   '기타|TVCF 라디오': 'TVCF 라디오',
 }
