@@ -7,7 +7,8 @@
 }
 :root{
   --ink:#132019; --paper:#ffffff; --green:#0B4336; --green-deep:#07281F;
-  --grey:#7C8A82; --hairline:#DCE3DD; --red:#C4372C; --hl:#EDFF5B;
+  --grey:#7C8A82; --hairline:#DCE3DD; --red:#C4372C;
+  --hl:#8FEFAE;   /* 하이라이트 강조색 — 스프링그린 ('26.8.4 재보정, 구 형광 옐로우그린 #EDFF5B 대체) */
   /* HYUNDAI Lilac (Pantone 9023U · R240 G228 B237) — 브랜드 세컨더리, 골드 대체 '26.7.29
      공식 라일락은 명도가 높아 밝은 배경에선 -bar(심화)·-ink(텍스트) 파생 톤 사용 */
   --lilac:#F0E4ED; --lilac-bar:#CFA3BD; --lilac-ink:#96637F;
