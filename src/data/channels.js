@@ -149,6 +149,7 @@ export const KEYWORDS = [
   ['PMS', '기타', '고지물'],
   ['H.Point', 'H.Point', null],
   ['에이치포인트', 'H.Point', null],
+  ['에포', 'H.Point', null],
   ['h포인트', 'H.Point', null],
   ['hpoint', 'H.Point', null],
   ['TVCF', '기타', 'TVCF 라디오'],
@@ -233,6 +234,10 @@ export const TITLE_ALIASES = [
   ['아파트 LCD', 'APT LCD'], ['아파트LCD', 'APT LCD'],
   ['아파트 lcd', 'APT LCD'], ['아파트lcd', 'APT LCD'],
   ['엘시디', 'APT LCD'], ['LCD', 'APT LCD'], ['lcd', 'APT LCD'],
+
+  /* H.Point 계열 → 'H.Point' ('26.8) */
+  ['에이치포인트', 'H.Point'], ['에포', 'H.Point'],
+  ['h포인트', 'H.Point'], ['hpoint', 'H.Point'], ['HPOINT', 'H.Point'],
 
   /* 백화점 APP 계열 → 'APP푸쉬' / 'APP팝업' / 'APP' */
   ['앱 푸쉬', 'APP푸쉬'], ['앱푸쉬', 'APP푸쉬'], ['앱푸시', 'APP푸쉬'], ['앱 푸시', 'APP푸쉬'],
