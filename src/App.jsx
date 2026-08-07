@@ -12,11 +12,13 @@ import SettlePage from './SettlePage.jsx'
 import ShareReport from './ShareReport.jsx'
 /* 바이럴 라운지 ('26.8) — 어드민 게이트 뒤 1차 비공개, 동적 로드 (비대상 계정 비용 0) */
 const LoungePage = React.lazy(() => import('./LoungePage.jsx'))
+/* 내 일정 ('26.8) — MYTASK_EMAILS 게이트, 동적 로드 (비대상 계정 비용 0) */
+const MyTaskPage = React.lazy(() => import('./MyTaskPage.jsx'))
 import { LogoMark } from './Logo.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { getSession, onAuthChange, signOut } from './lib/auth.js'
 import { storageMode } from './lib/store.js'
-import { ADMIN_EMAILS, SETTLE_EMAILS } from './config.js'
+import { ADMIN_EMAILS, SETTLE_EMAILS, MYTASK_EMAILS } from './config.js'
 
 /* 사이트 전체 로그인 게이트 + 상단 탭 셸.
    기본 탭은 매체 캘린더. 로그인 전에는 어떤 경로(탭·뷰 파라미터)로 들어와도 LoginScreen만 보임.
@@ -45,6 +47,7 @@ export default function App() {
     if (window.location.hash === '#rmn') return 'rmn'
     if (window.location.hash === '#settle') return 'settle'
     if (window.location.hash === '#lounge') return 'lounge'
+    if (window.location.hash === '#mytask') return 'mytask'
     return 'home'   // '26.7: 홈이 접속 첫 화면
   })
   /* calView: 매체 캘린더의 하위 세그(월간·캠페인) — 홈 KPI에서 캠페인으로 바로 진입 ('26.7.29) */
@@ -53,7 +56,7 @@ export default function App() {
     setTab(t)
     setCalView(view)
     /* home = 기본 탭(해시 없음). 나머지는 딥링크 해시 */
-    const HASH = { spec: '#spec', monitor: '#monitor', shoot: '#shoot', calendar: '#calendar', team: '#team', admin: '#admin', rmn: '#rmn', settle: '#settle', lounge: '#lounge' }
+    const HASH = { spec: '#spec', monitor: '#monitor', shoot: '#shoot', calendar: '#calendar', team: '#team', admin: '#admin', rmn: '#rmn', settle: '#settle', lounge: '#lounge', mytask: '#mytask' }
     window.history.replaceState(null, '', HASH[t] || window.location.pathname + window.location.search)
   }
 
@@ -61,6 +64,10 @@ export default function App() {
      로그인이 없으므로 허용 — 실서비스(REMOTE)에선 반드시 지정 계정 로그인 필요 */
   const isAdmin = storageMode !== 'supabase'
     || (session && ADMIN_EMAILS.includes((session.email || '').toLowerCase()))
+
+  /* 내 일정 ('26.8): MYTASK_EMAILS 계정만 탭 노출 + 렌더 (로컬 테스트 모드는 허용) */
+  const isMyTask = storageMode !== 'supabase'
+    || (session && MYTASK_EMAILS.includes((session.email || '').toLowerCase()))
 
   /* 정산 ('26.7 테스트): SETTLE_EMAILS 3인만 탭 노출 + 렌더 (로컬 테스트 모드는 허용) */
   const isSettle = storageMode !== 'supabase'
@@ -97,6 +104,9 @@ export default function App() {
         </div>
         <nav className="side-nav">
           <button className={tab === 'home' ? 'on' : ''} onClick={() => go('home')}>홈</button>
+          {isMyTask && (
+            <button className={tab === 'mytask' ? 'on' : ''} onClick={() => go('mytask')}>내 일정</button>
+          )}
           <button className={tab === 'team' ? 'on' : ''} onClick={() => go('team')}>팀 일정</button>
           <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
           <button className={tab === 'shoot' ? 'on' : ''} onClick={() => go('shoot')}>촬영일정</button>
@@ -133,6 +143,9 @@ export default function App() {
         {tab === 'monitor' && <MonitorPage />}
         {tab === 'rmn' && <RmnPage />}
         {tab === 'settle' && isSettle && <SettlePage />}
+        {tab === 'mytask' && isMyTask && (
+          <Suspense fallback={null}><MyTaskPage /></Suspense>
+        )}
         {tab === 'lounge' && (
           <Suspense fallback={null}><LoungePage /></Suspense>
         )}

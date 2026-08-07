@@ -87,6 +87,30 @@ const SETTLE = [
 const TA = [{ id: 1, year: 2026, month: 7, office: '본점', name: '썸머페스타', period: '7.1~7.14',
   media: ['아파트너'], exp: 9120000, clk: 25400, vis: 8100, inst: 240, note: null }]
 
+/* 내 일정 ('26.8) — 개인 데이터라 media_events와 완전히 분리된 테이블 */
+const ME = 'kyuvin@thehyundai.com'
+const MY_SPACES = [
+  { id: 'sp1', owner_email: ME, name: '업무', color: '#0B4336', sort: 0 },
+  { id: 'sp2', owner_email: ME, name: LONG_MODE ? LONG.slice(0, 20) : '개인', color: '#CFA3BD', sort: 1 },
+]
+const MY_TODOS = [
+  { id: 't1', owner_email: ME, txt: LONG_MODE ? LONG : '임원 보고 자료 초안', space_id: 'sp1',
+    done: false, shared_with: [], shared_edit: false, sort: 0, created_at: '2026-08-01T00:00:00Z' },
+  { id: 't2', owner_email: ME, txt: '유튜브 섬네일 시안 확인', space_id: null, done: true,
+    shared_with: ['jykim84@thehyundai.com'], shared_edit: true, sort: 1, created_at: '2026-08-02T00:00:00Z' },
+]
+const MY_EVENTS = [
+  { id: 'm1', owner_email: ME, title: LONG_MODE ? LONG : '촬영 콘티 리뷰', on_date: '2026-07-24',
+    at_time: '10:00', dur_min: 90, space_id: 'sp1', linked_id: null, shared_with: [],
+    shared_edit: false, memo: null, created_at: '2026-08-01T00:00:00Z' },
+  { id: 'm2', owner_email: ME, title: '월간 리포트 마감', on_date: '2026-07-24', at_time: '10:30',
+    dur_min: 60, space_id: null, linked_id: 'e1', shared_with: [], shared_edit: false,
+    memo: null, created_at: '2026-08-01T00:00:00Z' },
+  { id: 'm3', owner_email: ME, title: '종일 외근', on_date: '2026-07-31', at_time: null,
+    dur_min: 60, space_id: 'sp2', linked_id: null, shared_with: [], shared_edit: false,
+    memo: null, created_at: '2026-08-01T00:00:00Z' },
+]
+
 const respond = url => {
   const t = s => new RegExp(`/rest/v1/${s}`).test(url)
   if (t('media_events_history')) return []
@@ -94,6 +118,9 @@ const respond = url => {
   if (t('targetapp_stats')) return TA
   if (t('rmn_bookings')) return RMN
   if (t('settlements')) return SETTLE
+  if (t('my_spaces')) return MY_SPACES
+  if (t('my_todos')) return MY_TODOS
+  if (t('my_events')) return MY_EVENTS
   return []
 }
 
@@ -130,7 +157,7 @@ const PROBE = `(() => {
 /* 문자열 규칙은 수집 데이터(캡션·영상 제목)에도 걸리므로 자사 UI 클래스만 본다 */
 const DATA_CLASS = /^(A|B|SPAN|DIV|P|dk-top-t|ugc-|mon-acc|home-vid|cp-t|pf-title|md-memo)/
 
-const TABS = ['', '#team', '#calendar', '#shoot', '#spec', '#monitor', '#rmn', '#settle', '#admin']
+const TABS = ['', '#mytask', '#team', '#calendar', '#shoot', '#spec', '#monitor', '#rmn', '#settle', '#admin']
 const findings = []
 const add = (where, kind, msg) => findings.push(`[${kind}] ${where} :: ${msg}`)
 

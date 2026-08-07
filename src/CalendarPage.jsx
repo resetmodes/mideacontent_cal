@@ -511,19 +511,26 @@ function MonthGrid({ cursor, events, onSelect, onDayClick, wide = false, onMove 
       mv.preventDefault()
       setDragOver(cellAt(mv))
     }
-    const up = uv => {
+    const stop = () => {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', cancel)
       setDragOver(null)
       setDragging(false)
+    }
+    const up = uv => {
+      stop()
       if (d.active) {
         const to = cellAt(uv)
         if (to && to !== srcDay) onMove(e, srcDay, to)
       }
       setTimeout(() => { dragRef.current = null }, 0)   // 뒤따르는 click까지 억제 유지
     }
+    /* pointercancel 정리 ('26.8.7) — 없으면 리스너가 남고 그리드가 드래그 상태로 굳는다 */
+    const cancel = () => { stop(); dragRef.current = null }
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', cancel)
   }
 
   return (

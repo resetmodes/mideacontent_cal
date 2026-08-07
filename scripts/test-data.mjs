@@ -634,5 +634,49 @@ for (const m of MEDIA) {
   }
 }
 
+
+/* 17. 내 일정 ('26.8) — 개인 데이터가 새는 경로와 하네스 누락을 감시.
+   ① 개인 데이터는 my_* 테이블에만 (media_events는 미러가 열리면 무로그인 공개)
+   ② owner-or-shared RLS가 세 테이블 모두에 걸려 있을 것
+   ③ config.js의 export가 늘면 smoke.mjs 스텁도 함께 늘 것 (빠지면 빌드가 깨진다) */
+{
+  const sql = readFileSync(new URL('../data/mytask-setup.sql', import.meta.url), 'utf8')
+  for (const t of ['my_spaces', 'my_todos', 'my_events']) {
+    if (!new RegExp(`create table if not exists ${t}`).test(sql)) bad(`mytask: ${t} 테이블 정의 없음`)
+    if (!new RegExp(`alter table ${t} enable row level security`).test(sql)) bad(`mytask: ${t} RLS 미적용`)
+  }
+  /* 정책은 재실행 안전해야 함 — 사용자가 SQL을 두 번 돌려도 실패하지 않게 */
+  const creates = [...sql.matchAll(/create policy "([^"]+)"/g)].map(m => m[1])
+  const drops = new Set([...sql.matchAll(/drop policy if exists "([^"]+)"/g)].map(m => m[1]))
+  for (const c of creates) if (!drops.has(c)) bad(`mytask: 정책 "${c}"에 drop if exists가 없음 (재실행 시 실패)`)
+  /* 공유 대상만 읽는 구조 — using (true)가 하나라도 있으면 팀 전체에 열린다 */
+  if (/for select to authenticated\s*\n?\s*using \(true\)/.test(sql))
+    bad('mytask: select 정책이 using (true) — 개인 데이터가 로그인 전체에 열림')
+  for (const t of ['my_todos', 'my_events'])
+    if (!new RegExp(`on ${t} for select[\\s\\S]{0,120}any\\(shared_with\\)`).test(sql))
+      bad(`mytask: ${t} 읽기 정책에 shared_with 조건이 없음`)
+
+  const page = readFileSync(new URL('../src/MyTaskPage.jsx', import.meta.url), 'utf8')
+  /* 개인 데이터를 media_events에 쓰는 경로는 팀 연동(createEvent)뿐 — 메모는 넘기지 않는다 */
+  if (/createEvent\(\{[^}]*memo:\s*ev\.memo/.test(page))
+    bad('mytask: 팀 캘린더 연동이 개인 메모를 media_events로 넘김 (미러 무로그인 공개)')
+  if (/window\.(prompt|confirm)\(/.test(page))
+    bad('mytask: 네이티브 prompt·confirm 사용 (환경별 차단 이력으로 금지)')
+  /* 드래그 함정 — click 억제와 pointercancel 정리가 빠지면 시안에서 겪은 버그가 되돌아온다 */
+  if (!/pointercancel/.test(page)) bad('mytask: pointercancel 정리 없음 (리스너가 남고 상태가 굳는다)')
+  if (!/suppress/.test(page)) bad('mytask: 드래그 직후 click 억제 없음 (상세가 저절로 열린다)')
+
+  const cal = readFileSync(new URL('../src/CalendarPage.jsx', import.meta.url), 'utf8')
+  if (!/pointercancel/.test(cal)) bad('매체 캘린더 드래그에 pointercancel 정리 없음')
+
+  /* smoke.mjs 스텁이 config.js의 export를 전부 덮는지 */
+  const cfg = readFileSync(new URL('../src/config.js', import.meta.url), 'utf8')
+  const stub = readFileSync(new URL('./smoke.mjs', import.meta.url), 'utf8')
+  const names = [...cfg.matchAll(/export const (\w+)/g)].map(m => m[1])
+  for (const n of names)
+    if (!new RegExp(`export const ${n} =`).test(stub))
+      bad(`smoke.mjs 스텁에 ${n}이 없음 — 로컬 모드 빌드가 깨진다 (scripts/smoke.mjs에 한 줄 추가)`)
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)

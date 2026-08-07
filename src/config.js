@@ -22,6 +22,12 @@ export const NOTION_REVIEW_EMAILS = [
   'kyuvin@thehyundai.com',   // 노규빈 선임
 ]
 
+/* 내 일정 탭('#mytask') 접근 계정 ('26.8 — 1차는 노규빈만, 검증 후 팀 전체 오픈)
+   개인 투두와 개인 일정이라 계정별로 데이터가 완전히 분리된다 (RLS가 실제 차단) */
+export const MYTASK_EMAILS = [
+  'kyuvin@thehyundai.com',   // 노규빈 선임
+]
+
 /* 홈 화면 바이럴 라운지 위젯 ('26.8 — 실험 중이라 기본 숨김, 사용자 지시)
    true로 바꾸면 홈 상단에 "미배정, 이번 주 게시" 배지가 노출됨 */
 export const LOUNGE_HOME_WIDGET = false
