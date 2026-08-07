@@ -37,9 +37,14 @@ create table if not exists my_todos (
   done boolean default false,
   shared_with text[] default '{}',      -- 공유 대상 이메일
   shared_edit boolean default false,    -- 공유 대상도 완료 처리 가능
+  memo text,                            -- 상세 메모
+  images jsonb,                         -- 첨부 메타 [{name, path, size}]
   sort int default 0,
   created_at timestamptz default now()
 );
+-- 이미 앞 버전을 실행한 뒤라면 아래 두 줄이 컬럼을 채운다 (재실행 안전)
+alter table my_todos add column if not exists memo text;
+alter table my_todos add column if not exists images jsonb;
 alter table my_todos enable row level security;
 drop policy if exists "todos read" on my_todos;
 create policy "todos read" on my_todos for select to authenticated
@@ -69,8 +74,10 @@ create table if not exists my_events (
   shared_with text[] default '{}',
   shared_edit boolean default false,
   memo text,
+  images jsonb,                         -- 할 일에서 넘어온 첨부도 그대로 유지된다
   created_at timestamptz default now()
 );
+alter table my_events add column if not exists images jsonb;
 alter table my_events enable row level security;
 drop policy if exists "myev read" on my_events;
 create policy "myev read" on my_events for select to authenticated
@@ -88,3 +95,24 @@ create policy "myev delete" on my_events for delete to authenticated
 
 create index if not exists my_events_owner_date on my_events (owner_email, on_date);
 create index if not exists my_todos_owner on my_todos (owner_email);
+
+-- ── 첨부 이미지 버킷 (비공개) ──
+-- event-images(공개)와 달리 비공개다. 개인 할 일의 첨부라 링크만 알면 열리는 수준도 안 된다.
+-- 경로 첫 칸이 소유자 폴더라, 로그인해도 남의 폴더는 정책에서 막힌다.
+-- 폴더 이름은 이메일의 @ 와 . 을 _ 로 바꾼 값 (Storage 키 안전 문자만 쓰려는 것) —
+-- 클라이언트(src/lib/myTaskImages.js)의 folderOf와 반드시 같은 규칙이어야 한다.
+insert into storage.buckets (id, name, public) values ('mytask-img', 'mytask-img', false)
+  on conflict (id) do nothing;
+
+drop policy if exists "mytask img insert" on storage.objects;
+create policy "mytask img insert" on storage.objects for insert to authenticated
+  with check (bucket_id = 'mytask-img'
+    and (storage.foldername(name))[1] = replace(replace(auth.jwt()->>'email', '@', '_'), '.', '_'));
+drop policy if exists "mytask img read" on storage.objects;
+create policy "mytask img read" on storage.objects for select to authenticated
+  using (bucket_id = 'mytask-img'
+    and (storage.foldername(name))[1] = replace(replace(auth.jwt()->>'email', '@', '_'), '.', '_'));
+drop policy if exists "mytask img delete" on storage.objects;
+create policy "mytask img delete" on storage.objects for delete to authenticated
+  using (bucket_id = 'mytask-img'
+    and (storage.foldername(name))[1] = replace(replace(auth.jwt()->>'email', '@', '_'), '.', '_'));

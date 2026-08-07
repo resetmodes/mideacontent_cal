@@ -669,6 +669,23 @@ for (const m of MEDIA) {
   const cal = readFileSync(new URL('../src/CalendarPage.jsx', import.meta.url), 'utf8')
   if (!/pointercancel/.test(cal)) bad('매체 캘린더 드래그에 pointercancel 정리 없음')
 
+  /* 첨부 이미지는 비공개 버킷 — event-images(공개)를 쓰면 링크만 알면 열린다 */
+  if (!/insert into storage\.buckets \(id, name, public\) values \('mytask-img', 'mytask-img', false\)/.test(sql))
+    bad('mytask: mytask-img 버킷이 비공개로 생성되지 않음')
+  for (const kind of ['insert', 'read', 'delete'])
+    if (!new RegExp(`"mytask img ${kind}"[\\s\\S]{0,220}storage\\.foldername\\(name\\)\\)\\[1\\]`).test(sql))
+      bad(`mytask: mytask-img ${kind} 정책에 소유자 폴더 조건이 없음 (남의 첨부가 열린다)`)
+  const img = readFileSync(new URL('../src/lib/myTaskImages.js', import.meta.url), 'utf8')
+  if (!/const BUCKET = 'mytask-img'/.test(img) || /BUCKET = 'event-images'/.test(img))
+    bad('mytask: 첨부 버킷이 mytask-img가 아님 (공개 버킷을 쓰면 링크만 알면 열린다)')
+  /* 폴더 규칙은 SQL 정책과 클라이언트가 글자 그대로 같아야 한다 (다르면 업로드가 403) */
+  const sqlRule = /replace\(replace\(auth\.jwt\(\)->>'email', '@', '_'\), '\.', '_'\)/.test(sql)
+  const jsRule = /replace\(\/@\/g, '_'\)\.replace\(\/\\\.\/g, '_'\)/.test(img)
+  if (!sqlRule || !jsRule)
+    bad(`mytask: 소유자 폴더 규칙이 SQL(${sqlRule})과 myTaskImages.js(${jsRule}) 사이에서 어긋남`)
+  if (!/api\s*=\s*PUBLIC_API/.test(readFileSync(new URL('../src/ImageAttach.jsx', import.meta.url), 'utf8')))
+    bad('ImageAttach: 저장소 어댑터(api) 기본값이 사라짐 — 일정·RMN 첨부가 깨진다')
+
   /* smoke.mjs 스텁이 config.js의 export를 전부 덮는지 */
   const cfg = readFileSync(new URL('../src/config.js', import.meta.url), 'utf8')
   const stub = readFileSync(new URL('./smoke.mjs', import.meta.url), 'utf8')

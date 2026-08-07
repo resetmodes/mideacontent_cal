@@ -547,3 +547,13 @@ Supabase SQL Editor에서 **`data/rmn-share-setup.sql` 전체를 1회 실행**.
 팀 전체로 여는 방법은 `src/config.js`의 `MYTASK_EMAILS`에 이메일을 한 줄씩 추가하거나,
 `src/App.jsx`의 `isMyTask` 게이트를 지우면 됩니다. RLS가 실제 차단이므로 게이트를 열어도
 남의 할 일은 보이지 않습니다.
+
+할 일과 일정에 붙이는 이미지는 **비공개 버킷 `mytask-img`**에 들어갑니다.
+일정 첨부(event-images)는 미러에서도 보여야 해서 공개지만, 개인 할 일의 첨부는
+링크만 알면 열리는 수준도 안 되기 때문입니다. 경로 첫 칸이 소유자 폴더라 로그인해도
+남의 폴더는 정책에서 막힙니다. 폴더 이름은 이메일의 `@` 와 `.` 을 `_` 로 바꾼 값이고,
+**이 규칙은 SQL 정책과 `src/lib/myTaskImages.js`의 `folderOf`가 글자 그대로 같아야 합니다**
+(다르면 업로드가 403으로 막힙니다. test-data 17이 이 일치를 감시합니다).
+
+앞 버전을 이미 실행한 뒤라도 15장을 다시 실행하면 됩니다 — 컬럼 추가는
+`add column if not exists`, 정책은 `drop policy if exists`를 앞세워 재실행이 안전합니다.

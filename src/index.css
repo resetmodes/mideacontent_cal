@@ -2299,6 +2299,16 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   border:1px solid var(--g300);border-radius:18px;background:rgba(255,255,255,.85);color:var(--ink);}
 .mt-add button{font:inherit;font-size:13.5px;font-weight:700;border:0;background:var(--green);
   color:#fff;border-radius:18px;padding:0 16px;cursor:pointer;}
+/* 담을 스페이스 고르기 — 입력줄 바로 아래에 붙여 "어디에 들어가는지"가 항상 보이게 */
+.mt-add-sp{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:-6px 0 14px;}
+.mt-add-sp>span{font-size:11.5px;font-weight:700;color:var(--g400);margin-right:2px;}
+.mt-add-sp button{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:11.5px;
+  font-weight:600;border:1px solid transparent;background:rgba(19,32,25,.05);border-radius:12px;
+  padding:4px 9px;cursor:pointer;color:var(--g500);}
+.mt-add-sp button:hover{color:var(--ink);}
+.mt-add-sp button.on{background:var(--green);color:#fff;font-weight:700;}
+.mt-add-sp button i{width:7px;height:7px;border-radius:50%;display:block;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.55);}
 .mt-todo-list{display:flex;flex-direction:column;}
 .mt-todo{display:flex;align-items:flex-start;gap:10px;padding:11px 8px;border-top:1px solid var(--g100);
   cursor:grab;user-select:none;-webkit-user-select:none;border-radius:12px;}
@@ -2317,6 +2327,8 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-t-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;align-items:center;}
 .mt-t-sp{font-size:11px;font-weight:600;color:var(--g500);display:inline-flex;align-items:center;gap:4px;}
 .mt-t-sp i{width:7px;height:7px;border-radius:50%;display:block;}
+.mt-t-mark{font-size:10.5px;font-weight:700;color:var(--g500);background:rgba(19,32,25,.06);
+  border-radius:12px;padding:2px 7px;}
 .mt-t-share{font-size:11px;font-weight:600;color:var(--lilac-ink);background:var(--lilac);
   border-radius:9px;padding:2px 7px;}
 .mt-t-x{font:inherit;font-size:16px;line-height:1;border:0;background:none;color:var(--g300);
@@ -2433,6 +2445,22 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   border-radius:18px;border:1px solid var(--g300);background:rgba(255,255,255,.7);
   color:var(--g600);cursor:pointer;}
 .mt-unset:hover{border-color:var(--green);color:var(--green);}
+/* 할 일 상세 — 제목은 바로 고쳐 쓰는 입력, 완료는 왼쪽 체크박스 */
+.mt-sh-title{display:flex;align-items:center;gap:11px;}
+.mt-sh-title .mt-box{margin-top:0;flex:none;cursor:pointer;}
+.mt-sh-name{flex:1;min-width:0;font:inherit;font-size:19px;font-weight:800;letter-spacing:-.02em;
+  color:var(--ink);border:0;border-bottom:1px solid transparent;background:none;padding:2px 0;}
+.mt-sh-name:hover{border-bottom-color:var(--g200);}
+.mt-sh-name:focus{outline:none;border-bottom-color:var(--green);}
+.mt-sh-name.done{color:var(--g400);text-decoration:line-through;}
+.mt-memo{position:relative;}
+.mt-memo textarea{width:100%;font:inherit;font-size:13.5px;line-height:1.6;padding:11px 13px;
+  border:1px solid var(--g300);border-radius:14px;background:rgba(255,255,255,.85);
+  color:var(--ink);resize:vertical;}
+.mt-memo textarea:focus{outline:none;border-color:var(--green);}
+.mt-memo-save{margin-top:7px;font:inherit;font-size:12.5px;font-weight:700;border:0;
+  background:var(--green);color:#fff;border-radius:18px;padding:7px 15px;cursor:pointer;}
+.mt-sh-note{margin-top:16px;font-size:12.5px;color:var(--g500);line-height:1.6;}
 .mt-sh-acts{display:flex;gap:8px;margin-top:20px;}
 .mt-sh-acts button{flex:1;font:inherit;font-size:13.5px;font-weight:700;padding:11px;
   border-radius:18px;border:1px solid var(--g300);background:#fff;cursor:pointer;}

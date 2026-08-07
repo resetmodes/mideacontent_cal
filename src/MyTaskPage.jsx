@@ -20,6 +20,8 @@ import { toISO, fromISO } from './lib/parse.js'
 import { listEvents, createEvent, deleteEvent } from './lib/store.js'
 import { toast } from './lib/toast.js'
 import ModalShell from './ModalShell.jsx'
+import ImageAttach from './ImageAttach.jsx'
+import { MY_IMAGE_API } from './lib/myTaskImages.js'
 import {
   listSpaces, createSpace, deleteSpace,
   listTodos, createTodo, updateTodo, deleteTodo,
@@ -71,7 +73,9 @@ export default function MyTaskPage() {
   const [spFilter, setSpFilter] = useState(null)
   const [layers, setLayers] = useState(() => new Set(['mine', '팀', '매체', '촬영']))
   const [openId, setOpenId] = useState(null)
+  const [openTodoId, setOpenTodoId] = useState(null)
   const [draft, setDraft] = useState('')
+  const [addSpaceId, setAddSpaceId] = useState(undefined)   // undefined면 필터를 따라간다
 
   const today = toISO(new Date())
 
@@ -143,10 +147,24 @@ export default function MyTaskPage() {
     catch (e) { toast(e.message, { danger: true }) }
   }
 
+  /* 할 일 추가 — 스페이스 지정이 세 갈래로 편하게 된다
+     ① 입력줄 옆 스페이스 칩으로 고르기 ② 스페이스 필터가 켜져 있으면 그 스페이스로
+     ③ 본문에 "#기획"처럼 쓰면 그 스페이스로 (없으면 즉석에서 만든다, 캠페인 #문법과 같은 결) */
   const addTodo = () => guard(async () => {
-    const txt = draft.trim()
+    let txt = draft.trim()
     if (!txt) return
-    const t = await createTodo({ txt, spaceId: spFilter })
+    let spaceId = addSpaceId !== undefined ? addSpaceId : spFilter
+    const tag = txt.match(/#([^\s#]+)/)
+    if (tag) {
+      const name = tag[1]
+      let sp = (spaces || []).find(s => s.name === name)
+      if (!sp) sp = await createSpace(name, PALETTE[(spaces?.length || 0) % PALETTE.length], spaces?.length || 0)
+      if (!(spaces || []).some(s => s.id === sp.id)) setSpaces(v => [...(v || []), sp])
+      spaceId = sp.id
+      txt = txt.replace(tag[0], '').replace(/\s{2,}/g, ' ').trim()
+    }
+    if (!txt) return
+    const t = await createTodo({ txt, spaceId })
     setTodos(v => [t, ...(v || [])])
     setDraft('')
   })
@@ -154,6 +172,10 @@ export default function MyTaskPage() {
     const n = await updateTodo(t.id, { done: !t.done })
     setTodos(v => v.map(x => (x.id === t.id ? n : x)))
   })
+  const patchTodo = (id, patch, msg) => guard(async () => {
+    const n = await updateTodo(id, patch)
+    setTodos(v => v.map(x => (x.id === id ? n : x)))
+  }, msg)
   const removeTodo = id => guard(async () => {
     await deleteTodo(id)
     setTodos(v => v.filter(x => x.id !== id))
@@ -180,6 +202,7 @@ export default function MyTaskPage() {
     const ev = await createMyEvent({
       title: t.txt, date, time: hour != null ? `${String(hour).padStart(2, '0')}:00` : null,
       dur: 60, spaceId: t.spaceId, shared: t.shared,
+      memo: t.memo, images: t.images,        // 메모와 첨부는 그대로 따라간다
     })
     await deleteTodo(t.id)
     setMine(v => [...(v || []), ev])
@@ -207,7 +230,7 @@ export default function MyTaskPage() {
     const e = mine.find(x => x.id === id)
     if (!e) return
     if (e.linkedId) await deleteEvent(e.linkedId).catch(() => {})
-    const t = await createTodo({ txt: e.title, spaceId: e.spaceId, shared: e.shared })
+    const t = await createTodo({ txt: e.title, spaceId: e.spaceId, shared: e.shared, memo: e.memo, images: e.images })
     await deleteMyEvent(id)
     setTodos(v => [t, ...(v || [])])
     setMine(v => v.filter(x => x.id !== id))
@@ -252,6 +275,7 @@ export default function MyTaskPage() {
   })
 
   const open = (mine || []).find(e => e.id === openId) || null
+  const openTodo = (todos || []).find(t => t.id === openTodoId) || null
 
   /* ── 렌더 ── */
   if (!ready) return <div className="wrap mytask"><div className="mt-empty">불러오는 중</div></div>
@@ -272,6 +296,7 @@ export default function MyTaskPage() {
         <TodoPanel
           spaces={spaces} todos={shownTodos} allTodos={todos} spFilter={spFilter}
           draft={draft} setDraft={setDraft}
+          addSpaceId={addSpaceId} setAddSpaceId={setAddSpaceId}
           onFilter={id => setSpFilter(spFilter === id ? null : id)}
           onAddSpace={addSpace} onRemoveSpace={removeSpace}
           onAdd={addTodo} onToggle={toggleTodo} onRemove={removeTodo}
@@ -303,11 +328,16 @@ export default function MyTaskPage() {
       </div>
 
       <DragLayer onDropTodo={dropTodo} onMoveEvent={moveEvent} onUnschedule={unschedule}
-        onResize={resizeEvent} onOpen={setOpenId} />
+        onResize={resizeEvent} onOpen={setOpenId} onOpenTodo={setOpenTodoId} />
 
       {open && (
         <EventSheet ev={open} spaces={spaces} onClose={() => setOpenId(null)}
           onPatch={patchEvent} onLink={toggleLink} onUnschedule={unschedule} onDelete={removeEvent} />
+      )}
+      {openTodo && (
+        <TodoSheet td={openTodo} spaces={spaces} onClose={() => setOpenTodoId(null)}
+          onPatch={patchTodo} onToggle={toggleTodo}
+          onDelete={id => { removeTodo(id); setOpenTodoId(null) }} />
       )}
     </div>
   )
@@ -326,11 +356,12 @@ function Head() {
 }
 
 /* ── 좌측 투두 패널 ── */
-function TodoPanel({ spaces, todos, allTodos, spFilter, draft, setDraft, onFilter, onAddSpace, onRemoveSpace, onAdd, onToggle, onRemove }) {
+function TodoPanel({ spaces, todos, allTodos, spFilter, draft, setDraft, addSpaceId, setAddSpaceId, onFilter, onAddSpace, onRemoveSpace, onAdd, onToggle, onRemove }) {
   const left = (allTodos || []).filter(t => !t.done).length
   const [spDraft, setSpDraft] = useState(null)   // null이면 입력창 닫힘
   const [spArm, setSpArm] = useState(null)       // 삭제 2단계 확인 대상
   const submitSp = () => { onAddSpace(spDraft); setSpDraft(null) }
+  const pick = addSpaceId !== undefined ? addSpaceId : spFilter
   return (
     <aside className="mt-todos" data-unschedule="1">
       <div className="mt-tp-head"><b>할 일</b><span>남은 {left}건</span></div>
@@ -362,11 +393,23 @@ function TodoPanel({ spaces, todos, allTodos, spFilter, draft, setDraft, onFilte
           )}
       </div>
       <div className="mt-add">
-        <input type="text" value={draft} placeholder="할 일 입력 후 엔터"
+        <input type="text" value={draft} placeholder="할 일 입력 후 엔터, #이름으로 스페이스 지정"
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) onAdd() }} />
         <button onClick={onAdd}>추가</button>
       </div>
+      {/* 어디에 담을지 한 번에 보이게 — 안 고르면 지금 보고 있는 스페이스로 들어간다 */}
+      {spaces.length > 0 && (
+        <div className="mt-add-sp">
+          <span>담을 곳</span>
+          <button className={pick === null ? 'on' : ''} onClick={() => setAddSpaceId(null)}>분류 없음</button>
+          {spaces.map(s => (
+            <button key={s.id} className={pick === s.id ? 'on' : ''} onClick={() => setAddSpaceId(s.id)}>
+              <i style={{ background: s.color }} />{s.name}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="mt-todo-list">
         {todos.length === 0 && <div className="mt-empty sm">할 일이 없습니다</div>}
         {todos.map(t => {
@@ -378,6 +421,8 @@ function TodoPanel({ spaces, todos, allTodos, spFilter, draft, setDraft, onFilte
                 <div className="mt-t-txt">{t.txt}</div>
                 <div className="mt-t-meta">
                   {s && <span className="mt-t-sp"><i style={{ background: s.color }} />{s.name}</span>}
+                  {t.memo && <span className="mt-t-mark">메모</span>}
+                  {t.images.length > 0 && <span className="mt-t-mark">이미지 {t.images.length}</span>}
                   {t.shared.length > 0 && <span className="mt-t-share">공유 {t.shared.length}명</span>}
                 </div>
               </div>
@@ -387,7 +432,7 @@ function TodoPanel({ spaces, todos, allTodos, spFilter, draft, setDraft, onFilte
         })}
       </div>
       <div className="mt-tp-hint">여기에 놓으면 날짜 지정이 없어집니다</div>
-      <div className="mt-tp-foot">캘린더로 끌어다 놓으면 개인 일정이 됩니다</div>
+      <div className="mt-tp-foot">눌러서 메모와 이미지를 남기고, 캘린더로 끌어다 놓으면 개인 일정이 됩니다</div>
     </aside>
   )
 }
@@ -508,7 +553,7 @@ function WeekView({ cells, byDay, today, clashIds, spOf }) {
 
 /* ── 드래그 계층 ('26.8) — 투두 이동, 일정 이동, 날짜 해제, 길이 조절을 한 곳에서.
    문서 위임이라 렌더 때마다 리스너를 다시 붙일 필요가 없다 ── */
-function DragLayer({ onDropTodo, onMoveEvent, onUnschedule, onResize, onOpen }) {
+function DragLayer({ onDropTodo, onMoveEvent, onUnschedule, onResize, onOpen, onOpenTodo }) {
   const suppress = useRef(false)
 
   useEffect(() => {
@@ -619,7 +664,11 @@ function DragLayer({ onDropTodo, onMoveEvent, onUnschedule, onResize, onOpen }) 
     const click = ev => {
       if (suppress.current) return
       const chip = ev.target.closest('.mt-ev.mine')
-      if (chip?.dataset.ev) onOpen(chip.dataset.ev)
+      if (chip?.dataset.ev) { onOpen(chip.dataset.ev); return }
+      /* 할 일 행 클릭 = 상세. 체크박스와 삭제 버튼은 각자 동작이 있으므로 제외 */
+      if (ev.target.classList.contains('mt-box') || ev.target.classList.contains('mt-t-x')) return
+      const row = ev.target.closest('[data-todo]')
+      if (row) onOpenTodo(row.dataset.todo)
     }
 
     document.addEventListener('pointerdown', down)
@@ -628,9 +677,102 @@ function DragLayer({ onDropTodo, onMoveEvent, onUnschedule, onResize, onOpen }) 
       document.removeEventListener('pointerdown', down)
       document.removeEventListener('click', click)
     }
-  }, [onDropTodo, onMoveEvent, onUnschedule, onResize, onOpen])
+  }, [onDropTodo, onMoveEvent, onUnschedule, onResize, onOpen, onOpenTodo])
 
   return null
+}
+
+/* ── 메모 입력 ── 타이핑마다 저장하면 요청이 폭주하므로 포커스를 떠날 때만 저장 */
+function MemoBox({ value, onSave, rows = 4, placeholder = '메모를 남기면 상세에서 계속 보입니다' }) {
+  const [v, setV] = useState(value || '')
+  const [dirty, setDirty] = useState(false)
+  useEffect(() => { setV(value || ''); setDirty(false) }, [value])
+  const commit = () => {
+    if (!dirty || v === (value || '')) { setDirty(false); return }
+    setDirty(false)
+    onSave(v)
+  }
+  return (
+    <div className="mt-memo">
+      <textarea rows={rows} value={v} placeholder={placeholder}
+        onChange={e => { setV(e.target.value); setDirty(true) }}
+        onBlur={commit} />
+      {dirty && <button className="mt-memo-save" onClick={commit}>메모 저장</button>}
+    </div>
+  )
+}
+
+/* ── 할 일 상세 시트 ('26.8) — 제목, 메모, 이미지, 스페이스, 공유를 한 화면에서 ── */
+function TodoSheet({ td, spaces, onClose, onPatch, onToggle, onDelete }) {
+  const [title, setTitle] = useState(td.txt)
+  const [delArm, setDelArm] = useState(false)
+  useEffect(() => setTitle(td.txt), [td.txt])
+  const emails = Object.keys(TEAM).filter(e => e !== myEmail())
+  const saveTitle = () => {
+    const t = title.trim()
+    if (!t || t === td.txt) { setTitle(td.txt); return }
+    onPatch(td.id, { txt: t })
+  }
+  return (
+    <ModalShell onClose={onClose} className="mt-sheet">
+      <div className="mt-sh-title">
+        <button className={`mt-box${td.done ? ' on' : ''}`} onClick={() => onToggle(td)}
+          title={td.done ? '완료 해제' : '완료 처리'} />
+        <input className={`mt-sh-name${td.done ? ' done' : ''}`} value={title}
+          onChange={e => setTitle(e.target.value)} onBlur={saveTitle}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) e.target.blur() }} />
+      </div>
+      <div className="mt-sh-date">{td.done ? '완료' : '진행 중'}</div>
+
+      <div className="mt-sh-block">
+        <div className="mt-sh-lab">메모</div>
+        <MemoBox value={td.memo} rows={5} onSave={v => onPatch(td.id, { memo: v }, '메모 저장됨')} />
+      </div>
+
+      <div className="mt-sh-block">
+        <div className="mt-sh-lab">이미지</div>
+        <ImageAttach imgs={td.images} canEdit storeKey={td.id} api={MY_IMAGE_API}
+          hint="나만 봅니다" onChange={imgs => onPatch(td.id, { images: imgs })} />
+      </div>
+
+      <div className="mt-sh-block">
+        <div className="mt-sh-lab">스페이스</div>
+        <div className="mt-people">
+          {spaces.map(s => (
+            <button key={s.id} className={`mt-person${td.spaceId === s.id ? ' on' : ''}`}
+              onClick={() => onPatch(td.id, { spaceId: td.spaceId === s.id ? null : s.id })}>{s.name}</button>
+          ))}
+          {spaces.length === 0 && <span className="mt-empty sm">스페이스를 만들면 여기서 고를 수 있습니다</span>}
+        </div>
+      </div>
+
+      <div className="mt-sh-block">
+        <div className="mt-sh-lab">공유</div>
+        <div className="mt-people">
+          {emails.map(em => (
+            <button key={em} className={`mt-person${td.shared.includes(em) ? ' on' : ''}`}
+              onClick={() => onPatch(td.id, {
+                shared: td.shared.includes(em) ? td.shared.filter(x => x !== em) : [...td.shared, em],
+              })}>{TEAM[em]}</button>
+          ))}
+        </div>
+        <label className="mt-chk">
+          <input type="checkbox" checked={td.sharedEdit}
+            onChange={e => onPatch(td.id, { sharedEdit: e.target.checked })} />
+          <span>공유받은 사람도 수정 가능<small>해제하면 상대는 보기만 됩니다</small></span>
+        </label>
+      </div>
+
+      <div className="mt-sh-note">캘린더로 끌어다 놓으면 날짜가 붙고, 메모와 이미지도 같이 따라갑니다</div>
+
+      <div className="mt-sh-acts">
+        {!delArm
+          ? <button onClick={() => setDelArm(true)}>삭제</button>
+          : <button className="danger" onClick={() => onDelete(td.id)}>정말 삭제</button>}
+        <button className="primary" onClick={onClose}>닫기</button>
+      </div>
+    </ModalShell>
+  )
 }
 
 /* ── 상세 시트 ── */
@@ -671,6 +813,13 @@ function EventSheet({ ev, spaces, onClose, onPatch, onLink, onUnschedule, onDele
               onClick={() => onPatch(ev.id, { spaceId: ev.spaceId === s.id ? null : s.id })}>{s.name}</button>
           ))}
         </div>
+      </div>
+
+      <div className="mt-sh-block">
+        <div className="mt-sh-lab">메모와 이미지</div>
+        <MemoBox value={ev.memo} onSave={v => onPatch(ev.id, { memo: v }, '메모 저장됨')} />
+        <ImageAttach imgs={ev.images} canEdit storeKey={ev.id} api={MY_IMAGE_API}
+          hint="나만 봅니다" onChange={imgs => onPatch(ev.id, { images: imgs })} />
       </div>
 
       <div className="mt-sh-block">

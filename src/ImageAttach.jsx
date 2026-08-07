@@ -1,28 +1,66 @@
-/* 공용 이미지 첨부 위젯 ('26.7) — 캘린더 일정·RMN 부킹 공용.
+/* 공용 이미지 첨부 위젯 ('26.7) — 캘린더 일정·RMN 부킹·내 일정 공용.
    썸네일 그리드 + 라이트박스(ref-lightbox) + 2단계 삭제 + 파일 선택 + **붙여넣기 업로드(Ctrl+V)**.
-   저장은 호출측 onChange(nextImgs)가 담당 (store가 서로 다름 — 일정/부킹).
+   저장은 호출측 onChange(nextImgs)가 담당 (store가 서로 다름 — 일정/부킹/할 일).
    붙여넣기는 이 위젯이 마운트된 동안만 동작 — 호출측은 한 번에 하나만 마운트할 것
-   (여러 개 열리면 같은 캡처가 전부에 올라감) */
+   (여러 개 열리면 같은 캡처가 전부에 올라감)
+
+   저장소는 `api`로 갈아끼운다 ('26.8) — 기본은 공개 event-images 버킷이고,
+   내 일정은 비공개 버킷 어댑터(MY_IMAGE_API)를 넘긴다. 비공개는 <img src>로 못 읽으므로
+   api.resolve가 있으면 blob URL을 만들어 두고 언마운트 때 revoke한다 */
 import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useModal } from './lib/useModal.js'
 import { uploadEventImage, removeEventImage, imageUrl, MAX_IMAGES } from './lib/eventImages.js'
 
-export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onChange, hint = '시안과 결과 보고용' }) {
+const PUBLIC_API = { upload: uploadEventImage, remove: removeEventImage, url: imageUrl, max: MAX_IMAGES }
+
+export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onChange, hint = '시안과 결과 보고용', api = PUBLIC_API }) {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)
   const [viewIdx, setViewIdx] = useState(-1)  // 라이트박스로 보는 이미지 (인덱스, -1 = 닫힘)
   const [armDel, setArmDel] = useState(null)  // × 1회 클릭 = 확인 대기 상태 (path)
   const [dragOver, setDragOver] = useState(false)  // 드래그앤드롭 하이라이트
+  const [blobs, setBlobs] = useState({})      // 비공개 버킷용 path → blob URL
   const fileRef = useRef(null)
+  const MAX = api.max || MAX_IMAGES
+
+  /* 비공개 버킷은 토큰 fetch가 필요 — 아직 없는 path만 받아온다.
+     캐시를 ref에 두는 이유: 진행 중인 요청과 정리(revoke)가 서로를 덮지 않게 */
+  const cache = useRef({})
+  const paths = imgs.map(i => i.path).join('|')
+  useEffect(() => {
+    if (!api.resolve) return
+    let alive = true
+    for (const img of imgs) {
+      if (cache.current[img.path]) continue
+      cache.current[img.path] = 'pending'
+      api.resolve(img.path).then(u => {
+        if (!alive) { URL.revokeObjectURL(u); return }
+        cache.current[img.path] = u
+        setBlobs({ ...cache.current })
+      }).catch(() => { delete cache.current[img.path] })
+    }
+    return () => { alive = false }
+  }, [paths, api])
+  /* 언마운트 때 한 번에 정리 — 열려 있는 동안은 붙였다 지운 것도 그대로 둔다 (양이 적음) */
+  useEffect(() => () => {
+    for (const u of Object.values(cache.current)) if (u !== 'pending') URL.revokeObjectURL(u)
+    cache.current = {}
+  }, [])
+
+  const srcOf = img => {
+    if (!api.resolve) return api.url(img.path)
+    const u = blobs[img.path]
+    return u && u !== 'pending' ? u : undefined
+  }
 
   const addFiles = async fileList => {
-    const files = [...fileList].filter(f => /^image\//i.test(f.type)).slice(0, MAX_IMAGES - imgs.length)
+    const files = [...fileList].filter(f => /^image\//i.test(f.type)).slice(0, MAX - imgs.length)
     if (!files.length) return
     setBusy(true); setErr(null)
     try {
       const added = []
-      for (const f of files) added.push(await uploadEventImage(storeKey, f))
+      for (const f of files) added.push(await api.upload(storeKey, f))
       await onChange([...imgs, ...added])
     } catch (ex) { setErr(ex.message) }
     setBusy(false)
@@ -33,7 +71,7 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
     if (!canEdit || !onChange) return
     const onPaste = e => {
       const files = [...(e.clipboardData?.files || [])].filter(f => /^image\//i.test(f.type))
-      if (files.length && imgs.length < MAX_IMAGES) { e.preventDefault(); addFiles(files) }
+      if (files.length && imgs.length < MAX) { e.preventDefault(); addFiles(files) }
     }
     window.addEventListener('paste', onPaste)
     return () => window.removeEventListener('paste', onPaste)
@@ -44,7 +82,7 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
     setArmDel(null); setBusy(true); setErr(null)
     try {
       await onChange(imgs.filter(i => i.path !== img.path))
-      removeEventImage(img.path).catch(() => {})   // 메타 먼저 제거 — 실파일 삭제는 best-effort
+      api.remove(img.path).catch(() => {})   // 메타 먼저 제거 — 실파일 삭제는 best-effort
     } catch (ex) { setErr(ex.message) }
     setBusy(false)
   }
@@ -79,7 +117,7 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
         <div className="md-img-grid">
           {imgs.map((img, i) => (
             <figure key={img.path} className="md-img">
-              <img src={imageUrl(img.path)} alt={img.name} loading="lazy" onClick={() => setViewIdx(i)} />
+              <img src={srcOf(img)} alt={img.name} loading="lazy" onClick={() => setViewIdx(i)} />
               {editable && (
                 <button
                   className={'md-img-x' + (armDel === img.path ? ' arm' : '')}
@@ -91,7 +129,7 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
           ))}
         </div>
       )}
-      {editable && imgs.length < MAX_IMAGES && (
+      {editable && imgs.length < MAX && (
         <button
           className={'img-add-btn' + (dragOver ? ' drag' : '')}
           onClick={() => fileRef.current?.click()} disabled={busy}
@@ -103,7 +141,7 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
           }}
         >
           {busy ? '업로드 중' : dragOver ? '여기에 놓으면 업로드' : (
-            <>＋ 이미지 첨부{imgs.length ? ` (${imgs.length}/${MAX_IMAGES})` : ` ${hint}`}
+            <>＋ 이미지 첨부{imgs.length ? ` (${imgs.length}/${MAX})` : ` ${hint}`}
               <small>클릭하거나 드래그앤드롭, 붙여넣기(Ctrl+V)</small></>
           )}
         </button>
@@ -119,7 +157,7 @@ export default function ImageAttach({ imgs = [], canEdit = false, storeKey, onCh
             const dx = e.changedTouches[0].clientX - (touch.current ?? 0)
             if (imgs.length > 1 && Math.abs(dx) > 40) step(dx > 0 ? -1 : 1)
           }}>
-          <img src={imageUrl(view.path)} alt={view.name} onClick={e => e.stopPropagation()} />
+          <img src={srcOf(view)} alt={view.name} onClick={e => e.stopPropagation()} />
           {imgs.length > 1 && (
             <>
               <button className="lb-nav prev" aria-label="이전 이미지"
