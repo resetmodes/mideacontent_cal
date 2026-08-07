@@ -148,17 +148,21 @@ function Recorder({ onSave, onPaste }) {
   return (
     <section className={`mn-rec${live ? ' live' : ''}`}>
       <div className="mn-rec-main">
-        <button className={`mn-btn-rec ${r.state}`} onClick={r.state === 'idle' ? r.start : finish} disabled={busy}>
-          <span className="mn-dot" />
-          {r.state === 'idle' ? '녹음 시작' : busy ? '저장 중' : '녹음 종료'}
-        </button>
+        {/* 종료와 일시정지/이어서 녹음을 붙여서 — 레벨미터가 사이를 벌리면
+            일시정지 누른 뒤 시선이 오른쪽에 머물러 종료 버튼을 놓치기 쉽다 ('26.8 수정) */}
+        <div className="mn-rec-btns">
+          <button className={`mn-btn-rec ${r.state}`} onClick={r.state === 'idle' ? r.start : finish} disabled={busy}>
+            <span className="mn-dot" />
+            {r.state === 'idle' ? '녹음 시작' : busy ? '저장 중' : '녹음 종료'}
+          </button>
+          {live && (r.state === 'recording'
+            ? <button className="mn-btn-sub" onClick={r.pause}>일시정지</button>
+            : <button className="mn-btn-sub" onClick={r.resume}>이어서 녹음</button>)}
+        </div>
         {live && (
           <>
             <div className="mn-time">{fmtDur(r.sec)}</div>
             <div className="mn-level"><i style={{ width: `${Math.round(r.level * 100)}%` }} /></div>
-            {r.state === 'recording'
-              ? <button className="mn-btn-sub" onClick={r.pause}>일시정지</button>
-              : <button className="mn-btn-sub" onClick={r.resume}>이어서 녹음</button>}
           </>
         )}
         {!live && <button className="mn-paste-btn" onClick={onPaste}>전사문 붙여넣기</button>}
