@@ -738,6 +738,10 @@ for (const m of MEDIA) {
   /* 종료 시 화면 상태를 읽으면 마지막 문장이 빠진다 */
   if (!/textRef\.current/.test(rec)) bad('minutes: 종료 시 최신 전사문을 ref로 읽지 않음')
   if (!/beforeunload/.test(rec)) bad('minutes: 녹음 중 탭 닫기 경고 없음')
+  /* 일시정지 후 종료가 브라우저 stop 이벤트를 영영 못 받으면 "저장 중"에 무한정
+     멈춘다 ('26.8 사용자 리포트로 실측) — 강제 완료 타임아웃이 없으면 회귀 */
+  if (!/setTimeout\(finalize/.test(rec))
+    bad('minutes: 종료 시 stop 이벤트 안전장치(타임아웃) 없음 — 브라우저가 신호를 안 주면 무한 대기')
 
   /* 요약 함수는 전사문을 저장하지 않고 응답으로만 돌려준다 */
   const fn = readFileSync(new URL('../api/minutes-summarize.js', import.meta.url), 'utf8')

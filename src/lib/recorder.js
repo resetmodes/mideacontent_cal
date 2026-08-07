@@ -148,7 +148,9 @@ export function useRecorder() {
 
   const pause = useCallback(() => {
     if (recRef.current?.state !== 'recording') return
-    recRef.current.pause()
+    /* 일부 구현체는 pause()에서 예외를 던진다 — 실패해도 화면 상태는 넘어가야
+       뒤이은 종료가 안전장치(stop의 타임아웃)로 항상 진행될 수 있다 */
+    try { recRef.current.pause() } catch { /* 아래에서 종료 시 강제 정리됨 */ }
     clearInterval(timer.current); timer.current = null
     stopped.current = true
     try { srRef.current?.stop() } catch { /* 이미 멈춤 */ }
@@ -166,19 +168,31 @@ export function useRecorder() {
   }, [startSR])
 
   /* 종료 — 마지막 조각까지 모아 blob과 그 시점의 전사문, 길이를 함께 돌려준다.
-     화면 상태(r.text)를 읽어 저장하면 마지막 1초가 빠질 수 있어 ref 값을 쓴다 */
+     화면 상태(r.text)를 읽어 저장하면 마지막 1초가 빠질 수 있어 ref 값을 쓴다.
+
+     ★ 안전장치 — 일시정지 상태에서 곧바로 종료하면 브라우저에 따라 MediaRecorder가
+     'stop' 이벤트를 안 쏘는 경우가 드물게 있다 (일시정지 직후 종료 조합이 pause와
+     stop 두 상태 전이를 이어 붙이는 구간이라 구현체별로 갈린다). 이걸 놓치면 finish()가
+     stop()의 Promise를 영영 못 받아 "저장 중" 버튼만 멈춰 있고 화면은 진행이 안 된다.
+     그래서 4초 안에 stop 이벤트가 없으면 지금까지 모은 조각으로 강제 종료시킨다 */
   const stop = useCallback(() => new Promise(resolve => {
     stopped.current = true
     setInterim('')
-    const done = blob => resolve({ blob, text: textRef.current.trim(), sec: secRef.current })
-    const rec = recRef.current
-    if (!rec || rec.state === 'inactive') { cleanup(); setState('done'); done(blobRef.current); return }
-    rec.onstop = () => {
-      blobRef.current = new Blob(chunks.current, { type: rec.mimeType || 'audio/webm' })
+    let settled = false
+    let safety = null
+    const finalize = () => {
+      if (settled) return
+      settled = true
+      clearTimeout(safety)
+      blobRef.current = new Blob(chunks.current, { type: recRef.current?.mimeType || 'audio/webm' })
       cleanup()
       setState('done')
-      done(blobRef.current)
+      resolve({ blob: blobRef.current, text: textRef.current.trim(), sec: secRef.current })
     }
+    const rec = recRef.current
+    if (!rec || rec.state === 'inactive') { finalize(); return }
+    rec.onstop = finalize
+    safety = setTimeout(finalize, 4000)
     rec.stop()
   }), [cleanup])
 
