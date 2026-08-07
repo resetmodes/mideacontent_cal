@@ -32,6 +32,7 @@ import {
 const DOW = ['일', '월', '화', '수', '목', '금', '토']
 const H0 = 8, H1 = 20, SLOT = 46          // 주간 시간 격자 범위와 칸 높이
 const SNAP = 30                            // 길이 조절 스냅 (분)
+const SORT_KEY = 'mtTodoSort', FOLD_KEY = 'mtTodoFold'   // 정렬과 접기 상태 기억
 const PALETTE = ['#0B4336', '#CFA3BD', '#7FA795', '#D9C6A5', '#9BA8C4', '#96637F']
 const LAYERS = [
   { id: 'mine', name: '내 일정', color: '#0B4336' },
@@ -362,9 +363,54 @@ function TodoPanel({ spaces, todos, allTodos, spFilter, draft, setDraft, addSpac
   const [spArm, setSpArm] = useState(null)       // 삭제 2단계 확인 대상
   const submitSp = () => { onAddSpace(spDraft); setSpDraft(null) }
   const pick = addSpaceId !== undefined ? addSpaceId : spFilter
+
+  /* 정렬 ('26.8.7 사용자 지시) — 스페이스별 묶어 보기가 기본, 접기 상태는 브라우저에 기억 */
+  const [sortBy, setSortBy] = useState(() => localStorage.getItem(SORT_KEY) || 'space')
+  const [fold, setFold] = useState(() => new Set(JSON.parse(localStorage.getItem(FOLD_KEY) || '[]')))
+  const setSort = v => { setSortBy(v); localStorage.setItem(SORT_KEY, v) }
+  const toggleFold = key => setFold(f => {
+    const n = new Set(f)
+    n.has(key) ? n.delete(key) : n.add(key)
+    localStorage.setItem(FOLD_KEY, JSON.stringify([...n]))
+    return n
+  })
+
+  /* 미완료가 위, 완료는 아래 — 어느 정렬에서도 같다 */
+  const byDone = (a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1)
+  const groups = useMemo(() => {
+    if (sortBy !== 'space') {
+      const items = [...todos].sort((a, b) => byDone(a, b) || (b.createdAt || '').localeCompare(a.createdAt || ''))
+      return [{ key: 'all', head: false, items }]
+    }
+    const out = []
+    for (const sp of spaces) {
+      const items = todos.filter(t => t.spaceId === sp.id).sort(byDone)
+      if (items.length) out.push({
+        key: sp.id, head: true, name: sp.name, color: sp.color,
+        items, left: items.filter(t => !t.done).length,
+      })
+    }
+    const none = todos.filter(t => !t.spaceId).sort(byDone)
+    /* 분류 없음은 항상 맨 뒤 — 정리되지 않은 것이 위로 올라오면 목록이 어수선해진다 */
+    if (none.length) out.push({
+      key: 'none', head: true, name: '분류 없음', color: null,
+      items: none, left: none.filter(t => !t.done).length,
+    })
+    return out
+  }, [todos, spaces, sortBy])
+
   return (
     <aside className="mt-todos" data-unschedule="1">
-      <div className="mt-tp-head"><b>할 일</b><span>남은 {left}건</span></div>
+      <div className="mt-tp-head">
+        <b>할 일</b>
+        <div className="mt-tp-right">
+          <span>남은 {left}건</span>
+          <div className="mt-sort">
+            <button className={sortBy === 'space' ? 'on' : ''} onClick={() => setSort('space')}>스페이스별</button>
+            <button className={sortBy === 'recent' ? 'on' : ''} onClick={() => setSort('recent')}>최근순</button>
+          </div>
+        </div>
+      </div>
       <div className="mt-sp-row">
         {spaces.map(s => (
           <span key={s.id} className="mt-sp-wrap">
@@ -412,28 +458,46 @@ function TodoPanel({ spaces, todos, allTodos, spFilter, draft, setDraft, addSpac
       )}
       <div className="mt-todo-list">
         {todos.length === 0 && <div className="mt-empty sm">할 일이 없습니다</div>}
-        {todos.map(t => {
-          const s = spaces.find(x => x.id === t.spaceId)
-          return (
-            <div className={`mt-todo${t.done ? ' done' : ''}`} key={t.id} data-todo={t.id}>
-              <span className={`mt-box${t.done ? ' on' : ''}`} onClick={() => onToggle(t)} />
-              <div className="mt-t-body">
-                <div className="mt-t-txt">{t.txt}</div>
-                <div className="mt-t-meta">
-                  {s && <span className="mt-t-sp"><i style={{ background: s.color }} />{s.name}</span>}
-                  {t.memo && <span className="mt-t-mark">메모</span>}
-                  {t.images.length > 0 && <span className="mt-t-mark">이미지 {t.images.length}</span>}
-                  {t.shared.length > 0 && <span className="mt-t-share">공유 {t.shared.length}명</span>}
-                </div>
-              </div>
-              <button className="mt-t-x" onClick={() => onRemove(t.id)} title="삭제">×</button>
-            </div>
-          )
-        })}
+        {groups.map(g => (
+          <section className="mt-group" key={g.key}>
+            {g.head && (
+              <button className={`mt-g-head${fold.has(g.key) ? ' folded' : ''}`} onClick={() => toggleFold(g.key)}>
+                {g.color && <i style={{ background: g.color }} />}
+                <b>{g.name}</b>
+                <span>{g.left > 0 ? `남은 ${g.left}` : '완료'}</span>
+                <em>{fold.has(g.key) ? '＋' : '−'}</em>
+              </button>
+            )}
+            {!fold.has(g.key) && g.items.map(t => (
+              <TodoRow key={t.id} t={t} spaces={spaces} showSpace={!g.head}
+                onToggle={onToggle} onRemove={onRemove} />
+            ))}
+          </section>
+        ))}
       </div>
       <div className="mt-tp-hint">여기에 놓으면 날짜 지정이 없어집니다</div>
       <div className="mt-tp-foot">눌러서 메모와 이미지를 남기고, 캘린더로 끌어다 놓으면 개인 일정이 됩니다</div>
     </aside>
+  )
+}
+
+/* 할 일 한 줄 — 스페이스별로 묶어 보면 그룹 머리에 이미 스페이스가 있으므로 칩을 생략한다 */
+function TodoRow({ t, spaces, showSpace, onToggle, onRemove }) {
+  const s = spaces.find(x => x.id === t.spaceId)
+  return (
+    <div className={`mt-todo${t.done ? ' done' : ''}`} data-todo={t.id}>
+      <span className={`mt-box${t.done ? ' on' : ''}`} onClick={() => onToggle(t)} />
+      <div className="mt-t-body">
+        <div className="mt-t-txt">{t.txt}</div>
+        <div className="mt-t-meta">
+          {showSpace && s && <span className="mt-t-sp"><i style={{ background: s.color }} />{s.name}</span>}
+          {t.memo && <span className="mt-t-mark">메모</span>}
+          {t.images.length > 0 && <span className="mt-t-mark">이미지 {t.images.length}</span>}
+          {t.shared.length > 0 && <span className="mt-t-share">공유 {t.shared.length}명</span>}
+        </div>
+      </div>
+      <button className="mt-t-x" onClick={() => onRemove(t.id)} title="삭제">×</button>
+    </div>
   )
 }
 

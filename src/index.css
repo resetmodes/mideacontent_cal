@@ -2309,6 +2309,29 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-add-sp button.on{background:var(--green);color:#fff;font-weight:700;}
 .mt-add-sp button i{width:7px;height:7px;border-radius:50%;display:block;
   box-shadow:0 0 0 1.5px rgba(255,255,255,.55);}
+.mt-tp-right{display:flex;align-items:center;gap:10px;}
+/* 정렬 세그 — 세그 공통 언어의 축소판 (컨테이너 반투명, 선택 알약은 흰 유리) */
+.mt-sort{display:inline-flex;gap:2px;padding:3px;border-radius:14px;
+  background:rgba(19,32,25,.06);backdrop-filter:blur(10px);}
+.mt-sort button{font:inherit;font-size:11.5px;font-weight:600;border:0;background:none;
+  color:var(--g500);border-radius:11px;padding:4px 9px;cursor:pointer;}
+.mt-sort button.on{background:rgba(255,255,255,.92);color:var(--green);font-weight:700;
+  box-shadow:0 1px 3px rgba(11,67,54,.12);}
+/* 스페이스 그룹 */
+.mt-group{display:flex;flex-direction:column;}
+.mt-group + .mt-group{margin-top:6px;}
+.mt-g-head{display:flex;align-items:center;gap:7px;width:100%;font:inherit;text-align:left;
+  border:0;background:none;cursor:pointer;padding:9px 8px 7px;border-top:1px solid var(--g100);
+  color:var(--g500);}
+.mt-group:first-child .mt-g-head{border-top:0;}
+.mt-g-head i{width:8px;height:8px;border-radius:50%;flex:none;}
+.mt-g-head b{font-size:12.5px;font-weight:800;color:var(--ink);letter-spacing:-.01em;}
+.mt-g-head span{font-size:11px;font-weight:600;}
+.mt-g-head em{margin-left:auto;font-style:normal;font-size:13px;font-weight:700;color:var(--g400);}
+.mt-g-head:hover em{color:var(--green);}
+.mt-g-head.folded b{color:var(--g500);}
+/* 그룹 머리 바로 아래 행은 선을 겹치지 않게 */
+.mt-g-head + .mt-todo{border-top:0;}
 .mt-todo-list{display:flex;flex-direction:column;}
 .mt-todo{display:flex;align-items:flex-start;gap:10px;padding:11px 8px;border-top:1px solid var(--g100);
   cursor:grab;user-select:none;-webkit-user-select:none;border-radius:12px;}
