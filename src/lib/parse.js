@@ -116,7 +116,9 @@ function extractLabeledDates(text, today) {
    opts ('26.7 팀 일정): { keywords, normalize } — 팀 일정 탭은 매체 대신 유형 키워드
    (TEAM_KEYWORDS)로 인식하고, 매체 표기 통일(normalizeTitle)은 건너뜀 */
 export function parseQuick(input, today = new Date(), opts = {}) {
-  const { keywords = KEYWORDS, normalize = true } = opts
+  /* labels — 촬영·업로드 라벨 날짜 해석. 내 일정 탭처럼 촬영·업로드 구분이 없는
+     화면에서는 꺼야 한다 ("촬영 준비"의 촬영이 라벨로 소비되어 제목에서 사라진다) */
+  const { keywords = KEYWORDS, normalize = true, labels = true } = opts
   const raw = input.trim()
   if (!raw) return null
 
@@ -132,7 +134,7 @@ export function parseQuick(input, today = new Date(), opts = {}) {
   }
 
   /* 0) 촬영/업로드 라벨 날짜 — 라벨 붙은 날짜가 있으면 우선 소비 */
-  const labeled = extractLabeledDates(text, today)
+  const labeled = labels ? extractLabeledDates(text, today) : null
   if (labeled) {
     shootDate = labeled.shootDate
     if (labeled.uploadDate) date = labeled.uploadDate

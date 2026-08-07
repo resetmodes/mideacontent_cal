@@ -15,7 +15,8 @@
     "ugc:collect": "node scripts/sns/scrape-ugc.mjs && node scripts/sns/clean-ugc.mjs",
     "backup": "node scripts/backup-events.mjs",
     "audit": "node scripts/audit-ui.mjs",
-    "audit:long": "node scripts/audit-ui.mjs --long"
+    "audit:long": "node scripts/audit-ui.mjs --long",
+    "audit:mytask": "node scripts/audit-mytask.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",

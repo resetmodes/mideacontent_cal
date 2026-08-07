@@ -22,11 +22,24 @@ async function req(url, options = {}) {
       ...options.headers,
     },
   })
+  if (res.ok) return res
   if (res.status === 403) throw new Error('이 계정은 이 항목을 바꿀 권한이 없습니다')
-  if (!res.ok) throw new Error(`내 일정 ${res.status}, 테이블 설정 확인 (setup.md 15장)`)
-  return res
+  /* 409는 대개 사라진 스페이스를 참조한 것이다 — 설치 안내를 띄우면 엉뚱한 곳을 보게 된다 */
+  if (res.status === 409) throw new Error('없는 스페이스를 가리키고 있습니다, 담을 곳을 다시 고르고 저장해 주세요')
+  if (res.status === 404) throw new Error('내 일정 테이블이 없습니다, data/mytask-setup.sql 실행 필요 (setup.md 15장)')
+  throw new Error(`내 일정 ${res.status}, 잠시 후 다시 시도해 주세요`)
 }
-const one = async res => (await res.json())[0]
+/* PostgREST는 RLS using 절에 걸려 대상 행이 0개일 때 403이 아니라 200 + [] 를 준다.
+   그대로 두면 undefined가 흘러가 "Cannot read properties of undefined"라는 영문
+   TypeError가 한글 화면에 뜬다 — 무슨 상황인지 알 수 있는 문구로 바꾼다.
+   실제 발생 경로: 공유받았지만 수정 권한이 없는 항목을 고칠 때,
+   다른 기기에서 이미 지운 항목을 고칠 때 */
+const one = async res => {
+  const rows = await res.json()
+  const r = Array.isArray(rows) ? rows[0] : rows
+  if (!r) throw new Error('이 항목을 바꾸지 못했습니다, 이미 지워졌거나 수정 권한이 없습니다')
+  return r
+}
 const REP = { Prefer: 'return=representation' }
 
 /* ── 스페이스 ── */

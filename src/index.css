@@ -2389,38 +2389,83 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-cell.hol{background:rgba(19,32,25,.05);}
 .mt-cell.closed{background:rgba(196,55,44,.07);}
 .mt-dnum{font-size:12.5px;font-weight:700;color:var(--g600);font-variant-numeric:tabular-nums;
-  display:inline-block;padding:2px 6px;border-radius:10px;}
+  display:inline-block;padding:2px 6px;border-radius:10px;font-family:inherit;
+  border:0;background:none;cursor:pointer;}
+.mt-dnum:hover{background:rgba(19,32,25,.07);color:var(--ink);}
 .mt-dnum.today{background:var(--hl);color:var(--ink);font-weight:800;}
+/* 셀이 넘칠 때 — 그 주를 시간별로 펼쳐 보게 안내 */
+.mt-more{font:inherit;font-size:10.5px;font-weight:700;color:var(--g500);border:0;background:none;
+  cursor:pointer;text-align:left;padding:2px 4px;border-radius:8px;}
+.mt-more:hover{color:var(--green);background:rgba(11,67,54,.06);}
 .mt-tag{font-size:10px;color:var(--g400);margin-left:4px;font-weight:600;}
 .mt-tag.closed{color:var(--red);}
 .mt-evs{margin-top:4px;display:flex;flex-direction:column;gap:3px;}
 
-/* 주간 시간 격자 */
+/* 주간 시간 격자 ('26.8.8 재작업)
+   ★ 칩은 "시각 칸"이 아니라 요일 열(.mt-wg-col) 위에 절대 배치한다. 예전처럼 시각 칸
+   안에 두면 1시간을 넘는 칩이 아래 칸을 침범하는데, 아래 칸이 DOM 순서상 뒤라 위에
+   덮여 길이 조절 그립을 잡을 수 없었다. 시각 칸(.mt-wg-slot)은 칩 뒤에 깔린
+   드롭 타깃 겸 빈 칸 등록 버튼 전용이다.
+   덤으로 한 줄이 정확히 8칸이 되어, 세로선을 nth-child로 세던 계산 오류도 사라진다
+   (구 .mt-wg-cell:nth-child(9n)은 한 줄을 9칸으로 세어 격자 한가운데에 대각선으로
+   세로선이 빠진 칸을 만들었다) */
 .mt-wgrid{display:grid;grid-template-columns:56px repeat(7,1fr);border:1px solid var(--glass-border);
   border-radius:22px;overflow:hidden;background:var(--glass);}
 .mt-wg-corner{border-bottom:1px solid var(--g100);border-right:1px solid var(--g100);
   background:rgba(255,255,255,.4);}
 .mt-wg-head{text-align:center;padding:8px 0 7px;border-bottom:1px solid var(--g100);
   border-right:1px solid var(--g100);background:rgba(255,255,255,.4);}
-.mt-wg-head:nth-child(8){border-right:0;}
+.mt-wg-head:last-of-type{border-right:0;}
 .mt-wg-head span{font-size:11px;font-weight:700;color:var(--g400);display:block;}
 .mt-wg-head b{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;
   display:inline-block;padding:1px 8px;border-radius:10px;margin-top:2px;}
 .mt-wg-head b.today{background:var(--hl);color:var(--ink);}
+.mt-wg-head em{display:block;font-style:normal;font-size:9.5px;font-weight:700;color:var(--g400);}
+.mt-wg-head.hol{background:rgba(19,32,25,.06);}
+.mt-wg-head.closed{background:rgba(196,55,44,.08);}
+.mt-wg-head.closed em{color:var(--red);}
 .mt-wg-lab{font-size:10.5px;font-weight:600;color:var(--g400);text-align:right;padding:4px 8px 0 0;
   border-right:1px solid var(--g100);border-bottom:1px solid var(--g100);
   font-variant-numeric:tabular-nums;background:rgba(255,255,255,.32);}
 .mt-wg-lab.allday{padding-top:10px;}
-.mt-wg-cell{border-right:1px solid var(--g100);border-bottom:1px solid var(--g100);
-  position:relative;height:46px;}
-.mt-wg-cell:nth-child(9n){border-right:0;}
-.mt-wg-cell.allday{height:auto;min-height:38px;padding:4px;display:flex;flex-direction:column;gap:3px;}
-.mt-wg-cell.hol{background:rgba(19,32,25,.05);}
-.mt-wg-cell.closed{background:rgba(196,55,44,.06);}
+.mt-wg-cell.allday{border-right:1px solid var(--g100);border-bottom:1px solid var(--g100);
+  min-height:38px;padding:4px;display:flex;flex-direction:column;gap:3px;position:relative;}
+.mt-wg-cell.allday:last-of-type{border-right:0;}
+
+/* 시각 라벨 열과 요일 열 */
+.mt-wg-hcol{border-right:1px solid var(--g100);background:rgba(255,255,255,.32);}
+.mt-wg-hr{font-size:10.5px;font-weight:600;color:var(--g400);text-align:right;
+  padding:2px 8px 0 0;font-variant-numeric:tabular-nums;box-sizing:border-box;
+  border-top:1px solid var(--g100);}
+.mt-wg-hr:first-child{border-top:0;}
+.mt-wg-col{position:relative;border-right:1px solid var(--g100);}
+.mt-wg-col:last-child{border-right:0;}
+.mt-wg-col.today{background:rgba(143,239,174,.08);}
+/* 드롭 타깃 겸 빈 칸 등록 — 정시는 실선, 30분은 옅은 선 */
+.mt-wg-slot{position:absolute;left:0;right:0;border:0;padding:0;background:none;cursor:pointer;
+  border-top:1px solid var(--g100);box-sizing:border-box;}
+.mt-wg-slot.half{border-top:1px dotted rgba(19,32,25,.09);}
+.mt-wg-slot:hover{background:rgba(11,67,54,.05);}
+.mt-wg-slot:focus-visible{outline:2px solid var(--green);outline-offset:-2px;}
+
+/* 지금 시각 선 */
+.mt-now{position:absolute;left:0;right:0;height:0;border-top:1.5px solid var(--red);
+  z-index:3;pointer-events:none;font-size:9px;font-weight:800;color:var(--red);
+  font-variant-numeric:tabular-nums;padding-left:3px;}
+.mt-now i{position:absolute;left:-3px;top:-3.5px;width:7px;height:7px;border-radius:50%;
+  background:var(--red);}
 
 /* 드롭 하이라이트 */
-.mt-cell.drop,.mt-wg-cell.drop{background:rgba(143,239,174,.45);
+.mt-cell.drop,.mt-wg-cell.drop,.mt-wg-slot.drop{background:rgba(143,239,174,.45);
   box-shadow:inset 0 0 0 2px var(--green);}
+/* 커서를 따라오는 칩 — 시간 격자에서는 몇 시에 놓이는지가 보여야 한다 */
+.mt-ghost{position:fixed;left:0;top:0;z-index:120;pointer-events:none;
+  font-size:11.5px;font-weight:700;color:#fff;background:var(--green);
+  border-radius:10px;padding:5px 10px;max-width:220px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;box-shadow:0 6px 18px rgba(19,32,25,.22);}
+.mt-ghost::after{content:attr(data-at);display:block;font-size:10px;font-weight:800;
+  opacity:.85;font-variant-numeric:tabular-nums;}
+.mt-ghost:not([data-at])::after,.mt-ghost[data-at=""]::after{display:none;}
 
 /* 일정 칩 — user-select 해제 필수: 드래그가 텍스트 선택을 남기면 다음 드래그를
    브라우저가 네이티브 드래그로 오인해 pointercancel로 끊는다 ('26.8.7 실측) */
@@ -2440,12 +2485,99 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-ev.bg.매체{border:1px dashed var(--lilac-bar);}
 .mt-ev.bg.촬영{border:1px dashed #E8730C;}
 .mt-ev.clash{box-shadow:0 0 0 2px var(--red);}
-.mt-wg-cell .mt-ev{position:absolute;top:2px;overflow:hidden;flex-direction:column;gap:1px;}
+/* 공유받은 남의 일정 — 내 것과 같은 그린이면 구분이 안 되고, 끌면 권한 오류로 끝난다 */
+.mt-ev.mine.got{background:rgba(255,255,255,.8);color:var(--lilac-ink);
+  border:1px solid var(--lilac-bar);cursor:pointer;}
+.mt-ev.bg.cont{opacity:.55;}
+.mt-wg-col .mt-ev{position:absolute;overflow:hidden;flex-direction:column;gap:1px;z-index:2;}
+.mt-wg-col .mt-ev:hover{z-index:4;}
 .mt-wg-cell.allday .mt-ev{position:static;flex-direction:row;}
-.mt-ev-grip{position:absolute;left:0;right:0;bottom:0;height:7px;cursor:ns-resize;
+.mt-ev-grip{position:absolute;left:0;right:0;bottom:0;height:8px;cursor:ns-resize;
   border-radius:0 0 8px 8px;}
 .mt-ev-grip:hover{background:rgba(255,255,255,.35);}
-.mt-clash{margin-top:9px;font-size:12.5px;color:var(--red);font-weight:600;line-height:1.6;}
+.mt-clash{margin-top:9px;font-size:12.5px;color:var(--red);font-weight:600;line-height:1.6;
+  display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;}
+.mt-clash b{font-weight:800;}
+.mt-clash span{font-weight:500;color:var(--g500);}
+
+/* 실행 취소 바 — 이동, 날짜 해제, 삭제 직후 8초 (매체 캘린더와 같은 결) */
+.mt-undo{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:110;
+  display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;
+  border-radius:18px;padding:10px 12px 10px 18px;font-size:13px;font-weight:600;
+  box-shadow:0 10px 30px rgba(19,32,25,.28);}
+.mt-undo button{font:inherit;font-size:12.5px;font-weight:800;border:0;cursor:pointer;
+  background:var(--hl);color:var(--ink);border-radius:14px;padding:6px 13px;}
+.mt-undo button.x{background:none;color:rgba(255,255,255,.6);font-size:15px;padding:2px 6px;}
+
+/* 오늘 요약 — 계획의 상한이 눈에 보이게 */
+.mt-todaybox{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:12px;
+  background:rgba(11,67,54,.05);border-radius:16px;padding:11px 6px;}
+.mt-tb-i{text-align:center;min-width:0;}
+.mt-tb-i b{display:block;font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--green);
+  font-variant-numeric:tabular-nums;}
+.mt-tb-i span{display:block;font-size:10.5px;font-weight:600;color:var(--g500);margin-top:2px;}
+
+/* 검색과 완료 숨기기 */
+.mt-search{display:flex;gap:6px;margin-bottom:9px;}
+.mt-search input{flex:1;min-width:0;font:inherit;font-size:13px;padding:8px 13px;
+  border:1px solid var(--g200);border-radius:18px;background:rgba(255,255,255,.8);color:var(--ink);}
+.mt-search input:focus{outline:none;border-color:var(--green);}
+.mt-search button{flex:none;font:inherit;font-size:11.5px;font-weight:700;padding:8px 11px;
+  border:1px solid var(--g200);border-radius:18px;background:rgba(255,255,255,.7);
+  color:var(--g500);cursor:pointer;}
+.mt-search button.on{background:var(--green);border-color:var(--green);color:#fff;}
+.mt-hits{margin-bottom:10px;display:flex;flex-direction:column;gap:3px;}
+.mt-hits>span{font-size:10.5px;font-weight:700;color:var(--g400);}
+.mt-hits button{text-align:left;font:inherit;font-size:12.5px;font-weight:600;border:0;
+  background:rgba(255,255,255,.6);border-radius:10px;padding:6px 10px;cursor:pointer;color:var(--ink);}
+.mt-hits button:hover{background:var(--hl);}
+.mt-hits em{font-style:normal;font-weight:800;color:var(--g500);margin-right:7px;
+  font-variant-numeric:tabular-nums;}
+
+/* 한 줄 입력이 무엇으로 해석되는지 미리 보여준다 */
+.mt-add-hint{margin:-4px 0 8px;font-size:11.5px;font-weight:600;color:var(--g400);
+  display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;}
+.mt-add-hint.on{color:var(--green);}
+.mt-add-hint b{font-weight:800;font-variant-numeric:tabular-nums;}
+.mt-add-hint span{color:var(--g500);font-weight:600;}
+
+/* 월간 셀 빈 자리 등록 */
+.mt-cell{position:relative;}
+.mt-cell-add{position:absolute;right:4px;bottom:4px;width:20px;height:20px;line-height:1;
+  font:inherit;font-size:13px;font-weight:700;border:0;border-radius:8px;cursor:pointer;
+  background:rgba(11,67,54,.08);color:var(--green);opacity:0;transition:opacity .12s ease;}
+.mt-cell:hover .mt-cell-add,.mt-cell-add:focus-visible{opacity:1;}
+
+/* 공유받은 항목 표기 */
+.mt-t-got{font-size:10px;font-weight:700;color:var(--lilac-ink);background:var(--lilac);
+  border-radius:6px;padding:1px 5px;}
+.mt-todo.got{opacity:.92;}
+.mt-sh-got{margin-left:8px;font-weight:700;color:var(--lilac-ink);}
+.mt-sh-ro{font-size:13.5px;line-height:1.65;color:var(--g600);white-space:pre-wrap;}
+.mt-sh-warn{margin-top:9px;font-size:12px;color:var(--g500);line-height:1.55;}
+
+/* 상단 우측 도구 */
+.mt-caltop-r{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.mt-wide,.mt-help{font:inherit;font-size:12px;font-weight:700;padding:7px 12px;
+  border:1px solid var(--g200);border-radius:18px;background:rgba(255,255,255,.7);
+  color:var(--g500);cursor:pointer;}
+.mt-wide.on{background:var(--green);border-color:var(--green);color:#fff;}
+.mt-help{width:32px;padding:7px 0;text-align:center;}
+
+/* 단축키 도움말 */
+.mt-keys{display:grid;grid-template-columns:repeat(2,1fr);gap:7px 14px;margin-top:14px;}
+.mt-keys>div{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--g600);}
+.mt-keys kbd{font:inherit;font-size:11.5px;font-weight:800;min-width:34px;text-align:center;
+  border:1px solid var(--g200);border-radius:8px;padding:3px 6px;background:rgba(255,255,255,.9);
+  color:var(--ink);}
+
+.mt-empty-act{margin-top:12px;}
+.mt-empty-act button{font:inherit;font-size:13px;font-weight:700;padding:9px 18px;
+  border-radius:18px;border:1px solid var(--green);background:var(--green);color:#fff;cursor:pointer;}
+
+/* 키보드로 왔을 때 보이지 않던 버튼들 — 투명한 채로 Enter를 누르면 지워진다 */
+.mt-t-x:focus-visible,.mt-sp-del:focus-visible{opacity:1;outline:2px solid var(--green);
+  outline-offset:2px;}
 
 /* 상세 시트 */
 .mt-sheet{max-width:430px;}
@@ -2464,6 +2596,11 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-person{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--g200);
   background:rgba(255,255,255,.65);border-radius:12px;padding:5px 11px;cursor:pointer;color:var(--g600);}
 .mt-person.on{background:var(--lilac);border-color:var(--lilac-bar);color:var(--lilac-ink);font-weight:700;}
+/* 할 일에 날짜를 붙여 일정으로 — 폰에서 드래그를 대신하는 길 */
+.mt-sched{font:inherit;font-size:13px;font-weight:700;padding:9px 16px;border-radius:18px;
+  border:1px solid var(--green);background:var(--green);color:#fff;cursor:pointer;}
+.mt-sched:disabled{opacity:.4;cursor:default;}
+.mt-sh-hint{margin-top:9px;font-size:12px;color:var(--g500);line-height:1.6;}
 .mt-unset{width:100%;margin-top:11px;font:inherit;font-size:13px;font-weight:700;padding:10px;
   border-radius:18px;border:1px solid var(--g300);background:rgba(255,255,255,.7);
   color:var(--g600);cursor:pointer;}
@@ -2490,9 +2627,20 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-sh-acts button.primary{background:var(--green);border-color:var(--green);color:#fff;}
 .mt-sh-acts button.danger{color:var(--red);border-color:rgba(196,55,44,.4);}
 
+/* 크게 보기 — 좌측 패널을 접고 캘린더가 폭을 다 쓴다 (캘린더 "크게 보기"와 같은 결) */
+.mt-cols.wide{grid-template-columns:1fr;}
+.mt-cols.wide .mt-todos{display:none;}
+
+/* 완료 항목이 쌓이면 패널이 수천 px로 늘어나 sticky가 무의미해지고,
+   아래의 드롭 안내와 도움말이 화면 밖으로 밀려난다 — 목록만 스크롤시킨다 */
+.mt-todo-list{max-height:min(52vh,560px);overflow-y:auto;overscroll-behavior:contain;
+  margin-right:-6px;padding-right:6px;}
+
 @media (max-width:1000px){
-  .mt-cols{grid-template-columns:1fr;}
+  .mt-cols,.mt-cols.wide{grid-template-columns:1fr;}
+  .mt-cols.wide .mt-todos{display:block;}
   .mt-todos{position:static;}
+  .mt-todo-list{max-height:none;}
 }
 /* 그리드 열의 min-content가 트랙을 넓혀 패널까지 같이 밀려나던 것 ('26.8.7 audit)
    — 열에 min-width:0을 주고, 좁은 화면에서는 격자만 가로로 스크롤시킨다 */
@@ -2501,6 +2649,11 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   .mt-grid,.mt-wgrid{min-width:520px;}
   .mt-gwrap{overflow-x:auto;}
   .mt-cell{min-height:84px;}
+  .mt-todaybox{grid-template-columns:repeat(3,1fr);}
+  .mt-keys{grid-template-columns:1fr;}
+  /* 롱프레스 드래그가 시작될 때까지는 스크롤을 살려 둔다 (touch-action을 끄면
+     목록 자체가 안 굴러간다) — 실제 스크롤 차단은 드래그 중 touchmove에서 한다 */
+  .mt-todo,.mt-ev.mine{touch-action:manipulation;}
 }
 
 /* ═══════════ 회의록 ('26.8) ═══════════
@@ -2552,19 +2705,21 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mn-note{font-size:13.5px;color:var(--g500);line-height:1.7;margin-bottom:14px;}
 
 /* 목록 */
-.mn-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
-.mn-card{display:flex;flex-direction:column;gap:8px;text-align:left;font:inherit;cursor:pointer;
+.mn-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:14px;}
+/* 그리드 항목은 min-width가 auto라 안쪽 nowrap 제목의 min-content만큼 트랙을 밀어낸다
+   — 카드와 안쪽 줄에 min-width:0을 줘야 긴 제목이 말줄임으로 접힌다 ('26.8.8 audit:long) */
+.mn-card{min-width:0;display:flex;flex-direction:column;gap:8px;text-align:left;font:inherit;cursor:pointer;
   background:var(--glass);border:1px solid var(--glass-border);border-radius:22px;
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:18px;
   transition:transform .12s ease,box-shadow .12s ease;}
 .mn-card:hover{transform:translateY(-2px);box-shadow:var(--glass-shadow);}
-.mn-c-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.mn-c-top{min-width:0;display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
 .mn-c-top b{font-size:15.5px;font-weight:800;letter-spacing:-.015em;min-width:0;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;}
 .mn-c-top span{font-size:11.5px;color:var(--g400);flex:none;font-variant-numeric:tabular-nums;}
-.mn-c-body{font-size:13px;color:var(--g500);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;
+.mn-c-body{min-width:0;font-size:13px;color:var(--g500);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;
   -webkit-box-orient:vertical;overflow:hidden;word-break:keep-all;}
-.mn-c-meta{display:flex;flex-wrap:wrap;gap:5px;}
+.mn-c-meta{min-width:0;display:flex;flex-wrap:wrap;gap:5px;}
 .mn-tag{font-size:10.5px;font-weight:700;color:var(--g500);background:rgba(19,32,25,.06);
   border-radius:12px;padding:3px 8px;}
 .mn-tag.hl{background:var(--hl);color:var(--ink);}

@@ -10,6 +10,9 @@ import { YT_KEY, IG_HANDLE } from '../src/lib/perf.js'
 import { HOLIDAYS, CLOSED_DAYS } from '../src/data/holidays.js'
 import { TEAM, withAuthorName } from '../src/data/team.js'
 import { IG_ACCOUNTS, YT_CHANNELS } from './sns/accounts.mjs'
+import {
+  overlaps, findClashes, layoutDay, expandBg, hoursFor, parseLine,
+} from '../src/lib/myTask.js'
 
 let fail = 0
 const bad = msg => { fail++; console.error('✗ ' + msg) }
@@ -769,6 +772,118 @@ for (const m of MEDIA) {
   const missing = [...new Set(used)].filter(v => !declared.has(v))
   if (missing.length)
     bad(`index.css: 정의되지 않은 CSS 변수 ${missing.join(', ')} — 그 속성이 통째로 무효가 되어 배경이나 색이 사라진다`)
+}
+
+
+/* 20. 내 일정 판정 로직 ('26.8.8 전면 개선) — 화면에서 눈으로 못 잡는 것들.
+   전부 실제로 사용자가 겪던 증상이라 회귀하면 바로 티가 난다 */
+{
+  const D = '2026-08-10'
+
+  /* 20-a. 겹침 — 배경 일정(팀·매체·촬영)은 구조상 시각이 없다.
+     예전 판정은 "한쪽이라도 시각이 없으면 겹침"이라, 매체 일정이 있는 날이면
+     내 일정 전부에 빨간 경고가 붙었다 (매체 캘린더는 거의 매일 일정이 있다) */
+  if (overlaps({ time: '14:00', dur: 60 }, { time: null, dur: 0 }))
+    bad('myTask overlaps: 시각 없는 배경 일정을 겹침으로 판정 — 모든 개인 일정에 경고가 붙는다')
+  if (!overlaps({ time: '14:00', dur: 60 }, { time: '14:30', dur: 60 }))
+    bad('myTask overlaps: 실제로 겹치는 두 시각을 못 잡음')
+  if (overlaps({ time: '14:00', dur: 60 }, { time: '15:00', dur: 60 }))
+    bad('myTask overlaps: 맞닿기만 한 두 일정을 겹침으로 판정')
+
+  /* 20-b. 내 일정끼리의 이중 예약 — 개인 캘린더에서 가장 필요한 검사인데
+     예전에는 "상대가 내 일정이 아닐 것" 조건이 있어 조용히 지나갔다 */
+  const dbl = findClashes({
+    [D]: [
+      { id: 'a', kind: 'mine', time: '14:00', dur: 60 },
+      { id: 'b', kind: 'mine', time: '14:30', dur: 60 },
+    ],
+  })
+  if (dbl.length !== 1) bad('myTask findClashes: 내 일정끼리의 이중 예약을 못 잡음')
+
+  /* 배경끼리는 서로 겹쳐도 내 일정과 무관하므로 보고하지 않는다 */
+  if (findClashes({ [D]: [
+    { id: 'x', kind: '매체', time: '14:00', dur: 60 },
+    { id: 'y', kind: '팀', time: '14:30', dur: 60 },
+  ] }).length)
+    bad('myTask findClashes: 내 일정과 무관한 배경끼리의 겹침을 보고함')
+
+  /* 20-c. 주간 자리 계산 — 09:00~11:00과 10:00은 시(hour) 칸이 달라 예전에는
+     둘 다 전체 폭이었고, 나중에 그려지는 10시 것이 09시 것의 아래 절반을 덮어
+     클릭조차 안 됐다. 실제 시간 겹침 기준으로 열을 나눠야 한다 */
+  const laid = layoutDay([
+    { id: 'long', time: '09:00', dur: 120 },
+    { id: 'mid', time: '10:00', dur: 60 },
+  ])
+  if (laid.length !== 2 || laid.some(it => it.n !== 2))
+    bad('myTask layoutDay: 시(hour)가 다른 겹침에서 폭을 안 나눔 — 아래 칩이 덮여 클릭 불가')
+  if (new Set(laid.map(it => it.col)).size !== 2)
+    bad('myTask layoutDay: 겹치는 두 일정에 같은 열을 배정')
+
+  /* 겹치지 않는 두 건은 각자 전체 폭을 써야 한다 */
+  const apart = layoutDay([
+    { id: 'a', time: '09:00', dur: 60 },
+    { id: 'b', time: '13:00', dur: 60 },
+  ])
+  if (apart.some(it => it.n !== 1))
+    bad('myTask layoutDay: 겹치지 않는 일정끼리 폭을 나눔')
+
+  /* 20-d. 기간 배경 — 예전엔 시작일 하루만 떠서, 8/1~8/20 매체 집행이 8/2에는
+     안 보였다. "겹치는지 확인"이라는 이 탭의 목적 자체가 성립하지 않았다 */
+  const span = expandBg(
+    [{ id: 'm', title: '여름 행사', date: '2026-08-01', endDate: '2026-08-05', kind: '매체' }],
+    '2026-08-01', '2026-08-31')
+  if (span.length !== 5) bad(`myTask expandBg: 기간 일정이 ${span.length}일로 펼쳐짐 (5일이어야 함)`)
+  if (span[0].span !== 'start' || span[4].span !== 'end')
+    bad('myTask expandBg: 기간 일정의 시작과 끝 표시가 없음')
+
+  /* 보고 있는 기간 밖은 잘라낸다 — 전 기간을 펼치면 칩이 수천 개가 된다 */
+  const clipped = expandBg(
+    [{ id: 'm', title: '연간', date: '2026-01-01', endDate: '2026-12-31', kind: '매체' }],
+    '2026-08-01', '2026-08-07')
+  if (clipped.length !== 7) bad(`myTask expandBg: 보이는 기간 밖을 안 잘라냄 (${clipped.length}건)`)
+
+  /* 휴점은 배경 칩이 아니라 셀 틴트로 쓴다 */
+  if (expandBg([{ id: 'c', date: D, kind: '휴점' }], D, D).length)
+    bad('myTask expandBg: 휴점을 일정 칩으로 만듦')
+
+  /* 20-e. 주간 시간 범위 — 8~20시 고정이던 시절 07시와 21시 일정은 종일 줄에도
+     시각 줄에도 안 걸려 화면에서 통째로 사라졌다 */
+  const hs = hoursFor([{ time: '07:30', dur: 60 }, { time: '21:00', dur: 60 }])
+  if (hs[0] !== 7) bad('myTask hoursFor: 업무 시간 이전 일정이 표시 범위 밖')
+  if (hs[hs.length - 1] < 21) bad('myTask hoursFor: 업무 시간 이후 일정이 표시 범위 밖')
+  const base = hoursFor([{ time: '10:00', dur: 60 }])
+  if (base[0] !== 8 || base[base.length - 1] !== 20)
+    bad('myTask hoursFor: 업무 시간 안에서만 쓸 때 기본 범위가 8~20시가 아님')
+
+  /* 20-f. 한 줄 입력 — 날짜가 잡히면 일정, 아니면 할 일.
+     이게 폰에서 일정을 만드는 주 경로다 (드래그 없이) */
+  const T = new Date(2026, 7, 10)          // 2026-08-10 월요일
+  const cases = [
+    ['내일 15시 임원 보고 1시간', { date: '2026-08-11', time: '15:00', dur: 60, title: '임원 보고' }],
+    ['8/20 오후 3시 정기 회의 90분', { date: '2026-08-20', time: '15:00', dur: 90, title: '정기 회의' }],
+    ['9월 1일 촬영 준비', { date: '2026-09-01', time: null, dur: null, title: '촬영 준비' }],
+    ['보도자료 초안 검토', { date: null, time: null, dur: null, title: '보도자료 초안 검토' }],
+    ['오늘 9시반 스탠드업', { date: '2026-08-10', time: '09:30', title: '스탠드업' }],
+  ]
+  for (const [input, want] of cases) {
+    const got = parseLine(input, T)
+    for (const [k, v] of Object.entries(want)) {
+      if (got[k] !== v)
+        bad(`myTask parseLine("${input}") ${k}가 ${JSON.stringify(got[k])} (${JSON.stringify(v)}여야 함)`)
+    }
+  }
+
+  /* 스페이스 태그는 캠페인 #문법과 같은 결 — 제목에서 빠져야 한다 */
+  const tagged = parseLine('기획안 정리 #기획', T)
+  if (tagged.tag !== '기획') bad('myTask parseLine: #스페이스 태그를 못 읽음')
+  if (/#/.test(tagged.title)) bad('myTask parseLine: 제목에 #태그가 남음')
+
+  /* 맨숫자를 시각으로 보면 안 된다 — "2안 검토"의 2가 걸리면 엉뚱한 시각이 붙는다 */
+  if (parseLine('2안 검토', T).time) bad('myTask parseLine: 맨숫자를 시각으로 오인')
+  /* "1시간"의 1을 시각으로 오인하지 않아야 한다 */
+  const durOnly = parseLine('내일 회의 2시간', T)
+  if (durOnly.time) bad('myTask parseLine: 소요 시간의 숫자를 시각으로 오인')
+  if (durOnly.dur !== 120) bad('myTask parseLine: 소요 시간을 못 읽음')
 }
 
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
