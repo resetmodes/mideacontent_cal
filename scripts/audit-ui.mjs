@@ -111,8 +111,28 @@ const MY_EVENTS = [
     memo: null, created_at: '2026-08-01T00:00:00Z' },
 ]
 
+/* 회의록 ('26.8) — 요약 전 한 건, 요약 후 한 건 */
+const MINUTES = [
+  { id: 'mn1', owner_email: ME, title: LONG_MODE ? LONG : '9월 캠페인 킥오프',
+    met_on: '2026-08-05', dur_sec: 2730, audio_path: null, source: 'browser',
+    transcript: '매체 구성을 정하는 회의였습니다. '.repeat(20),
+    summary: {
+      overview: '9월 캠페인의 매체 구성과 촬영 일정을 정했습니다. 인스타 릴스 2편과 유튜브 1편으로 갑니다.',
+      decisions: ['릴스 2편, 유튜브 1편으로 구성합니다'],
+      actions: [{ what: '촬영 콘티 초안 작성', who: '노규빈', due: '2026-08-14' }],
+      topics: [{ title: '매체 구성', body: '릴스 비중을 늘리자는 의견이 있었습니다.' }],
+      followups: [],
+    },
+    todo_ids: {}, shared_with: [], shared_edit: false, created_at: '2026-08-05T00:00:00Z' },
+  { id: 'mn2', owner_email: ME, title: '대행사 정기 미팅', met_on: '2026-08-03',
+    dur_sec: 0, audio_path: null, source: 'paste',
+    transcript: '붙여넣은 전사문입니다. '.repeat(10), summary: null,
+    todo_ids: {}, shared_with: [], shared_edit: false, created_at: '2026-08-03T00:00:00Z' },
+]
+
 const respond = url => {
   const t = s => new RegExp(`/rest/v1/${s}`).test(url)
+  if (t('meeting_minutes')) return MINUTES
   if (t('media_events_history')) return []
   if (t('media_events')) return EVENTS
   if (t('targetapp_stats')) return TA
@@ -157,7 +177,7 @@ const PROBE = `(() => {
 /* 문자열 규칙은 수집 데이터(캡션·영상 제목)에도 걸리므로 자사 UI 클래스만 본다 */
 const DATA_CLASS = /^(A|B|SPAN|DIV|P|dk-top-t|ugc-|mon-acc|home-vid|cp-t|pf-title|md-memo)/
 
-const TABS = ['', '#mytask', '#team', '#calendar', '#shoot', '#spec', '#monitor', '#rmn', '#settle', '#admin']
+const TABS = ['', '#mytask', '#minutes', '#team', '#calendar', '#shoot', '#spec', '#monitor', '#rmn', '#settle', '#admin']
 const findings = []
 const add = (where, kind, msg) => findings.push(`[${kind}] ${where} :: ${msg}`)
 

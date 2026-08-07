@@ -2503,6 +2503,136 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   .mt-cell{min-height:84px;}
 }
 
+/* ═══════════ 회의록 ('26.8) ═══════════
+   사이트 안에서 바로 녹음하고, 끝나면 요약한다.
+   녹음 패널이 주인공이라 크게 두고, 진행 중에는 그린 링으로 상태를 알린다 */
+.minutes .cal-desc{margin-top:6px;font-size:14px;color:var(--g500);line-height:1.6;}
+.mn-empty{padding:40px 0;text-align:center;color:var(--g500);font-size:13.5px;line-height:1.7;}
+.mn-empty.sm{padding:26px 0;font-size:13px;}
+
+/* 녹음 패널 */
+.mn-rec{background:var(--glass-strong);border:1px solid var(--glass-border);border-radius:22px;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:var(--glass-shadow);
+  padding:22px;margin-bottom:20px;transition:box-shadow .2s ease;}
+.mn-rec.live{box-shadow:0 0 0 2px var(--green), var(--glass-shadow);}
+.mn-rec-main{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.mn-btn-rec{display:inline-flex;align-items:center;gap:9px;font:inherit;font-size:14.5px;
+  font-weight:700;border:0;background:var(--green);color:#fff;border-radius:18px;
+  padding:13px 22px;cursor:pointer;}
+.mn-btn-rec:disabled{opacity:.5;cursor:default;}
+.mn-btn-rec.recording,.mn-btn-rec.paused{background:var(--clay);}
+.mn-dot{width:10px;height:10px;border-radius:50%;background:#fff;flex:none;}
+.mn-btn-rec.recording .mn-dot{animation:mn-pulse 1.4s ease-in-out infinite;}
+@keyframes mn-pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+@media (prefers-reduced-motion:reduce){.mn-btn-rec.recording .mn-dot{animation:none;}}
+.mn-time{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+.mn-level{flex:1;min-width:80px;height:6px;border-radius:6px;background:rgba(19,32,25,.08);overflow:hidden;}
+.mn-level i{display:block;height:100%;background:var(--green);border-radius:6px;transition:width .1s linear;}
+.mn-btn-sub,.mn-paste-btn{font:inherit;font-size:13px;font-weight:700;border:1px solid var(--g300);
+  background:rgba(255,255,255,.7);color:var(--g600);border-radius:18px;padding:11px 16px;cursor:pointer;}
+.mn-btn-sub:hover,.mn-paste-btn:hover{border-color:var(--green);color:var(--green);}
+.mn-paste-btn{margin-left:auto;}
+.mn-title{width:100%;margin-top:14px;font:inherit;font-size:14px;padding:11px 14px;
+  border:1px solid var(--g300);border-radius:18px;background:rgba(255,255,255,.85);color:var(--ink);}
+.mn-title:focus{outline:none;border-color:var(--green);}
+/* 실시간 받아쓰기 — 아래로 자라며 따라간다 */
+.mn-live{margin-top:14px;max-height:220px;overflow-y:auto;padding:14px 16px;border-radius:14px;
+  background:rgba(255,255,255,.6);border:1px solid var(--g100);}
+.mn-live p{font-size:14.5px;line-height:1.75;word-break:keep-all;}
+.mn-interim{color:var(--g400);}
+.mn-live-wait{color:var(--g400);font-size:13.5px;}
+.mn-err{margin-top:12px;font-size:13px;font-weight:600;color:var(--clay);}
+/* 녹음 전 안내 — 제약을 숨기면 사고가 된다 */
+.mn-guide{margin-top:18px;padding-top:16px;border-top:1px solid var(--g100);}
+.mn-guide b{font-size:12.5px;font-weight:700;display:block;margin-bottom:8px;}
+.mn-guide ul{display:flex;flex-direction:column;gap:6px;padding-left:16px;}
+.mn-guide li{font-size:12.5px;color:var(--g500);line-height:1.6;word-break:keep-all;}
+.mn-guide li b{display:inline;font-size:inherit;color:var(--ink);margin:0;}
+.mn-note{font-size:13.5px;color:var(--g500);line-height:1.7;margin-bottom:14px;}
+
+/* 목록 */
+.mn-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.mn-card{display:flex;flex-direction:column;gap:8px;text-align:left;font:inherit;cursor:pointer;
+  background:var(--glass);border:1px solid var(--glass-border);border-radius:22px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:18px;
+  transition:transform .12s ease,box-shadow .12s ease;}
+.mn-card:hover{transform:translateY(-2px);box-shadow:var(--glass-shadow);}
+.mn-c-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.mn-c-top b{font-size:15.5px;font-weight:800;letter-spacing:-.015em;min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+.mn-c-top span{font-size:11.5px;color:var(--g400);flex:none;font-variant-numeric:tabular-nums;}
+.mn-c-body{font-size:13px;color:var(--g500);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;
+  -webkit-box-orient:vertical;overflow:hidden;word-break:keep-all;}
+.mn-c-meta{display:flex;flex-wrap:wrap;gap:5px;}
+.mn-tag{font-size:10.5px;font-weight:700;color:var(--g500);background:rgba(19,32,25,.06);
+  border-radius:12px;padding:3px 8px;}
+.mn-tag.hl{background:var(--hl);color:var(--ink);}
+.mn-tag.wait{color:var(--lilac-ink);background:var(--lilac);}
+
+/* 상세 */
+.mn-sheet{max-width:460px;}
+.mn-sheet.wide{max-width:640px;}
+.mn-sh-name{width:100%;font:inherit;font-size:19px;font-weight:800;letter-spacing:-.02em;
+  color:var(--ink);border:0;border-bottom:1px solid transparent;background:none;padding:2px 0;}
+.mn-sh-name:hover{border-bottom-color:var(--g200);}
+.mn-sh-name:focus{outline:none;border-bottom-color:var(--green);}
+.mn-sh-date{margin-top:4px;font-size:13px;color:var(--g500);font-variant-numeric:tabular-nums;}
+.mn-sh-desc{margin-top:8px;font-size:12.5px;color:var(--g500);line-height:1.6;}
+.mn-sh-block{margin-top:18px;padding-top:16px;border-top:1px solid var(--g100);}
+.mn-sh-lab{font-size:12.5px;font-weight:700;margin-bottom:9px;}
+.mn-audio{width:100%;margin-top:14px;}
+.mn-summarize{width:100%;font:inherit;font-size:14.5px;font-weight:700;border:0;
+  background:var(--green);color:#fff;border-radius:18px;padding:13px;cursor:pointer;}
+.mn-summarize:disabled{opacity:.45;cursor:default;}
+.mn-over{font-size:14px;line-height:1.75;word-break:keep-all;}
+.mn-ul{display:flex;flex-direction:column;gap:7px;padding-left:17px;}
+.mn-ul li{font-size:13.5px;line-height:1.65;word-break:keep-all;}
+.mn-ul.warn li{color:var(--clay);}
+/* 액션아이템 — 오른쪽 버튼 한 번이면 내 할 일로 */
+.mn-spaces{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:11px;}
+.mn-spaces>span{font-size:11.5px;font-weight:700;color:var(--g400);}
+.mn-spaces button{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:11.5px;
+  font-weight:600;border:1px solid transparent;background:rgba(19,32,25,.05);border-radius:12px;
+  padding:4px 9px;cursor:pointer;color:var(--g500);}
+.mn-spaces button.on{background:var(--green);color:#fff;font-weight:700;}
+.mn-spaces button i{width:7px;height:7px;border-radius:50%;display:block;}
+.mn-actions{display:flex;flex-direction:column;}
+.mn-act{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--g100);}
+.mn-act:first-child{border-top:0;}
+.mn-act-body{flex:1;min-width:0;}
+.mn-act-what{font-size:13.5px;line-height:1.55;word-break:keep-all;}
+.mn-act-meta{display:flex;gap:7px;margin-top:4px;}
+.mn-act-meta span{font-size:11px;font-weight:600;color:var(--g500);}
+.mn-due{color:var(--lilac-ink)!important;}
+.mn-act-add{flex:none;font:inherit;font-size:12px;font-weight:700;border:1px solid var(--g300);
+  background:rgba(255,255,255,.7);color:var(--g600);border-radius:12px;padding:6px 11px;cursor:pointer;}
+.mn-act-add:hover{border-color:var(--green);color:var(--green);}
+.mn-act-add:disabled{opacity:.5;cursor:default;}
+.mn-act-done{flex:none;font-size:11.5px;font-weight:700;color:var(--green);}
+.mn-topic{margin-bottom:12px;}
+.mn-topic b{font-size:13px;font-weight:800;display:block;margin-bottom:3px;}
+.mn-topic p{font-size:13px;color:var(--g600);line-height:1.65;word-break:keep-all;}
+.mn-raw-btn{width:100%;font:inherit;font-size:12.5px;font-weight:700;border:1px solid var(--g300);
+  background:rgba(255,255,255,.6);color:var(--g600);border-radius:18px;padding:10px;cursor:pointer;}
+.mn-raw{margin-top:11px;max-height:280px;overflow-y:auto;padding:14px;border-radius:14px;
+  background:rgba(19,32,25,.04);font-size:13px;line-height:1.8;white-space:pre-wrap;word-break:keep-all;}
+.mn-paste{width:100%;margin-top:10px;font:inherit;font-size:13.5px;line-height:1.7;padding:12px 14px;
+  border:1px solid var(--g300);border-radius:14px;background:rgba(255,255,255,.85);
+  color:var(--ink);resize:vertical;}
+.mn-paste:focus{outline:none;border-color:var(--green);}
+.mn-sh-acts{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;}
+.mn-sh-acts button{flex:1;min-width:88px;font:inherit;font-size:13.5px;font-weight:700;padding:11px;
+  border-radius:18px;border:1px solid var(--g300);background:#fff;cursor:pointer;}
+.mn-sh-acts button.primary{background:var(--green);border-color:var(--green);color:#fff;}
+.mn-sh-acts button.danger{color:var(--clay);border-color:rgba(196,55,44,.4);}
+.mn-sh-acts button:disabled{opacity:.5;cursor:default;}
+@media (max-width:640px){
+  .mn-rec-main{gap:10px;}
+  .mn-time{font-size:22px;}
+  .mn-paste-btn{margin-left:0;width:100%;}
+  .mn-list{grid-template-columns:1fr;}
+}
+
 /* ═══════════ 곡률 통일 ('26.7.29 2차) ═══════════
    패널·캘린더 22px, 사이드바 26px, 상세 24px 대비 컨트롤이 7~10px로 각져 있었음.
    버튼·입력은 18px(알약 직전), 작은 칩은 12px, 세그 내부는 14px로 계열을 맞춤 */

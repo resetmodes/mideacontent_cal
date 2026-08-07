@@ -28,6 +28,12 @@ export const MYTASK_EMAILS = [
   'kyuvin@thehyundai.com',   // 노규빈 선임
 ]
 
+/* 회의록 탭('#minutes') 접근 계정 ('26.8 — 1차는 노규빈만, 검증 후 팀 전체 오픈)
+   회의 내용은 개인 데이터급이라 RLS가 계정별로 완전히 분리한다 */
+export const MINUTES_EMAILS = [
+  'kyuvin@thehyundai.com',   // 노규빈 선임
+]
+
 /* 홈 화면 바이럴 라운지 위젯 ('26.8 — 실험 중이라 기본 숨김, 사용자 지시)
    true로 바꾸면 홈 상단에 "미배정, 이번 주 게시" 배지가 노출됨 */
 export const LOUNGE_HOME_WIDGET = false

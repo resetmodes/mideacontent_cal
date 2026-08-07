@@ -695,5 +695,56 @@ for (const m of MEDIA) {
       bad(`smoke.mjs 스텁에 ${n}이 없음 — 로컬 모드 빌드가 깨진다 (scripts/smoke.mjs에 한 줄 추가)`)
 }
 
+/* 18. 회의록 ('26.8) — 회의 내용은 개인 데이터급이라 새면 안 된다.
+   ① my_* 와 같은 owner-or-shared RLS ② 음성 버킷은 비공개 + 소유자 폴더
+   ③ 폴더 규칙이 SQL과 클라이언트에서 글자 그대로 같을 것 (다르면 업로드가 403)
+   ④ 화면이 브라우저 제약을 실제로 안내할 것 (숨기면 회의가 통째로 날아간다) */
+{
+  const sql = readFileSync(new URL('../data/minutes-setup.sql', import.meta.url), 'utf8')
+  if (!/create table if not exists meeting_minutes/.test(sql)) bad('minutes: 테이블 정의 없음')
+  if (!/alter table meeting_minutes enable row level security/.test(sql)) bad('minutes: RLS 미적용')
+  if (!/on meeting_minutes for select[\s\S]{0,120}any\(shared_with\)/.test(sql))
+    bad('minutes: 읽기 정책에 shared_with 조건이 없음')
+  if (/for select to authenticated\s*\n?\s*using \(true\)/.test(sql))
+    bad('minutes: select 정책이 using (true) — 남의 회의 내용이 로그인 전체에 열림')
+  const creates = [...sql.matchAll(/create policy "([^"]+)"/g)].map(m => m[1])
+  const drops = new Set([...sql.matchAll(/drop policy if exists "([^"]+)"/g)].map(m => m[1]))
+  for (const c of creates) if (!drops.has(c)) bad(`minutes: 정책 "${c}"에 drop if exists가 없음 (재실행 시 실패)`)
+  if (!/values \('minutes-audio', 'minutes-audio', false\)/.test(sql))
+    bad('minutes: 음성 버킷이 비공개로 생성되지 않음')
+  for (const kind of ['insert', 'read', 'delete'])
+    if (!new RegExp(`"minutes audio ${kind}"[\\s\\S]{0,220}storage\\.foldername\\(name\\)\\)\\[1\\]`).test(sql))
+      bad(`minutes: 음성 ${kind} 정책에 소유자 폴더 조건이 없음 (남의 회의 녹음이 열린다)`)
+
+  const store = readFileSync(new URL('../src/lib/minutesStore.js', import.meta.url), 'utf8')
+  if (!/const BUCKET = 'minutes-audio'/.test(store)) bad('minutes: 음성 버킷 이름이 minutes-audio가 아님')
+  const sqlRule = /replace\(replace\(auth\.jwt\(\)->>'email', '@', '_'\), '\.', '_'\)/.test(sql)
+  const jsRule = /replace\(\/@\/g, '_'\)\.replace\(\/\\\.\/g, '_'\)/.test(store)
+  if (!sqlRule || !jsRule)
+    bad(`minutes: 소유자 폴더 규칙이 SQL(${sqlRule})과 minutesStore.js(${jsRule}) 사이에서 어긋남`)
+
+  /* 브라우저 제약 안내 — 이게 빠지면 회의 한 건이 통째로 날아간다 */
+  const page = readFileSync(new URL('../src/MinutesPage.jsx', import.meta.url), 'utf8')
+  for (const [what, re] of [
+    ['크롬 전용 안내', /크롬 계열/],
+    ['화면 잠금 경고', /잠기면 녹음이 끊깁니다/],
+    ['외부 전송 고지', /구글 서버로 보내서/],
+  ]) if (!re.test(page)) bad(`minutes: 녹음 전 안내에 ${what}가 없음`)
+
+  const rec = readFileSync(new URL('../src/lib/recorder.js', import.meta.url), 'utf8')
+  /* 자동 재시작이 없으면 조용해진 순간부터 전사가 통째로 빈다 */
+  if (!/onend[\s\S]{0,120}stopped\.current[\s\S]{0,60}start\(\)/.test(rec))
+    bad('minutes: 음성 인식 자동 재시작 없음 (조용해지면 전사가 끊긴다)')
+  /* 종료 시 화면 상태를 읽으면 마지막 문장이 빠진다 */
+  if (!/textRef\.current/.test(rec)) bad('minutes: 종료 시 최신 전사문을 ref로 읽지 않음')
+  if (!/beforeunload/.test(rec)) bad('minutes: 녹음 중 탭 닫기 경고 없음')
+
+  /* 요약 함수는 전사문을 저장하지 않고 응답으로만 돌려준다 */
+  const fn = readFileSync(new URL('../api/minutes-summarize.js', import.meta.url), 'utf8')
+  if (!/ANTHROPIC_API_KEY/.test(fn) || !/503/.test(fn))
+    bad('minutes: 요약 함수에 키 미설정 안내가 없음')
+  if (!/output_config/.test(fn)) bad('minutes: 요약 함수가 구조화 출력을 쓰지 않음')
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)
