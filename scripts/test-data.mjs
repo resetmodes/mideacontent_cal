@@ -82,7 +82,7 @@ for (const [got, want] of wa) {
 }
 
 /* 6c. 타겟APP 이관 SQL·메타 무결성 — 실적 수치는 번들 금지(내부 전용), SQL은 행 수 고정 */
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { TA_GROUPS } from '../src/data/targetapp.js'
 const taSql = readFileSync(new URL('../data/targetapp-seed.sql', import.meta.url), 'utf8')
 if ((taSql.match(/^insert into targetapp_stats/gm) || []).length !== 50)
@@ -748,6 +748,27 @@ for (const m of MEDIA) {
   if (!/ANTHROPIC_API_KEY/.test(fn) || !/503/.test(fn))
     bad('minutes: 요약 함수에 키 미설정 안내가 없음')
   if (!/output_config/.test(fn)) bad('minutes: 요약 함수가 구조화 출력을 쓰지 않음')
+}
+
+/* 19. CSS 변수 ('26.8.8 사고) — 정의되지 않은 var()를 쓰면 그 속성이 통째로 무효가 된다.
+   background에 걸리면 배경이 투명이 되어 흰 글씨가 흰 패널 위에 찍혀 버튼이 사라진다
+   (회의록 "녹음 종료"가 실제로 안 보였던 원인 — --clay 라는 변수는 없었고 --red 였다).
+   :root 에 선언된 이름만 쓰였는지 전수 검사 */
+{
+  const css = readFileSync(new URL('../src/index.css', import.meta.url), 'utf8')
+  const declared = new Set([...css.matchAll(/(--[a-zA-Z0-9-]+)\s*:/g)].map(m => m[1]))
+  /* 컴포넌트가 인라인 style로 넣어 주는 변수도 선언으로 친다 (예: 차트 색 --c) */
+  for (const f of readdirSync(new URL('../src', import.meta.url))) {
+    if (!f.endsWith('.jsx')) continue
+    const src = readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8')
+    for (const m of src.matchAll(/'(--[a-zA-Z0-9-]+)'\s*:/g)) declared.add(m[1])
+  }
+  /* 폴백이 있는 var(--x, 값)은 무효가 되지 않으므로 제외 */
+  const used = [...css.matchAll(/var\(\s*(--[a-zA-Z0-9-]+)\s*([,)])/g)]
+    .filter(m => m[2] === ')').map(m => m[1])
+  const missing = [...new Set(used)].filter(v => !declared.has(v))
+  if (missing.length)
+    bad(`index.css: 정의되지 않은 CSS 변수 ${missing.join(', ')} — 그 속성이 통째로 무효가 되어 배경이나 색이 사라진다`)
 }
 
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
