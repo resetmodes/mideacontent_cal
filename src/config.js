@@ -38,6 +38,13 @@ export const MINUTES_EMAILS = [
    true로 바꾸면 홈 상단에 "미배정, 이번 주 게시" 배지가 노출됨 */
 export const LOUNGE_HOME_WIDGET = false
 
+/* AI 어시스턴트 탭('#assistant') 접근 계정 ('26.8.8 — 설계 확정 후 첫 구현,
+   사용자 지시로 본인 계정만. 서버(api/assistant.js)도 이 목록으로 이중 게이트 —
+   화면 숨김은 우회 가능하므로 실제 차단은 서버 쪽. docs/ai-assistant-design.md 참조) */
+export const ASSISTANT_EMAILS = [
+  'kyuvin@thehyundai.com',   // 노규빈 선임
+]
+
 /* 정산 탭('#settle') 접근 계정 ('26.7 테스트 — 3인. 전 팀 오픈 시 목록 확장 또는 게이트 제거) */
 export const SETTLE_EMAILS = [
   'kyuvin@thehyundai.com',    // 노규빈 선임

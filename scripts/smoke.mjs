@@ -51,7 +51,7 @@ const bad = m => { failed++; console.error('✗ ' + m) }
 
 try {
   /* config.js에 export를 추가하면 여기 스텁에도 한 줄 추가할 것 — 빠지면 빌드가 깨진다 */
-  await writeFile(CONFIG, "export const SUPABASE_URL = ''\nexport const SUPABASE_ANON_KEY = ''\nexport const MIRROR_URL = ''\nexport const ADMIN_EMAILS = []\nexport const SETTLE_EMAILS = []\nexport const MYTASK_EMAILS = []\nexport const MINUTES_EMAILS = []\nexport const NOTION_REVIEW_EMAILS = []\nexport const LOUNGE_HOME_WIDGET = false\n")
+  await writeFile(CONFIG, "export const SUPABASE_URL = ''\nexport const SUPABASE_ANON_KEY = ''\nexport const MIRROR_URL = ''\nexport const ADMIN_EMAILS = []\nexport const SETTLE_EMAILS = []\nexport const MYTASK_EMAILS = []\nexport const MINUTES_EMAILS = []\nexport const ASSISTANT_EMAILS = []\nexport const NOTION_REVIEW_EMAILS = []\nexport const LOUNGE_HOME_WIDGET = false\n")
   execSync('npx vite build', { stdio: 'pipe' })
   server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--host', '127.0.0.1'], { stdio: 'ignore' })
   for (let i = 0; i < 30; i++) {

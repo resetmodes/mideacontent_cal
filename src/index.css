@@ -3313,3 +3313,37 @@ body.dk-locked{overflow:hidden;}
   .login-screen{padding:28px 18px;align-items:flex-start;padding-top:14vh;}
   .login-inner .login-logo{height:44px;}
 }
+
+/* ═══════════ AI 어시스턴트 ('26.8.8) ═══════════
+   읽기 전용 채팅형 UI. 대화는 서버·클라이언트 어디에도 저장하지 않는다 */
+.ai-panel{background:var(--glass-strong);border:1px solid var(--glass-border);border-radius:22px;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:var(--glass-shadow);
+  padding:20px;min-height:220px;display:flex;flex-direction:column;}
+.ai-empty{margin:auto;text-align:center;color:var(--g500);}
+.ai-empty p{font-size:13.5px;margin-bottom:12px;}
+.ai-sug{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+.ai-sug button{font:inherit;font-size:12.5px;font-weight:600;padding:8px 14px;
+  border:1px solid var(--g200);border-radius:18px;background:rgba(255,255,255,.7);
+  color:var(--g600);cursor:pointer;}
+.ai-sug button:hover:not(:disabled){border-color:var(--green);color:var(--green);}
+.ai-sug button:disabled{opacity:.5;cursor:default;}
+.ai-turns{display:flex;flex-direction:column;gap:16px;}
+.ai-turn{display:flex;flex-direction:column;gap:8px;}
+.ai-q{align-self:flex-end;max-width:80%;background:var(--green);color:#fff;
+  border-radius:16px 16px 4px 16px;padding:10px 14px;font-size:13.5px;font-weight:600;}
+.ai-a{align-self:flex-start;max-width:80%;background:rgba(255,255,255,.85);color:var(--ink);
+  border-radius:16px 16px 16px 4px;padding:10px 14px;font-size:13.5px;line-height:1.6;
+  white-space:pre-wrap;}
+.ai-a.loading{color:var(--g500);font-style:italic;}
+.ai-a.err{background:rgba(196,55,44,.08);color:var(--red);}
+.ai-input{display:flex;gap:8px;margin-top:14px;}
+.ai-input input{flex:1;min-width:0;font:inherit;font-size:14px;padding:12px 16px;
+  border:1px solid var(--g300);border-radius:18px;background:rgba(255,255,255,.85);color:var(--ink);}
+.ai-input input:focus{outline:none;border-color:var(--green);}
+.ai-input input:disabled{opacity:.6;}
+.ai-input button{font:inherit;font-size:13.5px;font-weight:700;padding:0 20px;border:0;
+  border-radius:18px;background:var(--green);color:#fff;cursor:pointer;}
+.ai-input button:disabled{opacity:.5;cursor:default;}
+@media (max-width:640px){
+  .ai-q,.ai-a{max-width:92%;}
+}

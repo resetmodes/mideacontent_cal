@@ -903,5 +903,28 @@ for (const m of MEDIA) {
     bad('CalendarPage.jsx: 매체/촬영 세그 버튼이 readOnly·team 조건 없이 렌더될 위험')
 }
 
+/* 22. AI 어시스턴트 ('26.8.8 구현 착수) — 사용자 지시로 1차는 본인 계정만.
+   화면 게이트(App.jsx)는 편의일 뿐이라 우회 가능 — 실제 차단은 서버(api/assistant.js)에
+   있어야 한다. 두 곳 다 있는지, 미러·외부에는 아예 노출 경로가 없는지 감시 */
+{
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  const api = readFileSync(new URL('../api/assistant.js', import.meta.url), 'utf8')
+  const mirror = readFileSync(new URL('../src/MirrorApp.jsx', import.meta.url), 'utf8')
+
+  if (!/ASSISTANT_EMAILS/.test(app))
+    bad('App.jsx: AI 어시스턴트 탭에 ASSISTANT_EMAILS 게이트가 없음')
+  if (!/ASSISTANT_EMAILS/.test(api))
+    bad('api/assistant.js: 서버 쪽 이메일 검사가 없음 (화면 게이트만으로는 우회 가능)')
+  if (!/ANTHROPIC_API_KEY/.test(api) || !/503/.test(api))
+    bad('api/assistant.js: 키 미설정 안내가 없음')
+  if (!/모델이 답변을 거절/.test(api) && !/refusal/.test(api))
+    bad('api/assistant.js: 모델 거절(stop_reason) 처리가 없음')
+  /* 비용 폭주 방지선 — 전체 일 상한과 사용자별 상한 둘 다 있어야 한다 */
+  if (!/overDailyCap/.test(api) || !/overUserCap/.test(api))
+    bad('api/assistant.js: 사용량 상한 로직이 빠짐 (비용 폭주 방지선 없음)')
+  if (/AssistantPage/.test(mirror))
+    bad('MirrorApp.jsx: 미러에 AI 어시스턴트가 노출될 경로가 생김')
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)

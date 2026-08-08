@@ -177,7 +177,7 @@ const PROBE = `(() => {
 /* 문자열 규칙은 수집 데이터(캡션·영상 제목)에도 걸리므로 자사 UI 클래스만 본다 */
 const DATA_CLASS = /^(A|B|SPAN|DIV|P|dk-top-t|ugc-|mon-acc|home-vid|cp-t|pf-title|md-memo)/
 
-const TABS = ['', '#mytask', '#minutes', '#team', '#calendar', '#shoot', '#spec', '#monitor', '#rmn', '#settle', '#admin']
+const TABS = ['', '#mytask', '#minutes', '#assistant', '#team', '#calendar', '#shoot', '#spec', '#monitor', '#rmn', '#settle', '#admin']
 const findings = []
 const add = (where, kind, msg) => findings.push(`[${kind}] ${where} :: ${msg}`)
 

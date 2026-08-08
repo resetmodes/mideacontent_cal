@@ -1,7 +1,9 @@
-# AI 어시스턴트 아키텍처 설계서 — 구현 예약: Opus 세션
+# AI 어시스턴트 아키텍처 설계서
 
-> 상태: **설계 확정 + 서버 스캐폴드만 존재 (비활성)**. 화면 노출 0.
-> 구현 착수 시 이 문서가 명세다. 스캐폴드: `api/assistant.js` (ASSISTANT_ENABLED 없으면 503).
+> 상태: **구현 완료, 1차는 본인 계정만 ('26.8.8)**. `#assistant` 탭, `config.js
+> ASSISTANT_EMAILS` 게이트(현재 노규빈만) + `api/assistant.js` 서버 이중 게이트.
+> Vercel `ANTHROPIC_API_KEY` 미설정이면 503 안내만 뜨고 다른 기능은 무영향.
+> 검증 후 팀 전체 오픈은 목록에 이메일 추가로 — CLAUDE.md 참조
 
 ## 1. 목적·범위 (Phase 1)
 

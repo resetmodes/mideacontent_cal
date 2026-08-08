@@ -16,11 +16,13 @@ const LoungePage = React.lazy(() => import('./LoungePage.jsx'))
 const MyTaskPage = React.lazy(() => import('./MyTaskPage.jsx'))
 /* 회의록 ('26.8) — MINUTES_EMAILS 게이트, 동적 로드 */
 const MinutesPage = React.lazy(() => import('./MinutesPage.jsx'))
+/* AI 어시스턴트 ('26.8.8) — ASSISTANT_EMAILS 게이트, 동적 로드 (비대상 계정 비용 0) */
+const AssistantPage = React.lazy(() => import('./AssistantPage.jsx'))
 import { LogoMark } from './Logo.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { getSession, onAuthChange, signOut } from './lib/auth.js'
 import { storageMode } from './lib/store.js'
-import { ADMIN_EMAILS, SETTLE_EMAILS, MYTASK_EMAILS, MINUTES_EMAILS } from './config.js'
+import { ADMIN_EMAILS, SETTLE_EMAILS, MYTASK_EMAILS, MINUTES_EMAILS, ASSISTANT_EMAILS } from './config.js'
 
 /* 사이트 전체 로그인 게이트 + 상단 탭 셸.
    기본 탭은 홈. 로그인 전에는 어떤 경로(탭·뷰 파라미터)로 들어와도 LoginScreen만 보임.
@@ -52,6 +54,7 @@ export default function App() {
     if (window.location.hash === '#lounge') return 'lounge'
     if (window.location.hash === '#mytask') return 'mytask'
     if (window.location.hash === '#minutes') return 'minutes'
+    if (window.location.hash === '#assistant') return 'assistant'
     return 'home'   // '26.7: 홈이 접속 첫 화면
   })
   /* calView: 콘텐츠 캘린더의 하위 세그(월간·캠페인) — 홈 KPI에서 캠페인으로 바로 진입 ('26.7.29)
@@ -63,7 +66,7 @@ export default function App() {
     setCalView(view)
     setCalMode(mode)
     /* home = 기본 탭(해시 없음). 나머지는 딥링크 해시 */
-    const HASH = { spec: '#spec', monitor: '#monitor', calendar: '#calendar', team: '#team', admin: '#admin', rmn: '#rmn', settle: '#settle', lounge: '#lounge', mytask: '#mytask', minutes: '#minutes' }
+    const HASH = { spec: '#spec', monitor: '#monitor', calendar: '#calendar', team: '#team', admin: '#admin', rmn: '#rmn', settle: '#settle', lounge: '#lounge', mytask: '#mytask', minutes: '#minutes', assistant: '#assistant' }
     window.history.replaceState(null, '', HASH[t] || window.location.pathname + window.location.search)
   }
 
@@ -79,6 +82,11 @@ export default function App() {
   /* 회의록 ('26.8): MINUTES_EMAILS 계정만 탭 노출 + 렌더 (로컬 테스트 모드는 허용) */
   const isMinutes = storageMode !== 'supabase'
     || (session && MINUTES_EMAILS.includes((session.email || '').toLowerCase()))
+
+  /* AI 어시스턴트 ('26.8.8): ASSISTANT_EMAILS 계정만 탭 노출 + 렌더 (로컬 테스트 모드는 허용).
+     화면 숨김은 편의일 뿐 실제 차단은 api/assistant.js의 서버 쪽 이메일 검사 */
+  const isAssistant = storageMode !== 'supabase'
+    || (session && ASSISTANT_EMAILS.includes((session.email || '').toLowerCase()))
 
   /* 정산 ('26.7 테스트): SETTLE_EMAILS 3인만 탭 노출 + 렌더 (로컬 테스트 모드는 허용) */
   const isSettle = storageMode !== 'supabase'
@@ -121,6 +129,9 @@ export default function App() {
           {isMinutes && (
             <button className={tab === 'minutes' ? 'on' : ''} onClick={() => go('minutes')}>회의록</button>
           )}
+          {isAssistant && (
+            <button className={tab === 'assistant' ? 'on' : ''} onClick={() => go('assistant')}>AI 어시스턴트</button>
+          )}
           <button className={tab === 'team' ? 'on' : ''} onClick={() => go('team')}>팀 일정</button>
           <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>콘텐츠 캘린더</button>
           <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
@@ -160,6 +171,9 @@ export default function App() {
         )}
         {tab === 'minutes' && isMinutes && (
           <Suspense fallback={null}><MinutesPage /></Suspense>
+        )}
+        {tab === 'assistant' && isAssistant && (
+          <Suspense fallback={null}><AssistantPage /></Suspense>
         )}
         {tab === 'lounge' && (
           <Suspense fallback={null}><LoungePage /></Suspense>
