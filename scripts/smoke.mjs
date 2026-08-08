@@ -78,7 +78,7 @@ try {
 
   // 2. 탭 목록 (v2 셸: 상단 탭 바 → 좌측 사이드바 .side-nav — '26.7.29 리디자인)
   const tabs = await page.$$eval('.side-nav button', els => els.map(e => e.textContent.trim()))
-  ;['홈', '팀 일정', '콘텐츠 캘린더', '매체 스펙', '매체 모니터링'].every(t => tabs.includes(t))
+  ;['홈', '팀 일정', '콘텐츠 캘린더', '매체 스펙', '콘텐츠 성과'].every(t => tabs.includes(t))
     ? ok('탭 5종: ' + tabs.slice(0, 5).join('/')) : bad('탭 구성 이상: ' + JSON.stringify(tabs))
 
   // 3. 빠른 입력 → 등록 → 검색 → 모달 (콘텐츠 캘린더로 이동, '26.8.8 촬영일정 탭 병합)
@@ -100,10 +100,10 @@ try {
   await page.waitForSelector('.media', { timeout: 4000 })
   ok('매체 스펙 렌더')
 
-  // 5. 모니터링 렌더
-  await page.click('.side-nav button:has-text("매체 모니터링")')
+  // 5. 콘텐츠 성과 렌더 (구 매체 모니터링, '26.8.8 개명)
+  await page.click('.side-nav button:has-text("콘텐츠 성과")')
   await page.waitForSelector('.mon-table', { timeout: 4000 })
-  ok('매체 모니터링 렌더')
+  ok('콘텐츠 성과 렌더')
 
   pageErrors.length ? bad('페이지 에러: ' + pageErrors.join(' | ')) : ok('페이지 에러 없음')
   await browser.close()

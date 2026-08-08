@@ -341,7 +341,7 @@ function ChannelSignals({ onGo }) {
     <section className="home-sec">
       <div className="group-label home-gl">
         채널 이슈
-        <button className="home-more" onClick={() => onGo('monitor')}>매체 모니터링</button>
+        <button className="home-more" onClick={() => onGo('monitor')}>콘텐츠 성과</button>
       </div>
       <div className="home-sec-d">팔로워 급증과 급감, 새 휴면 진입</div>
       {items.map((it, i) => (
@@ -388,7 +388,7 @@ function Highlight({ onGo }) {
     <section className="home-sec">
       <div className="group-label home-gl">
         이번 주 하이라이트
-        <button className="home-more" onClick={() => onGo('monitor')}>매체 모니터링</button>
+        <button className="home-more" onClick={() => onGo('monitor')}>콘텐츠 성과</button>
       </div>
       <div className="home-sec-d">최근 7일 반응 상위 콘텐츠 (수집분 기준)</div>
       {yt.length > 0 && (

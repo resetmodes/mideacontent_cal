@@ -124,7 +124,7 @@ export default function App() {
           <button className={tab === 'team' ? 'on' : ''} onClick={() => go('team')}>팀 일정</button>
           <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>콘텐츠 캘린더</button>
           <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
-          <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>매체 모니터링</button>
+          <button className={tab === 'monitor' ? 'on' : ''} onClick={() => go('monitor')}>콘텐츠 성과</button>
           <button className={tab === 'rmn' ? 'on' : ''} onClick={() => go('rmn')}>RMN</button>
           {isSettle && (
             <button className={tab === 'settle' ? 'on' : ''} onClick={() => go('settle')}>정산</button>

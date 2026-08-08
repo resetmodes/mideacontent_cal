@@ -871,7 +871,7 @@ export default function MonitorPage() {
   return (
     <div className="wrap cal-wrap">
       <header>
-        <h1>매체 모니터링</h1>
+        <h1>콘텐츠 성과</h1>
         <div className="masthead-sub">
           {platform === 'targetapp'
             ? '타겟형 매체 캠페인 실적 (매월 수기 갱신, 팀 내부 전용)'
