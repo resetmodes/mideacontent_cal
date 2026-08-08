@@ -40,6 +40,8 @@ header{padding:26px 0 0;}
 /* .eyebrow — v2에서 폐기 ('26.7.29 클로드 쿠세 제거). JSX에서도 미사용 */
 h1{font-size:clamp(24px,3.2vw,30px);font-weight:800;letter-spacing:-0.02em;line-height:1.2;margin:0 0 4px;}
 .masthead-sub{font-size:13.5px;color:var(--grey);}
+/* 콘텐츠 캘린더 매체/촬영 세그 ('26.8.8 — 촬영일정 탭 병합) */
+.cal-mode-seg{margin:10px 0 2px;width:fit-content;}
 .draft-note{margin-top:18px;font-size:12.5px;line-height:1.55;
   border-top:2px solid var(--ink);border-bottom:1px solid var(--hairline);padding:10px 0;}
 .draft-note b{background:var(--hl);font-weight:700;padding:0 3px;}

@@ -78,11 +78,11 @@ try {
 
   // 2. 탭 목록 (v2 셸: 상단 탭 바 → 좌측 사이드바 .side-nav — '26.7.29 리디자인)
   const tabs = await page.$$eval('.side-nav button', els => els.map(e => e.textContent.trim()))
-  ;['홈', '팀 일정', '매체 캘린더', '촬영일정', '매체 스펙', '매체 모니터링'].every(t => tabs.includes(t))
-    ? ok('탭 6종: ' + tabs.slice(0, 6).join('/')) : bad('탭 구성 이상: ' + JSON.stringify(tabs))
+  ;['홈', '팀 일정', '콘텐츠 캘린더', '매체 스펙', '매체 모니터링'].every(t => tabs.includes(t))
+    ? ok('탭 5종: ' + tabs.slice(0, 5).join('/')) : bad('탭 구성 이상: ' + JSON.stringify(tabs))
 
-  // 3. 빠른 입력 → 등록 → 검색 → 모달 (매체 캘린더로 이동)
-  await page.click('.side-nav button:has-text("매체 캘린더")')
+  // 3. 빠른 입력 → 등록 → 검색 → 모달 (콘텐츠 캘린더로 이동, '26.8.8 촬영일정 탭 병합)
+  await page.click('.side-nav button:has-text("콘텐츠 캘린더")')
   await page.waitForSelector('.cal-wrap', { timeout: 4000 })
   ok('캘린더 렌더')
   await page.fill('.qa-input', '12/20 스모크 테스트 인스타 #스모크')

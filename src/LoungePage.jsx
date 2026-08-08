@@ -914,7 +914,7 @@ function ReqDetail({ r, onReload, onClose }) {
       ids.push(ev.id)
     }
     await updateRequest(r.id, { status: '확정', linked_events: ids })
-    toast(`매체 캘린더에 ${ids.length}건 등록됨, 캠페인 태그 ${camp || '없음'}`)
+    toast(`콘텐츠 캘린더에 ${ids.length}건 등록됨, 캠페인 태그 ${camp || '없음'}`)
   })
 
   const setStatus = s => act(() => updateRequest(r.id, { status: s }), '상태 변경됨')
@@ -1066,7 +1066,7 @@ function ReqDetail({ r, onReload, onClose }) {
           </div>
         )}
         {r.linkedEvents?.length > 0 && (
-          <div className="lg-calnote">매체 캘린더에 {r.linkedEvents.length}건 등록됨</div>
+          <div className="lg-calnote">콘텐츠 캘린더에 {r.linkedEvents.length}건 등록됨</div>
         )}
 
         <div className="lg-actrow lg-mt">

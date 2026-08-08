@@ -886,5 +886,22 @@ for (const m of MEDIA) {
   if (durOnly.dur !== 120) bad('myTask parseLine: 소요 시간을 못 읽음')
 }
 
+/* 21. 촬영일정 탭 병합 ('26.8.8) — 별도 탭이던 촬영 스케줄을 콘텐츠 캘린더 안
+   매체/촬영 세그로 흡수. 미러·외부에 촬영 세그가 새는 것이 가장 큰 리스크라 그 경로를 감시 */
+{
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  const cal = readFileSync(new URL('../src/CalendarPage.jsx', import.meta.url), 'utf8')
+
+  if (/tab === 'shoot'/.test(app))
+    bad('App.jsx: 병합 후에도 옛 shoot 탭 분기가 남음 (죽은 라우트)')
+  if (!/#shoot['"]\s*\)\s*return\s*'calendar'/.test(app))
+    bad('App.jsx: #shoot 딥링크가 콘텐츠 캘린더로 안 이어짐 (북마크 깨짐)')
+  /* 세그 강제 — readOnly(미러)나 team이면 mode 값과 무관하게 항상 매체여야 한다 */
+  if (!/const shoot = !team && !readOnly && mode === 'shoot'/.test(cal))
+    bad('CalendarPage.jsx: shoot 파생식이 안 보임 (readOnly·team 강제 조건이 풀렸을 수 있음)')
+  if (!/\{!team && !readOnly && \(/.test(cal))
+    bad('CalendarPage.jsx: 매체/촬영 세그 버튼이 readOnly·team 조건 없이 렌더될 위험')
+}
+
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')
 if (fail) process.exit(1)

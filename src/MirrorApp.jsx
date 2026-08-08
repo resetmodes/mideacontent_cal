@@ -7,7 +7,7 @@ const LoungePublic = React.lazy(() => import('./LoungePage.jsx').then(m => ({ de
 
 /* 미러 전용 사이트 — 로그인 없는 읽기 전용 별도 배포 (타 팀 공유용)
    빌드 분기: VITE_MIRROR=1 (Vercel 두 번째 프로젝트의 환경변수) → main.jsx가 App 대신 이걸 렌더.
-   구성: 매체 캘린더(읽기 전용) + 매체 스펙. 매체 모니터링·등록·수정 UI 없음.
+   구성: 콘텐츠 캘린더(읽기 전용) + 매체 스펙. 매체 모니터링·등록·수정 UI 없음.
    캘린더 데이터 읽기는 Supabase RLS의 anon SELECT 정책 필요 — 절차는 data/mirror-setup.md.
    정책 적용 전에는 캘린더가 비어 보이는 게 정상 (쓰기는 정책과 무관하게 계속 차단됨) */
 export default function MirrorApp() {
@@ -26,7 +26,7 @@ export default function MirrorApp() {
   useEffect(() => {
     document.title = isExternal
       ? '매체 스펙'
-      : '매체 캘린더와 스펙 (읽기 전용)'
+      : '콘텐츠 캘린더와 스펙 (읽기 전용)'
   }, [isExternal])
 
   if (isExternal) {
@@ -52,7 +52,7 @@ export default function MirrorApp() {
       <nav className="mini-tabs">
         <div className="mini-tabs-inner">
           <LogoMark size={18} color="var(--green)" className="mini-logo" />
-          <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>매체 캘린더</button>
+          <button className={tab === 'calendar' ? 'on' : ''} onClick={() => go('calendar')}>콘텐츠 캘린더</button>
           <button className={tab === 'spec' ? 'on' : ''} onClick={() => go('spec')}>매체 스펙</button>
           <button className={tab === 'lounge' ? 'on' : ''} onClick={() => go('lounge')}>바이럴 라운지</button>
           <span className="mini-ro">읽기 전용 공유 뷰</span>

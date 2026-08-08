@@ -1469,7 +1469,7 @@ function MiniMonth({ cursor, onCursor, events }) {
   )
 }
 
-function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, team = false, initialView = null }) {
+function CalendarApp({ session, readOnly = false, onOpenSpec, team = false, initialView = null, initialMode = null }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -1492,6 +1492,14 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
     return v
   })
   const me = authorName(session?.email)            // 작성자 = 로그인 계정 (자동)
+
+  /* 촬영일정 탭 병합 ('26.8.8 사용자 지시) — 별도 탭이던 촬영 스케줄을 콘텐츠 캘린더 안
+     세그(매체/촬영)로 흡수. 데이터는 그대로 kind='촬영'으로 같은 테이블에 있고, 화면만
+     같은 탭 안에서 전환한다. team이거나 readOnly(미러)면 mode 값과 무관하게 항상
+     매체 세그로 강제 — 미러·외부에 촬영 일정이 노출되던 적이 없었으므로 그 원칙 유지 */
+  const [mode, setMode] = useState(initialMode || 'media')
+  useEffect(() => { if (initialMode) setMode(initialMode) }, [initialMode])
+  const shoot = !team && !readOnly && mode === 'shoot'
 
   const refresh = useCallback(async () => {
     try {
@@ -1611,8 +1619,8 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
     setUndo(null)
   }
 
-  /* 탭별 대상: 촬영 탭 = kind '촬영' / 팀 탭 = kind '팀' / 매체 캘린더 = 그 외 전부.
-     휴점일(kind='휴점')은 일정 행이 아니라 셀 마커라 전 탭에서 목록 제외 */
+  /* 세그별 대상 ('26.8.8 탭 병합) — 촬영 세그 = kind '촬영' / 팀 탭 = kind '팀' /
+     매체 세그 = 그 외 전부. 휴점일(kind='휴점')은 일정 행이 아니라 셀 마커라 전부 제외 */
   const kindEvents = useMemo(
     () => events.filter(e => e.kind !== '휴점' && (
       team ? e.kind === '팀' : shoot ? e.kind === '촬영' : (e.kind !== '촬영' && e.kind !== '팀'))),
@@ -1686,12 +1694,21 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
   return (
     <div className={'wrap cal-wrap' + (readOnly ? ' wide' : '') + (!readOnly && big ? ' big' : '')}>
       <header>
-        <h1>{team ? '팀 일정' : shoot ? '촬영 일정 캘린더' : '매체 일정 캘린더'}</h1>
+        <h1>{team ? '팀 일정' : '콘텐츠 캘린더'}</h1>
+        {/* 매체/촬영 세그 ('26.8.8) — team이거나 readOnly(미러)면 렌더 자체를 안 함,
+            촬영 세그 접근 경로를 원천적으로 차단 */}
+        {!team && !readOnly && (
+          <div className="seg cal-mode-seg">
+            {[['media', '매체'], ['shoot', '촬영']].map(([k, label]) => (
+              <button key={k} className={mode === k ? 'on' : ''} onClick={() => setMode(k)}>{label}</button>
+            ))}
+          </div>
+        )}
         <div className="masthead-sub">
           {team
             ? '연차, 외근, 교육, 기념일을 빠른 입력 한 줄로 등록'
             : shoot
-              ? '콘텐츠 촬영 스케줄 ("7/10 촬영 7/15 업로드"로 병기하면 업로드 건은 매체 캘린더에 자동 등록)'
+              ? '콘텐츠 촬영 스케줄, "7/10 촬영 7/15 업로드"로 병기하면 업로드 건은 매체 세그에 자동 등록'
               : readOnly
                 ? '읽기 전용 공유 뷰 (등록과 수정은 팀 내부에서만)'
                 : '빠른 입력 한 줄로 등록, 클릭해서 수정하거나 삭제'}
@@ -1895,9 +1912,9 @@ function CalendarApp({ session, readOnly = false, onOpenSpec, shoot = false, tea
 /* 로그인 게이트는 App.jsx(사이트 전체 락)에서 처리 — 여기 도달했다면 이미 인증된 상태.
    readOnly(?view=mirror)는 뷰어 계정용 UI — 쓰기 권한은 RLS의 team_writers 등록 여부가 결정
    (setup.md 4장) */
-export default function CalendarPage({ readOnly = false, onOpenSpec, shoot = false, team = false, initialView = null }) {
+export default function CalendarPage({ readOnly = false, onOpenSpec, team = false, initialView = null, initialMode = null }) {
   const [session, setSession] = useState(getSession())
   useEffect(() => onAuthChange(setSession), [])
 
-  return <CalendarApp session={session} readOnly={readOnly} onOpenSpec={onOpenSpec} shoot={shoot} team={team} initialView={initialView} />
+  return <CalendarApp session={session} readOnly={readOnly} onOpenSpec={onOpenSpec} team={team} initialView={initialView} initialMode={initialMode} />
 }

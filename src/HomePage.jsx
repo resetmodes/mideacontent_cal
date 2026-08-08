@@ -50,20 +50,20 @@ function useWeekStats(events, today) {
 }
 
 /* ── ⓪ 이번 주 요약 히어로 — KPI 글래스 카드 4개 (모니터링 탭과 동일 카드 언어).
-   각 지표 클릭 시 해당 탭으로 이동 (게시 예정은 매체 캘린더 월간, 캠페인은 캠페인 세그,
-   촬영은 촬영 캘린더, 부재는 팀 일정) */
+   각 지표 클릭 시 해당 탭으로 이동 (게시 예정은 콘텐츠 캘린더 월간, 캠페인은 캠페인 세그,
+   촬영은 콘텐츠 캘린더 촬영 세그, 부재는 팀 일정. '26.8.8 촬영일정 탭 병합) */
 function WeekHero({ s, onGo }) {
   const stats = [
     { label: '이번 주 게시 예정', value: s.posts, unit: '건', sub: '오늘부터 7일', to: 'calendar' },
     { label: '진행 중인 캠페인', value: s.campaigns, unit: '개', sub: '3주 내 기준', to: 'calendar', view: '캠페인' },
-    { label: '이번 주 촬영', value: s.shoots, unit: '건', sub: '유튜브와 인스타', to: 'shoot' },
+    { label: '이번 주 촬영', value: s.shoots, unit: '건', sub: '유튜브와 인스타', to: 'calendar', mode: 'shoot' },
     { label: '오늘 팀원 부재', value: s.away, unit: '건', sub: '연차, 외근, 출장, 교육', to: 'team' },
   ]
 
   return (
     <div className="mon-hero home-hero">
       {stats.map(st => (
-        <button key={st.label} className="mon-stat home-stat" onClick={() => onGo(st.to, st.view)}>
+        <button key={st.label} className="mon-stat home-stat" onClick={() => onGo(st.to, st.view, st.mode)}>
           <div className="mon-label">{st.label}</div>
           <div className="mon-value">{st.value}<small>{st.unit}</small></div>
           <div className="mon-sub">{st.sub}</div>
@@ -152,7 +152,7 @@ function MediaToday({ events, today, onGo }) {
     <section className="home-sec">
       <div className="group-label home-gl">
         오늘과 내일 게시
-        <button className="home-more" onClick={() => onGo('calendar')}>매체 캘린더</button>
+        <button className="home-more" onClick={() => onGo('calendar')}>콘텐츠 캘린더</button>
       </div>
       <div className="home-sec-d">매체 집행과 촬영 일정</div>
       {empty ? (
@@ -187,7 +187,7 @@ function MediaToday({ events, today, onGo }) {
                 </div>
               )
             })}
-            {r.list.length > HOME_MAX && <div className="home-allin">외 {r.list.length - HOME_MAX}건, 매체 캘린더에서 확인</div>}
+            {r.list.length > HOME_MAX && <div className="home-allin">외 {r.list.length - HOME_MAX}건, 콘텐츠 캘린더에서 확인</div>}
           </div>
         </div>
       ))}
@@ -269,7 +269,7 @@ function CampaignDday({ events, today, onGo }) {
     <section className="home-sec">
       <div className="group-label home-gl">
         주요 콘텐츠
-        <button className="home-more" onClick={() => onGo('calendar')}>매체 캘린더</button>
+        <button className="home-more" onClick={() => onGo('calendar')}>콘텐츠 캘린더</button>
       </div>
       <div className="home-sec-d">
         캠페인 단위 다음 게시 기준 (3주 내). 태그가 없어도 제목이 겹치면 자동으로 묶어 보여줍니다.
@@ -300,7 +300,7 @@ function CampaignDday({ events, today, onGo }) {
   )
 }
 
-/* ── ③ 이번 주 촬영 — 촬영일정 탭 미리보기 (놓치기 쉬운 분리 탭 보완) ── */
+/* ── ③ 이번 주 촬영 — 콘텐츠 캘린더 촬영 세그 미리보기 ('26.8.8 탭 병합) ── */
 function ShootWeek({ events, today, onGo }) {
   const list = useMemo(() => {
     const end7 = addDays(today, 7)
@@ -315,7 +315,7 @@ function ShootWeek({ events, today, onGo }) {
     <section className="home-sec">
       <div className="group-label home-gl">
         이번 주 촬영
-        <button className="home-more" onClick={() => onGo('shoot')}>촬영일정 전체</button>
+        <button className="home-more" onClick={() => onGo('calendar', null, 'shoot')}>촬영일정 전체</button>
       </div>
       <div className="home-sec-d">유튜브와 인스타 촬영 스케줄 (오늘부터 7일)</div>
       {list.map(e => (
@@ -524,7 +524,8 @@ function GlobalSearch({ events, onGo, onOpenSpec }) {
             <div className="gs-sec">
               <div className="gs-h">일정</div>
               {hits.ev.map(e => (
-                <button key={e.id} className="gs-row" onClick={() => go(() => onGo(e.kind === '촬영' ? 'shoot' : e.kind === '팀' ? 'team' : 'calendar'))}>
+                <button key={e.id} className="gs-row" onClick={() => go(() => (e.kind === '촬영'
+                  ? onGo('calendar', null, 'shoot') : onGo(e.kind === '팀' ? 'team' : 'calendar')))}>
                   <ChannelIcon id={e.channel} />
                   <span className="gs-ttl">{displayTitle(e.title, e.channel)}</span>
                   <span className="gs-meta">{e.date.slice(5).replace('-', '.')}{e.campaign ? ` #${e.campaign}` : ''}</span>

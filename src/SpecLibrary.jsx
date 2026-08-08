@@ -215,7 +215,7 @@ function RecentRuns({ mediaName, events }) {
   if (rows.length === 0) return null
   return (
     <div className="spec-runs">
-      <div className="spec-runs-h">최근 집행 <small>매체 캘린더 등록분</small></div>
+      <div className="spec-runs-h">최근 집행 <small>콘텐츠 캘린더 등록분</small></div>
       {rows.map(e => (
         <div key={e.id} className={'spec-run' + (e.past ? ' past' : '')}>
           <span className="sr-date">{e.date.slice(5).replace('-', '.')}{e.endDate && e.endDate !== e.date ? ` ~ ${e.endDate.slice(5).replace('-', '.')}` : ''}</span>
