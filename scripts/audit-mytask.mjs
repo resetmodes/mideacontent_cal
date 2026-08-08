@@ -72,6 +72,32 @@ const respond = url => {
   return []
 }
 
+
+/* 드래그 헬퍼 — 두 요소가 모두 화면 안에 들어온 뒤에 좌표를 읽는다.
+   앞 테스트가 일정을 늘리면 격자가 길어져 목적지가 뷰포트 밖으로 나가고,
+   그 상태에서 끌면 elementFromPoint가 아무것도 못 찾아 드롭이 조용히 실패한다 */
+async function dragTo(page, srcLoc, dstLoc, label) {
+  await dstLoc.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(150)
+  let a = await srcLoc.boundingBox(), b = await dstLoc.boundingBox()
+  const vh = page.viewportSize().height
+  if (!a || a.y < 0 || a.y + a.height > vh) {
+    await srcLoc.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(150)
+    a = await srcLoc.boundingBox(); b = await dstLoc.boundingBox()
+  }
+  if (!a || !b) { no(`${label}: 요소를 못 찾음`); return false }
+  if (b.y + b.height / 2 > vh || a.y + a.height / 2 > vh) {
+    no(`${label}: 출발지나 목적지가 화면 밖 (a=${Math.round(a.y)} b=${Math.round(b.y)} vh=${vh})`)
+    return false
+  }
+  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(a.x + a.width / 2 + 12, a.y + a.height / 2 + 12, { steps: 3 })
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 8 })
+  return true
+}
+
 let server = null
 try {
   execSync('npx vite build', { stdio: 'pipe', cwd: ROOT })
@@ -256,6 +282,106 @@ try {
   const stillMonth = await page.locator('.mt-grid').count()
   stillMonth ? ok('입력 중에는 단축키 미발동') : no('입력 중에 단축키가 뷰를 바꿈')
 
+  console.log('\n[12-a] 분류 레일 (접었다 펴기)')
+  {
+    const rail = await page.locator('.mt-rail').count()
+    if (rail) ok('레일 존재'); else no('좌측 분류 레일이 없음')
+    const namesHidden = await page.locator('.mt-rail:not(.open) .mt-rail-i span').first()
+      .isVisible().catch(() => false)
+    if (!namesHidden) ok('접힌 상태에서는 색점만'); else no('접혔는데 이름이 보임')
+    await page.locator('.mt-rail-tog').click()
+    await page.waitForTimeout(350)
+    const opened = await page.locator('.mt-rail.open').count()
+    if (opened) ok('펼쳐짐'); else no('레일이 안 펼쳐짐')
+    const nameShown = await page.locator('.mt-rail.open .mt-rail-i span').first().isVisible()
+    if (nameShown) ok('펼치면 이름 노출'); else no('펼쳤는데 이름이 안 보임')
+    const cnt = await page.locator('.mt-rail-i:has-text("기획") em').innerText().catch(() => '')
+    if (cnt) ok('남은 건수 표기 ' + cnt); else no('분류별 건수가 없음')
+    /* 레일로 필터가 걸리는가 */
+    await page.locator('.mt-rail-i:has-text("기획")').click()
+    await page.waitForTimeout(400)
+    const filtered = await page.locator('.mt-todo').count()
+    if (filtered >= 1) ok(`레일 필터 동작 (${filtered}건)`); else no('레일 필터가 목록을 비움')
+    await page.locator('.mt-rail-i:has-text("전체")').click()
+    await page.waitForTimeout(300)
+    await page.locator('.mt-rail-tog').click()
+    await page.waitForTimeout(300)
+  }
+
+  console.log('\n[12-b] 간단 입력줄 (버튼 없이 엔터, 담을 곳은 색점)')
+  {
+    const btn = await page.locator('.mt-add button:not(.mt-add-dot)').count()
+    if (!btn) ok('추가 버튼 없이 한 줄'); else no('입력줄에 별도 추가 버튼이 남음')
+    await page.locator('.mt-add-dot').click()
+    await page.waitForTimeout(300)
+    const pop = await page.locator('.mt-add-pop').count()
+    if (pop) ok('담을 곳 팝오버 열림'); else no('담을 곳을 고를 수 없음')
+    await page.locator('.mt-add-pop button:has-text("운영")').click()
+    await page.waitForTimeout(300)
+    posted = []
+    await page.locator('.mt-add input').fill('팝오버 지정 확인')
+    await page.locator('.mt-add input').press('Enter')
+    await page.waitForTimeout(700)
+    const made = posted.find(x => x.method === 'POST' && /my_todos/.test(x.url))
+    if (made && made.body.space_id === 'sp2') ok('고른 분류로 저장됨')
+    else no('담을 곳 지정이 저장에 반영 안 됨: ' + JSON.stringify(made?.body || null))
+  }
+
+  console.log('\n[12-c] 주간 칩이 분류 색으로 구분되는가 + 시각 표기')
+  {
+    await page.locator('.seg button:has-text("주간")').click()
+    await page.waitForTimeout(700)
+    const chips = await page.evaluate(() => [...document.querySelectorAll('.mt-wg-col .mt-ev.mine')]
+      .map(e => {
+        const cs = getComputedStyle(e)
+        return { t: e.querySelector('.mt-ev-n')?.textContent,
+          bg: cs.backgroundColor, bl: cs.borderLeftColor, blw: cs.borderLeftWidth,
+          time: e.querySelector('.mt-ev-t')?.textContent || '' }
+      }))
+    const sp1 = chips.find(c => c.t === '이른 회의')      // 기획 = #0B4336
+    const none = chips.find(c => c.t === '긴 워크숍')     // 분류 없음
+    if (sp1 && /rgba\(11, 67, 54/.test(sp1.bg)) ok('분류 색 반투명 배경 ' + sp1.bg)
+    else no('분류 색이 칩에 안 실림: ' + JSON.stringify(sp1))
+    if (sp1 && sp1.blw !== '0px') ok('왼쪽 색선 ' + sp1.blw); else no('왼쪽 색선이 없음')
+    if (sp1 && sp1.time.includes('07:30') && sp1.time.includes('08:30'))
+      ok('시각 표기 ' + sp1.time)
+    else no('칩에 시각 표기가 없음: ' + JSON.stringify(sp1?.time))
+    if (none) ok('분류 없는 일정도 렌더됨')
+    /* 배경 일정도 종류별로 다른 색인가 */
+    const bgs = await page.evaluate(() => [...document.querySelectorAll('.mt-ev.bg')]
+      .map(e => getComputedStyle(e).borderLeftColor))
+    if (new Set(bgs).size >= 1) ok('배경 일정 색 구분 적용')
+    await page.locator('.seg button:has-text("월간")').click()
+    await page.waitForTimeout(500)
+  }
+
+  console.log('\n[12-d] 상세 시트 날짜 칸이 시각 칸과 같은 모양인가')
+  {
+    await page.locator('.mt-cell .mt-ev.mine').first().click()
+    await page.waitForTimeout(500)
+    const box = await page.evaluate(() => {
+      const d = document.querySelector('.mt-sheet input[type=date]')
+      const t = document.querySelector('.mt-sheet input[type=time]')
+      if (!d || !t) return null
+      const cd = getComputedStyle(d), ct = getComputedStyle(t)
+      const rd = d.getBoundingClientRect()
+      const sheet = document.querySelector('.mt-sheet').getBoundingClientRect()
+      return { dr: cd.borderRadius, tr: ct.borderRadius, db: cd.borderTopWidth,
+        dh: Math.round(rd.height), th: Math.round(t.getBoundingClientRect().height),
+        over: rd.right > sheet.right + 1, appear: cd.appearance || cd.webkitAppearance }
+    })
+    if (!box) { no('상세에 날짜 또는 시각 입력이 없음') } else {
+      if (box.dr === box.tr && box.dr !== '0px') ok('날짜와 시각 곡률 일치 ' + box.dr)
+      else no(`날짜 칸 곡률이 시각 칸과 다름 (날짜 ${box.dr}, 시각 ${box.tr})`)
+      if (Math.abs(box.dh - box.th) <= 2) ok('높이 일치 ' + box.dh + 'px')
+      else no(`날짜 칸 높이가 어긋남 (${box.dh} vs ${box.th})`)
+      if (box.db !== '0px') ok('테두리 적용'); else no('날짜 칸에 테두리가 없음')
+      if (!box.over) ok('시트 밖으로 안 넘침'); else no('날짜 칸이 시트를 넘침')
+    }
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
+  }
+
   console.log('\n[12] 완료 숨기기와 검색')
   await page.locator('.mt-add input').fill('')
   await page.locator('.mt-search button').click()
@@ -300,20 +426,17 @@ try {
   {
     const row = page.locator('.mt-todo:has-text("콘티 초안")').first()
     const cell = page.locator('.mt-cell[data-date="2026-08-19"]')
-    const a = await row.boundingBox(), b = await cell.boundingBox()
-    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
-    await page.mouse.down()
-    await page.mouse.move(a.x + 40, a.y + 40, { steps: 5 })
-    const ghost = await page.locator('.mt-ghost').count()
-    if (ghost) ok('드래그 중 따라오는 칩 표시'); else no('드래그 고스트가 없음')
-    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 8 })
-    await page.mouse.up()
-    await page.waitForTimeout(800)
-    const made = posted.find(x => x.method === 'POST' && /my_events/.test(x.url))
-    const gone = posted.find(x => x.method === 'DELETE' && /my_todos/.test(x.url))
-    if (made && made.body.on_date === '2026-08-19') ok('일정으로 생성 ' + made.body.on_date)
-    else no('드롭이 일정을 안 만듦: ' + JSON.stringify(made?.body || null))
-    if (gone) ok('원래 할 일 삭제'); else no('할 일이 남음 (이중 등록)')
+    if (await dragTo(page, row, cell, '할 일 드래그')) {
+      const ghost = await page.locator('.mt-ghost').count()
+      if (ghost) ok('드래그 중 따라오는 칩 표시'); else no('드래그 고스트가 없음')
+      await page.mouse.up()
+      await page.waitForTimeout(900)
+      const made = posted.find(x => x.method === 'POST' && /my_events/.test(x.url))
+      const gone = posted.find(x => x.method === 'DELETE' && /my_todos/.test(x.url))
+      if (made && made.body.on_date === '2026-08-19') ok('일정으로 생성 ' + made.body.on_date)
+      else no('드롭이 일정을 안 만듦: ' + JSON.stringify(made?.body || null))
+      if (gone) ok('원래 할 일 삭제'); else no('할 일이 남음 (이중 등록)')
+    }
   }
 
   console.log('\n[17] 일정 드래그 이동과 실행 취소')
@@ -321,23 +444,21 @@ try {
   {
     const chip = page.locator('.mt-cell[data-date="2026-08-13"] .mt-ev.mine').first()
     const cell = page.locator('.mt-cell[data-date="2026-08-14"]')
-    const a = await chip.boundingBox(), b = await cell.boundingBox()
-    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
-    await page.mouse.down()
-    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 8 })
-    await page.mouse.up()
-    await page.waitForTimeout(800)
-    const moved = posted.find(x => x.method === 'PATCH' && /my_events/.test(x.url))
-    if (moved && moved.body.on_date === '2026-08-14') ok('PATCH로 이동')
-    else no('드래그 이동이 저장 안 됨: ' + JSON.stringify(moved?.body || null))
-    const undo = await page.locator('.mt-undo').count()
-    if (undo) ok('실행 취소 바 노출'); else no('실행 취소 바가 없음')
-    if (undo) {
-      posted = []
-      await page.locator('.mt-undo button:has-text("실행 취소")').click()
-      await page.waitForTimeout(600)
-      const back = posted.find(x => x.method === 'PATCH' && x.body.on_date === '2026-08-13')
-      if (back) ok('원래 날짜로 되돌림'); else no('실행 취소가 되돌리지 않음')
+    if (await dragTo(page, chip, cell, '일정 드래그')) {
+      await page.mouse.up()
+      await page.waitForTimeout(900)
+      const moved = posted.find(x => x.method === 'PATCH' && /my_events/.test(x.url))
+      if (moved && moved.body.on_date === '2026-08-14') ok('PATCH로 이동')
+      else no('드래그 이동이 저장 안 됨: ' + JSON.stringify(moved?.body || null))
+      const undo = await page.locator('.mt-undo').count()
+      if (undo) ok('실행 취소 바 노출'); else no('실행 취소 바가 없음')
+      if (undo) {
+        posted = []
+        await page.locator('.mt-undo button:has-text("실행 취소")').click()
+        await page.waitForTimeout(700)
+        const back = posted.find(x => x.method === 'PATCH' && x.body.on_date === '2026-08-13')
+        if (back) ok('원래 날짜로 되돌림'); else no('실행 취소가 되돌리지 않음')
+      }
     }
   }
 
@@ -379,9 +500,13 @@ try {
        상세 시트의 "날짜 지정"이다 (아래 [21]) */
     const chip = mp.locator('.mt-cell[data-date="2026-08-13"] .mt-ev.mine').first()
     const dst = mp.locator('.mt-cell[data-date="2026-08-14"]')
-    await chip.scrollIntoViewIfNeeded()
+    await dst.scrollIntoViewIfNeeded()
+    await mp.waitForTimeout(200)
     const a = await chip.boundingBox(), b = await dst.boundingBox()
-    if (!a || !b) { no('폰 화면에서 칩이나 셀을 못 찾음') } else {
+    const vh = mp.viewportSize().height
+    if (!a || !b || a.y < 0 || b.y + b.height / 2 > vh) {
+      no('폰 화면에서 출발지나 목적지가 화면 밖')
+    } else {
       mposted = []
       const cdp = await mctx.newCDPSession(mp)
       const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', {
@@ -391,7 +516,7 @@ try {
       const held = await mp.locator('.mt-ghost').count()
       if (held) ok('길게 누르면 드래그 시작'); else no('롱프레스로 드래그가 시작되지 않음')
       await touch('touchMove', b.x + b.width / 2, b.y + b.height / 2)
-      await mp.waitForTimeout(200)
+      await mp.waitForTimeout(250)
       await touch('touchEnd', 0, 0)
       await mp.waitForTimeout(900)
       const moved = mposted.find(x => x.method === 'PATCH' && /my_events/.test(x.url))

@@ -2260,9 +2260,56 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
    좌측 개인 투두 패널 + 우측 개인 캘린더(월간, 주간 시간 격자).
    드래그로 투두를 캘린더에 붙이고, 일정을 옮기고, 패널로 되돌려 날짜를 없앤다 */
 .mytask .cal-desc{margin-top:6px;font-size:14px;color:var(--g500);line-height:1.6;}
-.mt-cols{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start;}
+.mt-cols{display:grid;grid-template-columns:auto 320px minmax(0,1fr);gap:12px;align-items:start;}
 .mt-empty{padding:40px 0;text-align:center;color:var(--g500);font-size:13.5px;line-height:1.7;}
 .mt-empty.sm{padding:22px 0;font-size:13px;}
+
+
+/* ═══ 분류 레일 ('26.8.8) — 가장 좌측, 접었다 펼 수 있다 ═══
+   참고 이미지(ARCH Calendar)의 색점 열. 접으면 32px 점만, 펼치면 이름과 남은 건수까지 */
+.mt-rail{background:var(--glass-strong);border:1px solid var(--glass-border);border-radius:22px;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:var(--glass-shadow);
+  padding:12px 10px;position:sticky;top:20px;width:56px;
+  display:flex;flex-direction:column;gap:10px;transition:width .16s ease;}
+.mt-rail.open{width:170px;}
+.mt-rail-top{display:flex;align-items:center;gap:4px;justify-content:center;}
+.mt-rail.open .mt-rail-top{justify-content:space-between;}
+.mt-rail-tog,.mt-rail-add{font:inherit;font-size:15px;line-height:1;width:30px;height:30px;
+  border:0;border-radius:10px;background:rgba(19,32,25,.06);color:var(--g500);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex:none;}
+.mt-rail-tog:hover,.mt-rail-add:hover{background:rgba(11,67,54,.12);color:var(--green);}
+.mt-rail:not(.open) .mt-rail-add{margin-top:2px;}
+.mt-rail-list{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.mt-rail-w{display:flex;align-items:center;gap:2px;min-width:0;}
+.mt-rail-i{flex:1;min-width:0;display:flex;align-items:center;gap:9px;font:inherit;font-size:13px;
+  font-weight:600;color:var(--g600);border:0;background:none;cursor:pointer;
+  padding:7px 6px;border-radius:12px;text-align:left;}
+.mt-rail-i:hover{background:rgba(19,32,25,.05);}
+.mt-rail-i.on{background:rgba(11,67,54,.09);color:var(--ink);font-weight:700;}
+.mt-rail-i i{width:13px;height:13px;border-radius:5px;flex:none;display:block;
+  box-shadow:inset 0 0 0 1px rgba(19,32,25,.12);}
+.mt-rail-i i.all{background:linear-gradient(135deg,var(--g300),var(--g200));}
+.mt-rail-i span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mt-rail-i em{font-style:normal;font-size:11px;font-weight:700;color:var(--g400);
+  font-variant-numeric:tabular-nums;flex:none;}
+/* 접힌 상태에서는 색점만 — 이름과 건수는 감춘다 */
+.mt-rail:not(.open) .mt-rail-i{justify-content:center;padding:8px 0;}
+.mt-rail:not(.open) .mt-rail-i span,.mt-rail:not(.open) .mt-rail-i em{display:none;}
+.mt-rail:not(.open) .mt-rail-i i{width:16px;height:16px;border-radius:6px;}
+.mt-rail-x{font:inherit;font-size:14px;line-height:1;border:0;background:none;color:var(--g300);
+  cursor:pointer;padding:2px 4px;opacity:0;transition:opacity .12s ease;flex:none;}
+.mt-rail-w:hover .mt-rail-x,.mt-rail-x:focus-visible{opacity:1;}
+.mt-rail-x:hover{color:var(--red);}
+.mt-rail-x.arm{opacity:1;font-size:11px;font-weight:700;color:#fff;background:var(--red);
+  border-radius:9px;padding:3px 7px;}
+.mt-rail-new{display:flex;flex-wrap:wrap;gap:5px;}
+.mt-rail-new input{width:100%;font:inherit;font-size:12.5px;padding:7px 11px;
+  border:1px solid var(--g200);border-radius:14px;background:rgba(255,255,255,.9);color:var(--ink);}
+.mt-rail-new input:focus{outline:none;border-color:var(--green);}
+.mt-rail-new button{flex:1;font:inherit;font-size:11.5px;font-weight:700;padding:6px 8px;
+  border:1px solid var(--g200);border-radius:12px;background:rgba(255,255,255,.8);
+  color:var(--g600);cursor:pointer;}
+.mt-rail-new button:first-of-type{background:var(--green);border-color:var(--green);color:#fff;}
 
 /* 좌측 투두 패널 */
 .mt-todos{background:var(--glass-strong);border:1px solid var(--glass-border);border-radius:22px;
@@ -2272,43 +2319,7 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-tp-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;}
 .mt-tp-head b{font-size:17.5px;font-weight:800;letter-spacing:-.015em;}
 .mt-tp-head span{font-size:12.5px;color:var(--g500);}
-.mt-sp-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
-.mt-sp{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:12.5px;font-weight:600;
-  border:1px solid var(--g200);background:rgba(255,255,255,.6);border-radius:12px;
-  padding:5px 11px;cursor:pointer;color:var(--g600);}
-.mt-sp:hover{border-color:var(--green);}
-.mt-sp.on{border-color:var(--ink);color:var(--ink);font-weight:700;box-shadow:inset 0 -7px 0 var(--hl);}
-.mt-sp i{width:8px;height:8px;border-radius:50%;display:block;}
-.mt-sp.add{border-style:dashed;color:var(--g500);}
-/* 스페이스 삭제는 2단계 버튼 (네이티브 confirm 미사용 원칙) — 평소엔 숨고 호버 시 노출 */
-.mt-sp-wrap{display:inline-flex;align-items:center;gap:3px;}
-.mt-sp-del{font:inherit;font-size:14px;line-height:1;border:0;background:none;color:var(--g300);
-  cursor:pointer;padding:2px 4px;opacity:0;transition:opacity .15s;}
-.mt-sp-wrap:hover .mt-sp-del{opacity:1;}
-.mt-sp-del:hover{color:var(--red);}
-.mt-sp-del.arm{opacity:1;font-size:11.5px;font-weight:700;color:#fff;background:var(--red);
-  border-radius:12px;padding:4px 9px;}
-.mt-sp-new{display:inline-flex;align-items:center;gap:5px;}
-.mt-sp-new input{font:inherit;font-size:12.5px;padding:5px 11px;width:120px;
-  border:1px solid var(--g300);border-radius:12px;background:rgba(255,255,255,.85);color:var(--ink);}
-.mt-sp-new button{font:inherit;font-size:12px;font-weight:700;border:1px solid var(--g200);
-  background:rgba(255,255,255,.6);color:var(--g600);border-radius:12px;padding:5px 10px;cursor:pointer;}
-.mt-sp-new button:first-of-type{background:var(--green);border-color:var(--green);color:#fff;}
-.mt-add{display:flex;gap:8px;margin-bottom:14px;}
-.mt-add input{flex:1;min-width:0;font:inherit;font-size:14px;padding:10px 13px;
-  border:1px solid var(--g300);border-radius:18px;background:rgba(255,255,255,.85);color:var(--ink);}
-.mt-add button{font:inherit;font-size:13.5px;font-weight:700;border:0;background:var(--green);
-  color:#fff;border-radius:18px;padding:0 16px;cursor:pointer;}
-/* 담을 스페이스 고르기 — 입력줄 바로 아래에 붙여 "어디에 들어가는지"가 항상 보이게 */
-.mt-add-sp{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:-6px 0 14px;}
-.mt-add-sp>span{font-size:11.5px;font-weight:700;color:var(--g400);margin-right:2px;}
-.mt-add-sp button{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:11.5px;
-  font-weight:600;border:1px solid transparent;background:rgba(19,32,25,.05);border-radius:12px;
-  padding:4px 9px;cursor:pointer;color:var(--g500);}
-.mt-add-sp button:hover{color:var(--ink);}
-.mt-add-sp button.on{background:var(--green);color:#fff;font-weight:700;}
-.mt-add-sp button i{width:7px;height:7px;border-radius:50%;display:block;
-  box-shadow:0 0 0 1.5px rgba(255,255,255,.55);}
+/* 구 분류 칩 줄과 담을 곳 칩 줄은 좌측 분류 레일과 입력줄 색점으로 대체됨 ('26.8.8) */
 .mt-tp-right{display:flex;align-items:center;gap:10px;}
 /* 정렬 세그 — 세그 공통 언어의 축소판 (컨테이너 반투명, 선택 알약은 흰 유리) */
 .mt-sort{display:inline-flex;gap:2px;padding:3px;border-radius:14px;
@@ -2377,7 +2388,7 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-ly i{width:9px;height:9px;border-radius:3px;display:block;}
 
 /* 월간 */
-.mt-grid{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--glass-border);
+.mt-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--glass-border);
   border-radius:22px;overflow:hidden;background:var(--glass);}
 .mt-dow{font-size:11px;font-weight:700;color:var(--g400);text-align:center;padding:9px 0 7px;
   border-bottom:1px solid var(--g100);background:rgba(255,255,255,.4);}
@@ -2399,7 +2410,33 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-more:hover{color:var(--green);background:rgba(11,67,54,.06);}
 .mt-tag{font-size:10px;color:var(--g400);margin-left:4px;font-weight:600;}
 .mt-tag.closed{color:var(--red);}
-.mt-evs{margin-top:4px;display:flex;flex-direction:column;gap:3px;}
+.mt-evs{margin-top:4px;min-width:0;display:flex;flex-direction:column;gap:3px;}
+
+/* 간단한 한 줄 추가 ('26.8.8) — 버튼 없이 엔터로, 담을 곳은 왼쪽 색점 */
+.mt-add{position:relative;display:flex;align-items:center;gap:9px;margin-bottom:6px;
+  border:1px solid var(--g200);border-radius:18px;background:rgba(255,255,255,.75);
+  padding:3px 12px 3px 11px;transition:border-color .12s ease,box-shadow .12s ease;}
+.mt-add:focus-within{border-color:var(--green);box-shadow:0 0 0 3px rgba(11,67,54,.1);}
+.mt-add input{flex:1;min-width:0;font:inherit;font-size:13.5px;padding:9px 0;
+  border:0;background:none;color:var(--ink);}
+.mt-add input:focus{outline:none;}
+.mt-add input::placeholder{color:var(--g400);font-size:12.5px;}
+.mt-add-dot{width:14px;height:14px;flex:none;border-radius:5px;cursor:pointer;padding:0;
+  border:1.5px dashed var(--g300);box-shadow:inset 0 0 0 1px rgba(19,32,25,.06);}
+.mt-add-dot[style*="rgb"],.mt-add-dot[style*="#"]{border-style:solid;border-color:transparent;}
+.mt-add-pop{position:absolute;left:0;top:calc(100% + 6px);z-index:20;min-width:170px;
+  display:flex;flex-direction:column;gap:2px;padding:6px;
+  background:var(--glass-strong);border:1px solid var(--glass-border);border-radius:16px;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:var(--glass-shadow);}
+.mt-add-pop button{display:flex;align-items:center;gap:9px;font:inherit;font-size:12.5px;
+  font-weight:600;color:var(--g600);border:0;background:none;cursor:pointer;
+  padding:7px 10px;border-radius:11px;text-align:left;}
+.mt-add-pop button:hover{background:rgba(19,32,25,.05);}
+.mt-add-pop button.on{background:rgba(11,67,54,.1);color:var(--ink);font-weight:700;}
+.mt-add-pop i{width:11px;height:11px;border-radius:4px;flex:none;
+  box-shadow:inset 0 0 0 1px rgba(19,32,25,.12);}
+.mt-add-pop i.none{border:1.5px dashed var(--g300);}
+
 
 /* 주간 시간 격자 ('26.8.8 재작업)
    ★ 칩은 "시각 칸"이 아니라 요일 열(.mt-wg-col) 위에 절대 배치한다. 예전처럼 시각 칸
@@ -2409,7 +2446,7 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
    덤으로 한 줄이 정확히 8칸이 되어, 세로선을 nth-child로 세던 계산 오류도 사라진다
    (구 .mt-wg-cell:nth-child(9n)은 한 줄을 9칸으로 세어 격자 한가운데에 대각선으로
    세로선이 빠진 칸을 만들었다) */
-.mt-wgrid{display:grid;grid-template-columns:56px repeat(7,1fr);border:1px solid var(--glass-border);
+.mt-wgrid{display:grid;grid-template-columns:56px repeat(7,minmax(0,1fr));border:1px solid var(--glass-border);
   border-radius:22px;overflow:hidden;background:var(--glass);}
 .mt-wg-corner{border-bottom:1px solid var(--g100);border-right:1px solid var(--g100);
   background:rgba(255,255,255,.4);}
@@ -2429,7 +2466,7 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   font-variant-numeric:tabular-nums;background:rgba(255,255,255,.32);}
 .mt-wg-lab.allday{padding-top:10px;}
 .mt-wg-cell.allday{border-right:1px solid var(--g100);border-bottom:1px solid var(--g100);
-  min-height:38px;padding:4px;display:flex;flex-direction:column;gap:3px;position:relative;}
+  min-height:38px;min-width:0;padding:4px;display:flex;flex-direction:column;gap:3px;position:relative;}
 .mt-wg-cell.allday:last-of-type{border-right:0;}
 
 /* 시각 라벨 열과 요일 열 */
@@ -2438,7 +2475,7 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   padding:2px 8px 0 0;font-variant-numeric:tabular-nums;box-sizing:border-box;
   border-top:1px solid var(--g100);}
 .mt-wg-hr:first-child{border-top:0;}
-.mt-wg-col{position:relative;border-right:1px solid var(--g100);}
+.mt-wg-col{position:relative;min-width:0;border-right:1px solid var(--g100);}
 .mt-wg-col:last-child{border-right:0;}
 .mt-wg-col.today{background:rgba(143,239,174,.08);}
 /* 드롭 타깃 겸 빈 칸 등록 — 정시는 실선, 30분은 옅은 선 */
@@ -2468,33 +2505,44 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-ghost:not([data-at])::after,.mt-ghost[data-at=""]::after{display:none;}
 
 /* 일정 칩 — user-select 해제 필수: 드래그가 텍스트 선택을 남기면 다음 드래그를
-   브라우저가 네이티브 드래그로 오인해 pointercancel로 끊는다 ('26.8.7 실측) */
-.mt-ev{font-size:11.5px;font-weight:600;line-height:1.35;border-radius:8px;padding:3px 7px;
-  display:flex;align-items:flex-start;gap:5px;word-break:keep-all;
+   브라우저가 네이티브 드래그로 오인해 pointercancel로 끊는다 ('26.8.7 실측)
+
+   ★ 색은 인라인 style로 들어온다 ('26.8.8) — 분류(스페이스) 색을 반투명 배경 +
+   왼쪽 색선으로. 예전엔 내 일정이 전부 같은 그린이라 칩만 보고는 분류를 알 수 없었다.
+   배경색이 옅으므로 글자는 흰색이 아니라 잉크여야 읽힌다 */
+.mt-ev{font-size:11.5px;font-weight:600;line-height:1.3;border-radius:8px;padding:3px 7px;
+  display:flex;flex-direction:column;gap:1px;word-break:keep-all;color:var(--ink);
+  border-left-style:solid;overflow:hidden;
   user-select:none;-webkit-user-select:none;}
-.mt-ev.mine{background:var(--green);color:#fff;cursor:grab;}
+.mt-ev.mine{cursor:grab;}
 .mt-ev.mine.dragging{opacity:.4;}
-.mt-ev-sp{width:7px;height:7px;border-radius:50%;flex:none;margin-top:4px;
-  box-shadow:0 0 0 1.5px rgba(255,255,255,.5);}
-.mt-ev-t{font-size:10px;font-weight:700;opacity:.82;flex:none;font-variant-numeric:tabular-nums;}
-.mt-ev-n{min-width:0;overflow:hidden;}
-.mt-ev-lk{font-size:9px;font-weight:800;background:rgba(255,255,255,.28);border-radius:5px;
-  padding:0 4px;margin-left:auto;flex:none;}
-.mt-ev.bg{background:rgba(255,255,255,.72);color:var(--g600);}
-.mt-ev.bg.팀{border:1px dashed var(--g300);}
-.mt-ev.bg.매체{border:1px dashed var(--lilac-bar);}
-.mt-ev.bg.촬영{border:1px dashed #E8730C;}
+.mt-ev-n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;
+  padding-right:14px;}
+.mt-ev-t{font-size:10px;font-weight:600;color:var(--g500);font-variant-numeric:tabular-nums;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mt-ev-marks{display:flex;align-items:center;gap:4px;position:absolute;right:5px;top:4px;}
+.mt-ev .mk{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.4;display:block;}
+.mt-ev-lk{font-size:9px;font-weight:800;background:rgba(19,32,25,.1);border-radius:5px;
+  padding:0 4px;color:var(--g600);}
+.mt-ev.bg{color:var(--g600);}
+.mt-ev.bg .mt-ev-n{font-weight:600;}
 .mt-ev.clash{box-shadow:0 0 0 2px var(--red);}
-/* 공유받은 남의 일정 — 내 것과 같은 그린이면 구분이 안 되고, 끌면 권한 오류로 끝난다 */
-.mt-ev.mine.got{background:rgba(255,255,255,.8);color:var(--lilac-ink);
-  border:1px solid var(--lilac-bar);cursor:pointer;}
-.mt-ev.bg.cont{opacity:.55;}
-.mt-wg-col .mt-ev{position:absolute;overflow:hidden;flex-direction:column;gap:1px;z-index:2;}
+/* 공유받은 남의 일정 — 내 것과 같은 색이면 구분이 안 되고, 끌면 권한 오류로 끝난다 */
+.mt-ev.mine.got{cursor:pointer;font-style:italic;}
+.mt-ev.bg.cont{opacity:.5;}
+/* 월간 셀은 한 줄로 눌러 담는다 (세로 공간이 좁다) */
+.mt-cell .mt-ev{flex-direction:row;align-items:baseline;gap:5px;position:relative;}
+.mt-cell .mt-ev .mt-ev-t{flex:none;font-size:9.5px;order:-1;}
+.mt-cell .mt-ev-marks{position:static;margin-left:auto;}
+.mt-wg-col .mt-ev{position:absolute;z-index:2;}
+.mt-wg-col .mt-ev .mt-ev-n{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;line-height:1.25;overflow-wrap:anywhere;}
 .mt-wg-col .mt-ev:hover{z-index:4;}
-.mt-wg-cell.allday .mt-ev{position:static;flex-direction:row;}
+.mt-wg-cell.allday .mt-ev{position:relative;flex-direction:row;align-items:baseline;gap:5px;}
+.mt-wg-cell.allday .mt-ev-marks{position:static;margin-left:auto;}
 .mt-ev-grip{position:absolute;left:0;right:0;bottom:0;height:8px;cursor:ns-resize;
   border-radius:0 0 8px 8px;}
-.mt-ev-grip:hover{background:rgba(255,255,255,.35);}
+.mt-ev-grip:hover{background:rgba(19,32,25,.1);}
 .mt-clash{margin-top:9px;font-size:12.5px;color:var(--red);font-weight:600;line-height:1.6;
   display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;}
 .mt-clash b{font-weight:800;}
@@ -2586,9 +2634,25 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-sh-block{margin-top:18px;padding-top:16px;border-top:1px solid var(--g100);}
 .mt-sh-lab{font-size:12.5px;font-weight:700;margin-bottom:9px;}
 .mt-sh-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.mt-sh-row input[type=time],.mt-sh-row select{font:inherit;font-size:13.5px;padding:8px 12px;
-  border:1px solid var(--g300);border-radius:18px;background:rgba(255,255,255,.85);color:var(--ink);}
+/* ★ input[type=date]가 빠져 있어 상세 시트의 날짜 칸만 네이티브 기본형으로 튀었다
+   ('26.8.8 수리). 곡률 통일 18px과 유리 표면을 시각 칸과 똑같이 맞춘다.
+   iOS는 date·time에 고유 최소 폭을 주고 값을 가운데 정렬하므로 min-width와 정렬도 함께 */
+.mt-sh-row input[type=date],.mt-sh-row input[type=time],.mt-sh-row select{
+  font:inherit;font-size:13.5px;padding:8px 12px;min-width:0;flex:1 1 auto;
+  -webkit-appearance:none;appearance:none;text-align:left;
+  border:1px solid var(--g300);border-radius:18px;background-color:rgba(255,255,255,.85);
+  color:var(--ink);line-height:1.3;}
+.mt-sh-row input[type=date]{flex:1 1 150px;}
+.mt-sh-row input[type=time]{flex:0 1 130px;}
+.mt-sh-row input[type=date]:focus,.mt-sh-row input[type=time]:focus,.mt-sh-row select:focus{
+  outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(11,67,54,.12);}
 .mt-sh-row input:disabled,.mt-sh-row select:disabled{opacity:.4;}
+/* 네이티브 달력·시계 아이콘이 잉크색으로 보이게 (기본은 옅은 회색이라 안 보인다) */
+.mt-sh-row input[type=date]::-webkit-calendar-picker-indicator,
+.mt-sh-row input[type=time]::-webkit-calendar-picker-indicator{
+  opacity:.55;cursor:pointer;}
+.mt-sh-row input[type=date]::-webkit-calendar-picker-indicator:hover,
+.mt-sh-row input[type=time]::-webkit-calendar-picker-indicator:hover{opacity:1;}
 .mt-chk{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;cursor:pointer;margin-top:11px;}
 .mt-chk input{width:16px;height:16px;margin-top:3px;accent-color:var(--green);}
 .mt-chk small{display:block;color:var(--g500);font-size:12px;margin-top:2px;}
@@ -2627,8 +2691,8 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-sh-acts button.primary{background:var(--green);border-color:var(--green);color:#fff;}
 .mt-sh-acts button.danger{color:var(--red);border-color:rgba(196,55,44,.4);}
 
-/* 크게 보기 — 좌측 패널을 접고 캘린더가 폭을 다 쓴다 (캘린더 "크게 보기"와 같은 결) */
-.mt-cols.wide{grid-template-columns:1fr;}
+/* 크게 보기 — 할 일 패널을 접고 캘린더가 폭을 다 쓴다 (레일은 남겨 분류 전환은 유지) */
+.mt-cols.wide{grid-template-columns:auto minmax(0,1fr);}
 .mt-cols.wide .mt-todos{display:none;}
 
 /* 완료 항목이 쌓이면 패널이 수천 px로 늘어나 sticky가 무의미해지고,
@@ -2641,13 +2705,28 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
   .mt-cols.wide .mt-todos{display:block;}
   .mt-todos{position:static;}
   .mt-todo-list{max-height:none;}
+  /* 세로로 쌓이면 레일은 가로 스크롤 띠로 — 세로 열로 두면 화면을 통째로 먹는다 */
+  .mt-rail,.mt-rail.open{position:static;width:auto;flex-direction:row;align-items:center;
+    gap:8px;padding:9px 12px;overflow-x:auto;}
+  .mt-rail-top{flex:none;}
+  .mt-rail-list{flex-direction:row;gap:6px;}
+  .mt-rail-i,.mt-rail.open .mt-rail-i{padding:6px 11px;white-space:nowrap;}
+  .mt-rail:not(.open) .mt-rail-i span,.mt-rail:not(.open) .mt-rail-i em{display:inline;}
+  .mt-rail:not(.open) .mt-rail-i{justify-content:flex-start;}
+  .mt-rail:not(.open) .mt-rail-i i{width:11px;height:11px;border-radius:4px;}
+  .mt-rail-tog{display:none;}
+  .mt-rail-new{position:absolute;z-index:20;left:12px;right:12px;top:100%;
+    background:var(--glass-strong);border:1px solid var(--glass-border);border-radius:16px;
+    padding:8px;box-shadow:var(--glass-shadow);}
+  .mt-rail{position:relative;}
 }
 /* 그리드 열의 min-content가 트랙을 넓혀 패널까지 같이 밀려나던 것 ('26.8.7 audit)
    — 열에 min-width:0을 주고, 좁은 화면에서는 격자만 가로로 스크롤시킨다 */
 .mt-cols>*{min-width:0;}
+/* 안전망 — 그래도 넘치면 격자만 가로로 굴린다 (본문 전체가 밀리지 않게) */
+.mt-gwrap{overflow-x:auto;}
 @media (max-width:640px){
   .mt-grid,.mt-wgrid{min-width:520px;}
-  .mt-gwrap{overflow-x:auto;}
   .mt-cell{min-height:84px;}
   .mt-todaybox{grid-template-columns:repeat(3,1fr);}
   .mt-keys{grid-template-columns:1fr;}

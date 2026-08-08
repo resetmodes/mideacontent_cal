@@ -29,7 +29,7 @@ import { HOLIDAYS, CLOSED_DAYS } from './data/holidays.js'
 import { TEAM } from './data/team.js'
 import { toISO, fromISO } from './lib/parse.js'
 import {
-  SNAP, SLOT, mins, hhmm, fmtK, addDays, fmtDur,
+  SNAP, SLOT, mins, hhmm, fmtK, addDays, fmtDur, tint, timeLabel,
   findClashes, layoutDay, expandBg, hoursFor, parseLine,
 } from './lib/myTask.js'
 import { listEvents, createEvent, deleteEvent } from './lib/store.js'
@@ -48,7 +48,7 @@ const DOW = ['일', '월', '화', '수', '목', '금', '토']
 const MONTH_MAX = 4                        // 월간 셀당 표시 상한
 const DUR_STEPS = [30, 60, 90, 120, 180, 240, 360, 480]
 const K = {                                // 브라우저에 기억하는 것들
-  sort: 'mtTodoSort', fold: 'mtTodoFold', view: 'mtView',
+  sort: 'mtTodoSort', fold: 'mtTodoFold', view: 'mtView', rail: 'mtRail',
   layers: 'mtLayers', wide: 'mtWide', done: 'mtHideDone', dur: 'mtLastDur',
 }
 const PALETTE = ['#0B4336', '#CFA3BD', '#7FA795', '#D9C6A5', '#9BA8C4', '#96637F']
@@ -59,6 +59,7 @@ const LAYERS = [
   { id: '촬영', name: '촬영', color: '#E8730C' },
 ]
 
+const LAYER_COLOR = Object.fromEntries(LAYERS.map(l => [l.id, l.color]))
 const norm = s => (s || '').toLowerCase().replace(/\s+/g, '')
 
 const read = (key, fb) => { try { const v = localStorage.getItem(key); return v === null ? fb : JSON.parse(v) } catch { return fb } }
@@ -84,6 +85,7 @@ export default function MyTaskPage() {
   const [query, setQuery] = useState('')
   const [hideDone, setHideDone] = useState(() => read(K.done, false))
   const [wide, setWide] = useState(() => read(K.wide, false))
+  const [railOpen, setRailOpen] = useState(() => read(K.rail, false))
   const [help, setHelp] = useState(false)
   const [newAt, setNewAt] = useState(null)                  // 빈 칸 클릭으로 여는 신규 시트
   const [undo, setUndo] = useState(null)
@@ -103,6 +105,7 @@ export default function MyTaskPage() {
   const pickView = useCallback(v => { write(K.view, v); setView(v) }, [])
   const toggleHideDone = () => setHideDone(v => { write(K.done, !v); return !v })
   const toggleWide = () => setWide(v => { write(K.wide, !v); return !v })
+  const toggleRail = () => setRailOpen(v => { write(K.rail, !v); return !v })
 
   const load = useCallback(async () => {
     setErr(null)
@@ -468,6 +471,17 @@ export default function MyTaskPage() {
     return { n: evs.length, planned, team: teamToday.length }
   }, [mine, teamEvents, today])
 
+  /* 레일에 띄울 스페이스별 남은 건수 */
+  const spaceCounts = useMemo(() => {
+    const m = { all: 0 }
+    for (const t of todos || []) {
+      if (t.done) continue
+      m.all++
+      if (t.spaceId) m[t.spaceId] = (m[t.spaceId] || 0) + 1
+    }
+    return m
+  }, [todos])
+
   /* 검색 결과의 일정 — 목록은 할 일만 거르므로 일정은 따로 보여준다 */
   const hitEvents = useMemo(() => {
     const q = norm(query)
@@ -502,15 +516,18 @@ export default function MyTaskPage() {
   return (
     <div className="wrap mytask">
       <Head />
-      <div className={`mt-cols${wide ? ' wide' : ''}`}>
+      <div className={`mt-cols${wide ? ' wide' : ''}${railOpen ? ' rail-open' : ''}`}>
+        {/* 가장 좌측 분류 레일 — 접었다 펼 수 있다 (참고 이미지의 색점 열) */}
+        <SpaceRail spaces={spaces} open={railOpen} onToggle={toggleRail}
+          active={spFilter} counts={spaceCounts}
+          onPick={id => setSpFilter(spFilter === id ? null : id)}
+          onAddSpace={addSpace} onRemoveSpace={removeSpace} />
         <TodoPanel
           spaces={spaces} todos={shownTodos} allTodos={todos} spFilter={spFilter} me={me}
           draft={draft} setDraft={setDraft} addRef={addRef} searchRef={searchRef}
           query={query} setQuery={setQuery} hitEvents={hitEvents} onOpenEvent={openEvent}
           hideDone={hideDone} onToggleHideDone={toggleHideDone}
           addSpaceId={addSpaceId} setAddSpaceId={setAddSpaceId}
-          onFilter={id => setSpFilter(spFilter === id ? null : id)}
-          onAddSpace={addSpace} onRemoveSpace={removeSpace}
           onAdd={addLine} onToggle={toggleTodo} onRemove={removeTodo}
           today={todayBox}
         />
@@ -589,6 +606,63 @@ function Head() {
   )
 }
 
+/* ── 분류 레일 ('26.8.8) — 가장 좌측, 접었다 펼 수 있다.
+   접으면 색점만, 펼치면 이름과 남은 건수까지. 스페이스 추가와 삭제도 여기서 한다
+   (예전엔 할 일 패널 안에 칩으로 있어 입력 영역을 밀어냈다) ── */
+function SpaceRail({ spaces, open, onToggle, active, counts, onPick, onAddSpace, onRemoveSpace }) {
+  const [draft, setDraft] = useState(null)
+  const [arm, setArm] = useState(null)
+  useEffect(() => {
+    if (!arm) return
+    const t = setTimeout(() => setArm(null), 5000)
+    return () => clearTimeout(t)
+  }, [arm])
+  const submit = () => { onAddSpace(draft); setDraft(null) }
+  /* 접힌 상태에서 추가를 누르면 입력이 보이도록 먼저 편다 */
+  const startAdd = () => { if (!open) onToggle(); setDraft('') }
+
+  return (
+    <nav className={`mt-rail${open ? ' open' : ''}`} aria-label="분류">
+      <div className="mt-rail-top">
+        <button className="mt-rail-tog" onClick={onToggle} aria-expanded={open}
+          aria-label={open ? '분류 접기' : '분류 펼치기'}>{open ? '‹' : '›'}</button>
+        <button className="mt-rail-add" onClick={startAdd} aria-label="분류 추가"
+          title="분류 추가">＋</button>
+      </div>
+      <div className="mt-rail-list">
+        <button className={`mt-rail-i${active === null ? ' on' : ''}`} onClick={() => onPick(null)}
+          title="전체" aria-pressed={active === null}>
+          <i className="all" /><span>전체</span><em>{counts.all || 0}</em>
+        </button>
+        {spaces.map(sp => (
+          <span className="mt-rail-w" key={sp.id}>
+            <button className={`mt-rail-i${active === sp.id ? ' on' : ''}`} onClick={() => onPick(sp.id)}
+              title={sp.name} aria-pressed={active === sp.id}>
+              <i style={{ background: sp.color }} /><span>{sp.name}</span><em>{counts[sp.id] || 0}</em>
+            </button>
+            {open && (arm === sp.id
+              ? <button className="mt-rail-x arm" onClick={() => { onRemoveSpace(sp.id); setArm(null) }}>삭제</button>
+              : <button className="mt-rail-x" onClick={() => setArm(sp.id)}
+                  aria-label={`${sp.name} 분류 삭제`}>×</button>)}
+          </span>
+        ))}
+      </div>
+      {draft !== null && (
+        <div className="mt-rail-new">
+          <input type="text" autoFocus value={draft} placeholder="분류 이름"
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.nativeEvent.isComposing) submit()
+              if (e.key === 'Escape') setDraft(null)
+            }} />
+          <button onClick={submit}>추가</button>
+          <button onClick={() => setDraft(null)}>취소</button>
+        </div>
+      )}
+    </nav>
+  )
+}
+
 /* ── 오늘 요약 ── 계획의 상한이 눈에 보이게 (Sunsama 데일리 플래닝에서 가져온 최소한) */
 function TodayBox({ n, planned, team }) {
   return (
@@ -604,21 +678,12 @@ function TodayBox({ n, planned, team }) {
 function TodoPanel({
   spaces, todos, allTodos, spFilter, me, draft, setDraft, addRef, searchRef,
   query, setQuery, hitEvents, onOpenEvent, hideDone, onToggleHideDone,
-  addSpaceId, setAddSpaceId, onFilter, onAddSpace, onRemoveSpace,
-  onAdd, onToggle, onRemove, today,
+  addSpaceId, setAddSpaceId, onAdd, onToggle, onRemove, today,
 }) {
   const left = (allTodos || []).filter(t => !t.done).length
-  const [spDraft, setSpDraft] = useState(null)   // null이면 입력창 닫힘
-  const [spArm, setSpArm] = useState(null)       // 삭제 2단계 확인 대상
-  const submitSp = () => { onAddSpace(spDraft); setSpDraft(null) }
+  const [pickOpen, setPickOpen] = useState(false)
   const pick = addSpaceId !== undefined ? addSpaceId : spFilter
-
-  /* 무장한 삭제 확인은 5초 뒤 저절로 풀린다 — 무장한 채 두면 나중에 실수로 누르게 된다 */
-  useEffect(() => {
-    if (!spArm) return
-    const t = setTimeout(() => setSpArm(null), 5000)
-    return () => clearTimeout(t)
-  }, [spArm])
+  const pickSp = spaces.find(x => x.id === pick) || null
 
   /* 정렬 ('26.8.7 사용자 지시) — 스페이스별 묶어 보기가 기본, 접기 상태는 브라우저에 기억 */
   const [sortBy, setSortBy] = useState(() => (read(K.sort, 'space') === 'recent' ? 'recent' : 'space'))
@@ -697,55 +762,33 @@ function TodoPanel({
         </div>
       )}
 
-      <div className="mt-sp-row">
-        {spaces.map(s => (
-          <span key={s.id} className="mt-sp-wrap">
-            <button className={`mt-sp${spFilter === s.id ? ' on' : ''}`}
-              aria-pressed={spFilter === s.id} onClick={() => onFilter(s.id)}>
-              <i style={{ background: s.color }} />{s.name}
-            </button>
-            {spArm === s.id
-              ? <button className="mt-sp-del arm" onClick={() => { onRemoveSpace(s.id); setSpArm(null) }}>정말 삭제</button>
-              : <button className="mt-sp-del" onClick={() => setSpArm(s.id)} aria-label={`${s.name} 스페이스 삭제`}>×</button>}
-          </span>
-        ))}
-        {spDraft === null
-          ? <button className="mt-sp add" onClick={() => setSpDraft('')}>＋ 스페이스</button>
-          : (
-            <span className="mt-sp-new">
-              <input type="text" autoFocus value={spDraft} placeholder="스페이스 이름"
-                onChange={e => setSpDraft(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.nativeEvent.isComposing) submitSp()
-                  if (e.key === 'Escape') setSpDraft(null)
-                }} />
-              <button onClick={submitSp}>추가</button>
-              <button onClick={() => setSpDraft(null)}>취소</button>
-            </span>
-          )}
-      </div>
-
+      {/* 간단한 한 줄 추가 — 버튼 없이 엔터로. 담을 곳은 왼쪽 색점을 눌러 고른다
+          (분류 칩 줄과 담을 곳 칩 줄이 입력 영역을 밀어내던 것을 레일로 옮김) */}
       <div className="mt-add">
+        <button className="mt-add-dot" aria-label="담을 곳 고르기" aria-expanded={pickOpen}
+          title={pickSp ? `담을 곳 ${pickSp.name}` : '담을 곳 분류 없음'}
+          style={{ background: pickSp ? pickSp.color : 'transparent' }}
+          onClick={() => setPickOpen(v => !v)} />
         <input type="text" ref={addRef} value={draft}
-          placeholder="할 일 또는 날짜를 함께, 예 내일 15시 임원 보고 1시간"
+          placeholder="할 일 추가, 날짜를 쓰면 일정이 됩니다"
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) onAdd() }} />
-        <button onClick={onAdd}>추가</button>
+        {pickOpen && (
+          <div className="mt-add-pop">
+            <button className={pick === null ? 'on' : ''}
+              onClick={() => { setAddSpaceId(null); setPickOpen(false) }}>
+              <i className="none" />분류 없음
+            </button>
+            {spaces.map(sp => (
+              <button key={sp.id} className={pick === sp.id ? 'on' : ''}
+                onClick={() => { setAddSpaceId(sp.id); setPickOpen(false) }}>
+                <i style={{ background: sp.color }} />{sp.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <AddHint draft={draft} />
-
-      {/* 어디에 담을지 한 번에 보이게 — 안 고르면 지금 보고 있는 스페이스로 들어간다 */}
-      {spaces.length > 0 && (
-        <div className="mt-add-sp">
-          <span>담을 곳</span>
-          <button className={pick === null ? 'on' : ''} onClick={() => setAddSpaceId(null)}>분류 없음</button>
-          {spaces.map(s => (
-            <button key={s.id} className={pick === s.id ? 'on' : ''} onClick={() => setAddSpaceId(s.id)}>
-              <i style={{ background: s.color }} />{s.name}
-            </button>
-          ))}
-        </div>
-      )}
 
       <div className="mt-todo-list">
         {todos.length === 0 && (
@@ -850,27 +893,40 @@ function CalTop({ view, setView, cursor, setCursor, cells, wide, onWide, onHelp 
   )
 }
 
-/* ── 일정 칩 ── */
+/* ── 일정 칩 ──
+   분류 색을 반투명 배경 + 왼쪽 색선으로 입힌다 ('26.8.8 참고 이미지) — 예전엔 내 일정이
+   전부 같은 그린이라 어느 분류인지 칩만 보고는 알 수 없었다. 글자는 잉크로 둬서
+   옅은 색 위에서도 읽힌다 */
 function Chip({ e, clash, slot, idx, n, top, height, spOf, me }) {
-  const style = slot
-    ? {
+  const sp = e.kind === 'mine' ? spOf(e.spaceId) : null
+  const color = e.kind === 'mine'
+    ? (sp?.color || '#0B4336')
+    : (LAYER_COLOR[e.kind] || '#9BA8C4')
+  const got = e.kind === 'mine' && e.owner && me && e.owner !== me
+  const range = timeLabel(e.time, e.dur)
+  const label = `${range ? `${range} ` : ''}${e.title}`
+  const style = {
+    background: tint(color, e.kind === 'mine' ? 0.15 : 0.08),
+    borderLeft: `3px solid ${e.kind === 'mine' ? color : tint(color, 0.55)}`,
+    ...(slot ? {
       top, height,
       left: `calc(${(idx * 100) / n}% + 2px)`,
       width: `calc(${100 / n}% - 4px)`,
-    }
-    : undefined
-  const sp = e.kind === 'mine' ? spOf(e.spaceId) : null
-  const got = e.kind === 'mine' && e.owner && me && e.owner !== me
-  const label = `${e.time ? `${e.time} ` : ''}${e.title}`
+    } : null),
+  }
+  /* 30분짜리는 두 줄이 안 들어간다 — 제목만 남기고 시각은 title 속성으로 */
+  const roomy = !slot || height >= 34
   return (
     <div className={`mt-ev ${e.kind === 'mine' ? 'mine' : `bg ${e.kind}`}${clash ? ' clash' : ''}${got ? ' got' : ''}${e.span === 'mid' || e.span === 'end' ? ' cont' : ''}`}
       data-ev={e.kind === 'mine' && !got ? e.id : undefined}
       data-open={e.kind === 'mine' ? e.id : undefined}
       style={style} title={label}>
-      {sp && <i className="mt-ev-sp" style={{ background: sp.color }} />}
-      {e.time && !slot && <span className="mt-ev-t">{e.time}</span>}
       <span className="mt-ev-n">{e.title}</span>
-      {e.linkedId && <span className="mt-ev-lk">팀</span>}
+      {range && roomy && <span className="mt-ev-t">{range}</span>}
+      <span className="mt-ev-marks">
+        {!!(e.memo || e.images?.length) && <i className="mk memo" title="메모나 첨부 있음" />}
+        {e.linkedId && <span className="mt-ev-lk">팀</span>}
+      </span>
       {slot && e.kind === 'mine' && !got && (
         <span className="mt-ev-grip" data-resize={e.id} aria-hidden="true" />
       )}

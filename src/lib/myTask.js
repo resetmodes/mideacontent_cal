@@ -15,6 +15,24 @@ export const fmtK = s => (s ? `${+s.slice(5, 7)}월 ${+s.slice(8, 10)}일` : '')
 export const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x }
 export const fmtDur = m => (m < 60 ? `${m}분` : m % 60 ? `${Math.floor(m / 60)}시간 ${m % 60}분` : `${m / 60}시간`)
 
+/* 분류 색을 반투명으로 ('26.8.8) — 주간 칩을 카테고리 색으로 구분하되 글자는 잉크로 읽히게.
+   CSS color-mix는 사파리 버전을 타므로 hex를 직접 rgba로 바꾼다 */
+export function tint(hex, a) {
+  const h = String(hex || '').replace('#', '')
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return `rgba(11, 67, 54, ${a})`
+  const n = parseInt(full, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`
+}
+
+/* 칩에 적을 시각 표기 — "10:15 - 10:45 / 30분" (참고 이미지의 표기) */
+export function timeLabel(time, dur) {
+  if (!time) return ''
+  const s = mins(time)
+  const d = Math.max(SNAP, dur || 60)
+  return `${time} - ${hhmm(Math.min(24 * 60 - 1, s + d))} / ${fmtDur(d)}`
+}
+
 /* 시간 겹침 판정 — 양쪽 모두 시각이 있어야 겹친 것이다.
    ★ 예전에는 한쪽이라도 시각이 없으면 true를 돌려줬는데, 배경 일정(팀·매체·촬영)은
    구조상 항상 시각이 없어서 "그날 매체 일정이 하나라도 있으면 무조건 충돌"이 됐다.
