@@ -924,6 +924,33 @@ for (const m of MEDIA) {
     bad('api/assistant.js: 사용량 상한 로직이 빠짐 (비용 폭주 방지선 없음)')
   if (/AssistantPage/.test(mirror))
     bad('MirrorApp.jsx: 미러에 AI 어시스턴트가 노출될 경로가 생김')
+
+  /* 2차 확장 ('26.8.8 — 사이트 전체 데이터로 확대, 도구 호출 방식) 감시.
+     ① 읽기 전용 — Supabase에 쓰기 메서드가 전혀 없어야 한다(등록·수정·삭제 금지 원칙)
+     ② 개인 데이터(my_*)는 서비스 키가 아니라 요청자 본인 토큰으로만 — 서비스 키 참조가
+        이 파일에 있으면 RLS를 우회해 다른 사람 데이터가 섞일 수 있다
+     ③ 모델↔도구 왕복에 상한이 있어야 한다(비용·지연 폭주 방지)
+     ④ 8개 도구가 전부 등록돼 있는지 — 하나라도 빠지면 그 도메인은 "사이트 데이터 전체"에서
+        조용히 누락된다 */
+  /* 이 코드베이스의 쓰기 패턴은 PATCH(수정)·DELETE(삭제)·Prefer:return=representation
+     (생성 후 응답 반환, rmnStore·settleStore 등 POST insert에서 쓰는 관례) — 이 세 신호가
+     하나도 없으면 Supabase에 쓰기가 없다는 뜻. POST 자체는 Claude API 호출에도 쓰여
+     단독으로는 판별 기준이 못 된다 */
+  if (/method:\s*['"](PATCH|DELETE|PUT)['"]/.test(api) || /Prefer/.test(api))
+    bad('api/assistant.js: 쓰기 메서드 또는 쓰기 관례(Prefer 헤더)가 감지됨 (읽기 전용 원칙 위반)')
+  if (/SUPABASE_SERVICE_KEY/.test(api))
+    bad('api/assistant.js: 서비스 키 참조가 있음 (개인 데이터 RLS 우회 위험)')
+  if (!/MAX_ITERS/.test(api) || !/MAX_TOOL_CALLS/.test(api))
+    bad('api/assistant.js: 도구 호출 왕복·횟수 상한이 없음 (비용 폭주 방지선 없음)')
+  const REQUIRED_TOOLS = [
+    'search_calendar', 'search_media_specs', 'get_content_performance',
+    'search_rmn_bookings', 'get_targetapp_stats', 'get_settlements',
+    'search_lounge_requests', 'get_my_tasks',
+  ]
+  for (const t of REQUIRED_TOOLS) {
+    if (!api.includes(`'${t}'`) && !api.includes(`"${t}"`))
+      bad(`api/assistant.js: 도구 ${t}가 빠짐 (사이트 데이터 전체 답변 범위 축소)`)
+  }
 }
 
 console.log(fail ? `\n정합성 테스트: ${fail}건 실패` : '정합성 테스트: 전부 통과')

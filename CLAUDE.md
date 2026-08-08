@@ -1401,3 +1401,47 @@
 - 회귀 감시: `npm run audit`의 `#assistant` 항목(빈 화면 상태만 확인 — 실제 답변은
   API 호출이라 전수 조사 목킹 대상 아님), `npm run smoke`가 탭 목록에 노출 확인
   (로컬 모드는 게이트 전원 허용), test-data 22번
+
+## AI 어시스턴트 사이트 전체 데이터 확장 ('26.8.8 — 같은 날 2차, 사용자 지시
+"일정 정보 말고도 이 사이트가 가진 데이터 전체에서 답변해줄 수 있게")
+- **1차는 캘린더만 항상 프롬프트에 실어 보내는 방식**이었다 — 도메인이 8개로 늘면서
+  그 방식을 그대로 확장하면 관련 없는 질문에도 매번 전 도메인을 실어 비용·인젝션
+  표면이 나빠진다. **Claude 도구 호출(tool use)로 전환** — `api/assistant.js`
+  `TOOLS` 8종을 함께 보내고 모델이 질문에 필요한 것만 골라 부르게(`tool_choice: auto`),
+  서버가 실행하고 결과를 tool_result로 되먹이는 왕복을 반복(최대 4회, `MAX_ITERS`)
+  하다 모델이 텍스트로 마무리하면 응답. 요청당 실제 도구 실행은 6회 상한
+  (`MAX_TOOL_CALLS`) — 도구 없는 단순 질문은 1차와 비용이 같고, 여러 도메인을
+  넘나드는 질문만 왕복이 늘어난다
+- **도구 8종**: `search_calendar`(media_events, 기존 기능 유지) · `search_media_specs`
+  (`src/data/media.js` 정적 번들 검색 — 매체명·카테고리) · `get_content_performance`
+  (인스타·유튜브·UGC 정적 번들, 최근 1개월 수집분) · `search_rmn_bookings`
+  (rmn_bookings, 광고주·상태) · `get_targetapp_stats`(targetapp_stats +
+  targetapp_media, 사업소·연월) · `get_settlements`(settlements, 귀속월·상태) ·
+  `search_lounge_requests`(media_requests, 상태) · `get_my_tasks`(my_todos +
+  my_events + my_spaces, 파라미터 없음 — 질문자 본인 것만)
+- **도구는 전부 조회뿐** — 쓰기 도구는 설계에 아예 없다. test-data 22번이
+  `PATCH`·`DELETE`·`Prefer` 헤더(이 코드베이스의 쓰기 관례) 부재를 소스에서 직접 감시
+- **개인 데이터 격리는 토큰으로** — `get_my_tasks`를 비롯한 모든 Supabase 조회를
+  서비스 키가 아니라 **질문한 사용자 본인의 토큰**으로 실행한다. my_* 테이블은
+  owner-or-shared RLS라 본인 토큰이면 자동으로 본인(과 공유받은) 것만 돌아오고,
+  서비스 키를 쓰면 그 경계가 사라진다 — `api/assistant.js`에 서비스 키를 아예 두지
+  않는 것이 유일한 안전장치. test-data 22번이 `SUPABASE_SERVICE_KEY` 참조 자체를
+  금지 신호로 감시. 나머지 6개 테이블은 "로그인하면 다 보임" RLS라 본인 토큰으로도
+  전체가 조회되는데, 이는 질문한 사용자가 사이트 UI에서 이미 보는 것과 같은 권한
+  범위라 확대가 아니다
+- **개인정보 노출 최소화** — media_requests 조회는 email·memo·sources·details·
+  reject_reason을 select에서 아예 빼(lounge_board 공개 뷰와 같은 절제 기준),
+  settlements는 owner_email 대신 owner_name만, rmn_bookings는 agency_phone·
+  agency_email·agency_bizno 등 연락처류를 제외
+- **시스템 프롬프트**: "도구를 먼저 불러 실데이터를 확인한 다음 그 결과만 근거로
+  답한다, 도구를 부르지 않고 추측하지 않는다"를 1번 규칙으로 승격, 기존 인젝션
+  방어·환각 방지·범위 이탈·문자열 규칙은 유지
+- 화면(`AssistantPage.jsx`)은 안내 문구와 예시 질문 4개(캘린더, 매체 스펙, 정산,
+  내 할 일 각 1개)만 넓혔다 — 실제 조회 범위는 서버 `TOOLS` 목록이 결정하므로
+  화면 쪽 변경은 최소
+- 비용: 모델은 그대로 `claude-haiku-4-5-20251001`, `max_tokens`만 1000→1200.
+  단순 질문 1왕복이면 1차와 비용이 비슷, 여러 도메인 질문만 왕복이 늘어 요청당
+  대략 $0.01~0.03 추정(월 예상 상한도 $10~15 → $15~30 내외로 소폭 상향)
+- 회귀 감시: test-data 22번에 도구 8종 전부 등록 여부, 왕복·호출 횟수 상한
+  (`MAX_ITERS`·`MAX_TOOL_CALLS`) 존재, 쓰기 부재 3종 신호를 추가. 실제 다도메인
+  질의응답 품질은 API 키·로그인 토큰이 필요해 자동화 대상이 아니다 — 배포 후 수동 확인
