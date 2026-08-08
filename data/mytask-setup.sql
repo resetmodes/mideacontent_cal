@@ -78,6 +78,9 @@ create table if not exists my_events (
   created_at timestamptz default now()
 );
 alter table my_events add column if not exists images jsonb;
+-- 날짜가 붙은 할 일도 완료 처리한다 ('26.8.8) — 캘린더 칩에 취소선이 그어진다.
+-- 미실행 시 완료 체크만 저장이 안 되고 나머지는 그대로 동작한다
+alter table my_events add column if not exists done boolean default false;
 alter table my_events enable row level security;
 drop policy if exists "myev read" on my_events;
 create policy "myev read" on my_events for select to authenticated

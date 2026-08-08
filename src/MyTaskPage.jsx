@@ -48,18 +48,36 @@ const DOW = ['일', '월', '화', '수', '목', '금', '토']
 const MONTH_MAX = 4                        // 월간 셀당 표시 상한
 const DUR_STEPS = [30, 60, 90, 120, 180, 240, 360, 480]
 const K = {                                // 브라우저에 기억하는 것들
-  sort: 'mtTodoSort', fold: 'mtTodoFold', view: 'mtView', rail: 'mtRail',
+  sort: 'mtTodoSort', fold: 'mtTodoFold', view: 'mtView', rail: 'mtRail', mview: 'mtMView',
   layers: 'mtLayers', wide: 'mtWide', done: 'mtHideDone', dur: 'mtLastDur',
 }
 const PALETTE = ['#0B4336', '#CFA3BD', '#7FA795', '#D9C6A5', '#9BA8C4', '#96637F']
+/* 겹쳐보기 레이어 — 매체 캘린더는 뺐다 ('26.8.8 사용자 지시).
+   매체 일정은 거의 매일 있어서 개인 캘린더를 덮어버리고, 내 시간과 겹치는지
+   판단하는 데도 쓰이지 않는다 (시각이 없는 기간 일정이라) */
 const LAYERS = [
   { id: 'mine', name: '내 일정', color: '#0B4336' },
   { id: '팀', name: '팀 일정', color: '#A9B5AD' },
-  { id: '매체', name: '매체', color: '#CFA3BD' },
   { id: '촬영', name: '촬영', color: '#E8730C' },
 ]
+const BG_KINDS = new Set(['팀', '촬영'])
 
 const LAYER_COLOR = Object.fromEntries(LAYERS.map(l => [l.id, l.color]))
+
+/* 좁은 화면인지 — 폰에서는 월간 셀에 글자 대신 색점을 찍는다 (7열 × 47px에는
+   제목이 두세 글자밖에 안 들어가 읽을 수 없다). 표준 모바일 월간 화면과 같은 방식 */
+function useCompact() {
+  const q = '(max-width: 700px)'
+  const [v, setV] = useState(() => typeof window !== 'undefined' && window.matchMedia(q).matches)
+  useEffect(() => {
+    const m = window.matchMedia(q)
+    const on = e => setV(e.matches)
+    m.addEventListener('change', on)
+    setV(m.matches)
+    return () => m.removeEventListener('change', on)
+  }, [])
+  return v
+}
 const norm = s => (s || '').toLowerCase().replace(/\s+/g, '')
 
 const read = (key, fb) => { try { const v = localStorage.getItem(key); return v === null ? fb : JSON.parse(v) } catch { return fb } }
@@ -77,7 +95,7 @@ export default function MyTaskPage() {
   const [view, setView] = useState(() => (read(K.view, 'month') === 'week' ? 'week' : 'month'))
   const [cursor, setCursor] = useState(new Date())
   const [spFilter, setSpFilter] = useState(null)
-  const [layers, setLayers] = useState(() => new Set(read(K.layers, ['mine', '팀', '매체', '촬영'])))
+  const [layers, setLayers] = useState(() => new Set(read(K.layers, ['mine', '팀', '촬영'])))
   const [openId, setOpenId] = useState(null)
   const [openTodoId, setOpenTodoId] = useState(null)
   const [draft, setDraft] = useState('')
@@ -86,6 +104,9 @@ export default function MyTaskPage() {
   const [hideDone, setHideDone] = useState(() => read(K.done, false))
   const [wide, setWide] = useState(() => read(K.wide, false))
   const [railOpen, setRailOpen] = useState(() => read(K.rail, false))
+  /* 폰에서는 할 일 패널과 캘린더가 세로로 쌓여 캘린더가 화면 한참 아래로 밀린다.
+     세그로 나눠 한 번에 하나만 보여준다 ('26.8.8, 모바일 캘린더 앱의 표준) */
+  const [mView, setMView] = useState(() => read(K.mview, 'todos') === 'cal' ? 'cal' : 'todos')
   const [help, setHelp] = useState(false)
   const [newAt, setNewAt] = useState(null)                  // 빈 칸 클릭으로 여는 신규 시트
   const [undo, setUndo] = useState(null)
@@ -106,6 +127,7 @@ export default function MyTaskPage() {
   const toggleHideDone = () => setHideDone(v => { write(K.done, !v); return !v })
   const toggleWide = () => setWide(v => { write(K.wide, !v); return !v })
   const toggleRail = () => setRailOpen(v => { write(K.rail, !v); return !v })
+  const pickMView = v => { write(K.mview, v); setMView(v) }
 
   const load = useCallback(async () => {
     setErr(null)
@@ -150,7 +172,7 @@ export default function MyTaskPage() {
 
   /* 배경 일정 — 보고 있는 기간만 펼친다. 전 기간을 매번 펼치면 수천 칩이 만들어진다 */
   const bgEvents = useMemo(
-    () => expandBg(teamEvents, range.from, range.to),
+    () => expandBg(teamEvents.filter(e => BG_KINDS.has(e.kind)), range.from, range.to),
     [teamEvents, range.from, range.to])
 
   const shownEvents = useMemo(() => {
@@ -304,7 +326,7 @@ export default function MyTaskPage() {
     if (!t) return
     const ev = await createMyEvent({
       title: t.txt, date, time: time || null,
-      dur: read(K.dur, 60), spaceId: t.spaceId, shared: t.shared,
+      dur: read(K.dur, 60), spaceId: t.spaceId, shared: t.shared, done: t.done,
       memo: t.memo, images: t.images,        // 메모와 첨부는 그대로 따라간다
     })
     try {
@@ -342,6 +364,10 @@ export default function MyTaskPage() {
       })
     }).catch(() => {})
   }, [optimistic, syncLinked, offerUndo])
+
+  /* 날짜가 붙은 할 일도 완료 처리한다 ('26.8.8) — 칩에 취소선이 그어진다 */
+  const toggleEventDone = useCallback(e => optimistic(setMine, e.id, { done: !e.done },
+    () => updateMyEvent(e.id, { done: !e.done })).catch(() => {}), [optimistic])
 
   const resizeEvent = useCallback((id, dur) => {
     write(K.dur, dur)
@@ -459,6 +485,7 @@ export default function MyTaskPage() {
   const openTodo = (todos || []).find(t => t.id === openTodoId) || null
 
   const spOf = useCallback(id => (spaces || []).find(s => s.id === id) || null, [spaces])
+  const compact = useCompact()
 
   /* 오늘 요약 — 배치된 시간과 팀 일정을 함께 보여준다 (계획의 상한이 눈에 보이게) */
   const todayBox = useMemo(() => {
@@ -482,16 +509,6 @@ export default function MyTaskPage() {
     return m
   }, [todos])
 
-  /* 검색 결과의 일정 — 목록은 할 일만 거르므로 일정은 따로 보여준다 */
-  const hitEvents = useMemo(() => {
-    const q = norm(query)
-    if (!q) return []
-    return (mine || [])
-      .filter(e => norm(e.title).includes(q) || norm(e.memo).includes(q))
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, 8)
-  }, [query, mine])
-
   /* ── 렌더 ── */
   if (!ready) return <div className="wrap mytask"><Head /><div className="mt-empty">불러오는 중</div></div>
   if (err) return (
@@ -512,11 +529,30 @@ export default function MyTaskPage() {
     if (q && !(norm(t.txt).includes(q) || norm(t.memo).includes(q))) return false
     return true
   })
+  /* 날짜 지정된 할 일 — 캘린더에 붙였다고 목록에서 사라지지 않는다 ('26.8.8 사용자 지시).
+     드래그하면 "마감 미지정"에서 "날짜 지정됨"으로 옮겨갈 뿐이다.
+     남의 것(공유받은 일정)은 내 할 일 목록에 섞지 않는다 */
+  const shownDated = (mine || []).filter(e => {
+    if (e.owner && e.owner !== me) return false
+    if (spFilter && e.spaceId !== spFilter) return false
+    if (hideDone && e.done) return false
+    if (q && !(norm(e.title).includes(q) || norm(e.memo).includes(q))) return false
+    return true
+  }).sort((a, b) => a.date.localeCompare(b.date)
+    || (mins(a.time) ?? 1e9) - (mins(b.time) ?? 1e9))
+  const todayISO = today
 
   return (
     <div className="wrap mytask">
       <Head />
-      <div className={`mt-cols${wide ? ' wide' : ''}${railOpen ? ' rail-open' : ''}`}>
+      {/* 폰 전용 전환 — 데스크톱에서는 CSS로 숨긴다 */}
+      <div className="mt-mseg" role="tablist">
+        <button role="tab" aria-selected={mView === 'todos'} className={mView === 'todos' ? 'on' : ''}
+          onClick={() => pickMView('todos')}>할 일</button>
+        <button role="tab" aria-selected={mView === 'cal'} className={mView === 'cal' ? 'on' : ''}
+          onClick={() => pickMView('cal')}>캘린더</button>
+      </div>
+      <div className={`mt-cols${wide ? ' wide' : ''}${railOpen ? ' rail-open' : ''} m-${mView}`}>
         {/* 가장 좌측 분류 레일 — 접었다 펼 수 있다 (참고 이미지의 색점 열) */}
         <SpaceRail spaces={spaces} open={railOpen} onToggle={toggleRail}
           active={spFilter} counts={spaceCounts}
@@ -524,12 +560,13 @@ export default function MyTaskPage() {
           onAddSpace={addSpace} onRemoveSpace={removeSpace} />
         <TodoPanel
           spaces={spaces} todos={shownTodos} allTodos={todos} spFilter={spFilter} me={me}
+          dated={shownDated} today={todayISO} onOpenDated={openEvent} onToggleDated={toggleEventDone}
           draft={draft} setDraft={setDraft} addRef={addRef} searchRef={searchRef}
-          query={query} setQuery={setQuery} hitEvents={hitEvents} onOpenEvent={openEvent}
+          query={query} setQuery={setQuery}
           hideDone={hideDone} onToggleHideDone={toggleHideDone}
           addSpaceId={addSpaceId} setAddSpaceId={setAddSpaceId}
           onAdd={addLine} onToggle={toggleTodo} onRemove={removeTodo}
-          today={todayBox}
+          summary={todayBox}
         />
         <section className="mt-cal">
           <CalTop view={view} setView={pickView} cursor={cursor} setCursor={setCursor} cells={cells}
@@ -552,7 +589,7 @@ export default function MyTaskPage() {
           <div className="mt-gwrap">
             {view === 'month'
               ? <MonthView cells={cells} byDay={byDay} today={today} clashIds={clashIds} spOf={spOf}
-                  closedDays={closedDays} me={me}
+                  closedDays={closedDays} me={me} compact={compact}
                   onDay={iso => { setCursor(fromISO(iso)); pickView('week') }} />
               : <WeekView cells={cells} byDay={byDay} today={today} clashIds={clashIds} spOf={spOf}
                   closedDays={closedDays} hours={hours} me={me} />}
@@ -580,7 +617,8 @@ export default function MyTaskPage() {
       )}
       {open && (
         <EventSheet ev={open} spaces={spaces} me={me} onClose={() => setOpenId(null)}
-          onPatch={patchEvent} onLink={toggleLink} onUnschedule={unschedule} onDelete={removeEvent} />
+          onPatch={patchEvent} onLink={toggleLink} onUnschedule={unschedule}
+          onDelete={removeEvent} onToggleDone={toggleEventDone} />
       )}
       {openTodo && (
         <TodoSheet td={openTodo} spaces={spaces} me={me} today={today}
@@ -677,8 +715,9 @@ function TodayBox({ n, planned, team }) {
 /* ── 좌측 투두 패널 ── */
 function TodoPanel({
   spaces, todos, allTodos, spFilter, me, draft, setDraft, addRef, searchRef,
-  query, setQuery, hitEvents, onOpenEvent, hideDone, onToggleHideDone,
-  addSpaceId, setAddSpaceId, onAdd, onToggle, onRemove, today,
+  dated, today, onOpenDated, onToggleDated,
+  query, setQuery, hideDone, onToggleHideDone,
+  addSpaceId, setAddSpaceId, onAdd, onToggle, onRemove, summary,
 }) {
   const left = (allTodos || []).filter(t => !t.done).length
   const [pickOpen, setPickOpen] = useState(false)
@@ -741,7 +780,7 @@ function TodoPanel({
         </div>
       </div>
 
-      <TodayBox {...today} />
+      <TodayBox {...summary} />
 
       <div className="mt-search">
         <input type="search" ref={searchRef} value={query} placeholder="할 일과 일정 검색"
@@ -751,17 +790,6 @@ function TodoPanel({
           {hideDone ? '완료 보기' : '완료 숨기기'}
         </button>
       </div>
-      {query && hitEvents.length > 0 && (
-        <div className="mt-hits">
-          <span>일정 {hitEvents.length}건</span>
-          {hitEvents.map(e => (
-            <button key={e.id} onClick={() => onOpenEvent(e.id)}>
-              <em>{fmtK(e.date)}</em>{e.title}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* 간단한 한 줄 추가 — 버튼 없이 엔터로. 담을 곳은 왼쪽 색점을 눌러 고른다
           (분류 칩 줄과 담을 곳 칩 줄이 입력 영역을 밀어내던 것을 레일로 옮김) */}
       <div className="mt-add">
@@ -791,26 +819,46 @@ function TodoPanel({
       <AddHint draft={draft} />
 
       <div className="mt-todo-list">
-        {todos.length === 0 && (
-          <div className="mt-empty sm">{query ? '검색 결과가 없습니다' : '할 일이 없습니다'}</div>
-        )}
-        {groups.map(g => (
-          <section className="mt-group" key={g.key}>
-            {g.head && (
-              <button className={`mt-g-head${fold.has(g.key) ? ' folded' : ''}`}
-                aria-expanded={!fold.has(g.key)} onClick={() => toggleFold(g.key)}>
-                {g.color && <i style={{ background: g.color }} />}
-                <b>{g.name}</b>
-                <span>{g.left > 0 ? `남은 ${g.left}` : '완료'}</span>
-                <em>{fold.has(g.key) ? '＋' : '−'}</em>
-              </button>
-            )}
-            {!fold.has(g.key) && g.items.map(t => (
-              <TodoRow key={t.id} t={t} spaces={spaces} showSpace={!g.head} me={me}
-                onToggle={onToggle} onRemove={onRemove} />
-            ))}
-          </section>
-        ))}
+        {/* 날짜 지정된 할 일 — 캘린더에 붙였다고 사라지지 않는다 ('26.8.8 사용자 지시).
+            드래그하면 아래 "마감 미지정"에서 이쪽으로 옮겨올 뿐이다 */}
+        <section className="mt-sec">
+          <div className="mt-sec-h">
+            <b>날짜 지정된 할 일</b>
+            <span>{dated.length}건</span>
+          </div>
+          {dated.length === 0 && <div className="mt-empty sm">캘린더로 끌어다 놓으면 여기에 모입니다</div>}
+          {dated.map(e => (
+            <DatedRow key={e.id} e={e} spaces={spaces} today={today}
+              onToggle={onToggleDated} onOpen={onOpenDated} />
+          ))}
+        </section>
+
+        <section className="mt-sec">
+          <div className="mt-sec-h">
+            <b>마감 미지정 할 일</b>
+            <span>{todos.length}건</span>
+          </div>
+          {todos.length === 0 && (
+            <div className="mt-empty sm">{query ? '검색 결과가 없습니다' : '담아 둔 할 일이 없습니다'}</div>
+          )}
+          {groups.map(g => (
+            <section className="mt-group" key={g.key}>
+              {g.head && (
+                <button className={`mt-g-head${fold.has(g.key) ? ' folded' : ''}`}
+                  aria-expanded={!fold.has(g.key)} onClick={() => toggleFold(g.key)}>
+                  {g.color && <i style={{ background: g.color }} />}
+                  <b>{g.name}</b>
+                  <span>{g.left > 0 ? `남은 ${g.left}` : '완료'}</span>
+                  <em>{fold.has(g.key) ? '＋' : '−'}</em>
+                </button>
+              )}
+              {!fold.has(g.key) && g.items.map(t => (
+                <TodoRow key={t.id} t={t} spaces={spaces} showSpace={!g.head} me={me}
+                  onToggle={onToggle} onRemove={onRemove} />
+              ))}
+            </section>
+          ))}
+        </section>
       </div>
       <div className="mt-tp-hint">여기에 놓으면 날짜 지정이 없어집니다</div>
       <div className="mt-tp-foot">눌러서 메모와 이미지를 남기고, 캘린더로 끌어다 놓으면 개인 일정이 됩니다<br />
@@ -831,6 +879,31 @@ function AddHint({ draft }) {
       <b>{fmtK(p.date)}{p.time ? ` ${p.time}` : ' 종일'}</b>
       {p.dur && p.time && <span>{fmtDur(p.dur)}</span>}
       {p.tag && <span>스페이스 {p.tag}</span>}
+    </div>
+  )
+}
+
+/* 날짜 지정된 할 일 한 줄 — 언제인지가 주인공이라 날짜를 앞에 세운다.
+   완료하면 취소선 (캘린더 칩과 같은 표기) */
+function DatedRow({ e, spaces, today, onToggle, onOpen }) {
+  const sp = spaces.find(x => x.id === e.spaceId)
+  const past = e.date < today
+  const isToday = e.date === today
+  return (
+    <div className={`mt-dated${e.done ? ' done' : ''}${isToday ? ' today' : ''}`}>
+      <button type="button" className={`mt-box${e.done ? ' on' : ''}`}
+        role="checkbox" aria-checked={e.done} aria-label={`${e.title} 완료`}
+        onClick={() => onToggle(e)} />
+      <button className="mt-dated-b" onClick={() => onOpen(e.id)}>
+        <span className="mt-dated-t" title={e.title}>{e.title}</span>
+        <span className="mt-dated-m">
+          {sp && <i style={{ background: sp.color }} />}
+          <em className={past && !e.done ? 'past' : ''}>
+            {isToday ? '오늘' : fmtK(e.date)}{e.time ? ` ${e.time}` : ''}
+          </em>
+          {e.linkedId && <b>팀</b>}
+        </span>
+      </button>
     </div>
   )
 }
@@ -897,11 +970,13 @@ function CalTop({ view, setView, cursor, setCursor, cells, wide, onWide, onHelp 
    분류 색을 반투명 배경 + 왼쪽 색선으로 입힌다 ('26.8.8 참고 이미지) — 예전엔 내 일정이
    전부 같은 그린이라 어느 분류인지 칩만 보고는 알 수 없었다. 글자는 잉크로 둬서
    옅은 색 위에서도 읽힌다 */
+export function chipColor(e, spOf) {
+  if (e.kind === 'mine') return spOf(e.spaceId)?.color || '#0B4336'
+  return LAYER_COLOR[e.kind] || '#9BA8C4'
+}
+
 function Chip({ e, clash, slot, idx, n, top, height, spOf, me }) {
-  const sp = e.kind === 'mine' ? spOf(e.spaceId) : null
-  const color = e.kind === 'mine'
-    ? (sp?.color || '#0B4336')
-    : (LAYER_COLOR[e.kind] || '#9BA8C4')
+  const color = chipColor(e, spOf)
   const got = e.kind === 'mine' && e.owner && me && e.owner !== me
   const range = timeLabel(e.time, e.dur)
   const label = `${range ? `${range} ` : ''}${e.title}`
@@ -917,7 +992,7 @@ function Chip({ e, clash, slot, idx, n, top, height, spOf, me }) {
   /* 30분짜리는 두 줄이 안 들어간다 — 제목만 남기고 시각은 title 속성으로 */
   const roomy = !slot || height >= 34
   return (
-    <div className={`mt-ev ${e.kind === 'mine' ? 'mine' : `bg ${e.kind}`}${clash ? ' clash' : ''}${got ? ' got' : ''}${e.span === 'mid' || e.span === 'end' ? ' cont' : ''}`}
+    <div className={`mt-ev ${e.kind === 'mine' ? 'mine' : `bg ${e.kind}`}${clash ? ' clash' : ''}${got ? ' got' : ''}${e.done ? ' done' : ''}${e.span === 'mid' || e.span === 'end' ? ' cont' : ''}`}
       data-ev={e.kind === 'mine' && !got ? e.id : undefined}
       data-open={e.kind === 'mine' ? e.id : undefined}
       style={style} title={label}>
@@ -935,7 +1010,7 @@ function Chip({ e, clash, slot, idx, n, top, height, spOf, me }) {
 }
 
 /* ── 월간 ── */
-const MonthView = React.memo(function MonthView({ cells, byDay, today, clashIds, spOf, closedDays, me, onDay }) {
+const MonthView = React.memo(function MonthView({ cells, byDay, today, clashIds, spOf, closedDays, me, onDay, compact }) {
   return (
     <div className="mt-grid">
       {DOW.map(d => <div key={d} className="mt-dow">{d}</div>)}
@@ -950,16 +1025,30 @@ const MonthView = React.memo(function MonthView({ cells, byDay, today, clashIds,
               onClick={() => onDay(c.iso)} aria-label={`${c.day}일 시간별로 보기`}>{c.day}</button>
             {hol && <span className="mt-tag">{hol}</span>}
             {closed && <span className="mt-tag closed">{closed}</span>}
-            <div className="mt-evs">
-              {list.slice(0, MONTH_MAX).map(e => (
-                <Chip key={e.id} e={e} clash={clashIds.has(e.id)} spOf={spOf} me={me} />
-              ))}
-              {over > 0 && (
-                <button className="mt-more" onClick={() => onDay(c.iso)}>{over}건 더 보기</button>
+            {compact
+              ? (
+                <button className="mt-dots" onClick={() => onDay(c.iso)}
+                  aria-label={`${c.day}일 일정 ${list.length}건 보기`}>
+                  {list.slice(0, 6).map(e => (
+                    <i key={e.id} className={e.done ? 'done' : undefined}
+                      style={{ background: chipColor(e, spOf) }} />
+                  ))}
+                </button>
+              )
+              : (
+                <div className="mt-evs">
+                  {list.slice(0, MONTH_MAX).map(e => (
+                    <Chip key={e.id} e={e} clash={clashIds.has(e.id)} spOf={spOf} me={me} />
+                  ))}
+                  {over > 0 && (
+                    <button className="mt-more" onClick={() => onDay(c.iso)}>{over}건 더 보기</button>
+                  )}
+                </div>
               )}
-            </div>
             {/* 빈 자리를 눌러 그 날짜로 바로 등록 — 예전엔 할 일을 먼저 만들어 끌어야만 했다 */}
-            <button className="mt-cell-add" data-new={c.iso} aria-label={`${c.day}일에 일정 등록`}>＋</button>
+            {!compact && (
+              <button className="mt-cell-add" data-new={c.iso} aria-label={`${c.day}일에 일정 등록`}>＋</button>
+            )}
           </div>
         )
       })}
@@ -1467,7 +1556,7 @@ function TodoSheet({ td, spaces, me, today, onClose, onPatch, onToggle, onDelete
 }
 
 /* ── 일정 상세 시트 ── */
-function EventSheet({ ev, spaces, me, onClose, onPatch, onLink, onUnschedule, onDelete }) {
+function EventSheet({ ev, spaces, me, onClose, onPatch, onLink, onUnschedule, onDelete, onToggleDone }) {
   const [delArm, setDelArm] = useState(false)
   const [title, setTitle] = useState(ev.title)
   useEffect(() => setTitle(ev.title), [ev.title])
@@ -1481,7 +1570,11 @@ function EventSheet({ ev, spaces, me, onClose, onPatch, onLink, onUnschedule, on
   return (
     <ModalShell onClose={onClose} className="mt-sheet">
       <div className="mt-sh-title">
-        <input className="mt-sh-name" value={title} readOnly={ro} aria-label="제목"
+        <button className={`mt-box${ev.done ? ' on' : ''}`} role="checkbox" aria-checked={ev.done}
+          disabled={ro} onClick={() => !ro && onToggleDone(ev)}
+          aria-label={ev.done ? '완료 해제' : '완료 처리'} />
+        <input className={`mt-sh-name${ev.done ? ' done' : ''}`} value={title} readOnly={ro}
+          aria-label="제목"
           onChange={e => setTitle(e.target.value)} onBlur={saveTitle}
           onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) e.target.blur() }} />
       </div>

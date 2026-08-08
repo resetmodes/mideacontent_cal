@@ -2438,6 +2438,33 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-add-pop i.none{border:1.5px dashed var(--g300);}
 
 
+/* 두 갈래 목록 ('26.8.8 사용자 지시) — 날짜를 정한 것과 아직 안 정한 것을 나눈다.
+   캘린더로 끌어다 놓아도 목록에서 사라지지 않고 위 묶음으로 옮겨갈 뿐이다 */
+.mt-sec{margin-bottom:14px;}
+.mt-sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+  padding:0 2px 7px;margin-bottom:5px;border-bottom:1px solid var(--g100);}
+.mt-sec-h b{font-size:12.5px;font-weight:800;color:var(--ink);letter-spacing:-.01em;}
+.mt-sec-h span{font-size:11px;font-weight:700;color:var(--g400);font-variant-numeric:tabular-nums;}
+
+.mt-dated{display:flex;align-items:flex-start;gap:10px;padding:8px 2px;
+  border-bottom:1px solid var(--g100);}
+.mt-dated:last-child{border-bottom:0;}
+.mt-dated.today{background:rgba(143,239,174,.1);border-radius:10px;padding-left:8px;}
+.mt-dated-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;text-align:left;
+  font:inherit;border:0;background:none;cursor:pointer;padding:0;}
+.mt-dated-t{font-size:13.5px;font-weight:600;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mt-dated-m{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g500);}
+.mt-dated-m i{width:7px;height:7px;border-radius:50%;flex:none;display:block;}
+.mt-dated-m em{font-style:normal;font-weight:700;font-variant-numeric:tabular-nums;}
+.mt-dated-m em.past{color:var(--red);}
+.mt-dated-m b{font-size:9px;font-weight:800;background:rgba(19,32,25,.08);
+  border-radius:5px;padding:1px 5px;color:var(--g600);}
+/* 완료 — 취소선 (캘린더 칩과 같은 표기) */
+.mt-dated.done .mt-dated-t{text-decoration:line-through;color:var(--g400);}
+.mt-dated.done{opacity:.72;}
+
+
 /* 주간 시간 격자 ('26.8.8 재작업)
    ★ 칩은 "시각 칸"이 아니라 요일 열(.mt-wg-col) 위에 절대 배치한다. 예전처럼 시각 칸
    안에 두면 1시간을 넘는 칩이 아래 칸을 침범하는데, 아래 칸이 DOM 순서상 뒤라 위에
@@ -2530,6 +2557,9 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 /* 공유받은 남의 일정 — 내 것과 같은 색이면 구분이 안 되고, 끌면 권한 오류로 끝난다 */
 .mt-ev.mine.got{cursor:pointer;font-style:italic;}
 .mt-ev.bg.cont{opacity:.5;}
+/* 완료한 일정 — 참고 이미지처럼 취소선과 흐리게 ('26.8.8 사용자 지시) */
+.mt-ev.done{opacity:.6;}
+.mt-ev.done .mt-ev-n{text-decoration:line-through;}
 /* 월간 셀은 한 줄로 눌러 담는다 (세로 공간이 좁다) */
 .mt-cell .mt-ev{flex-direction:row;align-items:baseline;gap:5px;position:relative;}
 .mt-cell .mt-ev .mt-ev-t{flex:none;font-size:9.5px;order:-1;}
@@ -2700,7 +2730,19 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-todo-list{max-height:min(52vh,560px);overflow-y:auto;overscroll-behavior:contain;
   margin-right:-6px;padding-right:6px;}
 
+/* 폰 전환 세그 — 할 일과 캘린더를 한 화면에 같이 못 놓으므로 하나씩 본다.
+   데스크톱에서는 숨긴다 (둘 다 보이므로 필요 없다) */
+.mt-mseg{display:none;}
 @media (max-width:1000px){
+  .mt-mseg{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;padding:4px;
+    background:var(--glass);border:1px solid var(--glass-border);border-radius:20px;
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
+  .mt-mseg button{font:inherit;font-size:13.5px;font-weight:700;padding:10px;border:0;
+    border-radius:16px;background:none;color:var(--g500);cursor:pointer;}
+  .mt-mseg button.on{background:rgba(255,255,255,.92);color:var(--green);
+    box-shadow:0 2px 8px rgba(11,67,54,.1);}
+  .mt-cols.m-todos .mt-cal{display:none;}
+  .mt-cols.m-cal .mt-todos,.mt-cols.wide.m-cal .mt-todos{display:none;}
   .mt-cols,.mt-cols.wide{grid-template-columns:1fr;}
   .mt-cols.wide .mt-todos{display:block;}
   .mt-todos{position:static;}
@@ -2725,8 +2767,28 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-cols>*{min-width:0;}
 /* 안전망 — 그래도 넘치면 격자만 가로로 굴린다 (본문 전체가 밀리지 않게) */
 .mt-gwrap{overflow-x:auto;}
+/* 폰 월간 — 셀에 글자 대신 색점 (7열 × 47px에는 제목이 두세 글자밖에 안 들어간다).
+   날짜를 누르면 그 주의 시간별 화면으로 넘어간다 */
+@media (max-width:700px){
+  .mt-grid{min-width:0;}
+  .mt-cell{min-height:62px;padding:5px 3px;}
+  .mt-dots{display:flex;flex-wrap:wrap;align-content:flex-start;gap:3px;width:100%;
+    margin-top:4px;padding:2px;border:0;background:none;cursor:pointer;min-height:20px;}
+  .mt-dots i{width:6px;height:6px;border-radius:50%;display:block;flex:none;}
+  .mt-dots i.done{opacity:.35;}
+  .mt-tag{display:none;}
+  .mt-cell.closed::after,.mt-cell.hol::after{content:'';position:absolute;left:4px;bottom:4px;
+    width:4px;height:4px;border-radius:50%;background:var(--red);opacity:.55;}
+  .mt-dnum{font-size:12px;}
+  /* 폰에서는 세그가 이미 패널을 감추므로 "크게 보기"가 할 일이 없다 */
+  .mt-wide{display:none;}
+  .mt-caltop{gap:8px;}
+  .mt-todaybox{padding:9px 4px;}
+  .mt-tb-i b{font-size:15px;}
+  .mytask .cal-desc{font-size:12.5px;}
+}
 @media (max-width:640px){
-  .mt-grid,.mt-wgrid{min-width:520px;}
+  .mt-wgrid{min-width:520px;}
   .mt-cell{min-height:84px;}
   .mt-todaybox{grid-template-columns:repeat(3,1fr);}
   .mt-keys{grid-template-columns:1fr;}

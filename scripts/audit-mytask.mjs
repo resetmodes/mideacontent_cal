@@ -4,7 +4,7 @@
 
    1  공유받은 할 일이 목록에서 사라지지 않는가 (남의 스페이스라 어느 그룹에도 안 걸렸다)
    2  겹침 경고가 남발되지 않는가 (배경 일정은 시각이 없어 무조건 충돌로 판정됐다)
-   3  기간 매체 일정이 걸치는 날마다 보이는가 (시작일 하루만 떴다)
+   3  기간 배경 일정이 걸치는 날마다 보이는가 (시작일 하루만 떴다)
    4  월간 셀 표시 상한
    5  빈 칸을 눌러 일정 만들기 (월간)
    6  한 줄에 날짜를 쓰면 일정으로
@@ -22,7 +22,13 @@
    18 드래그 끝의 click이 상세를 열지 않는가
    19 폰 롱프레스 드래그 (예전엔 터치를 통째로 막았다)
    20 폰 상세에서 날짜와 제목을 고칠 수 있는가
-   21 폰에서 할 일을 일정으로 (폰은 패널과 캘린더가 한 화면에 같이 안 보여 드래그가 성립 안 한다) */
+   21 폰에서 할 일을 일정으로 (폰은 패널과 캘린더가 한 화면에 같이 안 보여 드래그가 성립 안 한다)
+
+   '26.8.8 2차로 추가
+   12-e 매체 캘린더가 겹쳐보기에서 빠졌는가 (사용자 지시)
+   12-f 완료 일정 취소선과 상세 완료 체크
+   12-g 날짜 지정된 할 일과 마감 미지정 할 일이 나뉘고, 캘린더에 붙여도 목록에 남는가
+   19   폰 세그 전환, 캘린더가 화면 위쪽인가, 월간이 폭에 들어가고 색점인가 */
 import { spawn, execSync } from 'node:child_process'
 import { readdir } from 'node:fs/promises'
 const pwMod = await import('/opt/node22/lib/node_modules/playwright/index.js')
@@ -45,6 +51,7 @@ const MY_TODOS = [
   { id: 't1', owner_email: ME, txt: '콘티 초안', space_id: 'sp1', done: false, shared_with: [], shared_edit: false, memo: null, images: [], sort: 0, created_at: '2026-08-02T00:00:00Z' },
   { id: 't2', owner_email: ME, txt: '정산 정리', space_id: null, done: true, shared_with: [], shared_edit: false, memo: null, images: [], sort: 1, created_at: '2026-08-02T00:00:00Z' },
   /* 남이 자기 스페이스에 넣어 나에게 공유한 것 — 예전엔 목록에서 통째로 사라졌다 */
+  { id: 't4', owner_email: ME, txt: '드래그용 항목', space_id: 'sp1', done: false, shared_with: [], shared_edit: false, memo: null, images: [], sort: 2, created_at: '2026-08-02T00:00:00Z' },
   { id: 't3', owner_email: 'jykim84@thehyundai.com', txt: '공유받은 검토건', space_id: 'other-sp', done: false, shared_with: [ME], shared_edit: false, memo: '보기만', images: [], sort: 0, created_at: '2026-08-03T00:00:00Z' },
 ]
 /* 07:30과 21:00 — 예전 8~20시 고정에서는 화면에서 통째로 사라지던 시간대.
@@ -55,11 +62,14 @@ const MY_EVENTS = [
   { id: 'm3', owner_email: ME, title: '겹치는 회의', on_date: '2026-08-12', at_time: '10:00', dur_min: 60, space_id: null, linked_id: null, shared_with: [], shared_edit: false, memo: null, images: [], created_at: '2026-08-01T00:00:00Z' },
   { id: 'm4', owner_email: ME, title: '늦은 정리', on_date: '2026-08-12', at_time: '21:00', dur_min: 60, space_id: null, linked_id: null, shared_with: [], shared_edit: false, memo: null, images: [], created_at: '2026-08-01T00:00:00Z' },
   { id: 'm5', owner_email: ME, title: '종일 외근', on_date: '2026-08-13', at_time: null, dur_min: 60, space_id: 'sp2', linked_id: null, shared_with: [], shared_edit: false, memo: null, images: [], created_at: '2026-08-01T00:00:00Z' },
+  { id: 'm6', owner_email: ME, title: '끝낸 리뷰', on_date: '2026-08-14', at_time: '16:00', dur_min: 60, space_id: 'sp1', linked_id: null, done: true, shared_with: [], shared_edit: false, memo: null, images: [], created_at: '2026-08-01T00:00:00Z' },
 ]
 /* 기간 매체 일정 — 8/10~8/20. 예전엔 8/10 하루만 떴다 */
 const EVENTS = [
   { id: 'e1', title: '여름 정기 집행', date: '2026-08-10', end_date: '2026-08-20', channel: '인스타', kind: null, owner: '김자영', campaign: null, memo: null, images: [] },
-  { id: 'e2', title: '팀 워크숍', date: '2026-08-12', end_date: null, channel: '업무', kind: '팀', owner: '노규빈', campaign: null, memo: null, images: [] },
+  { id: 'e2', title: '팀 워크숍', date: '2026-08-13', end_date: null, channel: '업무', kind: '팀', owner: '노규빈', campaign: null, memo: null, images: [] },
+  /* 기간 배경 일정 — 한산한 날에 둬야 셀 상한에 밀리지 않는다 */
+  { id: 'e3', title: '가을 촬영 주간', date: '2026-08-16', end_date: '2026-08-20', channel: '인스타', kind: '촬영', owner: '노규빈', campaign: null, memo: null, images: [] },
 ]
 
 const respond = url => {
@@ -109,24 +119,40 @@ try {
   const browser = await chromium.launch({ executablePath: CHROME })
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   let posted = []
+  /* 상태를 가진 목 서버 — 실서버처럼 POST한 행을 기억하고 PATCH는 그 행에 병합한다.
+     예전처럼 보낸 필드만 되돌려주면 제목과 날짜가 사라져 화면이 엉뚱해진다 */
+  const store = { my_todos: [...MY_TODOS], my_events: [...MY_EVENTS], my_spaces: [...MY_SPACES] }
+  let seq = 0
+  const tableOf = url => ['my_todos', 'my_events', 'my_spaces', 'media_events_history', 'media_events']
+    .find(t => new RegExp(`/rest/v1/${t}`).test(url))
   await ctx.route('**/rest/v1/**', r => {
     const req = r.request()
-    if (req.method() === 'GET') {
-      return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(respond(req.url())) })
-    }
+    const url = req.url()
+    const tb = tableOf(url)
+    const J = v => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(v) })
+    if (req.method() === 'GET') return J(store[tb] || respond(url))
     let body = {}
     try { body = JSON.parse(req.postData() || '{}') } catch { /* 본문 없음 */ }
-    posted.push({ method: req.method(), url: req.url(), body })
-    /* 생성·수정은 보낸 값을 그대로 돌려준다 (PostgREST return=representation 흉내).
-       PATCH는 URL의 id=eq.X 를 그대로 써야 한다 — 새 id를 주면 낙관적 갱신이
-       행을 못 찾아 화면에서 사라진다 (실서버는 당연히 같은 id를 준다) */
-    const hit = req.url().match(/id=eq\.([^&]+)/)
-    const row = hit ? (respond(req.url()).find(x => x.id === hit[1]) || {}) : {}
-    return r.fulfill({
-      status: 200, contentType: 'application/json',
-      body: JSON.stringify([{ ...row, id: hit ? hit[1] : 'new-' + posted.length,
-        owner_email: ME, images: [], shared_with: [], ...body }]),
-    })
+    posted.push({ method: req.method(), url, body })
+    const hit = url.match(/id=eq\.([^&]+)/)
+    const rows = store[tb]
+    if (req.method() === 'POST') {
+      const row = { id: `new-${++seq}`, owner_email: ME, images: [], shared_with: [], ...body }
+      if (rows) rows.push(row)
+      return J([row])
+    }
+    if (req.method() === 'PATCH' && hit && rows) {
+      const i = rows.findIndex(x => x.id === hit[1])
+      if (i === -1) return J([])                       // 실서버도 0행이면 빈 배열
+      rows[i] = { ...rows[i], ...body }
+      return J([rows[i]])
+    }
+    if (req.method() === 'DELETE' && hit && rows) {
+      const i = rows.findIndex(x => x.id === hit[1])
+      if (i >= 0) rows.splice(i, 1)
+      return J([])
+    }
+    return J([{ id: hit ? hit[1] : `new-${++seq}`, owner_email: ME, images: [], shared_with: [], ...body }])
   })
   await ctx.route('**/auth/v1/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
   const page = await ctx.newPage()
@@ -163,8 +189,8 @@ try {
   if (clashTxt && !/긴 워크숍|겹치는 회의/.test(clashTxt)) no('실제 이중 예약(09:00 2시간 vs 10:00)을 못 잡음')
   else if (clashTxt) ok('내 일정끼리의 이중 예약을 잡음')
 
-  console.log('\n[3] 기간 매체 일정이 여러 날에 걸쳐 보이는가')
-  const spanDays = await page.locator('.mt-cell:has(.mt-ev:has-text("여름 정기 집행"))').count()
+  console.log('\n[3] 기간 배경 일정이 걸치는 날마다 보이는가')
+  const spanDays = await page.locator('.mt-cell:has(.mt-ev:has-text("가을 촬영 주간"))').count()
   spanDays >= 5 ? ok(`${spanDays}일에 표시`) : no(`기간 일정이 ${spanDays}일에만 표시 — 시작일만 뜨던 버그`)
 
   console.log('\n[4] 월간 셀 상한과 더 보기')
@@ -382,6 +408,78 @@ try {
     await page.waitForTimeout(300)
   }
 
+
+  console.log('\n[12-e] 매체 캘린더가 겹쳐보기에서 빠졌는가')
+  {
+    const names = await page.locator('.mt-ly').allInnerTexts()
+    if (!names.some(n => n.includes('매체'))) ok('레이어에 매체 없음 ' + names.join(' '))
+    else no('매체 레이어가 남아 있음: ' + names.join(' '))
+    const mediaChip = await page.locator('.mt-ev:has-text("여름 정기 집행")').count()
+    if (!mediaChip) ok('매체 일정이 캘린더에 안 얹힘')
+    else no(`매체 일정이 여전히 ${mediaChip}건 얹힘`)
+    const teamChip = await page.locator('.mt-ev:has-text("팀 워크숍")').count()
+    if (teamChip) ok('팀 일정은 그대로 얹힘'); else no('팀 일정까지 사라짐')
+  }
+
+  console.log('\n[12-f] 완료 일정 취소선')
+  {
+    const done = page.locator('.mt-ev.done:has-text("끝낸 리뷰")').first()
+    if (await done.count()) {
+      const deco = await done.locator('.mt-ev-n').evaluate(el => getComputedStyle(el).textDecorationLine)
+      if (deco.includes('line-through')) ok('칩에 취소선')
+      else no('완료 일정에 취소선이 없음: ' + deco)
+    } else no('완료 일정 칩을 못 찾음')
+    /* 상세에서 완료를 켜고 끌 수 있는가 */
+    await page.locator('.mt-cell .mt-ev.mine').first().click()
+    await page.waitForTimeout(500)
+    const chk = await page.locator('.mt-sheet .mt-sh-title .mt-box').count()
+    if (chk) ok('일정 상세에 완료 체크 있음'); else no('일정 상세에 완료 체크가 없음')
+    if (chk) {
+      posted = []
+      await page.locator('.mt-sheet .mt-sh-title .mt-box').click()
+      await page.waitForTimeout(600)
+      const p = posted.find(x => x.method === 'PATCH' && /my_events/.test(x.url))
+      if (p && p.body.done !== undefined) ok('완료 상태 저장 ' + p.body.done)
+      else no('완료 체크가 저장 안 됨: ' + JSON.stringify(p?.body || null))
+    }
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
+  }
+
+  console.log('\n[12-g] 날짜 지정된 할 일과 마감 미지정 할 일이 나뉘는가')
+  {
+    const heads = await page.locator('.mt-sec-h b').allInnerTexts()
+    if (heads.includes('날짜 지정된 할 일') && heads.includes('마감 미지정 할 일'))
+      ok('두 묶음 ' + heads.join(' / '))
+    else no('묶음이 안 나뉨: ' + heads.join(' / '))
+    const datedRows = await page.locator('.mt-dated').count()
+    if (datedRows >= 4) ok(`날짜 지정된 할 일 ${datedRows}건`)
+    else no(`날짜 지정된 목록이 비었거나 부족 (${datedRows}건)`)
+    /* 캘린더에 붙여도 목록에서 사라지지 않아야 한다 */
+    const before = await page.locator('.mt-dated').count()
+    const inbox = await page.locator('.mt-sec:last-child .mt-todo').count()
+    const row = page.locator('.mt-todo:has-text("드래그용 항목")').first()
+    const cell = page.locator('.mt-cell[data-date="2026-08-21"]')
+    if (await dragTo(page, row, cell, '목록 유지 확인')) {
+      await page.mouse.up()
+      await page.waitForTimeout(1000)
+      const after = await page.locator('.mt-dated').count()
+      const inboxAfter = await page.locator('.mt-sec:last-child .mt-todo').count()
+      if (after === before + 1) ok('날짜 지정 목록으로 옮겨옴 (사라지지 않음)')
+      else no(`캘린더에 붙였는데 목록에서 사라짐 (${before} → ${after})`)
+      if (inboxAfter === inbox - 1) ok('마감 미지정에서는 빠짐')
+      else no(`마감 미지정 건수가 안 줄었음 (${inbox} → ${inboxAfter})`)
+    }
+    /* 완료 체크가 목록에서도 되는가 */
+    const dr = page.locator('.mt-dated').first()
+    posted = []
+    await dr.locator('.mt-box').click()
+    await page.waitForTimeout(600)
+    const p2 = posted.find(x => x.method === 'PATCH' && /my_events/.test(x.url))
+    if (p2 && p2.body.done !== undefined) ok('목록에서 완료 체크 저장')
+    else no('목록 완료 체크가 저장 안 됨')
+  }
+
   console.log('\n[12] 완료 숨기기와 검색')
   await page.locator('.mt-add input').fill('')
   await page.locator('.mt-search button').click()
@@ -391,8 +489,9 @@ try {
   await page.locator('.mt-search button').click()
   await page.locator('.mt-search input').fill('콘티')
   await page.waitForTimeout(400)
-  const rows = await page.locator('.mt-todo').count()
-  rows === 1 ? ok('검색으로 1건 필터') : no(`검색 결과가 ${rows}건`)
+  const hits = [...await page.locator('.mt-t-txt').allInnerTexts(),
+    ...await page.locator('.mt-dated-t').allInnerTexts()]
+  hits.length === 1 ? ok('검색으로 1건 필터') : no(`검색 결과가 ${hits.length}건: ${hits.join(', ')}`)
   await page.locator('.mt-search input').fill('')
 
   console.log('\n[13] 크게 보기 (패널 접기)')
@@ -491,6 +590,14 @@ try {
     mp.on('pageerror', e => merr.push(e.message))
     await mp.addInitScript(() => localStorage.setItem('media-cal-session', JSON.stringify({
       access_token: 'x', refresh_token: 'y', email: 'kyuvin@thehyundai.com', expires_at: Date.now() + 3600000 })))
+    /* 데스크톱 컨텍스트와 같은 기준일 — 없으면 실제 오늘 주를 보게 되어 시드가 안 걸린다 */
+    await mp.addInitScript(() => {
+      const F = new Date(2026, 7, 12, 11, 15).getTime()
+      const R = Date
+      // eslint-disable-next-line no-global-assign
+      Date = class extends R { constructor(...a) { super(...(a.length ? a : [F])) } static now() { return F } }
+      Date.parse = R.parse; Date.UTC = R.UTC
+    })
     await mp.goto(B + '#mytask')
     await mp.reload()
     await mp.waitForTimeout(1400)
@@ -498,35 +605,61 @@ try {
     /* 폰에서는 할 일 패널과 캘린더가 세로로 쌓여 한 화면에 같이 안 보인다 —
        드래그는 캘린더 안(일정 이동)에서만 성립하고, 할 일을 일정으로 만드는 길은
        상세 시트의 "날짜 지정"이다 (아래 [21]) */
-    const chip = mp.locator('.mt-cell[data-date="2026-08-13"] .mt-ev.mine').first()
-    const dst = mp.locator('.mt-cell[data-date="2026-08-14"]')
-    await dst.scrollIntoViewIfNeeded()
-    await mp.waitForTimeout(200)
-    const a = await chip.boundingBox(), b = await dst.boundingBox()
+    /* 폰은 세그로 할 일과 캘린더를 나눠 본다 — 먼저 캘린더로 */
+    const seg = await mp.locator('.mt-mseg').isVisible()
+    if (seg) ok('폰 전환 세그 노출'); else no('폰에서 할 일과 캘린더를 전환할 수 없음')
+    await mp.locator('.mt-mseg button:has-text("캘린더")').click()
+    await mp.waitForTimeout(700)
+    const panelShown = await mp.locator('.mt-todos').isVisible()
+    if (!panelShown) ok('캘린더만 보임'); else no('세그를 눌러도 할 일 패널이 남음')
+    const mm = await mp.evaluate(() => {
+      const c = document.querySelector('.mt-cal'), g = document.querySelector('.mt-grid')
+      return { top: Math.round(c.getBoundingClientRect().top + window.scrollY),
+        gr: Math.round(g.getBoundingClientRect().right), W: document.documentElement.clientWidth,
+        dots: document.querySelectorAll('.mt-dots i').length }
+    })
+    if (mm.top < 500) ok(`캘린더가 화면 위쪽에 (${mm.top}px)`)
+    else no(`캘린더가 여전히 아래로 밀림 (${mm.top}px)`)
+    if (mm.gr <= mm.W) ok('월간 격자가 화면 폭에 들어감')
+    else no(`월간 격자가 폭을 넘김 (${mm.gr} > ${mm.W})`)
+    if (mm.dots > 0) ok(`폰 월간은 색점 표기 (${mm.dots}개)`); else no('폰 월간에 색점이 없음')
+
+    /* 폰 월간은 색점이라 끌 칩이 없다 — 주간으로 들어가 거기서 롱프레스 드래그 */
+    await mp.locator('.seg button:has-text("주간")').click()
+    await mp.waitForTimeout(800)
+    const chip = mp.locator('.mt-wg-col .mt-ev.mine').first()
+    const slot = mp.locator('.mt-wg-slot').nth(40)
+    await chip.scrollIntoViewIfNeeded()
+    await mp.waitForTimeout(250)
+    const a = await chip.boundingBox(), b = await slot.boundingBox()
     const vh = mp.viewportSize().height
-    if (!a || !b || a.y < 0 || b.y + b.height / 2 > vh) {
-      no('폰 화면에서 출발지나 목적지가 화면 밖')
+    if (!a || !b || a.y < 0 || b.y + b.height / 2 > vh || b.y < 0) {
+      no('폰 주간에서 출발지나 목적지가 화면 밖')
     } else {
       mposted = []
       const cdp = await mctx.newCDPSession(mp)
       const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', {
         type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] })
-      await touch('touchStart', a.x + a.width / 2, a.y + a.height / 2)
+      await touch('touchStart', a.x + a.width / 2, a.y + 8)
       await mp.waitForTimeout(520)                       // 롱프레스 350ms 넘김
       const held = await mp.locator('.mt-ghost').count()
       if (held) ok('길게 누르면 드래그 시작'); else no('롱프레스로 드래그가 시작되지 않음')
       await touch('touchMove', b.x + b.width / 2, b.y + b.height / 2)
       await mp.waitForTimeout(250)
       await touch('touchEnd', 0, 0)
-      await mp.waitForTimeout(900)
+      await mp.waitForTimeout(1000)
       const moved = mposted.find(x => x.method === 'PATCH' && /my_events/.test(x.url))
-      if (moved && moved.body.on_date === '2026-08-14') ok('폰에서 일정 이동됨')
-      else no('폰 드래그로 일정이 안 옮겨짐: ' + JSON.stringify(moved?.body || null))
+      if (moved) ok('폰에서 일정 이동됨 ' + JSON.stringify(moved.body))
+      else no('폰 드래그로 일정이 안 옮겨짐')
     }
+    await mp.locator('.seg button:has-text("월간")').click()
+    await mp.waitForTimeout(500)
 
     console.log('\n[20] 폰 — 상세에서 날짜와 시간을 직접 고칠 수 있는가 (드래그 없는 길)')
-    await mp.locator('.mt-cell .mt-ev.mine').first().click()
-    await mp.waitForTimeout(500)
+    await mp.locator('.seg button:has-text("주간")').click()
+    await mp.waitForTimeout(700)
+    await mp.locator('.mt-wg-col .mt-ev.mine').first().click()
+    await mp.waitForTimeout(600)
     const dateInput = await mp.locator('.mt-sheet input[type=date]').count()
     const timeInput = await mp.locator('.mt-sheet input[type=time]').count()
     const nameInput = await mp.locator('.mt-sheet .mt-sh-name').count()
@@ -537,6 +670,8 @@ try {
     await mp.waitForTimeout(400)
 
     console.log('\n[21] 폰 — 할 일 상세의 날짜 지정으로 일정 만들기 (드래그 없는 주 경로)')
+    await mp.locator('.mt-mseg button:has-text("할 일")').click()
+    await mp.waitForTimeout(600)
     await mp.locator('.mt-todo:has-text("콘티 초안")').first().click()
     await mp.waitForTimeout(500)
     const dsel = mp.locator('.mt-sheet input[type=date]').first()

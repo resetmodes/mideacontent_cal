@@ -110,6 +110,7 @@ export async function deleteTodo(id) {
 const evFrom = r => ({
   id: r.id, title: r.title, date: r.on_date, time: r.at_time || null,
   dur: r.dur_min ?? 60, spaceId: r.space_id, linkedId: r.linked_id || null,
+  done: !!r.done,
   shared: r.shared_with || [], sharedEdit: !!r.shared_edit,
   memo: r.memo || '', images: r.images || [], owner: r.owner_email,
 })
@@ -122,11 +123,13 @@ export async function listMyEvents() {
     return Array.isArray(rows) ? rows.map(evFrom) : null
   } catch { return null }
 }
-export async function createMyEvent({ title, date, time = null, dur = 60, spaceId = null, shared = [], memo = null, images = null }) {
+export async function createMyEvent({ title, date, time = null, dur = 60, spaceId = null, shared = [], memo = null, images = null, done = false }) {
   const body = {
     owner_email: myEmail(), title, on_date: date, at_time: time,
     dur_min: dur, space_id: spaceId, shared_with: shared,
   }
+  /* done은 값이 있을 때만 — 컬럼 미추가 환경에서 신규 등록까지 막히지 않게 */
+  if (done) body.done = true
   if (memo) body.memo = memo
   if (images?.length) body.images = images
   const res = await req(api('my_events'), { method: 'POST', headers: REP, body: JSON.stringify(body) })
@@ -140,6 +143,7 @@ export async function updateMyEvent(id, patch) {
   if (patch.dur !== undefined) body.dur_min = patch.dur
   if (patch.spaceId !== undefined) body.space_id = patch.spaceId
   if (patch.linkedId !== undefined) body.linked_id = patch.linkedId
+  if (patch.done !== undefined) body.done = patch.done
   if (patch.shared !== undefined) body.shared_with = patch.shared
   if (patch.sharedEdit !== undefined) body.shared_edit = patch.sharedEdit
   if (patch.memo !== undefined) body.memo = patch.memo
