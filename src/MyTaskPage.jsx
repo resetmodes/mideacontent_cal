@@ -978,8 +978,10 @@ export function chipColor(e, spOf) {
 function Chip({ e, clash, slot, idx, n, top, height, spOf, me }) {
   const color = chipColor(e, spOf)
   const got = e.kind === 'mine' && e.owner && me && e.owner !== me
-  const range = timeLabel(e.time, e.dur)
-  const label = `${range ? `${range} ` : ''}${e.title}`
+  /* 주간은 범위까지, 월간은 시작 시각만 — 월간 셀에 범위를 넣으면 제목이
+     폭 0으로 밀려 통째로 안 보인다 ('26.8.8 실측) */
+  const range = slot ? timeLabel(e.time, e.dur) : (e.time || '')
+  const label = `${e.time ? `${timeLabel(e.time, e.dur)} ` : ''}${e.title}`
   const style = {
     background: tint(color, e.kind === 'mine' ? 0.15 : 0.08),
     borderLeft: `3px solid ${e.kind === 'mine' ? color : tint(color, 0.55)}`,

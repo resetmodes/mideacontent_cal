@@ -2351,7 +2351,7 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-todo:hover .mt-t-x{opacity:1;}
 .mt-todo.dragging{opacity:.4;}
 .mt-todo.done .mt-t-txt{color:var(--g400);text-decoration:line-through;}
-.mt-box{width:17px;height:17px;flex:none;margin-top:2px;border:1.6px solid var(--g300);
+.mt-box{position:relative;width:17px;height:17px;flex:none;margin-top:2px;border:1.6px solid var(--g300);
   border-radius:6px;cursor:pointer;background:#fff;position:relative;}
 .mt-box.on{background:var(--green);border-color:var(--green);}
 .mt-box.on::after{content:"";position:absolute;left:4.5px;top:2px;width:5px;height:9px;
@@ -2562,6 +2562,9 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-ev.done .mt-ev-n{text-decoration:line-through;}
 /* 월간 셀은 한 줄로 눌러 담는다 (세로 공간이 좁다) */
 .mt-cell .mt-ev{flex-direction:row;align-items:baseline;gap:5px;position:relative;}
+/* 제목이 남은 폭을 갖는다 — 시각이 flex:none으로 자리를 먼저 가져가면
+   제목이 폭 0이 되어 통째로 사라진다 ('26.8.8 실측) */
+.mt-cell .mt-ev .mt-ev-n{flex:1 1 auto;min-width:0;padding-right:0;}
 .mt-cell .mt-ev .mt-ev-t{flex:none;font-size:9.5px;order:-1;}
 .mt-cell .mt-ev-marks{position:static;margin-left:auto;}
 .mt-wg-col .mt-ev{position:absolute;z-index:2;}
@@ -2752,7 +2755,12 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
     gap:8px;padding:9px 12px;overflow-x:auto;}
   .mt-rail-top{flex:none;}
   .mt-rail-list{flex-direction:row;gap:6px;}
-  .mt-rail-i,.mt-rail.open .mt-rail-i{padding:6px 11px;white-space:nowrap;}
+  /* ★ 데스크톱의 flex:1이 그대로 남아 있으면 가로 띠에서 첫 항목이 몇 px로
+     뭉개지고 이름과 건수가 겹친다 ('26.8.8 실측) — 내용 너비로 고정한다 */
+  .mt-rail-i,.mt-rail.open .mt-rail-i{flex:none;padding:7px 11px;white-space:nowrap;gap:7px;}
+  .mt-rail-i span,.mt-rail.open .mt-rail-i span{flex:none;overflow:visible;}
+  .mt-rail-w{flex:none;}
+  .mt-rail-list{flex-wrap:nowrap;}
   .mt-rail:not(.open) .mt-rail-i span,.mt-rail:not(.open) .mt-rail-i em{display:inline;}
   .mt-rail:not(.open) .mt-rail-i{justify-content:flex-start;}
   .mt-rail:not(.open) .mt-rail-i i{width:11px;height:11px;border-radius:4px;}
@@ -2769,6 +2777,14 @@ input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus
 .mt-gwrap{overflow-x:auto;}
 /* 폰 월간 — 셀에 글자 대신 색점 (7열 × 47px에는 제목이 두세 글자밖에 안 들어간다).
    날짜를 누르면 그 주의 시간별 화면으로 넘어간다 */
+/* 폰 터치 타깃 — 보이는 크기는 그대로 두고 누를 수 있는 영역만 넓힌다
+   (17px 체크박스와 14px 색점은 손가락으로 누르기 어렵다) */
+@media (max-width:1000px){
+  .mt-box::before,.mt-add-dot::before,.mt-dnum::before{content:'';position:absolute;
+    left:50%;top:50%;transform:translate(-50%,-50%);width:40px;height:40px;}
+  .mt-add-dot,.mt-dnum{position:relative;}
+  .mt-dnum{min-height:26px;display:inline-flex;align-items:center;}
+}
 @media (max-width:700px){
   .mt-grid{min-width:0;}
   .mt-cell{min-height:62px;padding:5px 3px;}

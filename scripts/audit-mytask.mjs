@@ -28,7 +28,9 @@
    12-e 매체 캘린더가 겹쳐보기에서 빠졌는가 (사용자 지시)
    12-f 완료 일정 취소선과 상세 완료 체크
    12-g 날짜 지정된 할 일과 마감 미지정 할 일이 나뉘고, 캘린더에 붙여도 목록에 남는가
-   19   폰 세그 전환, 캘린더가 화면 위쪽인가, 월간이 폭에 들어가고 색점인가 */
+   19   폰 세그 전환, 캘린더가 화면 위쪽인가, 월간이 폭에 들어가고 색점인가
+   14-b, 20-b 레이아웃 위생 — 넘침, 겹침, 글자 잘림을 실측 (모바일 레일이 뭉개지고
+        월간 칩에서 제목이 폭 0으로 사라지던 것을 잡은 검사) */
 import { spawn, execSync } from 'node:child_process'
 import { readdir } from 'node:fs/promises'
 const pwMod = await import('/opt/node22/lib/node_modules/playwright/index.js')
@@ -106,6 +108,64 @@ async function dragTo(page, srcLoc, dstLoc, label) {
   await page.mouse.move(a.x + a.width / 2 + 12, a.y + a.height / 2 + 12, { steps: 3 })
   await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 8 })
   return true
+}
+
+
+/* 레이아웃 위생 검사 ('26.8.8) — 넘침, 겹침, 세로 잘림을 실측한다.
+   모달이 열려 있으면 모달 안만 본다 (뒤 페이지와의 겹침은 당연한 것이라 소음) */
+const LAYOUT_PROBE = `(() => {
+  const W = document.documentElement.clientWidth
+  const out = { over: [], overlap: [], clipped: [], hscroll: document.documentElement.scrollWidth > W + 1 }
+  const cls = e => (e.className || '').toString().split(' ').filter(Boolean).slice(0,2).join('.') || e.tagName.toLowerCase()
+  const vis = e => { const s = getComputedStyle(e); return s.display !== 'none' && s.visibility !== 'hidden' && +s.opacity > 0.05 }
+  const root = document.querySelector('.modal-overlay .modal') || document.querySelector('.mytask')
+  if (!root) return out
+  const all = [...root.querySelectorAll('*')].filter(vis)
+  for (const el of all) {
+    const b = el.getBoundingClientRect()
+    if (!b.width || !b.height) continue
+    if (b.right > W + 1 || b.left < -1) {
+      let a = el, clipped = false
+      while (a && a !== document.body) { if (getComputedStyle(a).overflowX !== 'visible') { clipped = true; break } a = a.parentElement }
+      if (!clipped) out.over.push(cls(el) + ' r=' + Math.round(b.right))
+    }
+    if (el.children.length === 0 && el.textContent.trim()) {
+      const s = getComputedStyle(el)
+      if (s.overflow === 'visible' && el.scrollWidth > el.clientWidth + 2 && s.whiteSpace === 'nowrap')
+        out.clipped.push(cls(el) + ' :: ' + el.textContent.trim().slice(0, 16))
+    }
+  }
+  /* 흐름에 있는 글자 요소만 짝지어 본다 — 토스트나 실행 취소 바처럼 떠 있는 것은
+     내용 위에 겹치는 게 정상이라 조상까지 훑어 제외한다 */
+  const floating = e => {
+    let a = e
+    while (a && a !== document.body) {
+      const p = getComputedStyle(a).position
+      if (p === 'fixed' || p === 'absolute' || p === 'sticky') return true
+      a = a.parentElement
+    }
+    return false
+  }
+  const flow = all.filter(e => e.children.length === 0 && e.textContent.trim() && !floating(e))
+  for (let i = 0; i < flow.length; i++) for (let j = i + 1; j < flow.length; j++) {
+    const A = flow[i], Bv = flow[j]
+    if (A.contains(Bv) || Bv.contains(A)) continue
+    const a = A.getBoundingClientRect(), b = Bv.getBoundingClientRect()
+    if (Math.min(a.right,b.right) - Math.max(a.left,b.left) > 4 && Math.min(a.bottom,b.bottom) - Math.max(a.top,b.top) > 4)
+      out.overlap.push(cls(A) + ' x ' + cls(Bv))
+  }
+  const u = a => [...new Set(a)].slice(0, 5)
+  return { over: u(out.over), overlap: u(out.overlap), clipped: u(out.clipped), hscroll: out.hscroll }
+})()`
+
+async function checkLayout(pg, tag) {
+  const r = await pg.evaluate(LAYOUT_PROBE)
+  let clean = true
+  if (r.hscroll) { no(`${tag} 가로 스크롤`); clean = false }
+  if (r.over.length) { no(`${tag} 넘침 ${r.over.join(' | ')}`); clean = false }
+  if (r.overlap.length) { no(`${tag} 겹침 ${r.overlap.join(' | ')}`); clean = false }
+  if (r.clipped.length) { no(`${tag} 글자 잘림 ${r.clipped.join(' | ')}`); clean = false }
+  if (clean) ok(`${tag} 레이아웃 정상`)
 }
 
 let server = null
@@ -515,6 +575,9 @@ try {
   await ctx.unroute('**/rest/v1/my_todos**')
   await page.waitForTimeout(1800)
 
+  console.log('\n[14-b] 데스크톱 레이아웃 위생')
+  await checkLayout(page, '1440 월간')
+
   console.log('\n[15] JS 오류')
   errs.length ? no('런타임 오류 ' + errs.slice(0, 2).join(' | ')) : ok('런타임 오류 없음')
 
@@ -668,6 +731,17 @@ try {
     if (nameInput) ok('제목 수정 가능'); else no('일정 제목을 상세에서 못 고침')
     await mp.keyboard.press('Escape')
     await mp.waitForTimeout(400)
+
+    console.log('\n[20-b] 폰 레이아웃 위생 — 넘침, 겹침, 잘림')
+    await mp.keyboard.press('Escape')
+    await mp.waitForTimeout(400)
+    await checkLayout(mp, '폰 주간')
+    await mp.locator('.seg button:has-text("월간")').click()
+    await mp.waitForTimeout(600)
+    await checkLayout(mp, '폰 월간')
+    await mp.locator('.mt-mseg button:has-text("할 일")').click()
+    await mp.waitForTimeout(600)
+    await checkLayout(mp, '폰 할 일')
 
     console.log('\n[21] 폰 — 할 일 상세의 날짜 지정으로 일정 만들기 (드래그 없는 주 경로)')
     await mp.locator('.mt-mseg button:has-text("할 일")').click()
